@@ -1,0 +1,56 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parseTokens 1`] = `
+[
+  {
+    "end": 2,
+    "src": "42",
+    "start": 0,
+    "type": "number",
+    "value": 42,
+  },
+  {
+    "end": 10,
+    "src": ""Hello"",
+    "start": 3,
+    "type": "string",
+    "value": "Hello",
+  },
+  {
+    "end": 19,
+    "src": "variable",
+    "start": 11,
+    "type": "identifier",
+  },
+  {
+    "end": 21,
+    "src": "(",
+    "start": 20,
+    "type": "identifier",
+  },
+  {
+    "end": 22,
+    "src": "(",
+    "start": 21,
+    "type": "identifier",
+  },
+  {
+    "end": 26,
+    "src": "expr",
+    "start": 22,
+    "type": "identifier",
+  },
+  {
+    "end": 27,
+    "src": ")",
+    "start": 26,
+    "type": "identifier",
+  },
+  {
+    "end": 28,
+    "src": ")",
+    "start": 27,
+    "type": "identifier",
+  },
+]
+`;

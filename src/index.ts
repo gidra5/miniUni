@@ -1,7 +1,6 @@
 import { program } from "commander";
 import readline from "readline";
-import { stdin as input, stdout as output } from "process";
-import fs from "fs";
+import { stdin as input, stdout as output } from 'process';
 import fsp from 'fs/promises';
 import { evaluateString } from './evaluate';
 
