@@ -1,0 +1,60 @@
+reduce := fn list, reducer, merge, initial {
+  len := length list
+  if len == 0: return initial
+
+  midpoint := floor(len / 2)
+  item := list[midpoint]
+  first, second := all(
+    | (reduce slice(list, 0, midpoint) reducer merge initial)
+    | (reduce slice(list, midpoint + 1) reducer merge initial)
+  )
+
+  merge (reducer first item) second
+}
+
+filter := fn list, predicate ->
+  reduce list (fn acc, item -> if predicate item: (...first, item) else acc) (fn first, second -> (...first, ...second)) ()
+
+map := fn list, mapper ->
+  reduce list (fn acc, item -> (...acc, mapper item)) (fn first, second -> (...first, ...second)) ()
+
+flat_map := fn list, mapper ->
+  reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+
+sum := fn list ->
+  reduce list (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
+
+
+// https://adventofcode.com/2023/day/1
+
+// take first and last digit on line, concat into two-digit number
+// and sum all numbers in document
+document := "
+  1abc2
+  pqr3stu8vwx
+  a1b2c3d4e5f
+  treb7uchet
+"
+
+lines := {
+  lines := split document "\n"
+  lines = map lines (replace "\w+" "")
+  lines = filter lines fn line -> line != ""
+}
+
+numbers := flat_map lines fn line {
+  digits := ()
+
+  while line != "" {
+    if match "\d" line[0] {
+      digit := number line[0]
+      if !digits[0]: digits[0] = digit
+      digits[1] = digit
+    }
+    (_, ...line) = line
+  }
+
+  (digits[0], digits[1] * 10)
+}
+
+sum numbers
