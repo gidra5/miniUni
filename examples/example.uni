@@ -12,18 +12,21 @@ reduce := fn list, reducer, merge, initial {
   merge (reducer first item) second
 }
 
-filter := fn list, predicate ->
+filter := fn list, predicate {
   reduce list (fn acc, item -> if predicate item: (...first, item) else acc) (fn first, second -> (...first, ...second)) ()
+}
 
-map := fn list, mapper ->
+map := fn list, mapper {
   reduce list (fn acc, item -> (...acc, mapper item)) (fn first, second -> (...first, ...second)) ()
+}
 
-flat_map := fn list, mapper ->
+flat_map := fn list, mapper {
   reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+}
 
-sum := fn list ->
+sum := fn list {
   reduce list (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
-
+}
 
 // https://adventofcode.com/2023/day/1
 
@@ -51,10 +54,10 @@ numbers := flat_map lines fn line {
       if !digits[0]: digits[0] = digit
       digits[1] = digit
     }
-    (_, ...line) = line
+    _, ...line = line
   }
 
-  (digits[0], digits[1] * 10)
+  digits[0], digits[1] * 10
 }
 
 sum numbers

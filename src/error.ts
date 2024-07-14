@@ -16,32 +16,39 @@ export enum ErrorType {
 
   /** invalid hex literal */
   INVALID_HEX_LITERAL,
-}
 
-const errorMessages = {
-  [ErrorType.UNKNOWN]: 'Unknown error',
-  [ErrorType.END_OF_SOURCE]: 'Unexpected end of source',
-  [ErrorType.UNTERMINATED_STRING]:
-    'Unterminated string literal. Expected closing double quote "',
-  [ErrorType.INVALID_BINARY_LITERAL]:
-    'In binary literals after 0b there must be 0 or 1',
-  [ErrorType.INVALID_OCTAL_LITERAL]:
-    'In octal literals after 0o there must be a digit between 0 and 7',
-  [ErrorType.INVALID_HEX_LITERAL]:
-    'In hex literals after 0x there must be a digit between 0 and 9 or a letter between a and f (case insensitive)',
-};
+  /** missing closing parens */
+  MISSING_TOKEN,
+}
 
 type Options = {
   cause?: unknown;
+  data?: Record<string, any>;
 };
 
 export class SystemError extends Error {
+  data: Record<string, any> = {};
   private constructor(private type: ErrorType, options: Options = {}) {
     super('SystemError: ' + type, { cause: options.cause });
   }
 
   display(): string {
-    return errorMessages[this.type];
+    switch (this.type) {
+      case ErrorType.UNKNOWN:
+        return 'Unknown error';
+      case ErrorType.END_OF_SOURCE:
+        return 'Unexpected end of source';
+      case ErrorType.UNTERMINATED_STRING:
+        return 'Unterminated string literal. Expected closing double quote "';
+      case ErrorType.INVALID_BINARY_LITERAL:
+        return 'In binary literals after 0b there must be 0 or 1';
+      case ErrorType.INVALID_OCTAL_LITERAL:
+        return 'In octal literals after 0o there must be a digit between 0 and 7';
+      case ErrorType.INVALID_HEX_LITERAL:
+        return 'In hex literals after 0x there must be a digit between 0 and 9 or a letter between a and f (case insensitive)';
+      case ErrorType.MISSING_TOKEN:
+        return `Missing token: ${this.data.token}`;
+    }
   }
 
   setCause(cause: unknown): SystemError {
@@ -75,5 +82,9 @@ export class SystemError extends Error {
 
   static invalidHexLiteral(): SystemError {
     return new SystemError(ErrorType.INVALID_HEX_LITERAL);
+  }
+
+  static missingToken(token: string): SystemError {
+    return new SystemError(ErrorType.MISSING_TOKEN, { data: { token } });
   }
 }

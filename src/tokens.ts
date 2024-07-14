@@ -31,7 +31,7 @@ export const symbols = [
 symbols.sort((a, b) => b.length - a.length);
 
 export type Token =
-  | { type: 'error'; cause: SystemError }
+  | { type: 'error'; src: string; cause: SystemError }
   | { type: 'placeholder'; src: string }
   | { type: 'identifier' | 'newline'; src: string }
   | { type: 'number'; src: string; value: number }
@@ -58,9 +58,10 @@ export const string = (
   pos: Position,
   value: string
 ): TokenPos => ({ type: 'string', src, value, ...pos });
-export const error = (cause: SystemError, pos: Position): TokenPos => ({
+export const error = (cause: SystemError, pos: Position, src = ''): TokenPos => ({
   type: 'error',
   cause,
+  src,
   ...pos,
 });
 export const placeholder = (src: string, pos: Position): TokenPos => ({
@@ -98,7 +99,8 @@ export const parseToken = (
       if (!src.charAt(index)) {
         const token = error(
           SystemError.unterminatedString(),
-          intervalPosition(start, index)
+          intervalPosition(start, index),
+          tokenSrc(start)
         );
         return [index, token];
       }
@@ -116,7 +118,11 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-9a-fA-F]/.test(src.charAt(index))) {
-      const token = error(SystemError.invalidHexLiteral(), position(start));
+      const token = error(
+        SystemError.invalidHexLiteral(),
+        position(start),
+        tokenSrc(start)
+      );
       return [index, token];
     }
 
@@ -135,7 +141,11 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-7]/.test(src.charAt(index))) {
-      const token = error(SystemError.invalidOctalLiteral(), position(start));
+      const token = error(
+        SystemError.invalidOctalLiteral(),
+        position(start),
+        tokenSrc(start)
+      );
       return [index, token];
     }
 
@@ -154,7 +164,11 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-1]/.test(src.charAt(index))) {
-      const token = error(SystemError.invalidBinaryLiteral(), position(start));
+      const token = error(
+        SystemError.invalidBinaryLiteral(),
+        position(start),
+        tokenSrc(start)
+      );
       return [index, token];
     }
 
