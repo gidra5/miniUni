@@ -1,6 +1,7 @@
-import { parseToken, parseTokens } from '../src/tokens.js';
+import { parseToken, parseTokens, type Token } from '../src/tokens.js';
 import { describe, expect } from 'vitest';
 import { it, fc, test } from '@fast-check/vitest';
+import { array, integer } from 'fast-check';
 
 // Test case: Parsing a string token
 test.prop([fc.string().filter((s) => !s.includes('\\') && !s.includes('"'))])(
@@ -189,6 +190,75 @@ describe('parseToken - identifier token', () => {
 
     const [index, { start, end, ...token }] = parseToken(src, startIndex);
 
+    expect(index).toBe(expectedIndex);
+    expect(token).toEqual(expectedToken);
+  });
+});
+
+describe('parseTokens - comments', () => {
+  it.prop([fc.stringMatching(/[^\n]*/)])('single line comments', (comment) => {
+    const src = `//${comment}\n`;
+    const input = `${src}12412434`;
+    const startIndex = 0;
+    const expectedToken = { type: 'newline', src };
+    const expectedIndex = src.length;
+
+    const [index, { start, end, ...token }] = parseToken(input, startIndex);
+
+    expect(start).toBe(0);
+    expect(end).toBe(expectedIndex);
+    expect(index).toBe(expectedIndex);
+    expect(token).toEqual(expectedToken);
+  });
+  it.prop([fc.string().map((s) => s.replace('*/', ''))])(
+    'multi line comments',
+    (comment) => {
+      const src = `/*${comment}*/`;
+      const input = `${src}_`;
+      const startIndex = 0;
+      const expectedToken = { type: 'placeholder', src: '_' };
+      const expectedStart = src.length;
+      const expectedIndex = src.length + 1;
+
+      const [index, { start, end, ...token }] = parseToken(input, startIndex);
+
+      expect(start).toBe(expectedStart);
+      expect(end).toBe(expectedIndex);
+      expect(index).toBe(expectedIndex);
+      expect(token).toEqual(expectedToken);
+    }
+  );
+  it.prop([
+    fc.string().map((s) => s.replace('*/', '')),
+    array(integer({ min: 0, max: 2 })),
+  ])('multiple comments', (comment, parts) => {
+    const src = [...parts, 0]
+      .map((kind) => {
+        if (kind === 0) return '\n';
+        if (kind === 1) return `//${comment}\n`;
+        return `/*${comment}*/`;
+      })
+      .join('');
+    const input = `${src}_`;
+    const startIndex = 0;
+
+    let expectedIndex: number;
+    let expectedStart: number;
+    let expectedToken: Token;
+    if (src.includes('\n')) {
+      expectedToken = { type: 'newline', src };
+      expectedStart = 0;
+      expectedIndex = src.length;
+    } else {
+      expectedToken = { type: 'placeholder', src: '_' };
+      expectedStart = src.length;
+      expectedIndex = src.length + 1;
+    }
+
+    const [index, { start, end, ...token }] = parseToken(input, startIndex);
+
+    expect(start).toBe(expectedStart);
+    expect(end).toBe(expectedIndex);
     expect(index).toBe(expectedIndex);
     expect(token).toEqual(expectedToken);
   });

@@ -58,7 +58,11 @@ export const string = (
   pos: Position,
   value: string
 ): TokenPos => ({ type: 'string', src, value, ...pos });
-export const error = (cause: SystemError, pos: Position, src = ''): TokenPos => ({
+export const error = (
+  cause: SystemError,
+  pos: Position,
+  src = ''
+): TokenPos => ({
   type: 'error',
   cause,
   src,
@@ -69,6 +73,14 @@ export const placeholder = (src: string, pos: Position): TokenPos => ({
   src,
   ...pos,
 });
+
+export const parseBlockComment = (src: string, i: number): number => {
+  let index = i;
+  while (src.charAt(index) && !src.startsWith('*/', index)) {
+    index++;
+  }
+  return index + 2;
+};
 
 export const parseToken = (
   src: string,
@@ -82,8 +94,34 @@ export const parseToken = (
   const tokenSrc = (start: number) => src.substring(start, index);
   const position = (start: number) => _position(start, index);
 
-  while (/\s/.test(src.charAt(index))) index++;
-  if (tokenSrc(i).includes('\n')) {
+  let isNewline = false;
+  while (true) {
+    if (src.startsWith('/*', index)) {
+      index += 2;
+      index = parseBlockComment(src, index);
+      continue;
+    }
+
+    if (/\s/.test(src.charAt(index))) {
+      if (src.charAt(index) === '\n') isNewline = true;
+      index++;
+      continue;
+    }
+
+    if (src.startsWith('//', index)) {
+      index += 2;
+      while (src.charAt(index) && src.charAt(index) !== '\n') {
+        index++;
+      }
+      index++;
+      isNewline = true;
+      continue;
+    }
+
+    break;
+  }
+
+  if (isNewline) {
     return [index, newline(tokenSrc(i), position(i))];
   }
 
@@ -113,7 +151,7 @@ export const parseToken = (
     return [index, string(tokenSrc(start), position(start), value)];
   }
 
-  if (src.slice(index).startsWith('0x')) {
+  if (src.startsWith('0x', index)) {
     const start = index;
     index += 2;
 
@@ -136,7 +174,7 @@ export const parseToken = (
     return [index, token];
   }
 
-  if (src.slice(index).startsWith('0o')) {
+  if (src.startsWith('0o', index)) {
     const start = index;
     index += 2;
 
@@ -159,7 +197,7 @@ export const parseToken = (
     return [index, token];
   }
 
-  if (src.slice(index).startsWith('0b')) {
+  if (src.startsWith('0b', index)) {
     const start = index;
     index += 2;
 

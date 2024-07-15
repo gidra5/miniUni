@@ -2,7 +2,7 @@ import { program } from "commander";
 import readline from "readline";
 import { stdin as input, stdout as output } from 'process';
 import fsp from 'fs/promises';
-import { evaluateString } from './evaluate';
+import { evaluateScriptString } from './evaluate';
 
 program
   .command('run <file>')
@@ -11,7 +11,7 @@ program
     console.log('Starting interpreter...');
     const code = await fsp.readFile(file, 'utf-8');
     console.log('Script is read');
-    console.log(await evaluateString(code));
+    console.log(await evaluateScriptString(code));
     console.log('Exiting interpreter');
   });
 
@@ -30,7 +30,7 @@ program
       console.log('Reading initial script...');
       const code = await fsp.readFile(file, 'utf-8');
       console.log('Running initial script...');
-      console.dir(await evaluateString(code, context), { depth: null });
+      console.dir(await evaluateScriptString(code, context), { depth: null });
     }
     console.log('Waiting for next input...');
     const rl = readline.createInterface({ input, output, prompt: '>> ' });
@@ -44,7 +44,9 @@ program
           break;
         default: {
           try {
-            console.dir(await evaluateString(line, context), { depth: null });
+            console.dir(await evaluateScriptString(line, context), {
+              depth: null,
+            });
           } catch (e) {
             console.error(e);
           }

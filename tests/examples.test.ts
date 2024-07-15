@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import fsp from 'fs/promises';
-import { evaluateString as evaluate } from '../src/evaluate.ts';
+import { evaluateScriptString as evaluate } from '../src/evaluate.ts';
 
 const examples = [
   {
