@@ -1,6 +1,5 @@
 import type { Token } from './tokens';
 import { SystemError } from './error';
-import { assert } from './utils';
 
 export type AbstractSyntaxTree<T = any> = {
   name: string;
@@ -74,10 +73,10 @@ export const infix = (
   rhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator },
+    data: { operator: _operator },
     children,
   } = group;
-  return operator(operator, lhs, ...children, rhs);
+  return operator(_operator, lhs, ...children, rhs);
 };
 
 export const postfix = (
@@ -85,10 +84,10 @@ export const postfix = (
   lhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator },
+    data: { operator: _operator },
     children,
   } = group;
-  return operator(operator, lhs, ...children);
+  return operator(_operator, lhs, ...children);
 };
 
 export const prefix = (
@@ -96,10 +95,10 @@ export const prefix = (
   rhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator },
+    data: { operator: _operator },
     children,
   } = group;
-  return operator(operator, ...children, rhs);
+  return operator(_operator, ...children, rhs);
 };
 
 const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
@@ -109,17 +108,17 @@ const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
 });
 
 enum OperatorType {
-  ADD = '+',
-  PLUS = '+',
-  SUB = '-',
-  MINUS = '-',
+  ADD = 'add',
+  PLUS = 'plus',
+  SUB = 'subtract',
+  MINUS = 'minus',
   DIV = '/',
   MULT = '*',
   MOD = '%',
-  PARALLEL = '|',
-  PARALLEL_PREFIX = '|',
-  RECEIVE = '<-',
-  SEND = '<-',
+  PARALLEL = 'parallel',
+  PARALLEL_PREFIX = 'parallel_prefix',
+  RECEIVE = 'receive',
+  SEND = 'send',
   DECLARE = ':=',
   ASSIGN = '=',
   TUPLE = ',',
@@ -148,6 +147,10 @@ const getPrecedence = (operator = OperatorType.TOKEN): Precedence => {
       return [maxPrecedence, 0];
     case OperatorType.APPLICATION:
       return [maxPrecedence - 1, maxPrecedence];
+    case OperatorType.INDEX:
+      return [maxPrecedence, null];
+    case OperatorType.ADD:
+
     default:
       return [null, null];
   }
@@ -446,6 +449,7 @@ export const parseGroup =
       if (src[index].src !== ']') {
         return [index, error(SystemError.missingToken(']'), node)];
       }
+      index++;
 
       return [index, node];
     }
@@ -460,6 +464,7 @@ export const parseGroup =
       if (src[index].src !== ')') {
         return [index, error(SystemError.missingToken(')'), node)];
       }
+      index++;
 
       return [index, node];
     }
