@@ -117,6 +117,9 @@ enum OperatorType {
   MULT = '*',
   MOD = '%',
   PARALLEL = '|',
+  PARALLEL_PREFIX = '|',
+  RECEIVE = '<-',
+  SEND = '<-',
   DECLARE = ':=',
   ASSIGN = '=',
   TUPLE = ',',
@@ -124,16 +127,21 @@ enum OperatorType {
   NOT = 'not',
   NOT_EQUAL = '!=',
   EQUAL = '==',
+  PRINT = 'print',
   APPLICATION = 'application',
   PARENS = 'parens',
   INDEX = 'index',
   BLOCK = 'block',
   FUNCTION = 'func',
+  FUNCTION_BLOCK = 'func_block',
   IF = 'if',
-  LEAF = 'leaf',
+  IF_BLOCK = 'if_block',
+  IF_ELSE = 'if_else',
+  PATTERN = 'pattern',
+  TOKEN = 'token',
 }
 
-const getPrecedence = (operator: OperatorType): Precedence => {
+const getPrecedence = (operator = OperatorType.TOKEN): Precedence => {
   const maxPrecedence = Number.MAX_SAFE_INTEGER;
   switch (operator) {
     case OperatorType.PARENS:
@@ -145,22 +153,288 @@ const getPrecedence = (operator: OperatorType): Precedence => {
   }
 };
 
-export const parsePattern = (
-  src: Token[],
-  i = 0
-): [index: number, ast: AbstractSyntaxTree] => {
-  return [i, placeholder()];
-};
-
-export const parseGroup =
+export const parsePatternGroup =
   (precedence = 0, infix = false) =>
   (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
 
-    if (src[index].src === ':=')
-      return [index++, operator(OperatorType.DECLARE)];
+    if (src[index].src === ',') {
+      return [index + 1, operator(OperatorType.TUPLE)];
+    }
+
+    if (src[index].src === '...') {
+      return [index + 1, operator(OperatorType.SPREAD)];
+    }
+
+    if (src[index].src === '=') {
+      return [index + 1, operator(OperatorType.ASSIGN)];
+    }
+
+    if (src[index].src === '(') {
+      index++;
+
+      const [_index, expr] = parsePattern()(src, index);
+      index = _index;
+      const node = operator(OperatorType.PARENS, expr);
+
+      if (src[index].src !== ')') {
+        return [index, error(SystemError.missingToken(')'), node)];
+      }
+
+      return [index, node];
+    }
+
+    if (src[index].type === 'newline') return [index, implicitPlaceholder()];
+    return [index + 1, token(src[index])];
+  };
+
+export const parsePatternPrefix =
+  (precedence = 0) =>
+  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+    let index = i;
+    //skip possible whitespace prefix
+    if (src[index]?.type === 'newline') index++;
+    if (!src[index]) return [index, error(SystemError.endOfSource())];
+
+    let [nextIndex, group] = parsePatternGroup(precedence)(src, index);
+    index = nextIndex;
+    const [, right] = getPrecedence(group.data.operator);
+
+    if (right !== null) {
+      let rhs: AbstractSyntaxTree;
+      [index, rhs] = parsePattern(right)(src, index);
+      return [index, prefix(group, rhs)];
+    }
+
+    return [index, group];
+  };
+
+export const parsePattern =
+  (precedence = 0) =>
+  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+    let index = i;
+    let lhs: AbstractSyntaxTree;
+    [index, lhs] = parsePatternPrefix(precedence)(src, index);
+
+    while (src[index] && src[index].type !== 'newline') {
+      let [nextIndex, group] = parsePatternGroup(precedence, true)(src, index);
+      const [left, right] = getPrecedence(group.data.operator);
+      if (left === null) break;
+      if (left < precedence) break;
+      index = nextIndex;
+
+      if (right === null) {
+        lhs = postfix(group, lhs);
+        continue;
+      }
+
+      let rhs: AbstractSyntaxTree;
+      [index, rhs] = parsePattern(right)(src, index);
+
+      // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
+      // which means we can put all arguments into one group
+      if (left === right && group.data.operator === lhs.data.operator) {
+        lhs.children.push(rhs);
+      } else {
+        lhs = infix(group, lhs, rhs);
+      }
+    }
+
+    return [index, operator(OperatorType.PATTERN)];
+  };
+
+export const parseSequence = (
+  src: Token[],
+  i: number
+): [index: number, ast: AbstractSyntaxTree] => {
+  let index = i;
+  const children: AbstractSyntaxTree[] = [];
+
+  while (src[index] && src[index].src !== '}') {
+    if (src[index].type === 'newline') {
+      index++;
+      continue;
+    }
+    if (src[index].src === ';') {
+      index++;
+      continue;
+    }
+    let node: AbstractSyntaxTree;
+    [index, node] = parseExpr()(src, index);
+    children.push(node);
+  }
+
+  return [index, operator(OperatorType.BLOCK, ...children)];
+};
+
+export const parseGroup =
+  (precedence = 0, lhs = false) =>
+  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+    let index = i;
+
+    if (!src[index]) return [index, error(SystemError.endOfSource())];
+
+    const patternResult = parsePattern()(src, index);
+
+    if (patternResult[1].name !== 'error') {
+      let index = patternResult[0];
+      const pattern = patternResult[1];
+      if (src[index].src === ':=') {
+        return [index + 1, operator(OperatorType.DECLARE, pattern)];
+      }
+      if (src[index].src === '=') {
+        return [index + 1, operator(OperatorType.ASSIGN, pattern)];
+      }
+    }
+
+    if (src[index].src === '+') {
+      return [index + 1, operator(lhs ? OperatorType.ADD : OperatorType.PLUS)];
+    }
+
+    if (src[index].src === '-') {
+      return [index + 1, operator(lhs ? OperatorType.SUB : OperatorType.MINUS)];
+    }
+
+    if (src[index].src === '*') {
+      return [index + 1, operator(OperatorType.MULT)];
+    }
+
+    if (src[index].src === '/') {
+      return [index + 1, operator(OperatorType.DIV)];
+    }
+
+    if (src[index].src === '%') {
+      return [index + 1, operator(OperatorType.MOD)];
+    }
+
+    if (src[index].src === '|') {
+      return [
+        index + 1,
+        operator(lhs ? OperatorType.PARALLEL : OperatorType.PARALLEL_PREFIX),
+      ];
+    }
+
+    if (src[index].src === '<-') {
+      return [
+        index + 1,
+        operator(lhs ? OperatorType.SEND : OperatorType.RECEIVE),
+      ];
+    }
+
+    if (src[index].src === '==') {
+      return [index + 1, operator(OperatorType.EQUAL)];
+    }
+
+    if (src[index].src === '!=') {
+      return [index + 1, operator(OperatorType.NOT_EQUAL)];
+    }
+
+    if (src[index].src === 'not' || src[index].src === '!') {
+      return [index + 1, operator(OperatorType.NOT)];
+    }
+
+    if (src[index].src === '...') {
+      return [index + 1, operator(OperatorType.SPREAD)];
+    }
+
+    if (src[index].src === ',') {
+      return [index + 1, operator(OperatorType.TUPLE)];
+    }
+
+    if (src[index].src === 'print') {
+      return [index + 1, operator(OperatorType.PRINT)];
+    }
+
+    if (src[index].src === '{') {
+      index++;
+      let block: AbstractSyntaxTree;
+      [index, block] = parseSequence(src, index);
+      if (src[index].src !== '}') {
+        return [index, error(SystemError.missingToken('}'), block)];
+      }
+      return [index + 1, block];
+    }
+
+    if (src[index].src === 'fn') {
+      index++;
+      let pattern: AbstractSyntaxTree;
+      [index, pattern] = parsePattern()(src, index);
+      const token = src[index].src;
+
+      if (token === '{') {
+        index++;
+        let body: AbstractSyntaxTree;
+        [index, body] = parseSequence(src, index);
+
+        const node = operator(OperatorType.FUNCTION_BLOCK, pattern, body);
+        if (src[index].src !== '}') {
+          return [index, error(SystemError.missingToken('}'), node)];
+        }
+
+        return [index + 1, node];
+      }
+
+      if (token === '->') {
+        index++;
+
+        return [index, operator(OperatorType.FUNCTION, pattern)];
+      }
+
+      return [
+        index,
+        error(
+          SystemError.missingToken('->', '{'),
+          operator(OperatorType.FUNCTION, pattern)
+        ),
+      ];
+    }
+
+    if (src[index].src === 'if') {
+      index++;
+      let condition: AbstractSyntaxTree;
+      [index, condition] = parseExpr()(src, index);
+      const token = src[index].src;
+
+      if (token === '{') {
+        index++;
+        let body: AbstractSyntaxTree;
+        [index, body] = parseSequence(src, index);
+        const node = operator(OperatorType.IF_BLOCK, condition, body);
+        if (src[index].src !== '}') {
+          return [index, error(SystemError.missingToken('}'), node)];
+        }
+        index++;
+
+        if (src[index].src === 'else') {
+          return [index + 1, operator(OperatorType.IF_ELSE, condition, body)];
+        }
+
+        return [index, node];
+      }
+
+      if (token === ':') {
+        index++;
+        let body: AbstractSyntaxTree;
+        [index, body] = parseExpr(precedence)(src, index);
+
+        if (src[index].src === 'else') {
+          index++;
+          return [index, operator(OperatorType.IF_ELSE, condition, body)];
+        }
+
+        return [index, operator(OperatorType.IF, condition)];
+      }
+
+      return [
+        index,
+        error(
+          SystemError.missingToken(':', '{'),
+          operator(OperatorType.IF, condition)
+        ),
+      ];
+    }
 
     if (src[index].src === '[') {
       index++;
@@ -190,7 +464,7 @@ export const parseGroup =
       return [index, node];
     }
 
-    if (infix) return [index, operator(OperatorType.APPLICATION)];
+    if (lhs) return [index, operator(OperatorType.APPLICATION)];
 
     if (src[index].type === 'newline') return [index, implicitPlaceholder()];
     return [index + 1, token(src[index])];
@@ -256,9 +530,16 @@ export const parseScript = (src: Token[], i = 0): AbstractSyntaxTree => {
   let index = i;
 
   while (src[index]) {
+    if (src[index].type === 'newline') {
+      index++;
+      continue;
+    }
+    if (src[index].src === ';') {
+      index++;
+      continue;
+    }
     const [_index, astNode] = parseExpr()(src, index);
     index = _index;
-    if (src[index] && src[index].type === 'newline') index++;
     children.push(astNode);
   }
 

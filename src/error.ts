@@ -47,7 +47,9 @@ export class SystemError extends Error {
       case ErrorType.INVALID_HEX_LITERAL:
         return 'In hex literals after 0x there must be a digit between 0 and 9 or a letter between a and f (case insensitive)';
       case ErrorType.MISSING_TOKEN:
-        return `Missing token: ${this.data.token}`;
+        const tokens = this.data.tokens as string[];
+        const list = tokens.map((token) => `"${token}"`).join(' or ');
+        return `Missing token: ${list}`;
     }
   }
 
@@ -84,7 +86,7 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_HEX_LITERAL);
   }
 
-  static missingToken(token: string): SystemError {
-    return new SystemError(ErrorType.MISSING_TOKEN, { data: { token } });
+  static missingToken(...tokens: string[]): SystemError {
+    return new SystemError(ErrorType.MISSING_TOKEN, { data: { tokens } });
   }
 }
