@@ -143,6 +143,8 @@ enum OperatorType {
 const getPrecedence = (operator = OperatorType.TOKEN): Precedence => {
   const maxPrecedence = Number.MAX_SAFE_INTEGER;
   switch (operator) {
+    case OperatorType.DECLARE:
+      return [null, 1];
     case OperatorType.PARENS:
       return [maxPrecedence, 0];
     case OperatorType.APPLICATION:
@@ -150,7 +152,7 @@ const getPrecedence = (operator = OperatorType.TOKEN): Precedence => {
     case OperatorType.INDEX:
       return [maxPrecedence, null];
     case OperatorType.ADD:
-
+      return [1, null];
     default:
       return [null, null];
   }
@@ -245,7 +247,7 @@ export const parsePattern =
       }
     }
 
-    return [index, operator(OperatorType.PATTERN)];
+    return [index, operator(OperatorType.PATTERN, lhs)];
   };
 
 export const parseSequence = (

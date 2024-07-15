@@ -10,13 +10,13 @@ exports[`ast 1 1`] = `
             {
               "children": [],
               "data": {
-                "operator": "pattern",
+                "value": "document",
               },
-              "name": "operator",
+              "name": "name",
             },
           ],
           "data": {
-            "operator": ":=",
+            "operator": "pattern",
           },
           "name": "operator",
         },
@@ -34,7 +34,7 @@ exports[`ast 1 1`] = `
         },
       ],
       "data": {
-        "operator": "application",
+        "operator": ":=",
       },
       "name": "operator",
     },

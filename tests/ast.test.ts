@@ -30,7 +30,7 @@ describe('ast', () => {
     const ast = parseScript(tokens);
 
     // console.dir(tokens, { depth: null });
-    // console.dir(ast, { depth: null });
+    console.dir(ast, { depth: null });
 
     expect(ast).toMatchSnapshot();
   });
