@@ -76,7 +76,6 @@ export const operator = (
         return [null, 1];
       case OperatorType.PRINT:
         return [null, 1];
-      case OperatorType.PATTERN:
       case OperatorType.PARENS:
       case OperatorType.BLOCK:
         return [null, null];
@@ -213,7 +212,6 @@ export enum OperatorType {
   IF = 'if',
   IF_ELSE = 'if_else',
   WHILE = 'while',
-  PATTERN = 'pattern',
   TOKEN = 'token',
 }
 
@@ -282,7 +280,7 @@ export const parsePatternPrefix =
 
     let [nextIndex, group] = parsePatternGroup(precedence)(src, index);
     index = nextIndex;
-    const [, right] = group.data.precedence;
+    const [, right] = group.data.precedence ?? [null, null];
 
     if (right !== null) {
       let rhs: AbstractSyntaxTree;
@@ -302,7 +300,7 @@ export const parsePattern =
 
     while (src[index] && src[index].type !== 'newline') {
       let [nextIndex, group] = parsePatternGroup(precedence, true)(src, index);
-      const [left, right] = group.data.precedence;
+      const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
       if (left < precedence) break;
       index = nextIndex;
@@ -324,10 +322,10 @@ export const parsePattern =
       }
     }
 
-    return [index, operator(OperatorType.PATTERN, lhs)];
+    return [index, lhs];
   };
 
-export const parseSequence = (
+export const parseBlockSequence = (
   src: Token[],
   i: number
 ): [index: number, ast: AbstractSyntaxTree] => {
@@ -355,6 +353,7 @@ export const parseGroup =
   (precedence = 0, banned: string[] = [], lhs = false) =>
   (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
+    // console.log('parseGroup', banned, new Error().stack);
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
     if (banned.includes(src[index].src)) return [index, implicitPlaceholder()];
@@ -363,7 +362,7 @@ export const parseGroup =
 
     const patternResult = parsePattern()(src, index);
 
-    if (patternResult[1].name !== 'error') {
+    if (!lhs && patternResult[1].name !== 'error') {
       let index = patternResult[0];
       const pattern = patternResult[1];
       if (src[index].src === ':=') {
@@ -422,7 +421,7 @@ export const parseGroup =
       return [index + 1, operator(OperatorType.NOT_EQUAL)];
     }
 
-    if (src[index].src === 'not' || src[index].src === '!') {
+    if (!lhs && (src[index].src === 'not' || src[index].src === '!')) {
       return [index + 1, operator(OperatorType.NOT)];
     }
 
@@ -434,21 +433,21 @@ export const parseGroup =
       return [index + 1, operator(OperatorType.TUPLE)];
     }
 
-    if (src[index].src === 'print') {
+    if (!lhs && src[index].src === 'print') {
       return [index + 1, operator(OperatorType.PRINT)];
     }
 
-    if (src[index].src === '{') {
+    if (!lhs && src[index].src === '{') {
       index++;
       let block: AbstractSyntaxTree;
-      [index, block] = parseSequence(src, index);
+      [index, block] = parseBlockSequence(src, index);
       if (src[index].src !== '}') {
         return [index, error(SystemError.missingToken('}'), block)];
       }
       return [index + 1, block];
     }
 
-    if (src[index].src === 'fn') {
+    if (!lhs && src[index].src === 'fn') {
       index++;
       let pattern: AbstractSyntaxTree;
       [index, pattern] = parsePattern()(src, index);
@@ -457,7 +456,7 @@ export const parseGroup =
       if (token === '{') {
         index++;
         let body: AbstractSyntaxTree;
-        [index, body] = parseSequence(src, index);
+        [index, body] = parseBlockSequence(src, index);
 
         const node = operator(OperatorType.FUNCTION, pattern, body);
         node.data.precedence = [null, null];
@@ -470,7 +469,6 @@ export const parseGroup =
 
       if (token === '->') {
         index++;
-
         return [index, operator(OperatorType.FUNCTION, pattern)];
       }
 
@@ -483,7 +481,7 @@ export const parseGroup =
       ];
     }
 
-    if (src[index].src === 'if') {
+    if (!lhs && src[index].src === 'if') {
       index++;
       let condition: AbstractSyntaxTree;
       [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
@@ -492,7 +490,7 @@ export const parseGroup =
       if (token === '{') {
         index++;
         let body: AbstractSyntaxTree;
-        [index, body] = parseSequence(src, index);
+        [index, body] = parseBlockSequence(src, index);
         const node = operator(OperatorType.IF, condition, body);
         node.data.precedence = [null, null];
         if (src[index].src !== '}') {
@@ -527,7 +525,7 @@ export const parseGroup =
       ];
     }
 
-    if (src[index].src === 'while') {
+    if (!lhs && src[index].src === 'while') {
       index++;
       let condition: AbstractSyntaxTree;
       [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
@@ -536,7 +534,7 @@ export const parseGroup =
       if (token === '{') {
         index++;
         let body: AbstractSyntaxTree;
-        [index, body] = parseSequence(src, index);
+        [index, body] = parseBlockSequence(src, index);
         const node = operator(OperatorType.WHILE, condition, body);
         node.data.precedence = [null, null];
         if (src[index].src !== '}') {
@@ -576,7 +574,7 @@ export const parseGroup =
       return [index, node];
     }
 
-    if (src[index].src === '(') {
+    if (!lhs && src[index].src === '(') {
       index++;
 
       const [_index, expr] = parseExpr(0, [')'])(src, index);
@@ -607,7 +605,7 @@ export const parsePrefix =
 
     let [nextIndex, group] = parseGroup(precedence, banned)(src, index);
     index = nextIndex;
-    const [, right] = group.data.precedence;
+    const [, right] = group.data.precedence ?? [null, null];
 
     if (right !== null) {
       let rhs: AbstractSyntaxTree;
@@ -623,11 +621,35 @@ export const parseExpr =
   (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     let lhs: AbstractSyntaxTree;
-    [index, lhs] = parsePrefix(precedence)(src, index);
+    [index, lhs] = parsePrefix(precedence, banned)(src, index);
 
     while (src[index] && src[index].type !== 'newline') {
+      if (index > 6 && index < 12) {
+        console.log(
+          'parseExpr 2',
+          lhs,
+          index,
+          precedence,
+          src[index],
+          banned,
+          new Error().stack
+        );
+      }
       let [nextIndex, group] = parseGroup(precedence, banned, true)(src, index);
-      const [left, right] = group.data.precedence;
+      if (index > 6 && index < 12) {
+        console.log(
+          'parseExpr 3',
+          nextIndex,
+          group,
+          lhs,
+          index,
+          precedence,
+          src[index],
+          banned,
+          new Error().stack
+        );
+      }
+      const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
       if (left < precedence) break;
       index = nextIndex;

@@ -73,9 +73,9 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it.only('ast flat map list reducer', () => {
+  it('ast fn multiple args', () => {
     const input = `
-      (fn acc, item -> (...acc, ...mapper item))
+      fn acc, item -> ()
     `;
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
@@ -83,7 +83,17 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('ast flat map list', () => {
+  it('ast flat map list reducer', () => {
+    const input = `
+      fn acc, item -> (...acc, ...mapper item)
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast flat map list impl', () => {
     const input = `
       flat_map := fn list, mapper {
         reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
