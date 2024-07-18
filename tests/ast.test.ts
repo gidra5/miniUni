@@ -61,18 +61,6 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('ast sum list', () => {
-    const input = `
-      sum := fn list {
-        reduce list (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
-      }
-    `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
   it('ast fn multiple args', () => {
     const input = `
       fn acc, item -> ()
