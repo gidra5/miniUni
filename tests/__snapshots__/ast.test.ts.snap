@@ -1,6 +1,2591 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ast 1 1`] = `
+exports[`ast flat map list 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "flat_map",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "list",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "mapper",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "pattern",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "reduce",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "list",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "acc",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "item",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "pattern",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": "acc",
+                                              },
+                                              "name": "name",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "...",
+                                          },
+                                          "name": "operator",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [
+                                                {
+                                                  "children": [
+                                                    {
+                                                      "children": [
+                                                        {
+                                                          "children": [],
+                                                          "data": {
+                                                            "value": "mapper",
+                                                          },
+                                                          "name": "name",
+                                                        },
+                                                        {
+                                                          "children": [],
+                                                          "data": {
+                                                            "value": "item",
+                                                          },
+                                                          "name": "name",
+                                                        },
+                                                      ],
+                                                      "data": {
+                                                        "operator": "application",
+                                                      },
+                                                      "name": "operator",
+                                                    },
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": ")",
+                                                      },
+                                                      "name": "name",
+                                                    },
+                                                  ],
+                                                  "data": {
+                                                    "operator": "application",
+                                                  },
+                                                  "name": "operator",
+                                                },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": ")",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "application",
+                                              },
+                                              "name": "operator",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "...",
+                                          },
+                                          "name": "operator",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "cause": [Error: SystemError: 7],
+                              },
+                              "name": "error",
+                            },
+                          ],
+                          "data": {
+                            "operator": "func",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "first",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "second",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "pattern",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": "first",
+                                              },
+                                              "name": "name",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "...",
+                                          },
+                                          "name": "operator",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [
+                                                {
+                                                  "children": [
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": "second",
+                                                      },
+                                                      "name": "name",
+                                                    },
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": ")",
+                                                      },
+                                                      "name": "name",
+                                                    },
+                                                  ],
+                                                  "data": {
+                                                    "operator": "application",
+                                                  },
+                                                  "name": "operator",
+                                                },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": ")",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "application",
+                                              },
+                                              "name": "operator",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "...",
+                                          },
+                                          "name": "operator",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "cause": [Error: SystemError: 7],
+                              },
+                              "name": "error",
+                            },
+                          ],
+                          "data": {
+                            "operator": "func",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": ")",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+              ],
+              "data": {
+                "operator": "block",
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "func_block",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast flat map list reducer 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "acc",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "item",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": ",",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "acc",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "...",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "mapper",
+                                          },
+                                          "name": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "item",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                      },
+                                      "name": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": ")",
+                                      },
+                                      "name": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": ")",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "...",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": ",",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "cause": [Error: SystemError: 7],
+              },
+              "name": "error",
+            },
+          ],
+          "data": {
+            "operator": "func",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast parse numbers 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "numbers",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "flat_map",
+              },
+              "name": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "lines",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "application",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+      },
+      "name": "operator",
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "line",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "digits",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": ")",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+              ],
+              "data": {
+                "operator": ":=",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "line",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "",
+                      },
+                      "name": "string",
+                    },
+                  ],
+                  "data": {
+                    "operator": "!=",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "match",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "d",
+                                      },
+                                      "name": "string",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "line",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "if",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "cause": [Error: SystemError: 7],
+                      },
+                      "name": "error",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 0,
+                          },
+                          "name": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "digit",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "number",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "line",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": ":=",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": 0,
+                              },
+                              "name": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "parens",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "digits",
+                                      },
+                                      "name": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "not",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "if",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "cause": [Error: SystemError: 7],
+                          },
+                          "name": "error",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": 0,
+                                      },
+                                      "name": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": ":",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "digits",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": 0,
+                                      },
+                                      "name": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "=",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "digit",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "digits",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": 1,
+                                      },
+                                      "name": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "=",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "digit",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "block",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {},
+                                          "name": "placeholder",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [
+                                                {
+                                                  "children": [
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": "line",
+                                                      },
+                                                      "name": "name",
+                                                    },
+                                                  ],
+                                                  "data": {
+                                                    "operator": "pattern",
+                                                  },
+                                                  "name": "operator",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "...",
+                                              },
+                                              "name": "operator",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "pattern",
+                                          },
+                                          "name": "operator",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "pattern",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "pattern",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "line",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "=",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "block",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "while_block",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "digits",
+              },
+              "name": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 0,
+                      },
+                      "name": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "digits",
+                  },
+                  "name": "name",
+                },
+              ],
+              "data": {
+                "operator": ",",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 1,
+                      },
+                      "name": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 10,
+                  },
+                  "name": "number",
+                },
+              ],
+              "data": {
+                "operator": "*",
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "func_block",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast reduce list 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "reduce",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "list",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "reducer",
+                              },
+                              "name": "name",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "merge",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "initial",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "pattern",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": ",",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "pattern",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "len",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "length",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "list",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ":=",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "len",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 0,
+                          },
+                          "name": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "==",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "return",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "initial",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "if",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "midpoint",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "floor",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": ":=",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "len",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 2,
+                          },
+                          "name": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "/",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "item",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "list",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": ":=",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "midpoint",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "first",
+                              },
+                              "name": "name",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "second",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": ",",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "pattern",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "all",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": ":=",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "reduce",
+                                          },
+                                          "name": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "slice",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "cause": [Error: SystemError: 7],
+                              },
+                              "name": "error",
+                            },
+                          ],
+                          "data": {
+                            "operator": "parallel_prefix",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "list",
+                                          },
+                                          "name": "name",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": 0,
+                                              },
+                                              "name": "number",
+                                            },
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": "midpoint",
+                                              },
+                                              "name": "name",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": ",",
+                                          },
+                                          "name": "operator",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "reducer",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "merge",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "initial",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": ")",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "reduce",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "slice",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "parens",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "cause": [Error: SystemError: 7],
+                      },
+                      "name": "error",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parallel_prefix",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "list",
+                                          },
+                                          "name": "name",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": "midpoint",
+                                              },
+                                              "name": "name",
+                                            },
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": 1,
+                                              },
+                                              "name": "number",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "add",
+                                          },
+                                          "name": "operator",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "parens",
+                                  },
+                                  "name": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "reducer",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "merge",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "initial",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": ")",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": ")",
+                  },
+                  "name": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "merge",
+                  },
+                  "name": "name",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "reducer",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "first",
+                                  },
+                                  "name": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "item",
+                              },
+                              "name": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "second",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "block",
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "func_block",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast split lines 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "lines",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "lines",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "split",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "document",
+                          },
+                          "name": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "n",
+                      },
+                      "name": "string",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": ":=",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "lines",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "map",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "lines",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "=",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "replace",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "w+",
+                          },
+                          "name": "string",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                      },
+                      "name": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "",
+                      },
+                      "name": "string",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "lines",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "filter",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "lines",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "=",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "line",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "pattern",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "line",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "",
+                      },
+                      "name": "string",
+                    },
+                  ],
+                  "data": {
+                    "operator": "!=",
+                  },
+                  "name": "operator",
+                },
+              ],
+              "data": {
+                "operator": "func",
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast sum list 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "sum",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "pattern",
+          },
+          "name": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "list",
+                  },
+                  "name": "name",
+                },
+              ],
+              "data": {
+                "operator": "pattern",
+              },
+              "name": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "reduce",
+                      },
+                      "name": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "list",
+                      },
+                      "name": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                  },
+                  "name": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "acc",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "item",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "pattern",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "acc",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "item",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": ")",
+                                      },
+                                      "name": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "add",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "func",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "first",
+                                      },
+                                      "name": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "second",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "pattern",
+                                      },
+                                      "name": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "pattern",
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "acc",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "item",
+                                          },
+                                          "name": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": ")",
+                                          },
+                                          "name": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                      },
+                                      "name": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": 0,
+                                      },
+                                      "name": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                  },
+                                  "name": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "add",
+                              },
+                              "name": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "func",
+                          },
+                          "name": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                      },
+                      "name": "operator",
+                    },
+                  ],
+                  "data": {
+                    "cause": [Error: SystemError: 7],
+                  },
+                  "name": "error",
+                },
+              ],
+              "data": {
+                "operator": "block",
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "func_block",
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast variable 1`] = `
 {
   "children": [
     {

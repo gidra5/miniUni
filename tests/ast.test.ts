@@ -3,16 +3,8 @@ import { describe } from 'node:test';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
 
-const examples = [
-  {
-    name: 'advent of code 2023, day 1',
-    file: 'examples/example.uni',
-    expected: 142,
-  },
-];
-
 describe('ast', () => {
-  it('ast 1', () => {
+  it('ast variable', () => {
     const input = `
       // https://adventofcode.com/2023/day/1
 
@@ -29,8 +21,98 @@ describe('ast', () => {
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
 
-    // console.dir(tokens, { depth: null });
-    console.dir(ast, { depth: null });
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast split lines', () => {
+    const input = `
+      lines := {
+        lines := split document "\\n"
+        lines = map lines (replace "\\w+" "")
+        lines = filter lines fn line -> line != ""
+      }
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast parse numbers', () => {
+    const input = `
+      numbers := flat_map lines fn line {
+        digits := ()
+
+        while line != "" {
+          if match "\d" line[0] {
+            digit := number line[0]
+            if !digits[0]: digits[0] = digit
+            digits[1] = digit
+          }
+          (_, ...line) = line
+        }
+
+        digits[0], digits[1] * 10
+      }
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast sum list', () => {
+    const input = `
+      sum := fn list {
+        reduce list (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
+      }
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it.only('ast flat map list reducer', () => {
+    const input = `
+      (fn acc, item -> (...acc, ...mapper item))
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast flat map list', () => {
+    const input = `
+      flat_map := fn list, mapper {
+        reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+      }
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast reduce list', () => {
+    const input = `
+      reduce := fn list, reducer, merge, initial {
+        len := length list
+        if len == 0: return initial
+      
+        midpoint := floor(len / 2)
+        item := list[midpoint]
+        first, second := all(
+          | (reduce slice(list, 0, midpoint) reducer merge initial)
+          | (reduce slice(list, midpoint + 1) reducer merge initial)
+        )
+      
+        merge (reducer first item) second
+      }
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
 
     expect(ast).toMatchSnapshot();
   });
