@@ -564,7 +564,7 @@ export const parseGroup =
 
       const [_index, expr] = parseExpr(0, [']'])(src, index);
       index = _index;
-      const node = operator(OperatorType.PARENS, expr);
+      const node = operator(OperatorType.INDEX, expr);
 
       if (src[index].src !== ']') {
         return [index, error(SystemError.missingToken(']'), node)];

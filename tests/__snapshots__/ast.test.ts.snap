@@ -758,26 +758,6 @@ exports[`ast parse numbers 1`] = `
                                       },
                                       "name": "operator",
                                     },
-                                  ],
-                                  "data": {
-                                    "operator": "if",
-                                    "precedence": [
-                                      null,
-                                      2,
-                                    ],
-                                  },
-                                  "name": "operator",
-                                },
-                              ],
-                              "data": {
-                                "cause": [Error: SystemError: 6],
-                              },
-                              "name": "error",
-                            },
-                            {
-                              "children": [
-                                {
-                                  "children": [
                                     {
                                       "children": [],
                                       "data": {
@@ -787,9 +767,9 @@ exports[`ast parse numbers 1`] = `
                                     },
                                   ],
                                   "data": {
-                                    "operator": "parens",
+                                    "operator": "index",
                                     "precedence": [
-                                      null,
+                                      9007199254740991,
                                       null,
                                     ],
                                   },
@@ -809,25 +789,44 @@ exports[`ast parse numbers 1`] = `
                                         {
                                           "children": [
                                             {
-                                              "children": [],
+                                              "children": [
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": "number",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": "line",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                              ],
                                               "data": {
-                                                "value": "number",
+                                                "operator": "application",
+                                                "precedence": [
+                                                  9007199254740991,
+                                                  9007199254740992,
+                                                ],
                                               },
-                                              "name": "name",
+                                              "name": "operator",
                                             },
                                             {
                                               "children": [],
                                               "data": {
-                                                "value": "line",
+                                                "value": 0,
                                               },
-                                              "name": "name",
+                                              "name": "number",
                                             },
                                           ],
                                           "data": {
-                                            "operator": "application",
+                                            "operator": "index",
                                             "precedence": [
                                               9007199254740991,
-                                              9007199254740992,
+                                              null,
                                             ],
                                           },
                                           "name": "operator",
@@ -845,18 +844,113 @@ exports[`ast parse numbers 1`] = `
                                     {
                                       "children": [
                                         {
-                                          "children": [],
+                                          "children": [
+                                            {
+                                              "children": [
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": "digits",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": 0,
+                                                  },
+                                                  "name": "number",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "index",
+                                                "precedence": [
+                                                  9007199254740991,
+                                                  null,
+                                                ],
+                                              },
+                                              "name": "operator",
+                                            },
+                                          ],
                                           "data": {
-                                            "value": 0,
+                                            "operator": "not",
+                                            "precedence": [
+                                              null,
+                                              9,
+                                            ],
                                           },
-                                          "name": "number",
+                                          "name": "operator",
+                                        },
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [
+                                                {
+                                                  "children": [
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": "digits",
+                                                      },
+                                                      "name": "name",
+                                                    },
+                                                    {
+                                                      "children": [],
+                                                      "data": {
+                                                        "value": 0,
+                                                      },
+                                                      "name": "number",
+                                                    },
+                                                  ],
+                                                  "data": {
+                                                    "operator": "index",
+                                                    "precedence": [
+                                                      9007199254740991,
+                                                      null,
+                                                    ],
+                                                  },
+                                                  "name": "operator",
+                                                },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "value": "=",
+                                                  },
+                                                  "name": "name",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "application",
+                                                "precedence": [
+                                                  9007199254740991,
+                                                  9007199254740992,
+                                                ],
+                                              },
+                                              "name": "operator",
+                                            },
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "value": "digit",
+                                              },
+                                              "name": "name",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "application",
+                                            "precedence": [
+                                              9007199254740991,
+                                              9007199254740992,
+                                            ],
+                                          },
+                                          "name": "operator",
                                         },
                                       ],
                                       "data": {
-                                        "operator": "parens",
+                                        "operator": "if",
                                         "precedence": [
                                           null,
-                                          null,
+                                          2,
                                         ],
                                       },
                                       "name": "operator",
@@ -874,159 +968,6 @@ exports[`ast parse numbers 1`] = `
                                                   },
                                                   "name": "name",
                                                 },
-                                              ],
-                                              "data": {
-                                                "operator": "not",
-                                                "precedence": [
-                                                  null,
-                                                  9,
-                                                ],
-                                              },
-                                              "name": "operator",
-                                            },
-                                          ],
-                                          "data": {
-                                            "operator": "if",
-                                            "precedence": [
-                                              null,
-                                              2,
-                                            ],
-                                          },
-                                          "name": "operator",
-                                        },
-                                      ],
-                                      "data": {
-                                        "cause": [Error: SystemError: 6],
-                                      },
-                                      "name": "error",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": 0,
-                                                  },
-                                                  "name": "number",
-                                                },
-                                              ],
-                                              "data": {
-                                                "operator": "parens",
-                                                "precedence": [
-                                                  null,
-                                                  null,
-                                                ],
-                                              },
-                                              "name": "operator",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": ":",
-                                              },
-                                              "name": "name",
-                                            },
-                                          ],
-                                          "data": {
-                                            "operator": "application",
-                                            "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
-                                            ],
-                                          },
-                                          "name": "operator",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "digits",
-                                          },
-                                          "name": "name",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "application",
-                                        "precedence": [
-                                          9007199254740991,
-                                          9007199254740992,
-                                        ],
-                                      },
-                                      "name": "operator",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": 0,
-                                                  },
-                                                  "name": "number",
-                                                },
-                                              ],
-                                              "data": {
-                                                "operator": "parens",
-                                                "precedence": [
-                                                  null,
-                                                  null,
-                                                ],
-                                              },
-                                              "name": "operator",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": "=",
-                                              },
-                                              "name": "name",
-                                            },
-                                          ],
-                                          "data": {
-                                            "operator": "application",
-                                            "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
-                                            ],
-                                          },
-                                          "name": "operator",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "digit",
-                                          },
-                                          "name": "name",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "application",
-                                        "precedence": [
-                                          9007199254740991,
-                                          9007199254740992,
-                                        ],
-                                      },
-                                      "name": "operator",
-                                    },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "value": "digits",
-                                      },
-                                      "name": "name",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
                                                 {
                                                   "children": [],
                                                   "data": {
@@ -1036,9 +977,9 @@ exports[`ast parse numbers 1`] = `
                                                 },
                                               ],
                                               "data": {
-                                                "operator": "parens",
+                                                "operator": "index",
                                                 "precedence": [
-                                                  null,
+                                                  9007199254740991,
                                                   null,
                                                 ],
                                               },
@@ -1090,10 +1031,10 @@ exports[`ast parse numbers 1`] = `
                                 },
                               ],
                               "data": {
-                                "operator": "application",
+                                "operator": "if",
                                 "precedence": [
-                                  9007199254740991,
-                                  9007199254740992,
+                                  null,
+                                  null,
                                 ],
                               },
                               "name": "operator",
@@ -1186,16 +1127,16 @@ exports[`ast parse numbers 1`] = `
                       "name": "operator",
                     },
                     {
-                      "children": [],
-                      "data": {
-                        "value": "digits",
-                      },
-                      "name": "name",
-                    },
-                    {
                       "children": [
                         {
                           "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "digits",
+                              },
+                              "name": "name",
+                            },
                             {
                               "children": [],
                               "data": {
@@ -1205,20 +1146,58 @@ exports[`ast parse numbers 1`] = `
                             },
                           ],
                           "data": {
-                            "operator": "parens",
+                            "operator": "index",
                             "precedence": [
-                              null,
+                              9007199254740991,
                               null,
                             ],
                           },
                           "name": "operator",
                         },
                         {
-                          "children": [],
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "digits",
+                                  },
+                                  "name": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": 1,
+                                  },
+                                  "name": "number",
+                                },
+                              ],
+                              "data": {
+                                "operator": "index",
+                                "precedence": [
+                                  9007199254740991,
+                                  null,
+                                ],
+                              },
+                              "name": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": 10,
+                              },
+                              "name": "number",
+                            },
+                          ],
                           "data": {
-                            "value": "digits",
+                            "operator": "*",
+                            "precedence": [
+                              14,
+                              14,
+                            ],
                           },
-                          "name": "name",
+                          "name": "operator",
                         },
                       ],
                       "data": {
@@ -1226,44 +1205,6 @@ exports[`ast parse numbers 1`] = `
                         "precedence": [
                           8,
                           8,
-                        ],
-                      },
-                      "name": "operator",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": 1,
-                              },
-                              "name": "number",
-                            },
-                          ],
-                          "data": {
-                            "operator": "parens",
-                            "precedence": [
-                              null,
-                              null,
-                            ],
-                          },
-                          "name": "operator",
-                        },
-                        {
-                          "children": [],
-                          "data": {
-                            "value": 10,
-                          },
-                          "name": "number",
-                        },
-                      ],
-                      "data": {
-                        "operator": "*",
-                        "precedence": [
-                          14,
-                          14,
                         ],
                       },
                       "name": "operator",
@@ -1589,11 +1530,30 @@ exports[`ast reduce list 1`] = `
                       "name": "name",
                     },
                     {
-                      "children": [],
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "list",
+                          },
+                          "name": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "midpoint",
+                          },
+                          "name": "name",
+                        },
+                      ],
                       "data": {
-                        "value": "list",
+                        "operator": "index",
+                        "precedence": [
+                          9007199254740991,
+                          null,
+                        ],
                       },
-                      "name": "name",
+                      "name": "operator",
                     },
                   ],
                   "data": {
@@ -1601,25 +1561,6 @@ exports[`ast reduce list 1`] = `
                     "precedence": [
                       null,
                       1,
-                    ],
-                  },
-                  "name": "operator",
-                },
-                {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "midpoint",
-                      },
-                      "name": "name",
-                    },
-                  ],
-                  "data": {
-                    "operator": "parens",
-                    "precedence": [
-                      null,
-                      null,
                     ],
                   },
                   "name": "operator",
