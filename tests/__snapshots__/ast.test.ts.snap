@@ -1,5 +1,54 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`ast args list 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "list",
+          },
+          "name": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "reducer",
+          },
+          "name": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "merge",
+          },
+          "name": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "initial",
+          },
+          "name": "name",
+        },
+      ],
+      "data": {
+        "operator": ",",
+        "precedence": [
+          8,
+          8,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
 exports[`ast flat map list impl 1`] = `
 {
   "children": [
@@ -1279,49 +1328,25 @@ exports[`ast reduce list 1`] = `
                   "name": "name",
                 },
                 {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "reducer",
-                      },
-                      "name": "name",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [],
-                          "data": {
-                            "value": "merge",
-                          },
-                          "name": "name",
-                        },
-                        {
-                          "children": [],
-                          "data": {
-                            "value": "initial",
-                          },
-                          "name": "name",
-                        },
-                      ],
-                      "data": {
-                        "operator": ",",
-                        "precedence": [
-                          8,
-                          8,
-                        ],
-                      },
-                      "name": "operator",
-                    },
-                  ],
+                  "children": [],
                   "data": {
-                    "operator": ",",
-                    "precedence": [
-                      8,
-                      8,
-                    ],
+                    "value": "reducer",
                   },
-                  "name": "operator",
+                  "name": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "merge",
+                  },
+                  "name": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "initial",
+                  },
+                  "name": "name",
                 },
               ],
               "data": {
@@ -1656,30 +1681,18 @@ exports[`ast reduce list 1`] = `
                                                                   "name": "name",
                                                                 },
                                                                 {
-                                                                  "children": [
-                                                                    {
-                                                                      "children": [],
-                                                                      "data": {
-                                                                        "value": 0,
-                                                                      },
-                                                                      "name": "number",
-                                                                    },
-                                                                    {
-                                                                      "children": [],
-                                                                      "data": {
-                                                                        "value": "midpoint",
-                                                                      },
-                                                                      "name": "name",
-                                                                    },
-                                                                  ],
+                                                                  "children": [],
                                                                   "data": {
-                                                                    "operator": ",",
-                                                                    "precedence": [
-                                                                      8,
-                                                                      8,
-                                                                    ],
+                                                                    "value": 0,
                                                                   },
-                                                                  "name": "operator",
+                                                                  "name": "number",
+                                                                },
+                                                                {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "value": "midpoint",
+                                                                  },
+                                                                  "name": "name",
                                                                 },
                                                               ],
                                                               "data": {

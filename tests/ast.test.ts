@@ -93,6 +93,16 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
+  it('ast args list', () => {
+    const input = `
+      list, reducer, merge, initial
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
   it('ast reduce list', () => {
     const input = `
       reduce := fn list, reducer, merge, initial {

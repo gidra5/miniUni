@@ -302,7 +302,7 @@ export const parsePattern =
       let [nextIndex, group] = parsePatternGroup(precedence, true)(src, index);
       const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
-      if (left < precedence) break;
+      if (left <= precedence) break;
       index = nextIndex;
 
       if (right === null) {
@@ -624,34 +624,10 @@ export const parseExpr =
     [index, lhs] = parsePrefix(precedence, banned)(src, index);
 
     while (src[index] && src[index].type !== 'newline') {
-      if (index > 6 && index < 12) {
-        console.log(
-          'parseExpr 2',
-          lhs,
-          index,
-          precedence,
-          src[index],
-          banned,
-          new Error().stack
-        );
-      }
       let [nextIndex, group] = parseGroup(precedence, banned, true)(src, index);
-      if (index > 6 && index < 12) {
-        console.log(
-          'parseExpr 3',
-          nextIndex,
-          group,
-          lhs,
-          index,
-          precedence,
-          src[index],
-          banned,
-          new Error().stack
-        );
-      }
       const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
-      if (left < precedence) break;
+      if (left <= precedence) break;
       index = nextIndex;
 
       if (right === null) {
