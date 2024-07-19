@@ -34,6 +34,17 @@ export const newContext = (): Context => {
         const channel = Symbol();
         return { channel };
       },
+      floor: async (n) => {
+        assert(typeof n === 'number', 'floor on non-number');
+        return Math.floor(n);
+      },
+      length: async (list) => {
+        assert(Array.isArray(list), 'length on non-list');
+        return list.length;
+      },
+      number: async (n) => {
+        return Number(n);
+      },
     },
     channels,
   };
@@ -184,6 +195,7 @@ export const evaluateExpr = async (
           return !arg;
         }
         case OperatorType.PARENS:
+          if (ast.children[0].name === 'implicitPlaceholder') return [];
           return await evaluateExpr(ast.children[0], context);
 
         case OperatorType.INDEX: {
