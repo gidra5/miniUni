@@ -55,8 +55,34 @@ export const assign = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  const env = { ...context.env };
+  if (
+    patternAst.name === 'placeholder' ||
+    patternAst.name === 'implicitPlaceholder'
+  ) {
+    return context;
+  }
+
+  if (patternAst.data.operator === OperatorType.TUPLE) {
+    assert(Array.isArray(value), 'tuple pattern on non-tuple');
+
+    const patterns = patternAst.children;
+    for (let i = 0; i < patterns.length; i++) {
+      const pattern = patterns[i];
+
+      if (pattern.data.operator === OperatorType.SPREAD) {
+        const rest = value.slice(i);
+        context = await assign(pattern.children[0], rest, context);
+      } else {
+        const v = value[i];
+        context = await assign(pattern, v, context);
+      }
+    }
+
+    return context;
+  }
+
   if (patternAst.name === 'identifier') {
+    const env = { ...context.env };
     const name = patternAst.data.value;
     if (!(name in env)) {
       assert(
@@ -65,9 +91,11 @@ export const assign = async (
       );
     }
     env[name] = value;
+    context.env = env;
+    return context;
   }
-  context.env = env;
-  return context;
+
+  assert(false, 'invalid assignment pattern');
 };
 
 export const bind = async (
@@ -75,13 +103,47 @@ export const bind = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  const env = { ...context.env };
-  if (patternAst.name === 'identifier') {
-    const name = patternAst.data.value;
-    env[name] = value;
+  if (
+    patternAst.name === 'placeholder' ||
+    patternAst.name === 'implicitPlaceholder'
+  ) {
+    return context;
   }
-  context.env = env;
-  return context;
+
+  if (patternAst.data.operator === OperatorType.TUPLE) {
+    assert(Array.isArray(value), 'tuple pattern on non-tuple');
+
+    const patterns = patternAst.children;
+    for (let i = 0; i < patterns.length; i++) {
+      const pattern = patterns[i];
+
+      if (pattern.data.operator === OperatorType.SPREAD) {
+        const rest = value.slice(i);
+        context = await assign(pattern.children[0], rest, context);
+      } else {
+        const v = value[i];
+        context = await assign(pattern, v, context);
+      }
+    }
+
+    return context;
+  }
+
+  if (patternAst.name === 'identifier') {
+    const env = { ...context.env };
+    const name = patternAst.data.value;
+    if (!(name in env)) {
+      assert(
+        false,
+        `can't assign to undeclared variable: ${patternAst.data.value}`
+      );
+    }
+    env[name] = value;
+    context.env = env;
+    return context;
+  }
+
+  assert(false, 'invalid declaration pattern');
 };
 
 export const evaluateExpr = async (
@@ -91,12 +153,6 @@ export const evaluateExpr = async (
   switch (ast.name) {
     case 'operator': {
       switch (ast.data.operator) {
-        case OperatorType.PATTERN:
-          assert(
-            false,
-            "destructuring patterns can't be evaluated by themselves"
-          );
-
         case OperatorType.ADD: {
           const args = (await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
@@ -326,21 +382,21 @@ export const evaluateExpr = async (
           return await evaluateSequence(ast, { ...context });
 
         case OperatorType.FUNCTION: {
-          const [{ children: patterns }, body] = ast.children;
+          const [patterns, body] = ast.children;
           const binder = (
-            patterns: AbstractSyntaxTree[],
+            args: EvalValue[],
             context: Context
           ): EvalFunction => {
             return async (arg) => {
-              const [pattern, ...rest] = patterns;
-              const bound = await bind(pattern, arg, { ...context });
-              if (rest.length === 0) {
+              args.push(arg);
+              if (patterns.children.length === args.length) {
+                const bound = await bind(patterns, arg, { ...context });
                 return await evaluateExpr(body, bound);
               }
-              return binder(rest, bound);
+              return binder(args, context);
             };
           };
-          return binder(patterns, context);
+          return binder([], context);
         }
         case OperatorType.APPLICATION: {
           const [fnValue, argValue] = await Promise.all(
