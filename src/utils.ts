@@ -1,10 +1,25 @@
+import { SystemError } from './error';
+
 export const identity = <T>(x: T): T => x;
 
 export const inspect = <T>(x: T): T => (console.dir(x, { depth: null }), x);
 
-export function assert(condition: any, msg?: string): asserts condition {
+export function assert(
+  condition: any,
+  msg?: string | SystemError
+): asserts condition {
   if (condition) return;
-  throw new Error(msg ? `Assertion failed: ${msg}` : 'Assertion failed');
+  if (!msg) throw new Error('Assertion failed');
+  if (msg instanceof SystemError)
+    throw new Error(msg.display(), { cause: msg });
+  throw new Error(`Assertion failed: ${msg}`);
+}
+
+export function unreachable(msg?: string | SystemError): never {
+  if (!msg) throw new Error('Unreachable');
+  if (msg instanceof SystemError)
+    throw new Error(msg.display(), { cause: msg });
+  throw new Error(msg);
 }
 
 export const clamp = (x: number, min: number, max: number) =>

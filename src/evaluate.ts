@@ -1,6 +1,7 @@
+import { SystemError } from './error';
 import { OperatorType, parseScript, type AbstractSyntaxTree } from './parser';
 import { parseTokens } from './tokens';
-import { assert } from './utils';
+import { assert, unreachable } from './utils';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
 type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
@@ -21,10 +22,15 @@ type Context = {
   channels: Record<symbol, Channel>;
 };
 
-// export const fn =
-//   (_fn: (arg: EvalValue) => Promise<EvalValue>): EvalFunction =>
-//   async (arg, cont) =>
-//     cont(await _fn(arg));
+function isChannel(
+  channelValue: EvalValue
+): channelValue is { channel: symbol } {
+  return (
+    !!channelValue &&
+    typeof channelValue === 'object' &&
+    'channel' in channelValue
+  );
+}
 
 export const newContext = (): Context => {
   const channels = {};
@@ -35,11 +41,11 @@ export const newContext = (): Context => {
         return { channel };
       },
       floor: async (n) => {
-        assert(typeof n === 'number', 'floor on non-number');
+        assert(typeof n === 'number', SystemError.invalidFloorTarget());
         return Math.floor(n);
       },
       length: async (list) => {
-        assert(Array.isArray(list), 'length on non-list');
+        assert(Array.isArray(list), SystemError.invalidLengthTarget());
         return list.length;
       },
       number: async (n) => {
@@ -63,7 +69,7 @@ export const assign = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), 'tuple pattern on non-tuple');
+    assert(Array.isArray(value), SystemError.invalidTuplePattern());
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -84,18 +90,13 @@ export const assign = async (
   if (patternAst.name === 'identifier') {
     const env = { ...context.env };
     const name = patternAst.data.value;
-    if (!(name in env)) {
-      assert(
-        false,
-        `can't assign to undeclared variable: ${patternAst.data.value}`
-      );
-    }
+    assert(name in env, SystemError.invalidAssignment());
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  assert(false, 'invalid assignment pattern');
+  unreachable(SystemError.invalidDeclarationPattern());
 };
 
 export const bind = async (
@@ -111,7 +112,7 @@ export const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), 'tuple pattern on non-tuple');
+    assert(Array.isArray(value), SystemError.invalidTuplePattern());
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -119,10 +120,10 @@ export const bind = async (
 
       if (pattern.data.operator === OperatorType.SPREAD) {
         const rest = value.slice(i);
-        context = await assign(pattern.children[0], rest, context);
+        context = await bind(pattern.children[0], rest, context);
       } else {
         const v = value[i];
-        context = await assign(pattern, v, context);
+        context = await bind(pattern, v, context);
       }
     }
 
@@ -132,18 +133,12 @@ export const bind = async (
   if (patternAst.name === 'identifier') {
     const env = { ...context.env };
     const name = patternAst.data.value;
-    if (!(name in env)) {
-      assert(
-        false,
-        `can't assign to undeclared variable: ${patternAst.data.value}`
-      );
-    }
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  assert(false, 'invalid declaration pattern');
+  unreachable(SystemError.invalidDeclarationPattern());
 };
 
 export const evaluateExpr = async (
@@ -258,10 +253,10 @@ export const evaluateExpr = async (
           const [list, index] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          assert(Array.isArray(list), 'indexing on non-list');
+          assert(Array.isArray(list), SystemError.invalidIndexTarget());
           assert(
             typeof index === 'number' && Number.isInteger(index),
-            'index is not an integer'
+            SystemError.invalidIndex()
           );
           return list[index];
         }
@@ -276,10 +271,7 @@ export const evaluateExpr = async (
           return list.flat();
         }
         case OperatorType.SPREAD:
-          assert(
-            false,
-            'spread operator can only be used during tuple construction'
-          );
+          unreachable(SystemError.invalidDeclarationPattern().display());
 
         case OperatorType.PRINT: {
           const value = await evaluateExpr(ast.children[0], context);
@@ -297,10 +289,8 @@ export const evaluateExpr = async (
             ast.children.map((child) => evaluateExpr(child, context))
           );
           assert(
-            channelValue &&
-              typeof channelValue === 'object' &&
-              'channel' in channelValue,
-            'send operator on non-channel'
+            isChannel(channelValue),
+            SystemError.invalidDeclarationPattern()
           );
           const symbol = channelValue.channel;
           if (!(symbol in context.channels)) {
@@ -318,10 +308,8 @@ export const evaluateExpr = async (
         case OperatorType.RECEIVE: {
           const channelValue = await evaluateExpr(ast.children[0], context);
           assert(
-            channelValue &&
-              typeof channelValue === 'object' &&
-              'channel' in channelValue,
-            'receive operator on non-channel'
+            isChannel(channelValue),
+            SystemError.invalidDeclarationPattern()
           );
           const symbol = channelValue.channel;
           if (!(symbol in context.channels)) {
@@ -342,7 +330,7 @@ export const evaluateExpr = async (
         }
 
         case OperatorType.TOKEN:
-          assert(false, 'token operator should only be used during parsing');
+          unreachable(SystemError.invalidDeclarationPattern());
 
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
@@ -405,7 +393,7 @@ export const evaluateExpr = async (
 
           assert(
             typeof fnValue === 'function',
-            'application on not a function'
+            SystemError.invalidDeclarationPattern()
           );
 
           return await fnValue(argValue);
@@ -420,9 +408,9 @@ export const evaluateExpr = async (
       return ast.data.value;
     case 'placeholder':
     case 'implicitPlaceholder':
-      assert(false, "placeholder can't be evaluated");
+      unreachable(SystemError.invalidDeclarationPattern());
     case 'error':
-      assert(false, `parsing error: ${ast.data.cause.display()}`);
+      unreachable(ast.data.cause);
     default:
       return null;
   }

@@ -19,6 +19,12 @@ export enum ErrorType {
 
   /** missing closing parens */
   MISSING_TOKEN,
+
+  /** invalid pattern */
+  INVALID_PATTERN,
+
+  /** tuple pattern on non-tuple */
+  INVALID_TUPLE_PATTERN,
 }
 
 type Options = {
@@ -50,6 +56,20 @@ export class SystemError extends Error {
         const tokens = this.data.tokens as string[];
         const list = tokens.map((token) => `"${token}"`).join(' or ');
         return `Missing token: ${list}`;
+      case ErrorType.INVALID_PATTERN:
+        return 'invalid pattern';
+      case ErrorType.INVALID_TUPLE_PATTERN:
+        return 'tuple pattern on non-tuple';
+        return 'spread operator can only be used during tuple construction';
+        return 'token operator should only be used during parsing';
+        return "placeholder can't be evaluated";
+        return 'receive operator on non-channel';
+        return 'send operator on non-channel';
+        return 'index is not an integer';
+        return 'indexing on non-list';
+        return `can't assign to undeclared variable: ${this.data.name}`;
+        return 'length on non-list';
+        return 'floor on non-number';
     }
   }
 
@@ -88,5 +108,9 @@ export class SystemError extends Error {
 
   static missingToken(...tokens: string[]): SystemError {
     return new SystemError(ErrorType.MISSING_TOKEN, { data: { tokens } });
+  }
+
+  static invalidDeclarationPattern(): SystemError {
+    return new SystemError(ErrorType.INVALID_PATTERN);
   }
 }
