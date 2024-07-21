@@ -24,6 +24,7 @@
     "vitest": "^2.0.2"
   },
   "dependencies": {
+    "codespan-napi": "^0.4.0",
     "commander": "^12.1.0"
   }
 }

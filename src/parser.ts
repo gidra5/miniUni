@@ -1,5 +1,11 @@
-import type { Token } from './tokens';
+import type { Token, TokenPos } from './tokens';
 import { SystemError } from './error';
+import {
+  Position,
+  mergePositions,
+  position,
+  tokenPosToSrcPos,
+} from './position';
 
 export type AbstractSyntaxTree<T = any> = {
   name: string;
@@ -13,53 +19,70 @@ export const error = (
   node?: AbstractSyntaxTree
 ): AbstractSyntaxTree => ({
   name: 'error',
-  data: { cause },
+  data: {
+    cause,
+    get position() {
+      return node?.data.position ?? cause.data.position;
+    },
+  },
   children: node ? [node] : [],
 });
 
-export const implicitPlaceholder = (): AbstractSyntaxTree => ({
+export const implicitPlaceholder = (
+  position: Position
+): AbstractSyntaxTree => ({
   name: 'implicit_placeholder',
-  data: {},
+  data: { position },
   children: [],
 });
 
-export const placeholder = (): AbstractSyntaxTree => ({
+export const placeholder = (position: Position): AbstractSyntaxTree => ({
   name: 'placeholder',
-  data: {},
+  data: { position },
   children: [],
 });
 
-export const name = (value: string | symbol): AbstractSyntaxTree => ({
+export const name = (
+  value: string | symbol,
+  position: Position
+): AbstractSyntaxTree => ({
   name: 'name',
-  data: { value },
+  data: { value, position },
   children: [],
 });
 
-export const number = (value: number): AbstractSyntaxTree => ({
+export const number = (
+  value: number,
+  position: Position
+): AbstractSyntaxTree => ({
   name: 'number',
-  data: { value },
+  data: { value, position },
   children: [],
 });
 
-export const string = (value: string): AbstractSyntaxTree => ({
+export const string = (
+  value: string,
+  position: Position
+): AbstractSyntaxTree => ({
   name: 'string',
-  data: { value },
+  data: { value, position },
   children: [],
 });
 
-export const token = (token: Token): AbstractSyntaxTree =>
+export const token = (token: Token, position: Position): AbstractSyntaxTree =>
   token.type === 'number'
-    ? number(token.value)
+    ? number(token.value, position)
     : token.type === 'string'
-    ? string(token.value)
+    ? string(token.value, position)
     : token.type === 'placeholder'
-    ? placeholder()
+    ? placeholder(position)
     : token.type === 'error'
     ? error(token.cause)
-    : name(token.src);
+    : name(token.src, position);
 
 export const operator = (
   operator: string | symbol,
+  position: Position,
   ...children: AbstractSyntaxTree[]
 ): AbstractSyntaxTree => {
   const getPrecedence = (): Precedence => {
@@ -135,7 +158,7 @@ export const operator = (
   };
   return {
     name: 'operator',
-    data: { operator, precedence: getPrecedence() },
+    data: { operator, precedence: getPrecedence(), position },
     children,
   };
 };
@@ -146,10 +169,17 @@ export const infix = (
   rhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator: _operator },
+    data: { operator: _operator, position },
     children,
   } = group;
-  return operator(_operator, lhs, ...children, rhs);
+  const childrenPosition = children.map((child) => child.data.position);
+  const merged = mergePositions(
+    position,
+    lhs.data.position,
+    ...childrenPosition,
+    rhs.data.position
+  );
+  return operator(_operator, merged, lhs, ...children, rhs);
 };
 
 export const postfix = (
@@ -157,10 +187,16 @@ export const postfix = (
   lhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator: _operator },
+    data: { operator: _operator, position },
     children,
   } = group;
-  return operator(_operator, lhs, ...children);
+  const childrenPosition = children.map((child) => child.data.position);
+  const merged = mergePositions(
+    position,
+    lhs.data.position,
+    ...childrenPosition
+  );
+  return operator(_operator, merged, lhs, ...children);
 };
 
 export const prefix = (
@@ -168,10 +204,16 @@ export const prefix = (
   rhs: AbstractSyntaxTree
 ): AbstractSyntaxTree => {
   const {
-    data: { operator: _operator },
+    data: { operator: _operator, position },
     children,
   } = group;
-  return operator(_operator, ...children, rhs);
+  const childrenPosition = children.map((child) => child.data.position);
+  const merged = mergePositions(
+    position,
+    ...childrenPosition,
+    rhs.data.position
+  );
+  return operator(_operator, merged, ...children, rhs);
 };
 
 const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
@@ -234,21 +276,23 @@ export const associative = (precedence: number): Precedence => [
 
 export const parsePatternGroup =
   (precedence = 0, infix = false) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
+    const start = index;
+    const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
 
     if (src[index].src === ',') {
-      return [index + 1, operator(OperatorType.TUPLE)];
+      return [index + 1, operator(OperatorType.TUPLE, nodePosition())];
     }
 
     if (src[index].src === '...') {
-      return [index + 1, operator(OperatorType.SPREAD)];
+      return [index + 1, operator(OperatorType.SPREAD, nodePosition())];
     }
 
     if (src[index].src === '=') {
-      return [index + 1, operator(OperatorType.ASSIGN)];
+      return [index + 1, operator(OperatorType.ASSIGN, nodePosition())];
     }
 
     if (src[index].src === '(') {
@@ -256,23 +300,23 @@ export const parsePatternGroup =
 
       const [_index, expr] = parsePattern()(src, index);
       index = _index;
-      const node = operator(OperatorType.PARENS, expr);
+      const node = operator(OperatorType.PARENS, nodePosition(), expr);
 
       if (src[index].src !== ')') {
         return [index, error(SystemError.missingToken(')'), node)];
       }
-      index++;
 
-      return [index, node];
+      return [index + 1, node];
     }
 
-    if (src[index].type === 'newline') return [index, implicitPlaceholder()];
-    return [index + 1, token(src[index])];
+    if (src[index].type === 'newline')
+      return [index, implicitPlaceholder(nodePosition())];
+    return [index + 1, token(src[index], nodePosition())];
   };
 
 export const parsePatternPrefix =
   (precedence = 0) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
@@ -293,7 +337,7 @@ export const parsePatternPrefix =
 
 export const parsePattern =
   (precedence = 0) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     let lhs: AbstractSyntaxTree;
     [index, lhs] = parsePatternPrefix(precedence)(src, index);
@@ -326,10 +370,12 @@ export const parsePattern =
   };
 
 export const parseBlockSequence = (
-  src: Token[],
+  src: TokenPos[],
   i: number
 ): [index: number, ast: AbstractSyntaxTree] => {
   let index = i;
+  const start = index;
+  const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
   const children: AbstractSyntaxTree[] = [];
 
   while (src[index] && src[index].src !== '}') {
@@ -346,19 +392,22 @@ export const parseBlockSequence = (
     children.push(node);
   }
 
-  return [index, operator(OperatorType.BLOCK, ...children)];
+  return [index, operator(OperatorType.BLOCK, nodePosition(), ...children)];
 };
 
 export const parseGroup =
   (precedence = 0, banned: string[] = [], lhs = false) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
+    const start = index;
+    const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
     // console.log('parseGroup', banned, new Error().stack);
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
-    if (banned.includes(src[index].src)) return [index, implicitPlaceholder()];
+    if (banned.includes(src[index].src))
+      return [index, implicitPlaceholder(nodePosition())];
     if (banned.includes('\n') && src[index].type === 'newline')
-      return [index, implicitPlaceholder()];
+      return [index, implicitPlaceholder(nodePosition())];
 
     const patternResult = parsePattern()(src, index);
 
@@ -366,42 +415,57 @@ export const parseGroup =
       let index = patternResult[0];
       const pattern = patternResult[1];
       if (src[index].src === ':=') {
-        return [index + 1, operator(OperatorType.DECLARE, pattern)];
+        return [
+          index + 1,
+          operator(OperatorType.DECLARE, nodePosition(), pattern),
+        ];
       }
       if (src[index].src === '=') {
-        return [index + 1, operator(OperatorType.ASSIGN, pattern)];
+        return [
+          index + 1,
+          operator(OperatorType.ASSIGN, nodePosition(), pattern),
+        ];
       }
       if (src[index].src === '->') {
-        return [index + 1, operator(OperatorType.FUNCTION, pattern)];
+        return [
+          index + 1,
+          operator(OperatorType.FUNCTION, nodePosition(), pattern),
+        ];
       }
     }
 
     if (src[index].src === '+') {
-      return [index + 1, operator(lhs ? OperatorType.ADD : OperatorType.PLUS)];
+      return [
+        index + 1,
+        operator(lhs ? OperatorType.ADD : OperatorType.PLUS, nodePosition()),
+      ];
     }
 
     if (src[index].src === '-') {
-      return [index + 1, operator(lhs ? OperatorType.SUB : OperatorType.MINUS)];
+      return [
+        index + 1,
+        operator(lhs ? OperatorType.SUB : OperatorType.MINUS, nodePosition()),
+      ];
     }
 
     if (src[index].src === '*') {
-      return [index + 1, operator(OperatorType.MULT)];
+      return [index + 1, operator(OperatorType.MULT, nodePosition())];
     }
 
     if (src[index].src === '/') {
-      return [index + 1, operator(OperatorType.DIV)];
+      return [index + 1, operator(OperatorType.DIV, nodePosition())];
     }
 
     if (src[index].src === '%') {
-      return [index + 1, operator(OperatorType.MOD)];
+      return [index + 1, operator(OperatorType.MOD, nodePosition())];
     }
 
     if (src[index].src === '^') {
-      return [index + 1, operator(OperatorType.POW)];
+      return [index + 1, operator(OperatorType.POW, nodePosition())];
     }
 
     if (src[index].src === '|') {
-      const node = operator(OperatorType.PARALLEL);
+      const node = operator(OperatorType.PARALLEL, nodePosition());
       if (!lhs) node.data.precedence = [null, 1];
       return [index + 1, node];
     }
@@ -409,32 +473,35 @@ export const parseGroup =
     if (src[index].src === '<-') {
       return [
         index + 1,
-        operator(lhs ? OperatorType.SEND : OperatorType.RECEIVE),
+        operator(
+          lhs ? OperatorType.SEND : OperatorType.RECEIVE,
+          nodePosition()
+        ),
       ];
     }
 
     if (src[index].src === '==') {
-      return [index + 1, operator(OperatorType.EQUAL)];
+      return [index + 1, operator(OperatorType.EQUAL, nodePosition())];
     }
 
     if (src[index].src === '!=') {
-      return [index + 1, operator(OperatorType.NOT_EQUAL)];
+      return [index + 1, operator(OperatorType.NOT_EQUAL, nodePosition())];
     }
 
     if (!lhs && (src[index].src === 'not' || src[index].src === '!')) {
-      return [index + 1, operator(OperatorType.NOT)];
+      return [index + 1, operator(OperatorType.NOT, nodePosition())];
     }
 
     if (src[index].src === '...') {
-      return [index + 1, operator(OperatorType.SPREAD)];
+      return [index + 1, operator(OperatorType.SPREAD, nodePosition())];
     }
 
     if (src[index].src === ',') {
-      return [index + 1, operator(OperatorType.TUPLE)];
+      return [index + 1, operator(OperatorType.TUPLE, nodePosition())];
     }
 
     if (!lhs && src[index].src === 'print') {
-      return [index + 1, operator(OperatorType.PRINT)];
+      return [index + 1, operator(OperatorType.PRINT, nodePosition())];
     }
 
     if (!lhs && src[index].src === '{') {
@@ -458,7 +525,12 @@ export const parseGroup =
         let body: AbstractSyntaxTree;
         [index, body] = parseBlockSequence(src, index);
 
-        const node = operator(OperatorType.FUNCTION, pattern, body);
+        const node = operator(
+          OperatorType.FUNCTION,
+          nodePosition(),
+          pattern,
+          body
+        );
         node.data.precedence = [null, null];
         if (src[index].src !== '}') {
           return [index, error(SystemError.missingToken('}'), node)];
@@ -469,14 +541,17 @@ export const parseGroup =
 
       if (token === '->') {
         index++;
-        return [index, operator(OperatorType.FUNCTION, pattern)];
+        return [
+          index,
+          operator(OperatorType.FUNCTION, nodePosition(), pattern),
+        ];
       }
 
       return [
         index,
         error(
           SystemError.missingToken('->', '{'),
-          operator(OperatorType.FUNCTION, pattern)
+          operator(OperatorType.FUNCTION, nodePosition(), pattern)
         ),
       ];
     }
@@ -491,7 +566,7 @@ export const parseGroup =
         index++;
         let body: AbstractSyntaxTree;
         [index, body] = parseBlockSequence(src, index);
-        const node = operator(OperatorType.IF, condition, body);
+        const node = operator(OperatorType.IF, nodePosition(), condition, body);
         node.data.precedence = [null, null];
         if (src[index].src !== '}') {
           return [index, error(SystemError.missingToken('}'), node)];
@@ -499,7 +574,10 @@ export const parseGroup =
         index++;
 
         if (src[index].src === 'else') {
-          return [index + 1, operator(OperatorType.IF_ELSE, condition, body)];
+          return [
+            index + 1,
+            operator(OperatorType.IF_ELSE, nodePosition(), condition, body),
+          ];
         }
 
         return [index, node];
@@ -510,17 +588,20 @@ export const parseGroup =
         const [_index, body] = parseExpr(precedence, ['else'])(src, index);
 
         if (src[_index].src !== 'else') {
-          return [index, operator(OperatorType.IF, condition)];
+          return [index, operator(OperatorType.IF, nodePosition(), condition)];
         }
 
-        return [_index + 1, operator(OperatorType.IF_ELSE, condition, body)];
+        return [
+          _index + 1,
+          operator(OperatorType.IF_ELSE, nodePosition(), condition, body),
+        ];
       }
 
       return [
         index,
         error(
           SystemError.missingToken(':', '\\n', '{'),
-          operator(OperatorType.IF, condition)
+          operator(OperatorType.IF, nodePosition(), condition)
         ),
       ];
     }
@@ -535,7 +616,12 @@ export const parseGroup =
         index++;
         let body: AbstractSyntaxTree;
         [index, body] = parseBlockSequence(src, index);
-        const node = operator(OperatorType.WHILE, condition, body);
+        const node = operator(
+          OperatorType.WHILE,
+          nodePosition(),
+          condition,
+          body
+        );
         node.data.precedence = [null, null];
         if (src[index].src !== '}') {
           return [index, error(SystemError.missingToken('}'), node)];
@@ -547,14 +633,14 @@ export const parseGroup =
 
       if (token === ':' || token.includes('\n')) {
         index++;
-        return [index, operator(OperatorType.WHILE, condition)];
+        return [index, operator(OperatorType.WHILE, nodePosition(), condition)];
       }
 
       return [
         index,
         error(
           SystemError.missingToken(':', '\\n', '{'),
-          operator(OperatorType.WHILE, condition)
+          operator(OperatorType.WHILE, nodePosition(), condition)
         ),
       ];
     }
@@ -564,7 +650,7 @@ export const parseGroup =
 
       const [_index, expr] = parseExpr(0, [']'])(src, index);
       index = _index;
-      const node = operator(OperatorType.INDEX, expr);
+      const node = operator(OperatorType.INDEX, nodePosition(), expr);
 
       if (src[index].src !== ']') {
         return [index, error(SystemError.missingToken(']'), node)];
@@ -579,7 +665,7 @@ export const parseGroup =
 
       const [_index, expr] = parseExpr(0, [')'])(src, index);
       index = _index;
-      const node = operator(OperatorType.PARENS, expr);
+      const node = operator(OperatorType.PARENS, nodePosition(), expr);
 
       if (src[index].src !== ')') {
         return [index, error(SystemError.missingToken(')'), node)];
@@ -589,15 +675,16 @@ export const parseGroup =
       return [index, node];
     }
 
-    if (lhs) return [index, operator(OperatorType.APPLICATION)];
+    if (lhs) return [index, operator(OperatorType.APPLICATION, nodePosition())];
 
-    if (src[index].type === 'newline') return [index, implicitPlaceholder()];
-    return [index + 1, token(src[index])];
+    if (src[index].type === 'newline')
+      return [index, implicitPlaceholder(nodePosition())];
+    return [index + 1, token(src[index], nodePosition())];
   };
 
 export const parsePrefix =
   (precedence = 0, banned: string[] = []) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
@@ -618,7 +705,7 @@ export const parsePrefix =
 
 export const parseExpr =
   (precedence = 0, banned: string[] = []) =>
-  (src: Token[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     let lhs: AbstractSyntaxTree;
     [index, lhs] = parsePrefix(precedence, banned)(src, index);
@@ -650,7 +737,7 @@ export const parseExpr =
     return [index, lhs];
   };
 
-export const parseScript = (src: Token[], i = 0): AbstractSyntaxTree => {
+export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
   const children: AbstractSyntaxTree[] = [];
   let index = i;
 

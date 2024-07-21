@@ -19,6 +19,13 @@ export function indexPosition(pos: number): Position {
   return position(pos, pos);
 }
 
+export function mergePositions(...positions: Position[]): Position {
+  assert(positions.length > 0, 'positions must not be empty');
+  return positions.reduce((acc, pos) =>
+    position(Math.min(acc.start, pos.start), Math.max(acc.end, pos.end))
+  );
+}
+
 export const tokenPosToSrcPos = (
   tokenPos: Position,
   tokens: Position[]
