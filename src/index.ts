@@ -1,37 +1,44 @@
-import { program } from "commander";
-import readline from "readline";
+import { program } from 'commander';
+import readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
-import fsp from 'fs/promises';
-import { evaluateScriptString } from './evaluate';
+import {
+  evaluateScript,
+  evaluateScriptString,
+  newContext,
+} from './evaluate.js';
+import { parseFile } from './parser.js';
+import { SystemError } from './error.js';
 
 program
   .command('run <file>')
   .description('Run script from a file')
   .action(async (file) => {
     console.log('Starting interpreter...');
-    const code = await fsp.readFile(file, 'utf-8');
-    console.log('Script is read');
-    console.log(await evaluateScriptString(code));
+    const code = await parseFile(file);
+    try {
+      console.dir(await evaluateScript(code), { depth: null });
+    } catch (e) {
+      if (e instanceof SystemError) e.withFileId(code.data.fileId).print();
+    }
     console.log('Exiting interpreter');
   });
 
 program
   .command('repl [file]')
   .description(
-    'Run interactive task queue environment with optional initial script/module'
+    'Run interactive REPL environment with optional initial script/module'
   )
   .action(async (file) => {
     console.log('Starting REPL...');
 
-    // const taskQueue = new TaskQueue();
-    // const context = initialContext(taskQueue);
-    const context = {};
+    const context = newContext();
+
     if (file) {
-      console.log('Reading initial script...');
-      const code = await fsp.readFile(file, 'utf-8');
       console.log('Running initial script...');
-      console.dir(await evaluateScriptString(code, context), { depth: null });
+      const code = await parseFile(file);
+      console.dir(await evaluateScript(code, context), { depth: null });
     }
+
     console.log('Waiting for next input...');
     const rl = readline.createInterface({ input, output, prompt: '>> ' });
     rl.prompt();

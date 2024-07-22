@@ -1,83 +1,56 @@
 import {
+  createLabelInfo,
   Diagnostic,
   LabelInfo,
   primaryDiagnosticLabel,
   secondaryDiagnosticLabel,
 } from 'codespan-napi';
-import { assert } from './utils';
+import { assert } from './utils.js';
+import { fileMap } from './files.js';
+import { AbstractSyntaxTree } from './parser.js';
+import { Position } from './position.js';
 
 export enum ErrorType {
-  /** unknown origins of error */
   UNKNOWN,
-
-  /** unexpected end of source */
   END_OF_SOURCE,
-
-  /** unterminated string token */
   UNTERMINATED_STRING,
-
-  /** invalid binary number literal */
   INVALID_BINARY_LITERAL,
-
-  /** invalid octal number literal */
   INVALID_OCTAL_LITERAL,
-
-  /** invalid hex number literal */
   INVALID_HEX_LITERAL,
-
-  /** missing closing tokens */
   MISSING_TOKEN,
-
-  /** invalid pattern syntax */
   INVALID_PATTERN,
-
-  /** tuple pattern on non-tuple */
   INVALID_TUPLE_PATTERN,
-
-  /** invalid application expression */
   INVALID_APPLICATION_EXPRESSION,
-
-  /** invalid token expression */
   INVALID_TOKEN_EXPRESSION,
-
-  /** invalid receive channel */
   INVALID_RECEIVE_CHANNEL,
-
-  /** invalid send channel */
   INVALID_SEND_CHANNEL,
-
-  /** invalid use of spread */
   INVALID_USE_OF_SPREAD,
-
-  /** invalid index */
   INVALID_INDEX,
-
-  /** invalid index target */
   INVALID_INDEX_TARGET,
-
-  /** invalid assignment */
   INVALID_ASSIGNMENT,
-
-  /** invalid length target */
   INVALID_LENGTH_TARGET,
-
-  /** invalid floor target */
   INVALID_FLOOR_TARGET,
-
-  /** placeholders can't be evaluated as expressions */
   INVALID_PLACEHOLDER_EXPRESSION,
 }
 
 type Options = {
   cause?: unknown;
+  fileId?: number;
   data?: Record<string, any>;
+  node?: AbstractSyntaxTree;
 };
 
 export class SystemError extends Error {
-  data: Record<string, any> = {};
+  data: Record<string, any>;
   private fileId?: number;
-  private constructor(private type: ErrorType, options: Options = {}) {
-    super('SystemError: ' + type, { cause: options.cause });
+  private type: ErrorType;
+  private node?: AbstractSyntaxTree;
+  private constructor(type: ErrorType, msg: string, options: Options = {}) {
+    super(msg, { cause: options.cause });
+    this.data = options.data || {};
+    this.fileId = options.fileId;
+    this.type = type;
+    this.node = options.node;
   }
 
   withFileId(fileId: number): SystemError {
@@ -88,6 +61,16 @@ export class SystemError extends Error {
   withCause(cause: unknown): SystemError {
     this.cause = cause;
     return this;
+  }
+
+  withNode(node: AbstractSyntaxTree): SystemError {
+    this.node = node;
+    return this;
+  }
+
+  print(): void {
+    const diag = this.diagnostic();
+    diag.emitStd(fileMap);
   }
 
   diagnostic(): Diagnostic {
@@ -105,134 +88,146 @@ export class SystemError extends Error {
   labels(): Array<LabelInfo> {
     const labels: Array<LabelInfo> = [];
 
+    switch (this.type) {
+      case ErrorType.UNKNOWN:
+      case ErrorType.END_OF_SOURCE:
+      case ErrorType.UNTERMINATED_STRING:
+      case ErrorType.INVALID_BINARY_LITERAL:
+      case ErrorType.INVALID_OCTAL_LITERAL:
+      case ErrorType.INVALID_HEX_LITERAL:
+      case ErrorType.MISSING_TOKEN:
+      case ErrorType.INVALID_PATTERN: {
+        assert(this.node, 'node is not set');
+        const pos = this.node.data.position as Position;
+        labels.push(createLabelInfo(pos.start, pos.end, 'here'));
+      }
+      case ErrorType.INVALID_TUPLE_PATTERN:
+      case ErrorType.INVALID_USE_OF_SPREAD:
+      case ErrorType.INVALID_TOKEN_EXPRESSION:
+      case ErrorType.INVALID_PLACEHOLDER_EXPRESSION:
+      case ErrorType.INVALID_RECEIVE_CHANNEL:
+      case ErrorType.INVALID_SEND_CHANNEL:
+      case ErrorType.INVALID_INDEX:
+      case ErrorType.INVALID_INDEX_TARGET:
+      case ErrorType.INVALID_ASSIGNMENT:
+      case ErrorType.INVALID_LENGTH_TARGET:
+      case ErrorType.INVALID_FLOOR_TARGET:
+      case ErrorType.INVALID_APPLICATION_EXPRESSION: {
+        assert(this.node, 'node is not set');
+        const pos = this.node.data.position as Position;
+        labels.push(createLabelInfo(pos.start, pos.end, 'here'));
+      }
+    }
+
     return labels;
   }
 
-  get message(): string {
-    switch (this.type) {
-      case ErrorType.UNKNOWN:
-        return 'Unknown error';
-      case ErrorType.END_OF_SOURCE:
-        return 'Unexpected end of source';
-      case ErrorType.UNTERMINATED_STRING:
-        return 'Unterminated string literal. Expected closing double quote "';
-      case ErrorType.INVALID_BINARY_LITERAL:
-        return 'In binary literals after 0b there must be 0 or 1';
-      case ErrorType.INVALID_OCTAL_LITERAL:
-        return 'In octal literals after 0o there must be a digit between 0 and 7';
-      case ErrorType.INVALID_HEX_LITERAL:
-        return 'In hex literals after 0x there must be a digit between 0 and 9 or a letter between a and f (case insensitive)';
-      case ErrorType.MISSING_TOKEN: {
-        const tokens = this.data.tokens as string[];
-        const list = tokens.map((token) => `"${token}"`).join(' or ');
-        return `Missing token: ${list}`;
-      }
-      case ErrorType.INVALID_PATTERN:
-        return 'invalid pattern';
-      case ErrorType.INVALID_TUPLE_PATTERN:
-        return 'tuple pattern on non-tuple';
-      case ErrorType.INVALID_USE_OF_SPREAD:
-        return 'spread operator can only be used during tuple construction';
-      case ErrorType.INVALID_TOKEN_EXPRESSION:
-        return 'token operator should only be used during parsing';
-      case ErrorType.INVALID_PLACEHOLDER_EXPRESSION:
-        return "placeholder can't be evaluated";
-      case ErrorType.INVALID_RECEIVE_CHANNEL:
-        return 'receive operator on non-channel';
-      case ErrorType.INVALID_SEND_CHANNEL:
-        return 'send operator on non-channel';
-      case ErrorType.INVALID_INDEX:
-        return 'index is not an integer';
-      case ErrorType.INVALID_INDEX_TARGET:
-        return 'indexing on non-list';
-      case ErrorType.INVALID_ASSIGNMENT:
-        return `can't assign to undeclared variable: ${this.data.name}`;
-      case ErrorType.INVALID_LENGTH_TARGET:
-        return 'length on non-list';
-      case ErrorType.INVALID_FLOOR_TARGET:
-        return 'floor on non-number';
-      case ErrorType.INVALID_APPLICATION_EXPRESSION:
-        return 'application operator on non-function';
-    }
-  }
-
   static unknown(): SystemError {
-    return new SystemError(ErrorType.UNKNOWN);
+    const msg = 'Unknown error';
+    return new SystemError(ErrorType.UNKNOWN, msg);
   }
 
   static endOfSource(): SystemError {
-    return new SystemError(ErrorType.END_OF_SOURCE);
+    const msg = 'Unexpected end of source';
+    return new SystemError(ErrorType.END_OF_SOURCE, msg);
   }
 
   static unterminatedString(): SystemError {
-    return new SystemError(ErrorType.UNTERMINATED_STRING);
+    const msg = 'Unterminated string literal. Expected closing double quote "';
+    return new SystemError(ErrorType.UNTERMINATED_STRING, msg);
   }
 
   static invalidBinaryLiteral(): SystemError {
-    return new SystemError(ErrorType.INVALID_BINARY_LITERAL);
+    const msg = 'In binary literals after 0b there must be 0 or 1';
+    return new SystemError(ErrorType.INVALID_BINARY_LITERAL, msg);
   }
 
   static invalidOctalLiteral(): SystemError {
-    return new SystemError(ErrorType.INVALID_OCTAL_LITERAL);
+    const msg =
+      'In octal literals after 0o there must be a digit between 0 and 7';
+    return new SystemError(ErrorType.INVALID_OCTAL_LITERAL, msg);
   }
 
   static invalidHexLiteral(): SystemError {
-    return new SystemError(ErrorType.INVALID_HEX_LITERAL);
+    const msg =
+      'In hex literals after 0x there must be a digit between 0 and 9 or a letter between a and f (case insensitive)';
+    return new SystemError(ErrorType.INVALID_HEX_LITERAL, msg);
   }
 
   static missingToken(...tokens: string[]): SystemError {
-    return new SystemError(ErrorType.MISSING_TOKEN, { data: { tokens } });
+    const options = { data: { tokens } };
+
+    const list = tokens.map((token) => `"${token}"`).join(' or ');
+    const msg = `Missing token: ${list}`;
+
+    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
   }
 
   static invalidPattern(): SystemError {
-    return new SystemError(ErrorType.INVALID_PATTERN);
+    const msg = 'invalid pattern';
+    return new SystemError(ErrorType.INVALID_PATTERN, msg);
   }
 
   static invalidPlaceholderExpression(): SystemError {
-    return new SystemError(ErrorType.INVALID_PLACEHOLDER_EXPRESSION);
+    const msg = "placeholder can't be evaluated";
+    return new SystemError(ErrorType.INVALID_PLACEHOLDER_EXPRESSION, msg);
   }
 
   static invalidFloorTarget(): SystemError {
-    return new SystemError(ErrorType.INVALID_FLOOR_TARGET);
+    const msg = 'floor on non-number';
+    return new SystemError(ErrorType.INVALID_FLOOR_TARGET, msg);
   }
 
   static invalidLengthTarget(): SystemError {
-    return new SystemError(ErrorType.INVALID_LENGTH_TARGET);
+    const msg = 'length on non-list';
+    return new SystemError(ErrorType.INVALID_LENGTH_TARGET, msg);
   }
 
   static invalidAssignment(name: string): SystemError {
-    return new SystemError(ErrorType.INVALID_ASSIGNMENT, { data: { name } });
+    const msg = `can't assign to undeclared variable: ${name}`;
+
+    const options = { data: { name } };
+    return new SystemError(ErrorType.INVALID_ASSIGNMENT, msg, options);
   }
 
   static invalidTuplePattern(): SystemError {
-    return new SystemError(ErrorType.INVALID_TUPLE_PATTERN);
+    const msg = 'tuple pattern on non-tuple';
+    return new SystemError(ErrorType.INVALID_TUPLE_PATTERN, msg);
   }
 
   static invalidIndexTarget(): SystemError {
-    return new SystemError(ErrorType.INVALID_INDEX_TARGET);
+    const msg = 'indexing on non-list';
+    return new SystemError(ErrorType.INVALID_INDEX_TARGET, msg);
   }
 
   static invalidIndex(): SystemError {
-    return new SystemError(ErrorType.INVALID_INDEX);
+    const msg = 'index is not an integer';
+    return new SystemError(ErrorType.INVALID_INDEX, msg);
   }
 
   static invalidUseOfSpread(): SystemError {
-    return new SystemError(ErrorType.INVALID_USE_OF_SPREAD);
+    const msg = 'spread operator can only be used during tuple construction';
+
+    return new SystemError(ErrorType.INVALID_USE_OF_SPREAD, msg);
   }
 
   static invalidSendChannel(): SystemError {
-    return new SystemError(ErrorType.INVALID_SEND_CHANNEL);
+    const msg = 'send operator on non-channel';
+    return new SystemError(ErrorType.INVALID_SEND_CHANNEL, msg);
   }
 
   static invalidReceiveChannel(): SystemError {
-    return new SystemError(ErrorType.INVALID_RECEIVE_CHANNEL);
+    const msg = 'receive operator on non-channel';
+    return new SystemError(ErrorType.INVALID_RECEIVE_CHANNEL, msg);
   }
 
   static invalidTokenExpression(): SystemError {
-    return new SystemError(ErrorType.INVALID_TOKEN_EXPRESSION);
+    const msg = 'token operator should only be used during parsing';
+    return new SystemError(ErrorType.INVALID_TOKEN_EXPRESSION, msg);
   }
 
   static invalidApplicationExpression(): SystemError {
-    return new SystemError(ErrorType.INVALID_APPLICATION_EXPRESSION);
+    const msg = 'application operator on non-function';
+    return new SystemError(ErrorType.INVALID_APPLICATION_EXPRESSION, msg);
   }
 }

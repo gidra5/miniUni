@@ -1,7 +1,11 @@
-import { SystemError } from './error';
-import { OperatorType, parseScript, type AbstractSyntaxTree } from './parser';
-import { parseTokens } from './tokens';
-import { assert, unreachable } from './utils';
+import { SystemError } from './error.js';
+import {
+  OperatorType,
+  parseScript,
+  type AbstractSyntaxTree,
+} from './parser.js';
+import { parseTokens } from './tokens.js';
+import { assert, unreachable } from './utils.js';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
 type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
@@ -69,7 +73,10 @@ export const assign = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), SystemError.invalidTuplePattern());
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern().withNode(patternAst)
+    );
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -87,16 +94,19 @@ export const assign = async (
     return context;
   }
 
-  if (patternAst.name === 'identifier') {
+  if (patternAst.name === 'name') {
     const env = { ...context.env };
     const name = patternAst.data.value;
-    assert(name in env, SystemError.invalidAssignment(name));
+    assert(
+      name in env,
+      SystemError.invalidAssignment(name).withNode(patternAst)
+    );
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  unreachable(SystemError.invalidPattern());
+  unreachable(SystemError.invalidPattern().withNode(patternAst));
 };
 
 export const bind = async (
@@ -112,7 +122,10 @@ export const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), SystemError.invalidTuplePattern());
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern().withNode(patternAst)
+    );
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -130,7 +143,7 @@ export const bind = async (
     return context;
   }
 
-  if (patternAst.name === 'identifier') {
+  if (patternAst.name === 'name') {
     const env = { ...context.env };
     const name = patternAst.data.value;
     env[name] = value;
@@ -138,7 +151,7 @@ export const bind = async (
     return context;
   }
 
-  unreachable(SystemError.invalidPattern());
+  unreachable(SystemError.invalidPattern().withNode(patternAst));
 };
 
 export const evaluateExpr = async (
@@ -253,8 +266,14 @@ export const evaluateExpr = async (
           const [list, index] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          assert(Array.isArray(list), SystemError.invalidIndexTarget());
-          assert(Number.isInteger(index), SystemError.invalidIndex());
+          assert(
+            Array.isArray(list),
+            SystemError.invalidIndexTarget().withNode(ast)
+          );
+          assert(
+            Number.isInteger(index),
+            SystemError.invalidIndex().withNode(ast)
+          );
           assert(typeof index === 'number');
           return list[index];
         }
@@ -269,7 +288,7 @@ export const evaluateExpr = async (
           return list.flat();
         }
         case OperatorType.SPREAD:
-          unreachable(SystemError.invalidUseOfSpread());
+          unreachable(SystemError.invalidUseOfSpread().withNode(ast));
 
         case OperatorType.PRINT: {
           const value = await evaluateExpr(ast.children[0], context);
@@ -286,7 +305,10 @@ export const evaluateExpr = async (
           const [channelValue, value] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          assert(isChannel(channelValue), SystemError.invalidSendChannel());
+          assert(
+            isChannel(channelValue),
+            SystemError.invalidSendChannel().withNode(ast)
+          );
           const symbol = channelValue.channel;
           if (!(symbol in context.channels)) {
             context.channels[symbol] = {
@@ -302,7 +324,10 @@ export const evaluateExpr = async (
         }
         case OperatorType.RECEIVE: {
           const channelValue = await evaluateExpr(ast.children[0], context);
-          assert(isChannel(channelValue), SystemError.invalidReceiveChannel());
+          assert(
+            isChannel(channelValue),
+            SystemError.invalidReceiveChannel().withNode(ast)
+          );
           const symbol = channelValue.channel;
           if (!(symbol in context.channels)) {
             context.channels[symbol] = {
@@ -322,7 +347,7 @@ export const evaluateExpr = async (
         }
 
         case OperatorType.TOKEN:
-          unreachable(SystemError.invalidTokenExpression());
+          unreachable(SystemError.invalidTokenExpression().withNode(ast));
 
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
@@ -349,13 +374,13 @@ export const evaluateExpr = async (
         case OperatorType.ASSIGN: {
           const [pattern, expr] = ast.children;
           const value = await evaluateExpr(expr, context);
-          assign(pattern, value, context);
+          await assign(pattern, value, context);
           return value;
         }
         case OperatorType.DECLARE: {
           const [pattern, expr] = ast.children;
           const value = await evaluateExpr(expr, context);
-          bind(pattern, value, context);
+          await bind(pattern, value, context);
           return value;
         }
         case OperatorType.BLOCK:
@@ -383,7 +408,7 @@ export const evaluateExpr = async (
 
           assert(
             typeof fnValue === 'function',
-            SystemError.invalidApplicationExpression()
+            SystemError.invalidApplicationExpression().withNode(ast)
           );
 
           return await fnValue(argValue);
@@ -398,7 +423,7 @@ export const evaluateExpr = async (
       return ast.data.value;
     case 'placeholder':
     case 'implicitPlaceholder':
-      unreachable(SystemError.invalidPlaceholderExpression());
+      unreachable(SystemError.invalidPlaceholderExpression().withNode(ast));
     case 'error':
       unreachable(ast.data.cause);
     default:
@@ -430,6 +455,10 @@ export const evaluateScriptString = async (
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-
-  return await evaluateScript(ast, context);
+  try {
+    return await evaluateScript(ast, context);
+  } catch (e) {
+    if (e instanceof Error && e.cause instanceof SystemError) e.cause.print();
+    return null;
+  }
 };

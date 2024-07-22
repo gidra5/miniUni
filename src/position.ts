@@ -7,6 +7,7 @@ import { assert, clamp } from './utils.js';
  */
 export type Position = { start: number; end: number };
 export function position(start: number, end: number): Position {
+  assert(start >= 0, 'start must be greater than or equal 0');
   assert(start <= end, 'start must be less than or equal to end');
   return { start, end };
 }
@@ -30,7 +31,7 @@ export const tokenPosToSrcPos = (
   tokenPos: Position,
   tokens: Position[]
 ): Position => {
-  assert(tokenPos.start > 0, 'tokenPos.start must be greater than 0');
+  assert(tokenPos.start >= 0, 'tokenPos.start must be greater than or equal 0');
   assert(
     tokenPos.start <= tokenPos.end,
     'tokenPos.start must be less than or equal to tokenPos.end'
