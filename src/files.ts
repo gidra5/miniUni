@@ -1,4 +1,4 @@
-import { Diagnostic, FileMap } from 'codespan-napi';
+import { FileMap } from 'codespan-napi';
 import fsp from 'fs/promises';
 
 export const map = new FileMap();

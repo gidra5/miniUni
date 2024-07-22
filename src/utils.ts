@@ -10,15 +10,13 @@ export function assert(
 ): asserts condition {
   if (condition) return;
   if (!msg) throw new Error('Assertion failed');
-  if (msg instanceof SystemError)
-    throw new Error(msg.display(), { cause: msg });
+  if (msg instanceof SystemError) throw new Error(msg.message, { cause: msg });
   throw new Error(`Assertion failed: ${msg}`);
 }
 
 export function unreachable(msg?: string | SystemError): never {
   if (!msg) throw new Error('Unreachable');
-  if (msg instanceof SystemError)
-    throw new Error(msg.display(), { cause: msg });
+  if (msg instanceof SystemError) throw new Error(msg.message, { cause: msg });
   throw new Error(msg);
 }
 

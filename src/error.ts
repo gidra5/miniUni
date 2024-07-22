@@ -1,8 +1,10 @@
 import {
   Diagnostic,
+  LabelInfo,
   primaryDiagnosticLabel,
   secondaryDiagnosticLabel,
 } from 'codespan-napi';
+import { assert } from './utils';
 
 export enum ErrorType {
   /** unknown origins of error */
@@ -67,40 +69,46 @@ export enum ErrorType {
 }
 
 type Options = {
-  fileId?: string;
   cause?: unknown;
   data?: Record<string, any>;
 };
 
 export class SystemError extends Error {
   data: Record<string, any> = {};
+  private fileId?: number;
   private constructor(private type: ErrorType, options: Options = {}) {
     super('SystemError: ' + type, { cause: options.cause });
   }
 
-  printError(error, fileId) {
-    const errorDiagnosticLabel = (error) => {
-      if (error.cause.length > 0)
-        return error.cause.flatMap(errorDiagnosticLabel);
-
-      const label = secondaryDiagnosticLabel(fileId, {
-        ...error.pos,
-        message: error.message,
-      });
-      return label;
-    };
-    const diagnostic = Diagnostic.error();
-    diagnostic.withLabels([
-      primaryDiagnosticLabel(fileId, {
-        ...error.pos,
-        message: error.message,
-      }),
-      ...error.cause.flatMap(errorDiagnosticLabel),
-    ]);
-    return diagnostic;
+  withFileId(fileId: number): SystemError {
+    this.fileId = fileId;
+    return this;
   }
 
-  display(): string {
+  withCause(cause: unknown): SystemError {
+    this.cause = cause;
+    return this;
+  }
+
+  diagnostic(): Diagnostic {
+    assert(this.fileId !== undefined, 'fileId is not set for SystemError');
+    const id = this.fileId;
+    const diag = Diagnostic.error();
+    diag.withMessage(this.message);
+    const labels = this.labels().map((label) =>
+      primaryDiagnosticLabel(id, label)
+    );
+    diag.withLabels(labels);
+    return diag;
+  }
+
+  labels(): Array<LabelInfo> {
+    const labels: Array<LabelInfo> = [];
+
+    return labels;
+  }
+
+  get message(): string {
     switch (this.type) {
       case ErrorType.UNKNOWN:
         return 'Unknown error';
@@ -146,15 +154,6 @@ export class SystemError extends Error {
       case ErrorType.INVALID_APPLICATION_EXPRESSION:
         return 'application operator on non-function';
     }
-  }
-
-  setCause(cause: unknown): SystemError {
-    this.cause = cause;
-    return this;
-  }
-
-  getType(): ErrorType {
-    return this.type;
   }
 
   static unknown(): SystemError {
