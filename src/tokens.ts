@@ -64,7 +64,7 @@ export const error = (
   src = ''
 ): TokenPos => ({
   type: 'error',
-  cause,
+  cause: cause.withPosition(pos),
   src,
   ...pos,
 });
@@ -131,9 +131,6 @@ export const parseToken = (
 
     let value = '';
     while (src.charAt(index) !== '"') {
-      // escape characters
-      if (src.charAt(index) === '\\') index++;
-
       if (!src.charAt(index)) {
         const token = error(
           SystemError.unterminatedString(),
@@ -141,6 +138,22 @@ export const parseToken = (
           tokenSrc(start)
         );
         return [index, token];
+      }
+
+      // escape characters
+      if (src.charAt(index) === '\\') {
+        index++;
+
+        if (!src.charAt(index)) continue;
+
+        if (src.charAt(index) === 'n') value += '\n';
+        else if (src.charAt(index) === 't') value += '\t';
+        else if (src.charAt(index) === 'r') value += '\r';
+        else if (src.charAt(index) === '0') value += '\0';
+        else value += src.charAt(index);
+
+        index++;
+        continue;
       }
 
       value += src.charAt(index);
@@ -156,6 +169,8 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-9a-fA-F]/.test(src.charAt(index))) {
+      while (/[0-9a-fA-F_]/.test(src.charAt(index))) index++;
+
       const token = error(
         SystemError.invalidHexLiteral(),
         position(start),
@@ -179,6 +194,8 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-7]/.test(src.charAt(index))) {
+      while (/[0-7_]/.test(src.charAt(index))) index++;
+
       const token = error(
         SystemError.invalidOctalLiteral(),
         position(start),
@@ -202,6 +219,8 @@ export const parseToken = (
     index += 2;
 
     if (!/[0-1]/.test(src.charAt(index))) {
+      while (/[0-1_]/.test(src.charAt(index))) index++;
+
       const token = error(
         SystemError.invalidBinaryLiteral(),
         position(start),

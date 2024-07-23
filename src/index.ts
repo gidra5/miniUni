@@ -19,6 +19,7 @@ program
       console.dir(await evaluateScript(code), { depth: null });
     } catch (e) {
       if (e instanceof SystemError) e.withFileId(code.data.fileId).print();
+      else console.error(e);
     }
     console.log('Exiting interpreter');
   });

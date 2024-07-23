@@ -21,11 +21,11 @@ map := fn list, mapper {
 }
 
 flat_map := fn list, mapper {
-  reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+  reduce (print list) (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
 }
 
 sum := fn list {
-  reduce list (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
+  reduce (print list) (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
 }
 
 // https://adventofcode.com/2023/day/1
@@ -33,16 +33,16 @@ sum := fn list {
 // take first and last digit on line, concat into two-digit number
 // and sum all numbers in document
 document := "
-  1abc2
-  pqr3stu8vwx
-  a1b2c3d4e5f
-  treb7uchet
+  1abc2\
+  pqr3stu8vwx\
+  a1b2c3d4e5f\
+  treb7uchet\
 "
 
 lines := {
   lines := split document "\n"
-  lines = map lines (replace "\w+" "")
-  lines = filter lines fn line -> line != ""
+  lines = (map lines (replace "\\s+" ""))
+  (filter lines fn line -> line != "")
 }
 
 numbers := flat_map lines fn line {
@@ -60,4 +60,4 @@ numbers := flat_map lines fn line {
   digits[0], digits[1] * 10
 }
 
-sum numbers
+sum (print numbers)

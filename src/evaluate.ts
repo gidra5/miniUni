@@ -1,11 +1,12 @@
 import { SystemError } from './error.js';
+import { addFile } from './files.js';
 import {
   OperatorType,
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, unreachable } from './utils.js';
+import { assert, inspect, unreachable } from './utils.js';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
 type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
@@ -23,7 +24,6 @@ type Channel = {
 };
 type Context = {
   env: Record<string, EvalValue>;
-  channels: Record<symbol, Channel>;
 };
 
 function isChannel(
@@ -36,8 +36,9 @@ function isChannel(
   );
 }
 
+const channels: Record<symbol, Channel> = {};
+
 export const newContext = (): Context => {
-  const channels = {};
   return {
     env: {
       channel: async () => {
@@ -55,8 +56,56 @@ export const newContext = (): Context => {
       number: async (n) => {
         return Number(n);
       },
+      print: async (value) => {
+        console.log(value);
+        return value;
+      },
+      split: async (string) => {
+        assert(typeof string === 'string', SystemError.invalidSplitTarget());
+        return async (separator) => {
+          assert(
+            typeof separator === 'string',
+            SystemError.invalidSplitSeparator()
+          );
+          return string.split(separator);
+        };
+      },
+      replace: async (pattern) => {
+        assert(
+          typeof pattern === 'string',
+          SystemError.invalidReplacePattern()
+        );
+        return async (replacement) => {
+          assert(
+            typeof replacement === 'string',
+            SystemError.invalidReplaceReplacement()
+          );
+          return async (string) => {
+            assert(
+              typeof string === 'string',
+              SystemError.invalidReplaceTarget()
+            );
+            return string.replace(new RegExp(pattern, 'g'), replacement);
+          };
+        };
+      },
+      all: async (list) => {
+        assert(Array.isArray(list), 'invalid all target');
+        return await Promise.all(
+          list.map(async (c) => {
+            assert(isChannel(c), 'invalid all channel');
+            const channel = channels[c.channel];
+            if (channel.queue.length > 0) {
+              return channel.queue.shift() as EvalValue;
+            }
+
+            return await new Promise<EvalValue>((resolve) => {
+              channel.onReceive.push(resolve);
+            });
+          })
+        );
+      },
     },
-    channels,
   };
 };
 
@@ -73,10 +122,7 @@ export const assign = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern().withNode(patternAst)
-    );
+    assert(Array.isArray(value), SystemError.invalidTuplePattern(patternAst));
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -97,16 +143,13 @@ export const assign = async (
   if (patternAst.name === 'name') {
     const env = { ...context.env };
     const name = patternAst.data.value;
-    assert(
-      name in env,
-      SystemError.invalidAssignment(name).withNode(patternAst)
-    );
+    assert(name in env, SystemError.invalidAssignment(name, patternAst));
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  unreachable(SystemError.invalidPattern().withNode(patternAst));
+  unreachable(SystemError.invalidPattern(patternAst));
 };
 
 export const bind = async (
@@ -122,10 +165,7 @@ export const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern().withNode(patternAst)
-    );
+    assert(Array.isArray(value), SystemError.invalidTuplePattern(patternAst));
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -151,7 +191,7 @@ export const bind = async (
     return context;
   }
 
-  unreachable(SystemError.invalidPattern().withNode(patternAst));
+  unreachable(SystemError.invalidPattern(patternAst));
 };
 
 export const evaluateExpr = async (
@@ -290,15 +330,24 @@ export const evaluateExpr = async (
         case OperatorType.SPREAD:
           unreachable(SystemError.invalidUseOfSpread().withNode(ast));
 
-        case OperatorType.PRINT: {
-          const value = await evaluateExpr(ast.children[0], context);
-          console.log(value);
-          return value;
-        }
-
         case OperatorType.PARALLEL: {
-          ast.children.forEach((child) => evaluateExpr(child, { ...context }));
-          return null;
+          const _channels = ast.children.map((child) => {
+            const symbol = Symbol();
+            const channel = { channel: symbol };
+            channels[symbol] = {
+              queue: [],
+              onReceive: [],
+            };
+            evaluateExpr(child, { ...context }).then((value) => {
+              const onReceive = channels[symbol].onReceive;
+              const resolve = onReceive.shift();
+              if (resolve) resolve(value);
+              else channels[symbol].queue.push(value);
+            });
+
+            return channel;
+          });
+          return _channels;
         }
 
         case OperatorType.SEND: {
@@ -310,13 +359,13 @@ export const evaluateExpr = async (
             SystemError.invalidSendChannel().withNode(ast)
           );
           const symbol = channelValue.channel;
-          if (!(symbol in context.channels)) {
-            context.channels[symbol] = {
+          if (!(symbol in channels)) {
+            channels[symbol] = {
               queue: [],
               onReceive: [],
             };
           }
-          const channel = context.channels[symbol];
+          const channel = channels[symbol];
 
           const onReceive = channel.onReceive.shift();
           if (onReceive) onReceive(value);
@@ -329,13 +378,13 @@ export const evaluateExpr = async (
             SystemError.invalidReceiveChannel().withNode(ast)
           );
           const symbol = channelValue.channel;
-          if (!(symbol in context.channels)) {
-            context.channels[symbol] = {
+          if (!(symbol in channels)) {
+            channels[symbol] = {
               queue: [],
               onReceive: [],
             };
           }
-          const channel = context.channels[symbol];
+          const channel = channels[symbol];
 
           if (channel.queue.length > 0) {
             return channel.queue.shift()!;
@@ -383,8 +432,10 @@ export const evaluateExpr = async (
           await bind(pattern, value, context);
           return value;
         }
+        case OperatorType.SEQUENCE:
+          return await evaluateSequence(ast, context);
         case OperatorType.BLOCK:
-          return await evaluateSequence(ast, { ...context });
+          return await evaluateExpr(ast.children[0], { ...context });
 
         case OperatorType.FUNCTION: {
           const [patterns, body] = ast.children;
@@ -393,7 +444,7 @@ export const evaluateExpr = async (
             return async (arg) => {
               args.push(arg);
               if (patterns.children.length === args.length) {
-                const bound = await bind(patterns, arg, { ...context });
+                const bound = await bind(patterns, args, { ...context });
                 return await evaluateExpr(body, bound);
               }
               return binder();
@@ -408,7 +459,7 @@ export const evaluateExpr = async (
 
           assert(
             typeof fnValue === 'function',
-            SystemError.invalidApplicationExpression().withNode(ast)
+            SystemError.invalidApplicationExpression(ast)
           );
 
           return await fnValue(argValue);
@@ -438,6 +489,7 @@ export const evaluateSequence = async (
   let result: EvalValue = null;
   for (const child of ast.children) {
     result = await evaluateExpr(child, context);
+    // console.log(result);
   }
   return result;
 };
@@ -458,7 +510,10 @@ export const evaluateScriptString = async (
   try {
     return await evaluateScript(ast, context);
   } catch (e) {
-    if (e instanceof Error && e.cause instanceof SystemError) e.cause.print();
+    if (e instanceof SystemError) {
+      const fileId = addFile('repl', input);
+      e.withFileId(fileId).print();
+    } else console.error(e);
     return null;
   }
 };
