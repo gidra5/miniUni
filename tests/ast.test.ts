@@ -38,6 +38,14 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
+  it('ast unit', () => {
+    const input = `()`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
   it('ast parse numbers', () => {
     const input = `
       numbers := flat_map lines fn line {

@@ -165,8 +165,8 @@ exports[`ast flat map list impl 1`] = `
                                   "start": 45,
                                 },
                                 "precedence": [
-                                  9007199254740991,
-                                  9007199254740992,
+                                  9007199254740989,
+                                  9007199254740990,
                                 ],
                               },
                               "name": "operator",
@@ -278,8 +278,8 @@ exports[`ast flat map list impl 1`] = `
                                                       "start": 86,
                                                     },
                                                     "precedence": [
-                                                      9007199254740991,
-                                                      9007199254740992,
+                                                      9007199254740989,
+                                                      9007199254740990,
                                                     ],
                                                   },
                                                   "name": "operator",
@@ -362,8 +362,8 @@ exports[`ast flat map list impl 1`] = `
                               "start": 45,
                             },
                             "precedence": [
-                              9007199254740991,
-                              9007199254740992,
+                              9007199254740989,
+                              9007199254740990,
                             ],
                           },
                           "name": "operator",
@@ -532,8 +532,8 @@ exports[`ast flat map list impl 1`] = `
                           "start": 45,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -572,8 +572,8 @@ exports[`ast flat map list impl 1`] = `
                       "start": 45,
                     },
                     "precedence": [
-                      9007199254740991,
-                      9007199254740992,
+                      9007199254740989,
+                      9007199254740990,
                     ],
                   },
                   "name": "operator",
@@ -583,7 +583,7 @@ exports[`ast flat map list impl 1`] = `
                 "operator": "sequence",
                 "position": {
                   "end": 153,
-                  "start": 36,
+                  "start": 45,
                 },
                 "precedence": [
                   null,
@@ -734,8 +734,8 @@ exports[`ast flat map list reducer 1`] = `
                           "start": 35,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -785,6 +785,10 @@ exports[`ast flat map list reducer 1`] = `
       ],
       "data": {
         "operator": "func",
+        "position": {
+          "end": 47,
+          "start": 7,
+        },
         "precedence": [
           null,
           2,
@@ -808,6 +812,10 @@ exports[`ast fn multiple args 1`] = `
             {
               "children": [],
               "data": {
+                "position": {
+                  "end": 13,
+                  "start": 10,
+                },
                 "value": "acc",
               },
               "name": "name",
@@ -815,6 +823,10 @@ exports[`ast fn multiple args 1`] = `
             {
               "children": [],
               "data": {
+                "position": {
+                  "end": 19,
+                  "start": 15,
+                },
                 "value": "item",
               },
               "name": "name",
@@ -822,6 +834,10 @@ exports[`ast fn multiple args 1`] = `
           ],
           "data": {
             "operator": ",",
+            "position": {
+              "end": 19,
+              "start": 10,
+            },
             "precedence": [
               8,
               8,
@@ -833,12 +849,21 @@ exports[`ast fn multiple args 1`] = `
           "children": [
             {
               "children": [],
-              "data": {},
+              "data": {
+                "position": {
+                  "end": 24,
+                  "start": 24,
+                },
+              },
               "name": "implicit_placeholder",
             },
           ],
           "data": {
             "operator": "parens",
+            "position": {
+              "end": 25,
+              "start": 23,
+            },
             "precedence": [
               null,
               null,
@@ -849,6 +874,10 @@ exports[`ast fn multiple args 1`] = `
       ],
       "data": {
         "operator": "func",
+        "position": {
+          "end": 25,
+          "start": 7,
+        },
         "precedence": [
           null,
           2,
@@ -912,8 +941,8 @@ exports[`ast parse numbers 1`] = `
                   "start": 18,
                 },
                 "precedence": [
-                  9007199254740991,
-                  9007199254740992,
+                  9007199254740989,
+                  9007199254740990,
                 ],
               },
               "name": "operator",
@@ -1035,43 +1064,43 @@ exports[`ast parse numbers 1`] = `
                                     {
                                       "children": [
                                         {
-                                          "children": [
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "position": {
-                                                  "end": 110,
-                                                  "start": 105,
-                                                },
-                                                "value": "match",
-                                              },
-                                              "name": "name",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "position": {
-                                                  "end": 114,
-                                                  "start": 111,
-                                                },
-                                                "value": "d",
-                                              },
-                                              "name": "string",
-                                            },
-                                          ],
+                                          "children": [],
                                           "data": {
-                                            "operator": "application",
                                             "position": {
-                                              "end": 114,
+                                              "end": 110,
                                               "start": 105,
                                             },
-                                            "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
-                                            ],
+                                            "value": "match",
                                           },
-                                          "name": "operator",
+                                          "name": "name",
                                         },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 114,
+                                              "start": 111,
+                                            },
+                                            "value": "d",
+                                          },
+                                          "name": "string",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                        "position": {
+                                          "end": 114,
+                                          "start": 105,
+                                        },
+                                        "precedence": [
+                                          9007199254740989,
+                                          9007199254740990,
+                                        ],
+                                      },
+                                      "name": "operator",
+                                    },
+                                    {
+                                      "children": [
                                         {
                                           "children": [],
                                           "data": {
@@ -1083,41 +1112,41 @@ exports[`ast parse numbers 1`] = `
                                           },
                                           "name": "name",
                                         },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 121,
+                                              "start": 120,
+                                            },
+                                            "value": 0,
+                                          },
+                                          "name": "number",
+                                        },
                                       ],
                                       "data": {
-                                        "operator": "application",
+                                        "operator": "index",
                                         "position": {
-                                          "end": 119,
-                                          "start": 105,
+                                          "end": 121,
+                                          "start": 115,
                                         },
                                         "precedence": [
                                           9007199254740991,
-                                          9007199254740992,
+                                          null,
                                         ],
                                       },
                                       "name": "operator",
                                     },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "position": {
-                                          "end": 121,
-                                          "start": 120,
-                                        },
-                                        "value": 0,
-                                      },
-                                      "name": "number",
-                                    },
                                   ],
                                   "data": {
-                                    "operator": "index",
+                                    "operator": "application",
                                     "position": {
                                       "end": 121,
                                       "start": 105,
                                     },
                                     "precedence": [
-                                      9007199254740991,
-                                      null,
+                                      9007199254740989,
+                                      9007199254740990,
                                     ],
                                   },
                                   "name": "operator",
@@ -1140,18 +1169,18 @@ exports[`ast parse numbers 1`] = `
                                         {
                                           "children": [
                                             {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "position": {
-                                                      "end": 152,
-                                                      "start": 146,
-                                                    },
-                                                    "value": "number",
-                                                  },
-                                                  "name": "name",
+                                              "children": [],
+                                              "data": {
+                                                "position": {
+                                                  "end": 152,
+                                                  "start": 146,
                                                 },
+                                                "value": "number",
+                                              },
+                                              "name": "name",
+                                            },
+                                            {
+                                              "children": [
                                                 {
                                                   "children": [],
                                                   "data": {
@@ -1163,41 +1192,41 @@ exports[`ast parse numbers 1`] = `
                                                   },
                                                   "name": "name",
                                                 },
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "position": {
+                                                      "end": 159,
+                                                      "start": 158,
+                                                    },
+                                                    "value": 0,
+                                                  },
+                                                  "name": "number",
+                                                },
                                               ],
                                               "data": {
-                                                "operator": "application",
+                                                "operator": "index",
                                                 "position": {
-                                                  "end": 157,
-                                                  "start": 146,
+                                                  "end": 159,
+                                                  "start": 153,
                                                 },
                                                 "precedence": [
                                                   9007199254740991,
-                                                  9007199254740992,
+                                                  null,
                                                 ],
                                               },
                                               "name": "operator",
                                             },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "position": {
-                                                  "end": 159,
-                                                  "start": 158,
-                                                },
-                                                "value": 0,
-                                              },
-                                              "name": "number",
-                                            },
                                           ],
                                           "data": {
-                                            "operator": "index",
+                                            "operator": "application",
                                             "position": {
                                               "end": 159,
                                               "start": 146,
                                             },
                                             "precedence": [
-                                              9007199254740991,
-                                              null,
+                                              9007199254740989,
+                                              9007199254740990,
                                             ],
                                           },
                                           "name": "operator",
@@ -1277,64 +1306,37 @@ exports[`ast parse numbers 1`] = `
                                             {
                                               "children": [
                                                 {
-                                                  "children": [
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 194,
-                                                          "start": 188,
-                                                        },
-                                                        "value": "digits",
-                                                      },
-                                                      "name": "name",
-                                                    },
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 196,
-                                                          "start": 195,
-                                                        },
-                                                        "value": 0,
-                                                      },
-                                                      "name": "number",
-                                                    },
-                                                  ],
+                                                  "children": [],
                                                   "data": {
-                                                    "operator": "index",
                                                     "position": {
-                                                      "end": 196,
+                                                      "end": 194,
                                                       "start": 188,
                                                     },
-                                                    "precedence": [
-                                                      9007199254740991,
-                                                      null,
-                                                    ],
+                                                    "value": "digits",
                                                   },
-                                                  "name": "operator",
+                                                  "name": "name",
                                                 },
                                                 {
                                                   "children": [],
                                                   "data": {
                                                     "position": {
-                                                      "end": 199,
-                                                      "start": 198,
+                                                      "end": 196,
+                                                      "start": 195,
                                                     },
-                                                    "value": "=",
+                                                    "value": 0,
                                                   },
-                                                  "name": "name",
+                                                  "name": "number",
                                                 },
                                               ],
                                               "data": {
-                                                "operator": "application",
+                                                "operator": "index",
                                                 "position": {
-                                                  "end": 199,
+                                                  "end": 196,
                                                   "start": 188,
                                                 },
                                                 "precedence": [
                                                   9007199254740991,
-                                                  9007199254740992,
+                                                  null,
                                                 ],
                                               },
                                               "name": "operator",
@@ -1352,14 +1354,14 @@ exports[`ast parse numbers 1`] = `
                                             },
                                           ],
                                           "data": {
-                                            "operator": "application",
+                                            "operator": "=",
                                             "position": {
                                               "end": 205,
                                               "start": 188,
                                             },
                                             "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
+                                              null,
+                                              1,
                                             ],
                                           },
                                           "name": "operator",
@@ -1383,64 +1385,37 @@ exports[`ast parse numbers 1`] = `
                                         {
                                           "children": [
                                             {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "position": {
-                                                      "end": 224,
-                                                      "start": 218,
-                                                    },
-                                                    "value": "digits",
-                                                  },
-                                                  "name": "name",
-                                                },
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "position": {
-                                                      "end": 226,
-                                                      "start": 225,
-                                                    },
-                                                    "value": 1,
-                                                  },
-                                                  "name": "number",
-                                                },
-                                              ],
+                                              "children": [],
                                               "data": {
-                                                "operator": "index",
                                                 "position": {
-                                                  "end": 226,
+                                                  "end": 224,
                                                   "start": 218,
                                                 },
-                                                "precedence": [
-                                                  9007199254740991,
-                                                  null,
-                                                ],
+                                                "value": "digits",
                                               },
-                                              "name": "operator",
+                                              "name": "name",
                                             },
                                             {
                                               "children": [],
                                               "data": {
                                                 "position": {
-                                                  "end": 229,
-                                                  "start": 228,
+                                                  "end": 226,
+                                                  "start": 225,
                                                 },
-                                                "value": "=",
+                                                "value": 1,
                                               },
-                                              "name": "name",
+                                              "name": "number",
                                             },
                                           ],
                                           "data": {
-                                            "operator": "application",
+                                            "operator": "index",
                                             "position": {
-                                              "end": 229,
+                                              "end": 226,
                                               "start": 218,
                                             },
                                             "precedence": [
                                               9007199254740991,
-                                              9007199254740992,
+                                              null,
                                             ],
                                           },
                                           "name": "operator",
@@ -1458,14 +1433,14 @@ exports[`ast parse numbers 1`] = `
                                         },
                                       ],
                                       "data": {
-                                        "operator": "application",
+                                        "operator": "=",
                                         "position": {
                                           "end": 235,
                                           "start": 218,
                                         },
                                         "precedence": [
-                                          9007199254740991,
-                                          9007199254740992,
+                                          null,
+                                          1,
                                         ],
                                       },
                                       "name": "operator",
@@ -1475,7 +1450,7 @@ exports[`ast parse numbers 1`] = `
                                     "operator": "sequence",
                                     "position": {
                                       "end": 246,
-                                      "start": 124,
+                                      "start": 137,
                                     },
                                     "precedence": [
                                       null,
@@ -1599,7 +1574,7 @@ exports[`ast parse numbers 1`] = `
                             "operator": "sequence",
                             "position": {
                               "end": 286,
-                              "start": 91,
+                              "start": 102,
                             },
                             "precedence": [
                               null,
@@ -1746,7 +1721,7 @@ exports[`ast parse numbers 1`] = `
                     "operator": "sequence",
                     "position": {
                       "end": 329,
-                      "start": 42,
+                      "start": 51,
                     },
                     "precedence": [
                       null,
@@ -1777,8 +1752,8 @@ exports[`ast parse numbers 1`] = `
               "start": 18,
             },
             "precedence": [
-              9007199254740991,
-              9007199254740992,
+              9007199254740989,
+              9007199254740990,
             ],
           },
           "name": "operator",
@@ -1928,8 +1903,8 @@ exports[`ast reduce list 1`] = `
                           "start": 67,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -2020,8 +1995,8 @@ exports[`ast reduce list 1`] = `
                           "start": 100,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -2128,8 +2103,8 @@ exports[`ast reduce list 1`] = `
                           "start": 142,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -2312,8 +2287,8 @@ exports[`ast reduce list 1`] = `
                                                           "start": 231,
                                                         },
                                                         "precedence": [
-                                                          9007199254740991,
-                                                          9007199254740992,
+                                                          9007199254740989,
+                                                          9007199254740990,
                                                         ],
                                                       },
                                                       "name": "operator",
@@ -2391,8 +2366,8 @@ exports[`ast reduce list 1`] = `
                                                       "start": 231,
                                                     },
                                                     "precedence": [
-                                                      9007199254740991,
-                                                      9007199254740992,
+                                                      9007199254740989,
+                                                      9007199254740990,
                                                     ],
                                                   },
                                                   "name": "operator",
@@ -2416,8 +2391,8 @@ exports[`ast reduce list 1`] = `
                                                   "start": 231,
                                                 },
                                                 "precedence": [
-                                                  9007199254740991,
-                                                  9007199254740992,
+                                                  9007199254740989,
+                                                  9007199254740990,
                                                 ],
                                               },
                                               "name": "operator",
@@ -2441,8 +2416,8 @@ exports[`ast reduce list 1`] = `
                                               "start": 231,
                                             },
                                             "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
+                                              9007199254740989,
+                                              9007199254740990,
                                             ],
                                           },
                                           "name": "operator",
@@ -2466,8 +2441,8 @@ exports[`ast reduce list 1`] = `
                                           "start": 231,
                                         },
                                         "precedence": [
-                                          9007199254740991,
-                                          9007199254740992,
+                                          9007199254740989,
+                                          9007199254740990,
                                         ],
                                       },
                                       "name": "operator",
@@ -2530,8 +2505,8 @@ exports[`ast reduce list 1`] = `
                                                               "start": 299,
                                                             },
                                                             "precedence": [
-                                                              9007199254740991,
-                                                              9007199254740992,
+                                                              9007199254740989,
+                                                              9007199254740990,
                                                             ],
                                                           },
                                                           "name": "operator",
@@ -2625,8 +2600,8 @@ exports[`ast reduce list 1`] = `
                                                           "start": 299,
                                                         },
                                                         "precedence": [
-                                                          9007199254740991,
-                                                          9007199254740992,
+                                                          9007199254740989,
+                                                          9007199254740990,
                                                         ],
                                                       },
                                                       "name": "operator",
@@ -2650,8 +2625,8 @@ exports[`ast reduce list 1`] = `
                                                       "start": 299,
                                                     },
                                                     "precedence": [
-                                                      9007199254740991,
-                                                      9007199254740992,
+                                                      9007199254740989,
+                                                      9007199254740990,
                                                     ],
                                                   },
                                                   "name": "operator",
@@ -2675,8 +2650,8 @@ exports[`ast reduce list 1`] = `
                                                   "start": 299,
                                                 },
                                                 "precedence": [
-                                                  9007199254740991,
-                                                  9007199254740992,
+                                                  9007199254740989,
+                                                  9007199254740990,
                                                 ],
                                               },
                                               "name": "operator",
@@ -2700,8 +2675,8 @@ exports[`ast reduce list 1`] = `
                                               "start": 299,
                                             },
                                             "precedence": [
-                                              9007199254740991,
-                                              9007199254740992,
+                                              9007199254740989,
+                                              9007199254740990,
                                             ],
                                           },
                                           "name": "operator",
@@ -2770,8 +2745,8 @@ exports[`ast reduce list 1`] = `
                           "start": 213,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -2841,8 +2816,8 @@ exports[`ast reduce list 1`] = `
                                       "start": 387,
                                     },
                                     "precedence": [
-                                      9007199254740991,
-                                      9007199254740992,
+                                      9007199254740989,
+                                      9007199254740990,
                                     ],
                                   },
                                   "name": "operator",
@@ -2866,8 +2841,8 @@ exports[`ast reduce list 1`] = `
                                   "start": 387,
                                 },
                                 "precedence": [
-                                  9007199254740991,
-                                  9007199254740992,
+                                  9007199254740989,
+                                  9007199254740990,
                                 ],
                               },
                               "name": "operator",
@@ -2894,8 +2869,8 @@ exports[`ast reduce list 1`] = `
                           "start": 380,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -2919,8 +2894,8 @@ exports[`ast reduce list 1`] = `
                       "start": 380,
                     },
                     "precedence": [
-                      9007199254740991,
-                      9007199254740992,
+                      9007199254740989,
+                      9007199254740990,
                     ],
                   },
                   "name": "operator",
@@ -2930,7 +2905,7 @@ exports[`ast reduce list 1`] = `
                 "operator": "sequence",
                 "position": {
                   "end": 420,
-                  "start": 51,
+                  "start": 60,
                 },
                 "precedence": [
                   null,
@@ -3040,8 +3015,8 @@ exports[`ast split lines 1`] = `
                               "start": 35,
                             },
                             "precedence": [
-                              9007199254740991,
-                              9007199254740992,
+                              9007199254740989,
+                              9007199254740990,
                             ],
                           },
                           "name": "operator",
@@ -3066,8 +3041,8 @@ exports[`ast split lines 1`] = `
                           "start": 35,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -3133,8 +3108,8 @@ exports[`ast split lines 1`] = `
                               "start": 71,
                             },
                             "precedence": [
-                              9007199254740991,
-                              9007199254740992,
+                              9007199254740989,
+                              9007199254740990,
                             ],
                           },
                           "name": "operator",
@@ -3175,8 +3150,8 @@ exports[`ast split lines 1`] = `
                                       "start": 82,
                                     },
                                     "precedence": [
-                                      9007199254740991,
-                                      9007199254740992,
+                                      9007199254740989,
+                                      9007199254740990,
                                     ],
                                   },
                                   "name": "operator",
@@ -3200,8 +3175,8 @@ exports[`ast split lines 1`] = `
                                   "start": 82,
                                 },
                                 "precedence": [
-                                  9007199254740991,
-                                  9007199254740992,
+                                  9007199254740989,
+                                  9007199254740990,
                                 ],
                               },
                               "name": "operator",
@@ -3228,8 +3203,8 @@ exports[`ast split lines 1`] = `
                           "start": 71,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -3295,8 +3270,8 @@ exports[`ast split lines 1`] = `
                               "start": 116,
                             },
                             "precedence": [
-                              9007199254740991,
-                              9007199254740992,
+                              9007199254740989,
+                              9007199254740990,
                             ],
                           },
                           "name": "operator",
@@ -3374,8 +3349,8 @@ exports[`ast split lines 1`] = `
                           "start": 116,
                         },
                         "precedence": [
-                          9007199254740991,
-                          9007199254740992,
+                          9007199254740989,
+                          9007199254740990,
                         ],
                       },
                       "name": "operator",
@@ -3399,7 +3374,7 @@ exports[`ast split lines 1`] = `
                 "operator": "sequence",
                 "position": {
                   "end": 157,
-                  "start": 17,
+                  "start": 26,
                 },
                 "precedence": [
                   null,
@@ -3432,6 +3407,41 @@ exports[`ast split lines 1`] = `
         "precedence": [
           null,
           1,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast unit 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 1,
+            },
+          },
+          "name": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+        "position": {
+          "end": 2,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
         ],
       },
       "name": "operator",

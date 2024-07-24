@@ -1,3 +1,7 @@
+import "std/string"
+import "std/math"
+import "std/concurrency"
+
 reduce := fn list, reducer, merge, initial {
   len := length list
   if len == 0: return initial
@@ -49,15 +53,15 @@ numbers := flat_map lines fn line {
   digits := ()
 
   while line != "" {
-    if match "\d" line[0] {
-      digit := number line[0]
+    if match "\\d" (char_at line 0) {
+      digit := number (char_at line 0)
       if !digits[0]: digits[0] = digit
       digits[1] = digit
     }
-    _, ...line = line
+    line = slice line 1
   }
 
-  digits[0], digits[1] * 10
+  digits[0] * 10, digits[1]
 }
 
-sum (print numbers)
+sum numbers

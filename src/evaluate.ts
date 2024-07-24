@@ -1,5 +1,5 @@
 import { SystemError } from './error.js';
-import { addFile } from './files.js';
+import { addFile, getModule, Prelude } from './files.js';
 import {
   OperatorType,
   parseScript,
@@ -7,26 +7,18 @@ import {
 } from './parser.js';
 import { parseTokens } from './tokens.js';
 import { assert, getClosestName, inspect, unreachable } from './utils.js';
+import { EvalFunction, EvalValue } from './values.js';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
-type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
-type EvalValue =
-  | number
-  | string
-  | boolean
-  | null
-  | EvalValue[]
-  | EvalFunction
-  | { channel: symbol };
 type Channel = {
   queue: EvalValue[];
   onReceive: Array<(v: EvalValue) => void>;
 };
-type Context = {
+export type Context = {
   env: Record<string, EvalValue>;
 };
 
-function isChannel(
+export function isChannel(
   channelValue: EvalValue
 ): channelValue is { channel: symbol } {
   return (
@@ -38,75 +30,53 @@ function isChannel(
 
 const channels: Record<symbol, Channel> = {};
 
-export const newContext = (): Context => {
-  return {
-    env: {
-      channel: async () => {
-        const channel = Symbol();
-        return { channel };
-      },
-      floor: async (n) => {
-        assert(typeof n === 'number', SystemError.invalidFloorTarget());
-        return Math.floor(n);
-      },
-      length: async (list) => {
-        assert(Array.isArray(list), SystemError.invalidLengthTarget());
-        return list.length;
-      },
-      number: async (n) => {
-        return Number(n);
-      },
-      print: async (value) => {
-        console.log(value);
-        return value;
-      },
-      split: async (string) => {
-        assert(typeof string === 'string', SystemError.invalidSplitTarget());
-        return async (separator) => {
-          assert(
-            typeof separator === 'string',
-            SystemError.invalidSplitSeparator()
-          );
-          return string.split(separator);
-        };
-      },
-      replace: async (pattern) => {
-        assert(
-          typeof pattern === 'string',
-          SystemError.invalidReplacePattern()
-        );
-        return async (replacement) => {
-          assert(
-            typeof replacement === 'string',
-            SystemError.invalidReplaceReplacement()
-          );
-          return async (string) => {
-            assert(
-              typeof string === 'string',
-              SystemError.invalidReplaceTarget()
-            );
-            return string.replace(new RegExp(pattern, 'g'), replacement);
-          };
-        };
-      },
-      all: async (list) => {
-        assert(Array.isArray(list), 'invalid all target');
-        return await Promise.all(
-          list.map(async (c) => {
-            assert(isChannel(c), 'invalid all channel');
-            const channel = channels[c.channel];
-            if (channel.queue.length > 0) {
-              return channel.queue.shift() as EvalValue;
-            }
-
-            return await new Promise<EvalValue>((resolve) => {
-              channel.onReceive.push(resolve);
-            });
-          })
-        );
-      },
-    },
+export const createChannel = () => {
+  const channel = Symbol();
+  channels[channel] = {
+    queue: [],
+    onReceive: [],
   };
+  return { channel };
+};
+
+export const getChannel = (c: EvalValue) => {
+  assert(isChannel(c), 'not a channel');
+  assert(c.channel in channels, 'channel not found');
+  const channel = channels[c.channel];
+  return channel;
+};
+
+export const send = (_channel: EvalValue, value: EvalValue) => {
+  const channel = getChannel(_channel);
+  const onReceive = channel.onReceive.shift();
+  if (onReceive) {
+    onReceive(value);
+    channel.onReceive = channel.onReceive.filter(
+      (_resolve) => _resolve !== onReceive
+    );
+  } else channel.queue.push(value);
+};
+
+export const receive = (_channel: EvalValue) => {
+  const channel = getChannel(_channel);
+  console.log(channels);
+
+  if (channel.queue.length > 0) {
+    return channel.queue.shift()!;
+  }
+
+  return new Promise<EvalValue>((resolve) => {
+    channel.onReceive.push((value) => {
+      resolve(value);
+      channel.onReceive = channel.onReceive.filter(
+        (_resolve) => _resolve !== resolve
+      );
+    });
+  });
+};
+
+export const newContext = (): Context => {
+  return { env: {} };
 };
 
 export const assign = async (
@@ -140,6 +110,27 @@ export const assign = async (
       }
     }
 
+    return context;
+  }
+
+  if (patternAst.data.operator === OperatorType.PARENS) {
+    return await assign(patternAst.children[0], value, context);
+  }
+
+  if (patternAst.data.operator === OperatorType.INDEX) {
+    const [list, index] = await Promise.all(
+      patternAst.children.map((child) => evaluateExpr(child, context))
+    );
+    assert(
+      Array.isArray(list),
+      SystemError.invalidIndexTarget().withNode(patternAst)
+    );
+    assert(
+      Number.isInteger(index),
+      SystemError.invalidIndex().withNode(patternAst)
+    );
+    assert(typeof index === 'number');
+    list[index] = value;
     return context;
   }
 
@@ -196,6 +187,10 @@ export const bind = async (
     return context;
   }
 
+  if (patternAst.data.operator === OperatorType.PARENS) {
+    return await assign(patternAst.children[0], value, context);
+  }
+
   if (patternAst.name === 'name') {
     const env = { ...context.env };
     const name = patternAst.data.value;
@@ -214,6 +209,13 @@ export const evaluateExpr = async (
   switch (ast.name) {
     case 'operator': {
       switch (ast.data.operator) {
+        case OperatorType.IMPORT: {
+          const name = ast.children[0].data.value;
+          const module = getModule(name);
+          context.env = { ...module, ...context.env };
+          return module;
+        }
+
         case OperatorType.ADD: {
           const args = (await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
@@ -312,13 +314,14 @@ export const evaluateExpr = async (
           return !arg;
         }
         case OperatorType.PARENS:
-          if (ast.children[0].name === 'implicitPlaceholder') return [];
+          if (ast.children[0].name === 'implicit_placeholder') return [];
           return await evaluateExpr(ast.children[0], context);
 
         case OperatorType.INDEX: {
           const [list, index] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
+
           assert(
             Array.isArray(list),
             SystemError.invalidIndexTarget().withNode(ast)
@@ -345,18 +348,10 @@ export const evaluateExpr = async (
 
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child) => {
-            const symbol = Symbol();
-            const channel = { channel: symbol };
-            channels[symbol] = {
-              queue: [],
-              onReceive: [],
-            };
-            evaluateExpr(child, { ...context }).then((value) => {
-              const onReceive = channels[symbol].onReceive;
-              const resolve = onReceive.shift();
-              if (resolve) resolve(value);
-              else channels[symbol].queue.push(value);
-            });
+            const channel = createChannel();
+            evaluateExpr(child, { ...context }).then((value) =>
+              send(channel, value)
+            );
 
             return channel;
           });
@@ -367,18 +362,9 @@ export const evaluateExpr = async (
           const [channelValue, value] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidSendChannel().withNode(ast)
-          );
-          const symbol = channelValue.channel;
-          if (!(symbol in channels)) {
-            channels[symbol] = {
-              queue: [],
-              onReceive: [],
-            };
-          }
-          const channel = channels[symbol];
+          const channel = getChannel(channelValue);
+
+          assert(channel, SystemError.invalidSendChannel().withNode(ast));
 
           const onReceive = channel.onReceive.shift();
           if (onReceive) onReceive(value);
@@ -386,18 +372,9 @@ export const evaluateExpr = async (
         }
         case OperatorType.RECEIVE: {
           const channelValue = await evaluateExpr(ast.children[0], context);
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidReceiveChannel().withNode(ast)
-          );
-          const symbol = channelValue.channel;
-          if (!(symbol in channels)) {
-            channels[symbol] = {
-              queue: [],
-              onReceive: [],
-            };
-          }
-          const channel = channels[symbol];
+          const channel = getChannel(channelValue);
+
+          assert(channel, SystemError.invalidReceiveChannel().withNode(ast));
 
           if (channel.queue.length > 0) {
             return channel.queue.shift()!;
@@ -452,13 +429,35 @@ export const evaluateExpr = async (
 
         case OperatorType.FUNCTION: {
           const [patterns, body] = ast.children;
+
+          if (patterns.data.operator !== OperatorType.TUPLE) {
+            return async (arg) => {
+              const bound = await bind(patterns, arg, { ...context });
+              try {
+                return await evaluateExpr(body, bound);
+              } catch (e) {
+                if (typeof e === 'object' && e !== null && 'return' in e)
+                  return e.return as EvalValue;
+                else throw e;
+              }
+            };
+          }
+
           const args: EvalValue[] = [];
+
           const binder = (): EvalFunction => {
             return async (arg) => {
               args.push(arg);
               if (patterns.children.length === args.length) {
                 const bound = await bind(patterns, args, { ...context });
-                return await evaluateExpr(body, bound);
+
+                try {
+                  return await evaluateExpr(body, bound);
+                } catch (e) {
+                  if (typeof e === 'object' && e !== null && 'return' in e)
+                    return e.return as EvalValue;
+                  else throw e;
+                }
               }
               return binder();
             };
@@ -511,6 +510,8 @@ export const evaluateScript = async (
   ast: AbstractSyntaxTree,
   context: Context = newContext()
 ): Promise<EvalValue> => {
+  const preludeModule = getModule(Prelude);
+  context.env = { ...preludeModule, ...context.env };
   return await evaluateSequence(ast, context);
 };
 

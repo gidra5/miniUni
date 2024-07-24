@@ -1,5 +1,4 @@
 import {
-  createLabelInfo,
   Diagnostic,
   LabelInfo,
   primaryDiagnosticLabel,
@@ -357,5 +356,21 @@ export class SystemError extends Error {
   static invalidReplacePattern(): SystemError {
     const msg = 'replace pattern is not a string';
     return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
+  }
+
+  static moduleNotFound(name: string | symbol): SystemError {
+    throw new Error('Method not implemented.');
+  }
+  static invalidMatchTarget(): SystemError {
+    throw new Error('Method not implemented.');
+  }
+  static invalidMatchPattern(): SystemError {
+    throw new Error('Method not implemented.');
+  }
+  static invalidCharAtTarget(): SystemError {
+    throw new Error('Method not implemented.');
+  }
+  static invalidCharAtIndex(): SystemError {
+    throw new Error('Method not implemented.');
   }
 }
