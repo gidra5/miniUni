@@ -6,7 +6,7 @@ import {
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, inspect, unreachable } from './utils.js';
+import { assert, getClosestName, inspect, unreachable } from './utils.js';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
 type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
@@ -122,7 +122,10 @@ export const assign = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), SystemError.invalidTuplePattern(patternAst));
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern(patternAst.data.position)
+    );
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -143,13 +146,20 @@ export const assign = async (
   if (patternAst.name === 'name') {
     const env = { ...context.env };
     const name = patternAst.data.value;
-    assert(name in env, SystemError.invalidAssignment(name, patternAst));
+    assert(
+      name in env,
+      SystemError.invalidAssignment(
+        name,
+        patternAst.data.position,
+        getClosestName(name, Object.keys(env))
+      )
+    );
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  unreachable(SystemError.invalidPattern(patternAst));
+  unreachable(SystemError.invalidPattern(patternAst.data.position));
 };
 
 export const bind = async (
@@ -165,7 +175,10 @@ export const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
-    assert(Array.isArray(value), SystemError.invalidTuplePattern(patternAst));
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern(patternAst.data.position)
+    );
 
     const patterns = patternAst.children;
     for (let i = 0; i < patterns.length; i++) {
@@ -191,7 +204,7 @@ export const bind = async (
     return context;
   }
 
-  unreachable(SystemError.invalidPattern(patternAst));
+  unreachable(SystemError.invalidPattern(patternAst.data.position));
 };
 
 export const evaluateExpr = async (
@@ -459,7 +472,7 @@ export const evaluateExpr = async (
 
           assert(
             typeof fnValue === 'function',
-            SystemError.invalidApplicationExpression(ast)
+            SystemError.invalidApplicationExpression(ast.data.position)
           );
 
           return await fnValue(argValue);

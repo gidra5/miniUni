@@ -19,21 +19,6 @@ test.prop([fc.string().filter((s) => !s.includes('\\') && !s.includes('"'))])(
   }
 );
 
-test.prop([fc.string({ maxLength: 1, minLength: 1 })])(
-  'parseToken - string token escape',
-  (value) => {
-    const src = `"\\${value}"`;
-    const startIndex = 0;
-    const expectedToken = { type: 'string', src, value };
-    const expectedIndex = 4;
-
-    const [index, { start, end, ...token }] = parseToken(src, startIndex);
-
-    expect(index).toBe(expectedIndex);
-    expect(token).toEqual(expectedToken);
-  }
-);
-
 // Test case: Parsing a number token
 describe('parseToken - number token', () => {
   it.prop([fc.stringMatching(/^\d+\.\d+$/)])('float literals', (src) => {

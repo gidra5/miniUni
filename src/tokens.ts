@@ -62,12 +62,7 @@ export const error = (
   cause: SystemError,
   pos: Position,
   src = ''
-): TokenPos => ({
-  type: 'error',
-  cause: cause.withPosition(pos),
-  src,
-  ...pos,
-});
+): TokenPos => ({ type: 'error', cause, src, ...pos });
 export const placeholder = (src: string, pos: Position): TokenPos => ({
   type: 'placeholder',
   src,
@@ -132,9 +127,10 @@ export const parseToken = (
     let value = '';
     while (src.charAt(index) !== '"') {
       if (!src.charAt(index)) {
+        const pos = position(start);
         const token = error(
-          SystemError.unterminatedString(),
-          intervalPosition(start, index),
+          SystemError.unterminatedString(pos),
+          pos,
           tokenSrc(start)
         );
         return [index, token];
@@ -171,9 +167,10 @@ export const parseToken = (
     if (!/[0-9a-fA-F]/.test(src.charAt(index))) {
       while (/[0-9a-fA-F_]/.test(src.charAt(index))) index++;
 
+      const pos = position(start);
       const token = error(
-        SystemError.invalidHexLiteral(),
-        position(start),
+        SystemError.invalidHexLiteral(pos),
+        pos,
         tokenSrc(start)
       );
       return [index, token];
@@ -196,9 +193,10 @@ export const parseToken = (
     if (!/[0-7]/.test(src.charAt(index))) {
       while (/[0-7_]/.test(src.charAt(index))) index++;
 
+      const pos = position(start);
       const token = error(
-        SystemError.invalidOctalLiteral(),
-        position(start),
+        SystemError.invalidOctalLiteral(pos),
+        pos,
         tokenSrc(start)
       );
       return [index, token];
@@ -221,9 +219,10 @@ export const parseToken = (
     if (!/[0-1]/.test(src.charAt(index))) {
       while (/[0-1_]/.test(src.charAt(index))) index++;
 
+      const pos = position(start);
       const token = error(
-        SystemError.invalidBinaryLiteral(),
-        position(start),
+        SystemError.invalidBinaryLiteral(pos),
+        pos,
         tokenSrc(start)
       );
       return [index, token];

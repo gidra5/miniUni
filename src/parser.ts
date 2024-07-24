@@ -308,7 +308,10 @@ export const parsePatternGroup =
 
       if (src[index].type === 'newline') index++;
       if (src[index].src !== ')') {
-        return [index, error(SystemError.missingToken(')'), node())];
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), ')'), node()),
+        ];
       }
       index++;
 
@@ -532,7 +535,10 @@ export const parseGroup =
 
       if (src[index].type === 'newline') index++;
       if (src[index].src !== '}') {
-        return [index, error(SystemError.missingToken('}'), node())];
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
       }
       index++;
       return [index, node()];
@@ -562,7 +568,10 @@ export const parseGroup =
 
         if (src[index].type === 'newline') index++;
         if (src[index].src !== '}') {
-          return [index, error(SystemError.missingToken('}'), node())];
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
         }
 
         index++;
@@ -580,7 +589,7 @@ export const parseGroup =
       return [
         index,
         error(
-          SystemError.missingToken('->', '{'),
+          SystemError.missingToken(nodePosition(), '->', '{'),
           operator(OperatorType.FUNCTION, nodePosition(), pattern)
         ),
       ];
@@ -609,7 +618,10 @@ export const parseGroup =
         };
         if (src[index].type === 'newline') index++;
         if (src[index].src !== '}') {
-          return [index, error(SystemError.missingToken('}'), node())];
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
         }
         index++;
 
@@ -642,7 +654,7 @@ export const parseGroup =
       return [
         index,
         error(
-          SystemError.missingToken(':', '\\n', '{'),
+          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
           operator(OperatorType.IF, nodePosition(), condition)
         ),
       ];
@@ -670,7 +682,10 @@ export const parseGroup =
         };
         if (src[index].type === 'newline') index++;
         if (src[index].src !== '}') {
-          return [index, error(SystemError.missingToken('}'), node())];
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
         }
         index++;
 
@@ -685,7 +700,7 @@ export const parseGroup =
       return [
         index,
         error(
-          SystemError.missingToken(':', '\\n', '{'),
+          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
           operator(OperatorType.WHILE, nodePosition(), condition)
         ),
       ];
@@ -700,7 +715,10 @@ export const parseGroup =
 
       if (src[index].type === 'newline') index++;
       if (src[index].src !== ']') {
-        return [index, error(SystemError.missingToken(']'), node)];
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), ']'), node),
+        ];
       }
       index++;
 
@@ -716,7 +734,10 @@ export const parseGroup =
 
       if (src[index].type === 'newline') index++;
       if (src[index].src !== ')') {
-        return [index, error(SystemError.missingToken(')'), node())];
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), ')'), node()),
+        ];
       }
       index++;
 

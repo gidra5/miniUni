@@ -42,17 +42,27 @@ type Options = {
   cause?: unknown;
   fileId?: number;
   data?: Record<string, any>;
+  notes?: string[];
+  labels?: ErrorLabel[];
+};
+
+type ErrorLabel = LabelInfo & {
+  kind: 'primary' | 'secondary';
 };
 
 export class SystemError extends Error {
   data: Record<string, any>;
   private fileId?: number;
   private type: ErrorType;
+  private labels: ErrorLabel[];
+  private notes: string[];
   private constructor(type: ErrorType, msg: string, options: Options = {}) {
     super(msg, { cause: options.cause });
-    this.data = options.data || {};
+    this.data = options.data ?? {};
     this.fileId = options.fileId;
     this.type = type;
+    this.notes = options.notes ?? [];
+    this.labels = options.labels ?? [];
   }
 
   withFileId(fileId: number): SystemError {
@@ -86,124 +96,14 @@ export class SystemError extends Error {
     const diag = Diagnostic.error();
     diag.withMessage(this.message);
     diag.withCode(ErrorType[this.type]);
-    const [labels, notes] = this.labels();
-    diag.withLabels(
-      labels.map(({ kind, ...label }) =>
-        kind === 'primary'
-          ? primaryDiagnosticLabel(id, label)
-          : secondaryDiagnosticLabel(id, label)
-      )
+    const labels = this.labels.map(({ kind, ...label }) =>
+      kind === 'primary'
+        ? primaryDiagnosticLabel(id, label)
+        : secondaryDiagnosticLabel(id, label)
     );
-    diag.withNotes(notes);
+    diag.withLabels(labels);
+    diag.withNotes(this.notes);
     return diag;
-  }
-
-  labels(): [
-    Array<LabelInfo & { kind: 'primary' | 'secondary' }>,
-    Array<string>
-  ] {
-    const labels: Array<LabelInfo & { kind: 'primary' | 'secondary' }> = [];
-    const notes: string[] = [];
-
-    switch (this.type) {
-      case ErrorType.INVALID_LENGTH_TARGET:
-      case ErrorType.INVALID_FLOOR_TARGET:
-      case ErrorType.INVALID_SPLIT_SEPARATOR:
-      case ErrorType.INVALID_SPLIT_TARGET:
-        break;
-
-      case ErrorType.INVALID_BINARY_LITERAL: {
-        assert(this.data.position, 'position is not set');
-        const pos = this.data.position as Position;
-
-        labels.push({
-          start: pos.start + 2,
-          end: pos.start + 3,
-          message: 'expected digits 0 or 1',
-          kind: 'primary',
-        });
-        notes.push(
-          'Valid binary literals start with 0b and digits 0 or 1 (binary digits), which may be followed by more binary digits, optionally separated by underscores'
-        );
-        break;
-      }
-      case ErrorType.INVALID_OCTAL_LITERAL: {
-        assert(this.data.position, 'position is not set');
-        const pos = this.data.position as Position;
-
-        labels.push({
-          start: pos.start + 2,
-          end: pos.start + 3,
-          message: 'expected a digit between 0 and 7',
-          kind: 'primary',
-        });
-        notes.push(
-          'Valid octal literals start with 0o and a digit between 0 and 7 (octal digits), which may be followed by more octal digits, optionally separated by underscores'
-        );
-        break;
-      }
-      case ErrorType.INVALID_HEX_LITERAL: {
-        assert(this.data.position, 'position is not set');
-        const pos = this.data.position as Position;
-        labels.push({
-          start: pos.start + 2,
-          end: pos.start + 3,
-          message:
-            'expected a digit or a letter between a and f (case insensitive)',
-          kind: 'primary',
-        });
-        notes.push(
-          'Valid hex literals start with 0x and a digit or a case insensitive letter between a and f (hex digits), which may be followed by more hex digits, optionally separated by underscores'
-        );
-        break;
-      }
-
-      case ErrorType.UNTERMINATED_STRING: {
-        assert(this.data.position, 'position is not set');
-        const pos = this.data.position as Position;
-        labels.push({
-          start: pos.start,
-          end: pos.end,
-          message: 'expected closing double quote "',
-          kind: 'primary',
-        });
-        notes.push('Strings must be enclosed in double quotes');
-        notes.push(
-          'Use \\ to escape special characters like double quotes or \\ itself'
-        );
-        notes.push('Use \\ at the end of a line to write a multi-line string');
-        break;
-      }
-
-      case ErrorType.UNKNOWN:
-      case ErrorType.END_OF_SOURCE:
-      case ErrorType.MISSING_TOKEN:
-      case ErrorType.INVALID_PATTERN:
-      case ErrorType.INVALID_TUPLE_PATTERN:
-      case ErrorType.INVALID_USE_OF_SPREAD:
-      case ErrorType.INVALID_TOKEN_EXPRESSION:
-      case ErrorType.INVALID_PLACEHOLDER_EXPRESSION:
-      case ErrorType.INVALID_RECEIVE_CHANNEL:
-      case ErrorType.INVALID_SEND_CHANNEL:
-      case ErrorType.INVALID_INDEX:
-      case ErrorType.INVALID_INDEX_TARGET:
-      case ErrorType.INVALID_ASSIGNMENT:
-      case ErrorType.INVALID_APPLICATION_EXPRESSION: {
-        assert(
-          this.data.position,
-          `position is not set, ${ErrorType[this.type]}`
-        );
-        const pos = this.data.position as Position;
-        labels.push({
-          start: pos.start,
-          end: pos.end,
-          message: 'here',
-          kind: 'primary',
-        });
-      }
-    }
-
-    return [labels, notes];
   }
 
   static unknown(): SystemError {
@@ -216,40 +116,113 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.END_OF_SOURCE, msg);
   }
 
-  static unterminatedString(): SystemError {
-    const msg = 'Unterminated string literal. Expected closing double quote "';
-    return new SystemError(ErrorType.UNTERMINATED_STRING, msg);
+  static unterminatedString(pos: Position): SystemError {
+    const msg = 'Unterminated string literal';
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'expected closing double quote',
+      kind: 'primary',
+    });
+    notes.push('Strings must be enclosed in double quotes (")');
+    notes.push('Use \\ to escape special characters');
+    notes.push('Use \\ at the end of a line to write a multi-line string');
+
+    return new SystemError(ErrorType.UNTERMINATED_STRING, msg, options);
   }
 
-  static invalidBinaryLiteral(): SystemError {
+  static invalidBinaryLiteral(pos: Position): SystemError {
     const msg = 'Invalid binary literal';
-    return new SystemError(ErrorType.INVALID_BINARY_LITERAL, msg);
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start + 2,
+      end: pos.start + 3,
+      message: 'expected digits 0 or 1',
+      kind: 'primary',
+    });
+    notes.push(
+      'Valid binary literals start with 0b and digits 0 or 1 (binary digits), which may be followed by more binary digits, optionally separated by underscores'
+    );
+    return new SystemError(ErrorType.INVALID_BINARY_LITERAL, msg, options);
   }
 
-  static invalidOctalLiteral(): SystemError {
+  static invalidOctalLiteral(pos: Position): SystemError {
     const msg = 'Invalid octal literal';
-    return new SystemError(ErrorType.INVALID_OCTAL_LITERAL, msg);
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start + 2,
+      end: pos.start + 3,
+      message: 'expected a digit between 0 and 7',
+      kind: 'primary',
+    });
+    notes.push(
+      'Valid octal literals start with 0o and a digit between 0 and 7 (octal digits), which may be followed by more octal digits, optionally separated by underscores'
+    );
+    return new SystemError(ErrorType.INVALID_OCTAL_LITERAL, msg, options);
   }
 
-  static invalidHexLiteral(): SystemError {
+  static invalidHexLiteral(pos: Position): SystemError {
     const msg = 'Invalid hex literal';
-    return new SystemError(ErrorType.INVALID_HEX_LITERAL, msg);
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start + 2,
+      end: pos.start + 3,
+      message:
+        'expected a digit or a letter between a and f (case insensitive)',
+      kind: 'primary',
+    });
+    notes.push(
+      'Valid hex literals start with 0x and a digit or a case insensitive letter between a and f (hex digits), which may be followed by more hex digits, optionally separated by underscores'
+    );
+    return new SystemError(ErrorType.INVALID_HEX_LITERAL, msg, options);
   }
 
-  static missingToken(...tokens: string[]): SystemError {
-    const options = { data: { tokens } };
-
+  static missingToken(pos: Position, ...tokens: string[]): SystemError {
     const list = tokens.map((token) => `"${token}"`).join(' or ');
     const msg = `Missing token: ${list}`;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { data: { tokens }, notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'somewhere here',
+      kind: 'primary',
+    });
+    notes.push(`Some pairs of tokens like {} or () must be balanced.`);
+    notes.push(
+      `If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.`
+    );
 
     return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
   }
 
-  static invalidPattern(node: AbstractSyntaxTree): SystemError {
+  static invalidPattern(pos: Position): SystemError {
     const msg = 'invalid pattern';
-    return new SystemError(ErrorType.INVALID_PATTERN, msg).withPosition(
-      node.data.position
-    );
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'here',
+      kind: 'primary',
+    });
+    return new SystemError(ErrorType.INVALID_PATTERN, msg, options);
   }
 
   static invalidPlaceholderExpression(): SystemError {
@@ -269,23 +242,48 @@ export class SystemError extends Error {
 
   static invalidAssignment(
     name: string,
-    node: AbstractSyntaxTree
+    pos: Position,
+    closestName?: string
   ): SystemError {
     const msg = `can't assign to undeclared variable`;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
 
-    const options = { data: { name } };
-    return new SystemError(
-      ErrorType.INVALID_ASSIGNMENT,
-      msg,
-      options
-    ).withPosition(node.data.position);
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: `variable "${name}" is not declared in scope`,
+      kind: 'primary',
+    });
+    notes.push(`Variable must be declared before it can be assigned to.`);
+    notes.push(
+      `Use := operator to declare a new variable, = assigns to already declared variables only.`
+    );
+    if (closestName) notes.push(`Did you mean "${closestName}"?`);
+    else {
+      notes.push(
+        `Check if you have a typo in the variable name, if "${name}" is intended to be declared.`
+      );
+    }
+
+    return new SystemError(ErrorType.INVALID_ASSIGNMENT, msg, options);
   }
 
-  static invalidTuplePattern(node: AbstractSyntaxTree): SystemError {
+  static invalidTuplePattern(pos: Position): SystemError {
     const msg = 'tuple pattern on non-tuple';
-    return new SystemError(ErrorType.INVALID_TUPLE_PATTERN, msg).withPosition(
-      node.data.position
-    );
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'here',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.INVALID_TUPLE_PATTERN, msg, options);
   }
 
   static invalidIndexTarget(): SystemError {
@@ -319,12 +317,24 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_TOKEN_EXPRESSION, msg);
   }
 
-  static invalidApplicationExpression(node: AbstractSyntaxTree): SystemError {
-    const msg = 'application operator on non-function';
+  static invalidApplicationExpression(fnPos: Position): SystemError {
+    const msg = 'application on a non-function';
+    const pos = fnPos;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'this expression is not a function',
+      kind: 'primary',
+    });
     return new SystemError(
       ErrorType.INVALID_APPLICATION_EXPRESSION,
-      msg
-    ).withPosition(node.data.position);
+      msg,
+      options
+    );
   }
   static invalidSplitSeparator(): SystemError {
     const msg = 'split separator is not a string';
