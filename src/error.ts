@@ -35,6 +35,7 @@ export enum ErrorType {
   INVALID_REPLACE_TARGET,
   INVALID_REPLACE_PATTERN,
   INVALID_REPLACE_REPLACEMENT,
+  UNDECLARED_NAME,
 }
 
 type Options = {
@@ -372,5 +373,23 @@ export class SystemError extends Error {
   }
   static invalidCharAtIndex(): SystemError {
     throw new Error('Method not implemented.');
+  }
+  static undeclaredName(name: string, pos: Position): SystemError {
+    const msg = `undeclared name ${name}`;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'this name is not declared in scope',
+      kind: 'primary',
+    });
+
+    notes.push(
+      `Variable can be declared with ":=" operator like this: ${name} := value`
+    );
+    return new SystemError(ErrorType.UNDECLARED_NAME, msg, options);
   }
 }

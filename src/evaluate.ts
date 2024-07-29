@@ -1,3 +1,4 @@
+import { rejects } from 'assert';
 import { SystemError } from './error.js';
 import { addFile, getModule, Prelude } from './files.js';
 import {
@@ -11,8 +12,11 @@ import { EvalFunction, EvalValue } from './values.js';
 
 // type Continuation = (arg: EvalValue) => Promise<EvalValue>;
 type Channel = {
-  queue: EvalValue[];
-  onReceive: Array<(v: EvalValue) => void>;
+  queue: (EvalValue | Error)[];
+  onReceive: Array<{
+    resolve: (v: EvalValue) => void;
+    reject: (e: unknown) => void;
+  }>;
 };
 export type Context = {
   env: Record<string, EvalValue>;
@@ -46,32 +50,47 @@ export const getChannel = (c: EvalValue) => {
   return channel;
 };
 
-export const send = (_channel: EvalValue, value: EvalValue) => {
+export const send = (_channel: EvalValue, value: EvalValue | Error) => {
   const channel = getChannel(_channel);
-  const onReceive = channel.onReceive.shift();
-  if (onReceive) {
-    onReceive(value);
+  const promise = channel.onReceive.shift();
+  if (promise) {
+    const { resolve, reject } = promise;
+    if (value instanceof Error) reject(value);
+    else resolve(value);
+
     channel.onReceive = channel.onReceive.filter(
-      (_resolve) => _resolve !== onReceive
+      (_promise) => _promise !== promise
     );
   } else channel.queue.push(value);
 };
 
 export const receive = (_channel: EvalValue) => {
   const channel = getChannel(_channel);
-  console.log(channels);
 
   if (channel.queue.length > 0) {
-    return channel.queue.shift()!;
+    const next = channel.queue.shift()!;
+    if (next instanceof Error) throw next;
+    return next;
   }
 
-  return new Promise<EvalValue>((resolve) => {
-    channel.onReceive.push((value) => {
-      resolve(value);
-      channel.onReceive = channel.onReceive.filter(
-        (_resolve) => _resolve !== resolve
-      );
-    });
+  return new Promise<EvalValue>((resolve, reject) => {
+    const promise = {
+      resolve: (v: EvalValue) => {
+        resolve(v);
+        channel.onReceive = channel.onReceive.filter(
+          (_promise) => _promise !== promise
+        );
+      },
+
+      reject: (e: unknown) => {
+        reject(e);
+        channel.onReceive = channel.onReceive.filter(
+          (_promise) => _promise !== promise
+        );
+      },
+    };
+
+    channel.onReceive.push(promise);
   });
 };
 
@@ -188,7 +207,7 @@ export const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.PARENS) {
-    return await assign(patternAst.children[0], value, context);
+    return await bind(patternAst.children[0], value, context);
   }
 
   if (patternAst.name === 'name') {
@@ -349,8 +368,9 @@ export const evaluateExpr = async (
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child) => {
             const channel = createChannel();
-            evaluateExpr(child, { ...context }).then((value) =>
-              send(channel, value)
+            evaluateExpr(child, { ...context }).then(
+              (value) => send(channel, value),
+              (e) => send(channel, e)
             );
 
             return channel;
@@ -366,9 +386,16 @@ export const evaluateExpr = async (
 
           assert(channel, SystemError.invalidSendChannel().withNode(ast));
 
-          const onReceive = channel.onReceive.shift();
-          if (onReceive) onReceive(value);
-          else channel.queue.push(value);
+          const promise = channel.onReceive.shift();
+          if (promise) {
+            const { resolve, reject } = promise;
+            if (value instanceof Error) reject(value);
+            else resolve(value);
+
+            channel.onReceive = channel.onReceive.filter(
+              (_promise) => _promise !== promise
+            );
+          } else channel.queue.push(value);
         }
         case OperatorType.RECEIVE: {
           const channelValue = await evaluateExpr(ast.children[0], context);
@@ -377,11 +404,29 @@ export const evaluateExpr = async (
           assert(channel, SystemError.invalidReceiveChannel().withNode(ast));
 
           if (channel.queue.length > 0) {
-            return channel.queue.shift()!;
+            const next = channel.queue.shift()!;
+            if (next instanceof Error) throw next;
+            return next;
           }
 
-          return await new Promise((resolve) => {
-            channel.onReceive.push(resolve);
+          return new Promise<EvalValue>((resolve, reject) => {
+            const promise = {
+              resolve: (v: EvalValue) => {
+                resolve(v);
+                channel.onReceive = channel.onReceive.filter(
+                  (_promise) => _promise !== promise
+                );
+              },
+
+              reject: (e: unknown) => {
+                reject(e);
+                channel.onReceive = channel.onReceive.filter(
+                  (_promise) => _promise !== promise
+                );
+              },
+            };
+
+            channel.onReceive.push(promise);
           });
         }
 
@@ -398,6 +443,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.IF_ELSE: {
           const [condition, trueBranch, falseBranch] = ast.children;
+
           const result = await evaluateExpr(condition, context);
           if (result) return await evaluateExpr(trueBranch, context);
           else return await evaluateExpr(falseBranch, context);
@@ -443,23 +489,24 @@ export const evaluateExpr = async (
             };
           }
 
-          const args: EvalValue[] = [];
-
-          const binder = (): EvalFunction => {
+          const binder = (...args: EvalValue[]): EvalFunction => {
+            const _context = { ...context, env: { ...context.env } };
             return async (arg) => {
-              args.push(arg);
-              if (patterns.children.length === args.length) {
-                const bound = await bind(patterns, args, { ...context });
-
-                try {
-                  return await evaluateExpr(body, bound);
-                } catch (e) {
-                  if (typeof e === 'object' && e !== null && 'return' in e)
-                    return e.return as EvalValue;
-                  else throw e;
-                }
+              if (args.length < patterns.children.length - 1) {
+                return binder(...args, arg);
               }
-              return binder();
+              args.push(arg);
+              const bound = await bind(patterns, args, _context);
+              bound.env['self'] = binder();
+
+              try {
+                const x = await evaluateExpr(body, bound);
+                return x;
+              } catch (e) {
+                if (typeof e === 'object' && e !== null && 'return' in e) {
+                  return e.return as EvalValue;
+                } else throw e;
+              }
             };
           };
           return binder();
@@ -480,7 +527,14 @@ export const evaluateExpr = async (
     }
 
     case 'name':
-      return context.env[ast.data.value];
+      const name = ast.data.value;
+      if (name === 'true') return true;
+      if (name === 'false') return false;
+      assert(
+        name in context.env,
+        SystemError.undeclaredName(name, ast.data.position)
+      );
+      return context.env[name];
     case 'number':
     case 'string':
       return ast.data.value;
@@ -499,10 +553,11 @@ export const evaluateSequence = async (
   context: Context = newContext()
 ): Promise<EvalValue> => {
   let result: EvalValue = null;
+
   for (const child of ast.children) {
     result = await evaluateExpr(child, context);
-    // console.log(result);
   }
+
   return result;
 };
 

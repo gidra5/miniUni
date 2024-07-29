@@ -6,7 +6,7 @@ import {
   evaluateScriptString,
   newContext,
 } from '../src/evaluate.ts';
-import { assert, inspect } from '../src/utils.ts';
+import { assert } from '../src/utils.ts';
 import { EvalValue, fn } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
@@ -17,7 +17,7 @@ const evaluate = async (
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  return await evaluateScript(inspect(ast), context);
+  return await evaluateScript(ast, context);
 };
 
 describe('evaluate', () => {
@@ -140,7 +140,7 @@ describe('evaluate', () => {
     expect(result).toStrictEqual([1, 2]);
   });
 
-  it.only('evaluate parallel all multiline', async () => {
+  it('evaluate parallel all multiline', async () => {
     const input = `
       import "std/concurrency"
       
@@ -151,34 +151,46 @@ describe('evaluate', () => {
     `;
     const result = await evaluate(input);
 
-    expect(result).toBe([1, 2]);
+    expect(result).toStrictEqual([1, 2]);
   });
 
   it('evaluate reduce list', async () => {
     const input = `
       import "std/concurrency"
       import "std/math"
+      import "std/string"
 
       reduce := fn list, reducer, merge, initial {
-        print (list, reducer, merge, initial)
-
         len := length list
         if len == 0: return initial
       
         midpoint := floor(len / 2)
         item := list[midpoint]
-        first, second := print (all(
-          | (reduce slice(list, 0, midpoint) reducer merge initial)
-          | (reduce slice(list, midpoint + 1) reducer merge initial)
-        ))
-      
+        first, second := all(
+          | (self (slice(list, 0, midpoint)) reducer merge initial)
+          | (self (slice(list, midpoint + 1)) reducer merge initial)
+        )
+
         merge (reducer first item) second
       }
       
-      reduce (1, 2, 3, 4, 5) (fn acc, item -> (print acc) + (print item)) (fn first, second -> first + second) 0
+      reduce (1, 2, 3, 4, 5) (fn acc, item -> acc + item) (fn first, second -> first + second) 0
     `;
     const result = await evaluate(input);
 
-    expect(result).toBe(10);
+    expect(result).toBe(15);
+  });
+
+  it('evaluate filter list impl', async () => {
+    const input = `
+      predicate := true
+      first := ()
+      item := 1
+      acc := ()
+      if predicate: (...first, item) else acc
+    `;
+    const result = await evaluateScriptString(input);
+
+    expect(result).toStrictEqual([1]);
   });
 });

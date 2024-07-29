@@ -9,15 +9,15 @@ reduce := fn list, reducer, merge, initial {
   midpoint := floor(len / 2)
   item := list[midpoint]
   first, second := all(
-    | (reduce slice(list, 0, midpoint) reducer merge initial)
-    | (reduce slice(list, midpoint + 1) reducer merge initial)
+    | (self (slice(list, 0, midpoint)) reducer merge initial)
+    | (self (slice(list, midpoint + 1)) reducer merge initial)
   )
 
   merge (reducer first item) second
 }
 
 filter := fn list, predicate {
-  reduce list (fn acc, item -> if predicate item: (...first, item) else acc) (fn first, second -> (...first, ...second)) ()
+  reduce list (fn acc, item -> if predicate item: (...acc, item) else acc) (fn first, second -> (...first, ...second)) ()
 }
 
 map := fn list, mapper {
@@ -25,11 +25,11 @@ map := fn list, mapper {
 }
 
 flat_map := fn list, mapper {
-  reduce (print list) (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+  reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
 }
 
 sum := fn list {
-  reduce (print list) (fn acc, item -> acc + item) (fn first, second -> acc + item) 0
+  reduce list (fn acc, item -> acc + item) (fn first, second -> first + second) 0
 }
 
 // https://adventofcode.com/2023/day/1
@@ -45,8 +45,8 @@ document := "
 
 lines := {
   lines := split document "\n"
-  lines = (map lines (replace "\\s+" ""))
-  (filter lines fn line -> line != "")
+  lines = map lines (replace "\\s+" "")
+  filter lines fn line -> line != ""
 }
 
 numbers := flat_map lines fn line {
@@ -58,7 +58,7 @@ numbers := flat_map lines fn line {
       if !digits[0]: digits[0] = digit
       digits[1] = digit
     }
-    line = slice line 1
+    line = slice(line, 1)
   }
 
   digits[0] * 10, digits[1]

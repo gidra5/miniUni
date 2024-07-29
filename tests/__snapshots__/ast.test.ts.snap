@@ -2474,129 +2474,32 @@ exports[`ast reduce list 1`] = `
                                                     {
                                                       "children": [
                                                         {
-                                                          "children": [
-                                                            {
-                                                              "children": [],
-                                                              "data": {
-                                                                "position": {
-                                                                  "end": 305,
-                                                                  "start": 299,
-                                                                },
-                                                                "value": "reduce",
-                                                              },
-                                                              "name": "name",
-                                                            },
-                                                            {
-                                                              "children": [],
-                                                              "data": {
-                                                                "position": {
-                                                                  "end": 311,
-                                                                  "start": 306,
-                                                                },
-                                                                "value": "slice",
-                                                              },
-                                                              "name": "name",
-                                                            },
-                                                          ],
+                                                          "children": [],
                                                           "data": {
-                                                            "operator": "application",
                                                             "position": {
-                                                              "end": 311,
+                                                              "end": 305,
                                                               "start": 299,
                                                             },
-                                                            "precedence": [
-                                                              9007199254740989,
-                                                              9007199254740990,
-                                                            ],
+                                                            "value": "reduce",
                                                           },
-                                                          "name": "operator",
+                                                          "name": "name",
                                                         },
                                                         {
-                                                          "children": [
-                                                            {
-                                                              "children": [
-                                                                {
-                                                                  "children": [],
-                                                                  "data": {
-                                                                    "position": {
-                                                                      "end": 316,
-                                                                      "start": 312,
-                                                                    },
-                                                                    "value": "list",
-                                                                  },
-                                                                  "name": "name",
-                                                                },
-                                                                {
-                                                                  "children": [
-                                                                    {
-                                                                      "children": [],
-                                                                      "data": {
-                                                                        "position": {
-                                                                          "end": 326,
-                                                                          "start": 318,
-                                                                        },
-                                                                        "value": "midpoint",
-                                                                      },
-                                                                      "name": "name",
-                                                                    },
-                                                                    {
-                                                                      "children": [],
-                                                                      "data": {
-                                                                        "position": {
-                                                                          "end": 330,
-                                                                          "start": 329,
-                                                                        },
-                                                                        "value": 1,
-                                                                      },
-                                                                      "name": "number",
-                                                                    },
-                                                                  ],
-                                                                  "data": {
-                                                                    "operator": "add",
-                                                                    "position": {
-                                                                      "end": 330,
-                                                                      "start": 318,
-                                                                    },
-                                                                    "precedence": [
-                                                                      11,
-                                                                      11,
-                                                                    ],
-                                                                  },
-                                                                  "name": "operator",
-                                                                },
-                                                              ],
-                                                              "data": {
-                                                                "operator": ",",
-                                                                "position": {
-                                                                  "end": 330,
-                                                                  "start": 312,
-                                                                },
-                                                                "precedence": [
-                                                                  8,
-                                                                  8,
-                                                                ],
-                                                              },
-                                                              "name": "operator",
-                                                            },
-                                                          ],
+                                                          "children": [],
                                                           "data": {
-                                                            "operator": "parens",
                                                             "position": {
-                                                              "end": 331,
-                                                              "start": 311,
+                                                              "end": 311,
+                                                              "start": 306,
                                                             },
-                                                            "precedence": [
-                                                              null,
-                                                              null,
-                                                            ],
+                                                            "value": "slice",
                                                           },
-                                                          "name": "operator",
+                                                          "name": "name",
                                                         },
                                                       ],
                                                       "data": {
                                                         "operator": "application",
                                                         "position": {
-                                                          "end": 331,
+                                                          "end": 311,
                                                           "start": 299,
                                                         },
                                                         "precedence": [
@@ -2607,21 +2510,91 @@ exports[`ast reduce list 1`] = `
                                                       "name": "operator",
                                                     },
                                                     {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 339,
-                                                          "start": 332,
+                                                      "children": [
+                                                        {
+                                                          "children": [
+                                                            {
+                                                              "children": [],
+                                                              "data": {
+                                                                "position": {
+                                                                  "end": 316,
+                                                                  "start": 312,
+                                                                },
+                                                                "value": "list",
+                                                              },
+                                                              "name": "name",
+                                                            },
+                                                            {
+                                                              "children": [
+                                                                {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "position": {
+                                                                      "end": 326,
+                                                                      "start": 318,
+                                                                    },
+                                                                    "value": "midpoint",
+                                                                  },
+                                                                  "name": "name",
+                                                                },
+                                                                {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "position": {
+                                                                      "end": 330,
+                                                                      "start": 329,
+                                                                    },
+                                                                    "value": 1,
+                                                                  },
+                                                                  "name": "number",
+                                                                },
+                                                              ],
+                                                              "data": {
+                                                                "operator": "add",
+                                                                "position": {
+                                                                  "end": 330,
+                                                                  "start": 318,
+                                                                },
+                                                                "precedence": [
+                                                                  11,
+                                                                  11,
+                                                                ],
+                                                              },
+                                                              "name": "operator",
+                                                            },
+                                                          ],
+                                                          "data": {
+                                                            "operator": ",",
+                                                            "position": {
+                                                              "end": 330,
+                                                              "start": 312,
+                                                            },
+                                                            "precedence": [
+                                                              8,
+                                                              8,
+                                                            ],
+                                                          },
+                                                          "name": "operator",
                                                         },
-                                                        "value": "reducer",
+                                                      ],
+                                                      "data": {
+                                                        "operator": "parens",
+                                                        "position": {
+                                                          "end": 331,
+                                                          "start": 311,
+                                                        },
+                                                        "precedence": [
+                                                          null,
+                                                          null,
+                                                        ],
                                                       },
-                                                      "name": "name",
+                                                      "name": "operator",
                                                     },
                                                   ],
                                                   "data": {
                                                     "operator": "application",
                                                     "position": {
-                                                      "end": 339,
+                                                      "end": 331,
                                                       "start": 299,
                                                     },
                                                     "precedence": [
@@ -2635,10 +2608,10 @@ exports[`ast reduce list 1`] = `
                                                   "children": [],
                                                   "data": {
                                                     "position": {
-                                                      "end": 345,
-                                                      "start": 340,
+                                                      "end": 339,
+                                                      "start": 332,
                                                     },
-                                                    "value": "merge",
+                                                    "value": "reducer",
                                                   },
                                                   "name": "name",
                                                 },
@@ -2646,7 +2619,7 @@ exports[`ast reduce list 1`] = `
                                               "data": {
                                                 "operator": "application",
                                                 "position": {
-                                                  "end": 345,
+                                                  "end": 339,
                                                   "start": 299,
                                                 },
                                                 "precedence": [
@@ -2660,10 +2633,10 @@ exports[`ast reduce list 1`] = `
                                               "children": [],
                                               "data": {
                                                 "position": {
-                                                  "end": 353,
-                                                  "start": 346,
+                                                  "end": 345,
+                                                  "start": 340,
                                                 },
-                                                "value": "initial",
+                                                "value": "merge",
                                               },
                                               "name": "name",
                                             },
@@ -2671,7 +2644,7 @@ exports[`ast reduce list 1`] = `
                                           "data": {
                                             "operator": "application",
                                             "position": {
-                                              "end": 353,
+                                              "end": 345,
                                               "start": 299,
                                             },
                                             "precedence": [
@@ -2681,30 +2654,41 @@ exports[`ast reduce list 1`] = `
                                           },
                                           "name": "operator",
                                         },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 353,
+                                              "start": 346,
+                                            },
+                                            "value": "initial",
+                                          },
+                                          "name": "name",
+                                        },
                                       ],
                                       "data": {
-                                        "operator": "parens",
+                                        "operator": "application",
                                         "position": {
-                                          "end": 354,
-                                          "start": 298,
+                                          "end": 353,
+                                          "start": 299,
                                         },
                                         "precedence": [
-                                          null,
-                                          null,
+                                          9007199254740989,
+                                          9007199254740990,
                                         ],
                                       },
                                       "name": "operator",
                                     },
                                   ],
                                   "data": {
-                                    "operator": "parallel",
+                                    "operator": "parens",
                                     "position": {
                                       "end": 354,
-                                      "start": 296,
+                                      "start": 298,
                                     },
                                     "precedence": [
-                                      3,
-                                      3,
+                                      null,
+                                      null,
                                     ],
                                   },
                                   "name": "operator",
@@ -2713,12 +2697,12 @@ exports[`ast reduce list 1`] = `
                               "data": {
                                 "operator": "parallel",
                                 "position": {
-                                  "end": 354,
+                                  "end": 363,
                                   "start": 228,
                                 },
                                 "precedence": [
-                                  3,
-                                  3,
+                                  null,
+                                  null,
                                 ],
                               },
                               "name": "operator",

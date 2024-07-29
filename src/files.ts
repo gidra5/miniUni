@@ -31,8 +31,6 @@ export const modules = {
       return value;
     }),
     return: fn(1, (value) => {
-      console.log('return', value);
-
       throw { return: value };
     }),
   },
@@ -70,7 +68,7 @@ export const modules = {
       // assert(typeof string === 'string', SystemError.invalidCharAtTarget());
       return string.charAt(index);
     }),
-    slice: fn(2, (args) => {
+    slice: fn(1, (args) => {
       assert(Array.isArray(args), 'expected tuple');
       const [item, start, end] = args;
       assert(
@@ -86,9 +84,9 @@ export const modules = {
     all: fn(1, async (list) => {
       assert(Array.isArray(list), 'invalid all target');
       const x = list.map(receive);
-      console.log('all', list, x);
+      const y = await Promise.all(x);
 
-      return await Promise.all(x);
+      return y;
     }),
   },
 };
