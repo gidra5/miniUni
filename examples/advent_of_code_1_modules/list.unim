@@ -1,0 +1,46 @@
+import "std/concurrency" as { all }
+import "std/math" as math
+
+export slice := fn (list, start, end) {
+  while start != 0 {
+    start--;
+    end--;
+    _, ...list = list
+  }
+
+  while end != length list {
+    ...list, _ = list
+  }
+
+  list
+}
+
+export reduce := fn list, reducer, merge, initial {
+  len := length list
+  if len == 0: return initial
+
+  midpoint := math.floor(len / 2)
+  item := list[midpoint]
+  first, second := all(
+    | (self (slice(list, 0, midpoint)) reducer merge initial)
+    | (self (slice(list, midpoint + 1)) reducer merge initial)
+  )
+
+  merge (reducer first item) second
+}
+
+export filter := fn list, predicate {
+  reduce list (fn acc, item -> if predicate item: (...acc, item) else acc) (fn first, second -> (...first, ...second)) ()
+}
+
+export map := fn list, mapper {
+  reduce list (fn acc, item -> (...acc, mapper item)) (fn first, second -> (...first, ...second)) ()
+}
+
+export flat_map := fn list, mapper {
+  reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
+}
+
+export sum := fn list {
+  reduce list (fn acc, item -> acc + item) (fn first, second -> first + second) 0
+}

@@ -4,8 +4,18 @@ import { evaluateScriptString as evaluate } from '../src/evaluate.ts';
 
 const examples = [
   {
-    name: 'advent of code 2023, day 1',
-    file: 'examples/example.uni',
+    name: 'advent of code 2023, day 1, modules',
+    file: 'examples/advent_of_code_1_modules/index.uni',
+    expected: 142,
+  },
+  {
+    name: 'advent of code 2023, day 1, single script, list iteration',
+    file: 'examples/advent_of_code_1_single.uni',
+    expected: 142,
+  },
+  {
+    name: 'advent of code 2023, day 1, single script, channels',
+    file: 'examples/advent_of_code_1_channels.uni',
     expected: 142,
   },
 ];

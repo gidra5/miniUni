@@ -1,12 +1,29 @@
-import "std/string"
-import "std/math"
-import "std/concurrency"
+import "std/string" as { split, replace, match, chat_at, ...strings }
+import "std/math" as math
+import "std/concurrency" as { all }
+
+slice := fn (list, start, end) {
+  if !start: start = 0
+  if !end: end = length list
+
+  while start != 0 {
+    start--;
+    end--;
+    _, ...list = list
+  }
+
+  while end != length list {
+    ...list, _ = list
+  }
+
+  list
+}
 
 reduce := fn list, reducer, merge, initial {
   len := length list
   if len == 0: return initial
 
-  midpoint := floor(len / 2)
+  midpoint := math.floor(len / 2)
   item := list[midpoint]
   first, second := all(
     | (self (slice(list, 0, midpoint)) reducer merge initial)
@@ -58,7 +75,7 @@ numbers := flat_map lines fn line {
       if !digits[0]: digits[0] = digit
       digits[1] = digit
     }
-    line = slice(line, 1)
+    line = strings.slice(line, 1)
   }
 
   digits[0] * 10, digits[1]

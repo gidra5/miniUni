@@ -1,0 +1,36 @@
+import "std/string" as { split, replace, match, chat_at, ...strings }
+import "./list.unim" as { map, filter, flat_map, sum }
+
+// https://adventofcode.com/2023/day/1
+
+// take first and last digit on line, concat into two-digit number
+// and sum all numbers in document
+document := "
+  1abc2\
+  pqr3stu8vwx\
+  a1b2c3d4e5f\
+  treb7uchet\
+"
+
+lines := {
+  lines := split document "\n"
+  lines = map lines (replace "\\s+" "")
+  filter lines fn line -> line != ""
+}
+
+numbers := flat_map lines fn line {
+  digits := ()
+
+  while line != "" {
+    if match "\\d" (char_at line 0) {
+      digit := number (char_at line 0)
+      if !digits[0]: digits[0] = digit
+      digits[1] = digit
+    }
+    line = slice(line, 1)
+  }
+
+  digits[0] * 10, digits[1]
+}
+
+sum numbers
