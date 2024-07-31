@@ -1,12 +1,11 @@
 import { FileMap } from 'codespan-napi';
 import {
-  Context,
   evaluateModuleString,
   evaluateScriptString,
   newContext,
 } from './evaluate.js';
 import { SystemError } from './error.js';
-import { assert, unreachable } from './utils.js';
+import { assert, inspect, unreachable } from './utils.js';
 import { EvalValue, fn, isRecord, receive } from './values.js';
 import path from 'path';
 import fs from 'fs/promises';
@@ -137,7 +136,12 @@ export const getModule = async (
 
   const resolvedPath = resolvePath(name, from);
   const file = await fs.readFile(resolvedPath).catch((e) => {
-    throw SystemError.importFailed(name, resolvedPath, e);
+    const fileId = fileMap.getFileId(from);
+    const error = SystemError.importFailed(name, resolvedPath, e).withFileId(
+      fileId
+    );
+    error.print();
+    throw error;
   });
   const isModule = resolvedPath.endsWith(MODULE_FILE_EXTENSION);
   const isScript = resolvedPath.endsWith(SCRIPT_FILE_EXTENSION);
@@ -179,8 +183,11 @@ function resolvePath(name: string, from: string): string {
   if (name.startsWith('./')) {
     // limit the path to the project's directory
     // so that the user can't accidentally access files outside of the project
-    const projectFilePath = from.replace(root, '');
-    return root + path.resolve(projectFilePath, name);
+    const _path = path.resolve(from, name);
+    if (root.startsWith(_path)) {
+      return root;
+    }
+    return _path;
   }
 
   if (name.startsWith('/')) {

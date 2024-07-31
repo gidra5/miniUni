@@ -36,6 +36,8 @@ export enum ErrorType {
   INVALID_REPLACE_PATTERN,
   INVALID_REPLACE_REPLACEMENT,
   UNDECLARED_NAME,
+  INVALID_OBJECT_PATTERN,
+  IMPORT_FAILED,
 }
 
 type Options = {
@@ -364,19 +366,31 @@ export class SystemError extends Error {
     resolved: string,
     error: unknown
   ): SystemError {
-    throw new Error('Method not implemented.');
+    const msg = 'import failed';
+    const notes: string[] = [];
+    const options = { notes };
+
+    notes.push(`name: "${name}"`);
+    notes.push(`resolved name: "${resolved}"`);
+    notes.push(`error: "${error.message}"`);
+
+    return new SystemError(ErrorType.IMPORT_FAILED, msg, options);
   }
   static invalidMatchTarget(): SystemError {
-    throw new Error('Method not implemented.');
+    const msg = 'match target is not a string';
+    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static invalidMatchPattern(): SystemError {
-    throw new Error('Method not implemented.');
+    const msg = 'match pattern is not a string';
+    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static invalidCharAtTarget(): SystemError {
-    throw new Error('Method not implemented.');
+    const msg = 'chat_at pattern is not a string';
+    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static invalidCharAtIndex(): SystemError {
-    throw new Error('Method not implemented.');
+    const msg = 'chat_at index is not a string';
+    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static undeclaredName(name: string, pos: Position): SystemError {
     const msg = `undeclared name ${name}`;
@@ -395,5 +409,21 @@ export class SystemError extends Error {
       `Variable can be declared with ":=" operator like this: ${name} := value`
     );
     return new SystemError(ErrorType.UNDECLARED_NAME, msg, options);
+  }
+
+  static invalidObjectPattern(pos: Position): SystemError {
+    const msg = 'object pattern on non-object';
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'here',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.INVALID_OBJECT_PATTERN, msg, options);
   }
 }

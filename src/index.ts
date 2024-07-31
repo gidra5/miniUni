@@ -1,13 +1,7 @@
 import { program } from 'commander';
 import readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
-import {
-  evaluateScript,
-  evaluateScriptString,
-  newContext,
-} from './evaluate.js';
-import { parseFile } from './parser.js';
-import { SystemError } from './error.js';
+import { evaluateScriptString, newContext } from './evaluate.js';
 import { addFile, getModule, getScriptResult, isScript } from './files.js';
 import { assert } from 'console';
 

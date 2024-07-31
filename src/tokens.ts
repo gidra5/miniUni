@@ -2,7 +2,6 @@ import { SystemError } from './error.js';
 import {
   position as _position,
   indexPosition,
-  intervalPosition,
   type Position,
 } from './position.js';
 

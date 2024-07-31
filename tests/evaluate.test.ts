@@ -10,13 +10,18 @@ import { assert } from '../src/utils.ts';
 import { EvalValue, fn } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
+import { addFile } from '../src/files.ts';
 
 const evaluate = async (
   input: string,
-  context: Context = newContext()
+  env?: Context['env']
 ): Promise<EvalValue> => {
+  const name = 'test';
+  const fileId = addFile(name, input);
+  const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
+  if (env) context.env = env;
   return await evaluateScript(ast, context);
 };
 
@@ -70,13 +75,13 @@ describe('evaluate', () => {
       }),
     };
     const input = `
-      import "std/string"
+      import "std/string" as { split, replace }
       
       lines := split document "\\n"
       lines = map lines (replace "\\\\s+" "")
       filter lines fn line -> line != ""
     `;
-    const result = await evaluate(input, { env });
+    const result = await evaluate(input, env);
 
     expect(result).toEqual([
       '1abc2',
@@ -96,7 +101,7 @@ describe('evaluate', () => {
       }),
     };
     const input = `
-      import "std/string"
+      import "std/string" as { char_at, match, slice }
 
       numbers := flat_map lines fn line {
         digits := ()
@@ -113,9 +118,20 @@ describe('evaluate', () => {
         digits[0] * 10, digits[1]
       }
     `;
-    const result = await evaluate(input, { env });
+    const result = await evaluate(input, env);
 
     expect(result).toEqual([10, 2, 30, 8, 10, 5, 70, 7]);
+  });
+
+  it('evaluate drop last', async () => {
+    const input = `
+      list := 1, 2, 3
+      ...list, _ = list
+      list
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toEqual([1, 2]);
   });
 
   it('evaluate flat map list impl', async () => {
@@ -131,7 +147,7 @@ describe('evaluate', () => {
 
   it('evaluate parallel all', async () => {
     const input = `
-      import "std/concurrency"
+      import "std/concurrency" as { all }
       
       all(1 | 2)
     `;
@@ -142,7 +158,7 @@ describe('evaluate', () => {
 
   it('evaluate parallel all multiline', async () => {
     const input = `
-      import "std/concurrency"
+      import "std/concurrency" as { all }
       
       all(
         | 1
@@ -156,9 +172,9 @@ describe('evaluate', () => {
 
   it('evaluate reduce list', async () => {
     const input = `
-      import "std/concurrency"
-      import "std/math"
-      import "std/string"
+      import "std/concurrency" as { all }
+      import "std/math" as { floor }
+      import "std/string" as { slice }
 
       reduce := fn list, reducer, merge, initial {
         len := length list
@@ -189,7 +205,7 @@ describe('evaluate', () => {
       acc := ()
       if predicate: (...first, item) else acc
     `;
-    const result = await evaluateScriptString(input);
+    const result = await evaluate(input);
 
     expect(result).toStrictEqual([1]);
   });

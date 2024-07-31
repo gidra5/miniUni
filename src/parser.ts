@@ -1,4 +1,4 @@
-import { parseTokens, type Token, type TokenPos } from './tokens.js';
+import { type Token, type TokenPos } from './tokens.js';
 import { SystemError } from './error.js';
 import {
   Position,
@@ -6,8 +6,6 @@ import {
   position,
   tokenPosToSrcPos,
 } from './position.js';
-import fsp from 'fs/promises';
-import { addFile } from './files.js';
 
 export type AbstractSyntaxTree<T = any> = {
   name: string;
@@ -95,6 +93,14 @@ export const operator = (
     const arithmeticPrecedence = tuplePrecedence + 3;
     const maxPrecedence = Number.MAX_SAFE_INTEGER;
     switch (operator) {
+      case OperatorType.INCREMENT:
+        return [null, 1];
+      case OperatorType.DECREMENT:
+        return [null, 1];
+      case OperatorType.POST_DECREMENT:
+        return [1, null];
+      case OperatorType.POST_INCREMENT:
+        return [1, null];
       case OperatorType.IMPORT:
         return [null, 1];
 
@@ -262,6 +268,10 @@ export enum OperatorType {
   WHILE = 'while',
   TOKEN = 'token',
   IMPORT = 'import',
+  POST_INCREMENT = 'post_increment',
+  POST_DECREMENT = 'post_decrement',
+  DECREMENT = '--',
+  INCREMENT = '++',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -323,7 +333,15 @@ export const parsePatternGroup =
 
       const [_index, pattern] = parsePattern(0, ['}'])(src, index);
       index = _index;
-      const node = () => operator(OperatorType.OBJECT, nodePosition(), pattern);
+      const node = () => {
+        const node = operator(OperatorType.OBJECT, nodePosition());
+        if (pattern.data.operator === OperatorType.TUPLE) {
+          node.children = pattern.children;
+        } else {
+          node.children.push(pattern);
+        }
+        return node;
+      };
 
       if (src[index].type === 'newline') index++;
       if (src[index]?.src !== '}') {
@@ -471,17 +489,12 @@ export const parseGroup =
     let index = i;
     const start = index;
     const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
-    // console.log('parseGroup', banned, new Error().stack);
-
-    // console.log('parseGroup', banned, src.slice(index, index + 5));
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
     if (banned.includes(src[index].src))
       return [index, implicitPlaceholder(nodePosition())];
     if (banned.includes('\n') && src[index].type === 'newline')
       return [index, implicitPlaceholder(nodePosition())];
-
-    // console.log('parseGroup 2', banned, src.slice(index, index + 5));
 
     const patternResult = parsePattern(0, banned)(src, index);
 
@@ -507,7 +520,59 @@ export const parseGroup =
 
     if (!lhs && src[index].src === 'import') {
       index++;
-      return [index, operator(OperatorType.IMPORT, nodePosition())];
+      const nameToken = src[index];
+      if (nameToken.type !== 'string') {
+        return [index, operator(OperatorType.IMPORT, nodePosition())];
+      }
+      index++;
+      const name = nameToken.value;
+      let pattern: AbstractSyntaxTree | null = null;
+      const node = () => {
+        const node = operator(OperatorType.IMPORT, nodePosition());
+        node.data.name = name;
+        if (pattern) node.children.push(pattern);
+        node.data.precedence = [null, null];
+        return node;
+      };
+
+      if (src[index].src === 'as') {
+        index++;
+        [index, pattern] = parsePattern(0)(src, index);
+      }
+
+      return [index, node()];
+    }
+
+    if (src[index].src === 'and') {
+      index++;
+      return [index, operator(OperatorType.AND, nodePosition())];
+    }
+
+    if (src[index].src === 'or') {
+      index++;
+      return [index, operator(OperatorType.OR, nodePosition())];
+    }
+
+    if (src[index].src === '--') {
+      index++;
+      return [
+        index,
+        operator(
+          lhs ? OperatorType.POST_DECREMENT : OperatorType.DECREMENT,
+          nodePosition()
+        ),
+      ];
+    }
+
+    if (src[index].src === '++') {
+      index++;
+      return [
+        index,
+        operator(
+          lhs ? OperatorType.POST_INCREMENT : OperatorType.INCREMENT,
+          nodePosition()
+        ),
+      ];
     }
 
     if (src[index].src === '+') {
@@ -831,6 +896,22 @@ export const parseGroup =
       return [index, node()];
     }
 
+    if (src[index].src === '.') {
+      index++;
+      const next = src[index];
+      if (next.type === 'identifier') {
+        return [
+          index + 1,
+          operator(
+            OperatorType.INDEX,
+            nodePosition(),
+            string(next.src, { start: next.start, end: next.end })
+          ),
+        ];
+      }
+      return [index, error(SystemError.invalidIndex())];
+    }
+
     if (lhs) return [index, operator(OperatorType.APPLICATION, nodePosition())];
 
     if (src[index].type === 'newline')
@@ -918,13 +999,4 @@ export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
   }
 
   return script(children);
-};
-
-export const parseFile = async (path: string) => {
-  const code = await fsp.readFile(path, 'utf-8');
-  const fileId = addFile(path, code);
-  const tokens = parseTokens(code);
-  const script = parseScript(tokens);
-  script.data.fileId = fileId;
-  return script;
 };

@@ -1,4 +1,4 @@
-import { assert } from './utils';
+import { assert } from './utils.js';
 
 export type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
 export type EvalValue =

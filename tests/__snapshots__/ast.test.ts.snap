@@ -1778,6 +1778,53 @@ exports[`ast parse numbers 1`] = `
 }
 `;
 
+exports[`ast period operator 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "math",
+          },
+          "name": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 10,
+              "start": 5,
+            },
+            "value": "floor",
+          },
+          "name": "string",
+        },
+      ],
+      "data": {
+        "operator": "index",
+        "position": {
+          "end": 10,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740991,
+          null,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
 exports[`ast reduce list 1`] = `
 {
   "children": [

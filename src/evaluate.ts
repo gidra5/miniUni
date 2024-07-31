@@ -1,11 +1,9 @@
 import { SystemError } from './error.js';
 import {
-  addFile,
   getModule,
   getScriptResult,
   isScript,
   prelude,
-  Prelude,
 } from './files.js';
 import {
   OperatorType,
@@ -13,12 +11,13 @@ import {
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, unreachable } from './utils.js';
+import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   createChannel,
   EvalFunction,
   EvalValue,
   getChannel,
+  isRecord,
   send,
 } from './values.js';
 
@@ -55,11 +54,15 @@ export const assign = async (
       const pattern = patterns[i];
 
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const rest = value.slice(i);
+        const restRange = [i, value.length];
+        restRange[1] -= patterns.length - (i + 1);
+        const rest = value.slice(...restRange);
         context = await assign(pattern.children[0], rest, context);
+        continue;
       } else {
         const v = value[i];
         context = await assign(pattern, v, context);
+        continue;
       }
     }
 
@@ -125,15 +128,18 @@ export const bind = async (
     );
 
     const patterns = patternAst.children;
-    for (let i = 0; i < patterns.length; i++) {
-      const pattern = patterns[i];
-
+    let consumed = 0;
+    for (const pattern of patterns) {
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const rest = value.slice(i);
-        context = await bind(pattern.children[0], rest, context);
+        const start = consumed + 1;
+        consumed = value.length - patterns.length + consumed;
+        const rest = value.slice(start, Math.min(start, consumed));
+        context = await assign(pattern.children[0], rest, context);
+        continue;
       } else {
-        const v = value[i];
+        const v = value[consumed++];
         context = await bind(pattern, v, context);
+        continue;
       }
     }
 
@@ -142,6 +148,38 @@ export const bind = async (
 
   if (patternAst.data.operator === OperatorType.PARENS) {
     return await bind(patternAst.children[0], value, context);
+  }
+
+  if (patternAst.data.operator === OperatorType.OBJECT) {
+    assert(
+      isRecord(value),
+      SystemError.invalidObjectPattern(patternAst.data.position)
+    );
+    const record = value.record;
+    const patterns = patternAst.children;
+    const consumedNames: string[] = [];
+    for (const pattern of patterns) {
+      if (pattern.name === 'name') {
+        const name = pattern.data.value;
+        context.env[name] = record[name];
+        consumedNames.push(name);
+        continue;
+      } else if (pattern.data.operator === OperatorType.COLON) {
+        const [key, valuePattern] = pattern.children;
+        const name = key.data.value;
+        consumedNames.push(name);
+        context = await bind(valuePattern, record[name], context);
+        continue;
+      } else if (pattern.data.operator === OperatorType.SPREAD) {
+        const rest = omit(record, consumedNames);
+        context = await bind(pattern.children[0], { record: rest }, context);
+        continue;
+      }
+
+      unreachable(SystemError.invalidObjectPattern(pattern.data.position));
+    }
+
+    return context;
   }
 
   if (patternAst.name === 'name') {
@@ -163,14 +201,21 @@ export const evaluateExpr = async (
     case 'operator': {
       switch (ast.data.operator) {
         case OperatorType.IMPORT: {
-          const name = ast.children[0].data.value;
+          const name = ast.data.name;
           const module = await getModule(name, context.file);
           assert(
             !Buffer.isBuffer(module),
             'binary file import is not supported'
           );
-          if (isScript(module)) return getScriptResult(module);
-          return { record: module };
+          const value = isScript(module)
+            ? getScriptResult(module)
+            : { record: module };
+          const pattern = ast.children[0];
+          if (pattern) {
+            await bind(pattern, value, context);
+          }
+
+          return value;
         }
 
         case OperatorType.ADD: {
@@ -216,6 +261,38 @@ export const evaluateExpr = async (
         case OperatorType.PLUS: {
           const arg = evaluateExpr(ast.children[0], context);
           return +arg;
+        }
+        case OperatorType.INCREMENT: {
+          const arg = ast.children[0];
+          assert(arg.name === 'name', 'expected name');
+          const value = await evaluateExpr(arg, context);
+          assert(typeof value === 'number', 'expected number');
+          await assign(arg, value + 1, context);
+          return value + 1;
+        }
+        case OperatorType.DECREMENT: {
+          const arg = ast.children[0];
+          assert(arg.name === 'name', 'expected name');
+          const value = await evaluateExpr(arg, context);
+          assert(typeof value === 'number', 'expected number');
+          await assign(arg, value - 1, context);
+          return value - 1;
+        }
+        case OperatorType.POST_DECREMENT: {
+          const arg = ast.children[0];
+          assert(arg.name === 'name', 'expected name');
+          const value = await evaluateExpr(arg, context);
+          assert(typeof value === 'number', 'expected number');
+          await assign(arg, value - 1, context);
+          return value;
+        }
+        case OperatorType.POST_INCREMENT: {
+          const arg = ast.children[0];
+          assert(arg.name === 'name', 'expected name');
+          const value = await evaluateExpr(arg, context);
+          assert(typeof value === 'number', 'expected number');
+          await assign(arg, value + 1, context);
+          return value;
         }
 
         case OperatorType.AND: {
@@ -279,16 +356,23 @@ export const evaluateExpr = async (
             ast.children.map((child) => evaluateExpr(child, context))
           );
 
-          assert(
-            Array.isArray(list),
-            SystemError.invalidIndexTarget().withNode(ast)
-          );
-          assert(
-            Number.isInteger(index),
-            SystemError.invalidIndex().withNode(ast)
-          );
-          assert(typeof index === 'number');
-          return list[index];
+          if (Array.isArray(list)) {
+            assert(
+              Number.isInteger(index),
+              SystemError.invalidIndex().withNode(ast)
+            );
+            assert(typeof index === 'number');
+            return list[index];
+          } else if (isRecord(list)) {
+            const record = list.record;
+            assert(
+              typeof index === 'string',
+              SystemError.invalidIndex().withNode(ast)
+            );
+            return record[index];
+          }
+
+          unreachable(SystemError.invalidIndexTarget().withNode(ast));
         }
         case OperatorType.TUPLE: {
           const list = await Promise.all(

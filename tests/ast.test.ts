@@ -132,4 +132,12 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast period operator', () => {
+    const input = `math.floor`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });
