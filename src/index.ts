@@ -8,37 +8,28 @@ import {
 } from './evaluate.js';
 import { parseFile } from './parser.js';
 import { SystemError } from './error.js';
+import { addFile, getModule, getScriptResult, isScript } from './files.js';
+import { assert } from 'console';
 
 program
   .command('run <file>')
   .description('Run script from a file')
   .action(async (file) => {
     console.log('Starting interpreter...');
-    const code = await parseFile(file);
-    try {
-      console.dir(await evaluateScript(code), { depth: null });
-    } catch (e) {
-      if (e instanceof SystemError) e.withFileId(code.data.fileId).print();
-      else console.error(e);
-    }
+
+    const module = await getModule(file, process.cwd());
+    assert(isScript(module), 'expected script');
+    console.dir(getScriptResult(module), { depth: null });
+
     console.log('Exiting interpreter');
   });
 
 program
-  .command('repl [file]')
-  .description(
-    'Run interactive REPL environment with optional initial script/module'
-  )
-  .action(async (file) => {
+  .command('repl')
+  .description('Run interactive REPL environment. Type "exit" to stop REPL.')
+  .action(async () => {
     console.log('Starting REPL...');
-
-    const context = newContext();
-
-    if (file) {
-      console.log('Running initial script...');
-      const code = await parseFile(file);
-      console.dir(await evaluateScript(code, context), { depth: null });
-    }
+    const file = '<repl>';
 
     console.log('Waiting for next input...');
     const rl = readline.createInterface({ input, output, prompt: '>> ' });
@@ -51,13 +42,10 @@ program
           rl.close();
           break;
         default: {
-          try {
-            console.dir(await evaluateScriptString(line, context), {
-              depth: null,
-            });
-          } catch (e) {
-            console.error(e);
-          }
+          const fileId = addFile(file, line);
+          const context = newContext(fileId, file);
+          const result = await evaluateScriptString(line, context);
+          console.dir(result, { depth: null });
           break;
         }
       }

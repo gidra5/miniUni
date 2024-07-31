@@ -359,7 +359,11 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
 
-  static moduleNotFound(name: string | symbol): SystemError {
+  static importFailed(
+    name: string,
+    resolved: string,
+    error: unknown
+  ): SystemError {
     throw new Error('Method not implemented.');
   }
   static invalidMatchTarget(): SystemError {

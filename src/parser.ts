@@ -239,6 +239,8 @@ export enum OperatorType {
   SEND = 'send',
   DECLARE = ':=',
   ASSIGN = '=',
+  ATOM = 'atom',
+  COLON = ':',
   TUPLE = ',',
   SPREAD = '...',
   NOT = 'not',
@@ -250,6 +252,7 @@ export enum OperatorType {
   LESS_EQUAL = '<=',
   APPLICATION = 'application',
   PARENS = 'parens',
+  OBJECT = 'object',
   INDEX = 'index',
   SEQUENCE = 'sequence',
   BLOCK = 'block',
@@ -279,7 +282,7 @@ export const associative = (precedence: number): Precedence => [
 ];
 
 export const parsePatternGroup =
-  (precedence = 0, banned: string[] = [], lhs = false) =>
+  (banned: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     const start = index;
@@ -304,6 +307,34 @@ export const parsePatternGroup =
     if (src[index].src === '=') {
       index++;
       return [index, operator(OperatorType.ASSIGN, nodePosition())];
+    }
+
+    if (src[index].src === ':') {
+      index++;
+      return [
+        index,
+        operator(lhs ? OperatorType.COLON : OperatorType.ATOM, nodePosition()),
+      ];
+    }
+
+    if (src[index].src === '{') {
+      index++;
+      if (src[index].type === 'newline') index++;
+
+      const [_index, pattern] = parsePattern(0, ['}'])(src, index);
+      index = _index;
+      const node = () => operator(OperatorType.OBJECT, nodePosition(), pattern);
+
+      if (src[index].type === 'newline') index++;
+      if (src[index]?.src !== '}') {
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
+      }
+      index++;
+
+      return [index, node()];
     }
 
     if (src[index].src === '(') {
@@ -354,14 +385,14 @@ export const parsePatternGroup =
   };
 
 export const parsePatternPrefix =
-  (precedence = 0, banned: string[] = []) =>
+  (banned: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
     if (!src[index]) return [index, error(SystemError.endOfSource())];
 
-    let [nextIndex, group] = parsePatternGroup(precedence, banned)(src, index);
+    let [nextIndex, group] = parsePatternGroup(banned)(src, index);
     index = nextIndex;
     const [, right] = group.data.precedence ?? [null, null];
 
@@ -379,14 +410,10 @@ export const parsePattern =
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     let lhs: AbstractSyntaxTree;
-    [index, lhs] = parsePatternPrefix(precedence, banned)(src, index);
+    [index, lhs] = parsePatternPrefix(banned)(src, index);
 
     while (src[index] && src[index].type !== 'newline') {
-      let [nextIndex, group] = parsePatternGroup(
-        precedence,
-        banned,
-        true
-      )(src, index);
+      let [nextIndex, group] = parsePatternGroup(banned, true)(src, index);
       const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
@@ -439,7 +466,7 @@ export const parseSequence = (
 };
 
 export const parseGroup =
-  (precedence = 0, banned: string[] = [], lhs = false) =>
+  (banned: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     const start = index;
@@ -695,7 +722,7 @@ export const parseGroup =
 
       if (token === ':' || token.includes('\n')) {
         index++;
-        const [_index, body] = parseExpr(precedence, ['else'])(src, index);
+        const [_index, body] = parseExpr(0, ['else'])(src, index);
 
         if (src[_index].src !== 'else') {
           return [index, operator(OperatorType.IF, nodePosition(), condition)];
@@ -814,14 +841,14 @@ export const parseGroup =
   };
 
 export const parsePrefix =
-  (precedence = 0, banned: string[] = []) =>
+  (banned: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
     if (!src[index]) return [index, error(SystemError.endOfSource())];
 
-    let [nextIndex, group] = parseGroup(precedence, banned)(src, index);
+    let [nextIndex, group] = parseGroup(banned)(src, index);
     index = nextIndex;
     const [, right] = group.data.precedence ?? [null, null];
 
@@ -839,10 +866,10 @@ export const parseExpr =
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     let lhs: AbstractSyntaxTree;
-    [index, lhs] = parsePrefix(precedence, banned)(src, index);
+    [index, lhs] = parsePrefix(banned)(src, index);
 
     while (src[index] && src[index].type !== 'newline') {
-      let [nextIndex, group] = parseGroup(precedence, banned, true)(src, index);
+      let [nextIndex, group] = parseGroup(banned, true)(src, index);
       const [left, right] = group.data.precedence ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;

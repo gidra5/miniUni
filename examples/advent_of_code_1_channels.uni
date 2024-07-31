@@ -26,7 +26,7 @@ numbers := channel()
 line_count := 0
 line_handled_count := 0
 
-loop {
+| loop {
   status := ?<-numbers
   if status == :closed: break
   line = <-numbers

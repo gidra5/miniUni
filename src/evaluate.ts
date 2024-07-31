@@ -1,101 +1,35 @@
-import { rejects } from 'assert';
 import { SystemError } from './error.js';
-import { addFile, getModule, Prelude } from './files.js';
+import {
+  addFile,
+  getModule,
+  getScriptResult,
+  isScript,
+  prelude,
+  Prelude,
+} from './files.js';
 import {
   OperatorType,
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, inspect, unreachable } from './utils.js';
-import { EvalFunction, EvalValue } from './values.js';
+import { assert, getClosestName, unreachable } from './utils.js';
+import {
+  createChannel,
+  EvalFunction,
+  EvalValue,
+  getChannel,
+  send,
+} from './values.js';
 
-// type Continuation = (arg: EvalValue) => Promise<EvalValue>;
-type Channel = {
-  queue: (EvalValue | Error)[];
-  onReceive: Array<{
-    resolve: (v: EvalValue) => void;
-    reject: (e: unknown) => void;
-  }>;
-};
 export type Context = {
+  file: string;
+  fileId: number;
   env: Record<string, EvalValue>;
 };
 
-export function isChannel(
-  channelValue: EvalValue
-): channelValue is { channel: symbol } {
-  return (
-    !!channelValue &&
-    typeof channelValue === 'object' &&
-    'channel' in channelValue
-  );
-}
-
-const channels: Record<symbol, Channel> = {};
-
-export const createChannel = () => {
-  const channel = Symbol();
-  channels[channel] = {
-    queue: [],
-    onReceive: [],
-  };
-  return { channel };
-};
-
-export const getChannel = (c: EvalValue) => {
-  assert(isChannel(c), 'not a channel');
-  assert(c.channel in channels, 'channel not found');
-  const channel = channels[c.channel];
-  return channel;
-};
-
-export const send = (_channel: EvalValue, value: EvalValue | Error) => {
-  const channel = getChannel(_channel);
-  const promise = channel.onReceive.shift();
-  if (promise) {
-    const { resolve, reject } = promise;
-    if (value instanceof Error) reject(value);
-    else resolve(value);
-
-    channel.onReceive = channel.onReceive.filter(
-      (_promise) => _promise !== promise
-    );
-  } else channel.queue.push(value);
-};
-
-export const receive = (_channel: EvalValue) => {
-  const channel = getChannel(_channel);
-
-  if (channel.queue.length > 0) {
-    const next = channel.queue.shift()!;
-    if (next instanceof Error) throw next;
-    return next;
-  }
-
-  return new Promise<EvalValue>((resolve, reject) => {
-    const promise = {
-      resolve: (v: EvalValue) => {
-        resolve(v);
-        channel.onReceive = channel.onReceive.filter(
-          (_promise) => _promise !== promise
-        );
-      },
-
-      reject: (e: unknown) => {
-        reject(e);
-        channel.onReceive = channel.onReceive.filter(
-          (_promise) => _promise !== promise
-        );
-      },
-    };
-
-    channel.onReceive.push(promise);
-  });
-};
-
-export const newContext = (): Context => {
-  return { env: {} };
+export const newContext = (fileId: number, file: string): Context => {
+  return { file, fileId, env: {} };
 };
 
 export const assign = async (
@@ -223,16 +157,20 @@ export const bind = async (
 
 export const evaluateExpr = async (
   ast: AbstractSyntaxTree,
-  context: Context = newContext()
+  context: Context
 ): Promise<EvalValue> => {
   switch (ast.name) {
     case 'operator': {
       switch (ast.data.operator) {
         case OperatorType.IMPORT: {
           const name = ast.children[0].data.value;
-          const module = getModule(name);
-          context.env = { ...module, ...context.env };
-          return module;
+          const module = await getModule(name, context.file);
+          assert(
+            !Buffer.isBuffer(module),
+            'binary file import is not supported'
+          );
+          if (isScript(module)) return getScriptResult(module);
+          return { record: module };
         }
 
         case OperatorType.ADD: {
@@ -550,7 +488,7 @@ export const evaluateExpr = async (
 
 export const evaluateSequence = async (
   ast: AbstractSyntaxTree,
-  context: Context = newContext()
+  context: Context
 ): Promise<EvalValue> => {
   let result: EvalValue = null;
 
@@ -563,16 +501,25 @@ export const evaluateSequence = async (
 
 export const evaluateScript = async (
   ast: AbstractSyntaxTree,
-  context: Context = newContext()
+  context: Context
 ): Promise<EvalValue> => {
-  const preludeModule = getModule(Prelude);
-  context.env = { ...preludeModule, ...context.env };
+  assert(ast.name === 'script', 'expected script');
+  context.env = { ...prelude, ...context.env };
+  return await evaluateSequence(ast, context);
+};
+
+export const evaluateModule = async (
+  ast: AbstractSyntaxTree,
+  context: Context
+): Promise<EvalValue> => {
+  assert(ast.name === 'module', 'expected module');
+  context.env = { ...prelude, ...context.env };
   return await evaluateSequence(ast, context);
 };
 
 export const evaluateScriptString = async (
   input: string,
-  context: Context = newContext()
+  context: Context
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
@@ -580,8 +527,23 @@ export const evaluateScriptString = async (
     return await evaluateScript(ast, context);
   } catch (e) {
     if (e instanceof SystemError) {
-      const fileId = addFile('repl', input);
-      e.withFileId(fileId).print();
+      e.withFileId(context.fileId).print();
+    } else console.error(e);
+    return null;
+  }
+};
+
+export const evaluateModuleString = async (
+  input: string,
+  context: Context
+): Promise<EvalValue> => {
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+  try {
+    return await evaluateScript(ast, context);
+  } catch (e) {
+    if (e instanceof SystemError) {
+      e.withFileId(context.fileId).print();
     } else console.error(e);
     return null;
   }
