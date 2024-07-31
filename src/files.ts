@@ -128,13 +128,16 @@ export const getScriptResult = (module: Module) => {
 
 export const getModule = async (
   name: string,
-  from: string
+  from: string,
+  resolvedPath = resolvePath(name, from)
 ): Promise<Module> => {
-  if (name in modules) {
+  if (name.startsWith('std') && name in modules) {
     return modules[name];
   }
+  if (resolvedPath in modules) {
+    return modules[resolvedPath];
+  }
 
-  const resolvedPath = resolvePath(name, from);
   const file = await fs.readFile(resolvedPath).catch((e) => {
     const fileId = fileMap.getFileId(from);
     const error = SystemError.importFailed(name, resolvedPath, e).withFileId(
@@ -168,7 +171,7 @@ export const getModule = async (
   }
 
   const module = await loadFile();
-  modules[name] = module;
+  modules[resolvedPath] = module;
   return module;
 };
 
@@ -180,6 +183,7 @@ export const getModule = async (
  * @returns resolved absolute path of the module
  */
 function resolvePath(name: string, from: string): string {
+  from = path.dirname(from);
   if (name.startsWith('./')) {
     // limit the path to the project's directory
     // so that the user can't accidentally access files outside of the project

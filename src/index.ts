@@ -4,6 +4,7 @@ import { stdin as input, stdout as output } from 'process';
 import { evaluateScriptString, newContext } from './evaluate.js';
 import { addFile, getModule, getScriptResult, isScript } from './files.js';
 import { assert } from 'console';
+import path from 'path';
 
 program
   .command('run <file>')
@@ -11,7 +12,7 @@ program
   .action(async (file) => {
     console.log('Starting interpreter...');
 
-    const module = await getModule(file, process.cwd());
+    const module = await getModule(file, 'cli', path.resolve(file));
     assert(isScript(module), 'expected script');
     console.dir(getScriptResult(module), { depth: null });
 

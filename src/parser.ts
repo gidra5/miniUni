@@ -101,7 +101,10 @@ export const operator = (
         return [1, null];
       case OperatorType.POST_INCREMENT:
         return [1, null];
+
       case OperatorType.IMPORT:
+        return [null, 1];
+      case OperatorType.EXPORT:
         return [null, 1];
 
       case OperatorType.DECLARE:
@@ -225,6 +228,12 @@ export const prefix = (
   return operator(_operator, merged, ...children, rhs);
 };
 
+const module = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
+  name: 'module',
+  data: {},
+  children,
+});
+
 const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
   name: 'script',
   data: {},
@@ -272,6 +281,7 @@ export enum OperatorType {
   POST_DECREMENT = 'post_decrement',
   DECREMENT = '--',
   INCREMENT = '++',
+  EXPORT = 'export',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -373,6 +383,11 @@ export const parsePatternGroup =
       index++;
 
       return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'export') {
+      index++;
+      return [index, operator(OperatorType.EXPORT, nodePosition())];
     }
 
     if (lhs && src[index].src === '[') {
@@ -999,4 +1014,25 @@ export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
   }
 
   return script(children);
+};
+
+export const parseModule = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
+  const children: AbstractSyntaxTree[] = [];
+  let index = i;
+
+  while (src[index]) {
+    if (src[index].type === 'newline') {
+      index++;
+      continue;
+    }
+    if (src[index].src === ';') {
+      index++;
+      continue;
+    }
+    const [_index, astNode] = parseExpr()(src, index);
+    index = _index;
+    children.push(astNode);
+  }
+
+  return module(children);
 };

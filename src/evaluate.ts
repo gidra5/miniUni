@@ -1,12 +1,8 @@
 import { SystemError } from './error.js';
-import {
-  getModule,
-  getScriptResult,
-  isScript,
-  prelude,
-} from './files.js';
+import { getModule, getScriptResult, isScript, prelude } from './files.js';
 import {
   OperatorType,
+  parseModule,
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
@@ -50,17 +46,16 @@ export const assign = async (
     );
 
     const patterns = patternAst.children;
-    for (let i = 0; i < patterns.length; i++) {
-      const pattern = patterns[i];
-
+    let consumed = 0;
+    for (const pattern of patterns) {
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const restRange = [i, value.length];
-        restRange[1] -= patterns.length - (i + 1);
-        const rest = value.slice(...restRange);
+        const start = consumed + 1;
+        consumed = value.length - patterns.length + consumed;
+        const rest = value.slice(start, Math.min(start, consumed));
         context = await assign(pattern.children[0], rest, context);
         continue;
       } else {
-        const v = value[i];
+        const v = value[consumed++];
         context = await assign(pattern, v, context);
         continue;
       }
@@ -134,7 +129,7 @@ export const bind = async (
         const start = consumed + 1;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.min(start, consumed));
-        context = await assign(pattern.children[0], rest, context);
+        context = await bind(pattern.children[0], rest, context);
         continue;
       } else {
         const v = value[consumed++];
@@ -192,6 +187,108 @@ export const bind = async (
 
   unreachable(SystemError.invalidPattern(patternAst.data.position));
 };
+
+async function bindExport(
+  patternAst: AbstractSyntaxTree<any>,
+  value: EvalValue,
+  exports: Record<string, EvalValue>,
+  exporting = false
+): Promise<Record<string, EvalValue>> {
+  if (
+    patternAst.name === 'placeholder' ||
+    patternAst.name === 'implicitPlaceholder'
+  ) {
+    return exports;
+  }
+
+  if (patternAst.data.operator === OperatorType.EXPORT) {
+    return await bindExport(patternAst.children[0], value, exports, true);
+  }
+
+  if (patternAst.data.operator === OperatorType.TUPLE) {
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern(patternAst.data.position)
+    );
+
+    const patterns = patternAst.children;
+    let consumed = 0;
+    for (const pattern of patterns) {
+      if (pattern.data.operator === OperatorType.SPREAD) {
+        const start = consumed + 1;
+        consumed = value.length - patterns.length + consumed;
+        const rest = value.slice(start, Math.min(start, consumed));
+        exports = await bindExport(
+          pattern.children[0],
+          rest,
+          exports,
+          exporting
+        );
+        continue;
+      } else {
+        const v = value[consumed++];
+        exports = await bindExport(pattern, v, exports, exporting);
+        continue;
+      }
+    }
+
+    return exports;
+  }
+
+  if (patternAst.data.operator === OperatorType.PARENS) {
+    return await bindExport(patternAst.children[0], value, exports, exporting);
+  }
+
+  if (patternAst.data.operator === OperatorType.OBJECT) {
+    assert(
+      isRecord(value),
+      SystemError.invalidObjectPattern(patternAst.data.position)
+    );
+    const record = value.record;
+    const patterns = patternAst.children;
+    const consumedNames: string[] = [];
+    for (const pattern of patterns) {
+      if (pattern.name === 'name') {
+        const name = pattern.data.value;
+        if (exporting) exports[name] = record[name];
+        consumedNames.push(name);
+        continue;
+      } else if (pattern.data.operator === OperatorType.COLON) {
+        const [key, valuePattern] = pattern.children;
+        const name = key.data.value;
+        consumedNames.push(name);
+        exports = await bindExport(
+          valuePattern,
+          record[name],
+          exports,
+          exporting
+        );
+        continue;
+      } else if (pattern.data.operator === OperatorType.SPREAD) {
+        const rest = omit(record, consumedNames);
+        exports = await bindExport(
+          pattern.children[0],
+          { record: rest },
+          exports,
+          exporting
+        );
+        continue;
+      }
+
+      unreachable(SystemError.invalidObjectPattern(pattern.data.position));
+    }
+
+    return exports;
+  }
+
+  if (patternAst.name === 'name') {
+    const name = patternAst.data.value;
+    if (exporting) exports[name] = value;
+    return exports;
+  }
+
+  unreachable(SystemError.invalidPattern(patternAst.data.position));
+}
 
 export const evaluateExpr = async (
   ast: AbstractSyntaxTree,
@@ -598,7 +695,19 @@ export const evaluateModule = async (
 ): Promise<EvalValue> => {
   assert(ast.name === 'module', 'expected module');
   context.env = { ...prelude, ...context.env };
-  return await evaluateSequence(ast, context);
+  const record: Record<string, EvalValue> = {};
+
+  for (const child of ast.children) {
+    if (child.data.operator === OperatorType.IMPORT) {
+      await evaluateExpr(child, context);
+    } else {
+      const [name, expr] = child.children;
+      const value = await evaluateExpr(expr, context);
+      await bindExport(name, value, record);
+    }
+  }
+
+  return { record };
 };
 
 export const evaluateScriptString = async (
@@ -622,11 +731,13 @@ export const evaluateModuleString = async (
   context: Context
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
+  const ast = parseModule(tokens);
   try {
-    return await evaluateScript(ast, context);
+    return await evaluateModule(ast, context);
   } catch (e) {
     if (e instanceof SystemError) {
+      console.log('err', context);
+
       e.withFileId(context.fileId).print();
     } else console.error(e);
     return null;
