@@ -241,10 +241,13 @@ export const getScriptResult = (module: Module) => {
 export const getModule = async (
   name: string,
   from: string,
-  resolvedPath = resolvePath(name, from)
+  resolvedPath?: string
 ): Promise<Module> => {
   if (name.startsWith('std') && name in modules) {
     return modules[name];
+  }
+  if (!resolvedPath) {
+    resolvedPath = await resolvePath(name, from);
   }
   if (resolvedPath in modules) {
     return modules[resolvedPath];
@@ -265,8 +268,8 @@ export const getModule = async (
     if (!isModule && !isScript) return file;
 
     const source = file.toString('utf-8');
-    const fileId = addFile(resolvedPath, source);
-    const context = newContext(fileId, resolvedPath);
+    const fileId = addFile(resolvedPath!, source);
+    const context = newContext(fileId, resolvedPath!);
 
     if (isModule) {
       const module = await evaluateModuleString(source, context);
@@ -291,24 +294,29 @@ export const getModule = async (
  * resolve module name to an absolute path
  * @param name name being imported
  * @param from absolute path of the file that is importing the module
- * @param root absolute path of the project's root directory
  * @returns resolved absolute path of the module
  */
-function resolvePath(name: string, from: string): string {
+async function resolvePath(name: string, from: string): Promise<string> {
   from = path.dirname(from);
-  if (name.startsWith('./')) {
-    // limit the path to the project's directory
-    // so that the user can't accidentally access files outside of the project
-    const _path = path.resolve(from, name);
-    if (root.startsWith(_path)) {
-      return root;
+  const resolve = () => {
+    if (name.startsWith('./')) {
+      // limit the path to the project's directory
+      // so that the user can't accidentally access files outside of the project
+      const _path = path.resolve(from, name);
+      if (root.startsWith(_path)) {
+        return root;
+      }
+      return _path;
     }
-    return _path;
-  }
 
-  if (name.startsWith('/')) {
-    return path.join(root, name.slice(1));
-  }
+    if (name.startsWith('/')) {
+      return path.join(root, name.slice(1));
+    }
 
-  return path.join(root, '..', LOCAL_DEPENDENCIES_PATH, name);
+    return path.join(root, '..', LOCAL_DEPENDENCIES_PATH, name);
+  };
+
+  const resolved = resolve();
+  const stat = await fs.stat(resolved);
+  return stat.isDirectory() ? path.join(resolved, 'index.uni') : resolved;
 }

@@ -5,6 +5,7 @@ import { evaluateScriptString, newContext } from './evaluate.js';
 import { addFile, getModule, getScriptResult, isScript } from './files.js';
 import { assert } from 'console';
 import path from 'path';
+import fs from 'fs/promises';
 
 program
   .command('run <file>')
@@ -12,7 +13,12 @@ program
   .action(async (file) => {
     console.log('Starting interpreter...');
 
-    const module = await getModule(file, 'cli', path.resolve(file));
+    const resolved = path.resolve(file);
+    const stat = await fs.stat(resolved);
+    const _path = stat.isDirectory()
+      ? path.join(resolved, 'index.uni')
+      : resolved;
+    const module = await getModule(file, 'cli', _path);
     assert(isScript(module), 'expected script');
     console.dir(getScriptResult(module), { depth: null });
 
