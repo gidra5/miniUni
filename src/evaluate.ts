@@ -42,16 +42,18 @@ export const assign = async (
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position)
+      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
 
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const start = consumed + 1;
+        const start = consumed++;
         consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.min(start, consumed));
+        const rest = value.slice(start, Math.max(start, consumed));
         context = await assign(pattern.children[0], rest, context);
         continue;
       } else {
@@ -74,11 +76,13 @@ export const assign = async (
     );
     assert(
       Array.isArray(list),
-      SystemError.invalidIndexTarget().withNode(patternAst)
+      SystemError.invalidIndexTarget()
+        .withNode(patternAst)
+        .withFileId(context.fileId)
     );
     assert(
       Number.isInteger(index),
-      SystemError.invalidIndex().withNode(patternAst)
+      SystemError.invalidIndex().withNode(patternAst).withFileId(context.fileId)
     );
     assert(typeof index === 'number');
     list[index] = value;
@@ -94,14 +98,18 @@ export const assign = async (
         name,
         patternAst.data.position,
         getClosestName(name, Object.keys(env))
-      )
+      ).withFileId(context.fileId)
     );
     env[name] = value;
     context.env = env;
     return context;
   }
 
-  unreachable(SystemError.invalidPattern(patternAst.data.position));
+  unreachable(
+    SystemError.invalidPattern(patternAst.data.position).withFileId(
+      context.fileId
+    )
+  );
 };
 
 export const bind = async (
@@ -116,19 +124,25 @@ export const bind = async (
     return context;
   }
 
+  if (patternAst.data.operator === OperatorType.EXPORT) {
+    return await bind(patternAst.children[0], value, context);
+  }
+
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position)
+      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
 
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const start = consumed + 1;
+        const start = consumed++;
         consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.min(start, consumed));
+        const rest = value.slice(start, Math.max(start, consumed));
         context = await bind(pattern.children[0], rest, context);
         continue;
       } else {
@@ -148,7 +162,9 @@ export const bind = async (
   if (patternAst.data.operator === OperatorType.OBJECT) {
     assert(
       isRecord(value),
-      SystemError.invalidObjectPattern(patternAst.data.position)
+      SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
     const record = value.record;
     const patterns = patternAst.children;
@@ -171,7 +187,11 @@ export const bind = async (
         continue;
       }
 
-      unreachable(SystemError.invalidObjectPattern(pattern.data.position));
+      unreachable(
+        SystemError.invalidObjectPattern(pattern.data.position).withFileId(
+          context.fileId
+        )
+      );
     }
 
     return context;
@@ -185,13 +205,18 @@ export const bind = async (
     return context;
   }
 
-  unreachable(SystemError.invalidPattern(patternAst.data.position));
+  unreachable(
+    SystemError.invalidPattern(patternAst.data.position).withFileId(
+      context.fileId
+    )
+  );
 };
 
 async function bindExport(
   patternAst: AbstractSyntaxTree<any>,
   value: EvalValue,
   exports: Record<string, EvalValue>,
+  context: Context,
   exporting = false
 ): Promise<Record<string, EvalValue>> {
   if (
@@ -202,32 +227,41 @@ async function bindExport(
   }
 
   if (patternAst.data.operator === OperatorType.EXPORT) {
-    return await bindExport(patternAst.children[0], value, exports, true);
+    return await bindExport(
+      patternAst.children[0],
+      value,
+      exports,
+      context,
+      true
+    );
   }
 
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position)
+      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
 
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
       if (pattern.data.operator === OperatorType.SPREAD) {
-        const start = consumed + 1;
+        const start = consumed++;
         consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.min(start, consumed));
+        const rest = value.slice(start, Math.max(start, consumed));
         exports = await bindExport(
           pattern.children[0],
           rest,
           exports,
+          context,
           exporting
         );
         continue;
       } else {
         const v = value[consumed++];
-        exports = await bindExport(pattern, v, exports, exporting);
+        exports = await bindExport(pattern, v, exports, context, exporting);
         continue;
       }
     }
@@ -236,13 +270,21 @@ async function bindExport(
   }
 
   if (patternAst.data.operator === OperatorType.PARENS) {
-    return await bindExport(patternAst.children[0], value, exports, exporting);
+    return await bindExport(
+      patternAst.children[0],
+      value,
+      exports,
+      context,
+      exporting
+    );
   }
 
   if (patternAst.data.operator === OperatorType.OBJECT) {
     assert(
       isRecord(value),
-      SystemError.invalidObjectPattern(patternAst.data.position)
+      SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
     const record = value.record;
     const patterns = patternAst.children;
@@ -261,6 +303,7 @@ async function bindExport(
           valuePattern,
           record[name],
           exports,
+          context,
           exporting
         );
         continue;
@@ -270,12 +313,17 @@ async function bindExport(
           pattern.children[0],
           { record: rest },
           exports,
+          context,
           exporting
         );
         continue;
       }
 
-      unreachable(SystemError.invalidObjectPattern(pattern.data.position));
+      unreachable(
+        SystemError.invalidObjectPattern(pattern.data.position).withFileId(
+          context.fileId
+        )
+      );
     }
 
     return exports;
@@ -287,7 +335,11 @@ async function bindExport(
     return exports;
   }
 
-  unreachable(SystemError.invalidPattern(patternAst.data.position));
+  unreachable(
+    SystemError.invalidPattern(patternAst.data.position).withFileId(
+      context.fileId
+    )
+  );
 }
 
 export const evaluateExpr = async (
@@ -456,7 +508,9 @@ export const evaluateExpr = async (
           if (Array.isArray(list)) {
             assert(
               Number.isInteger(index),
-              SystemError.invalidIndex().withNode(ast)
+              SystemError.invalidIndex()
+                .withNode(ast)
+                .withFileId(context.fileId)
             );
             assert(typeof index === 'number');
             return list[index];
@@ -464,12 +518,18 @@ export const evaluateExpr = async (
             const record = list.record;
             assert(
               typeof index === 'string',
-              SystemError.invalidIndex().withNode(ast)
+              SystemError.invalidIndex()
+                .withNode(ast)
+                .withFileId(context.fileId)
             );
             return record[index];
           }
 
-          unreachable(SystemError.invalidIndexTarget().withNode(ast));
+          unreachable(
+            SystemError.invalidIndexTarget()
+              .withNode(ast)
+              .withFileId(context.fileId)
+          );
         }
         case OperatorType.TUPLE: {
           const list = await Promise.all(
@@ -482,7 +542,11 @@ export const evaluateExpr = async (
           return list.flat();
         }
         case OperatorType.SPREAD:
-          unreachable(SystemError.invalidUseOfSpread().withNode(ast));
+          unreachable(
+            SystemError.invalidUseOfSpread()
+              .withNode(ast)
+              .withFileId(context.fileId)
+          );
 
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child) => {
@@ -503,7 +567,12 @@ export const evaluateExpr = async (
           );
           const channel = getChannel(channelValue);
 
-          assert(channel, SystemError.invalidSendChannel().withNode(ast));
+          assert(
+            channel,
+            SystemError.invalidSendChannel()
+              .withNode(ast)
+              .withFileId(context.fileId)
+          );
 
           const promise = channel.onReceive.shift();
           if (promise) {
@@ -520,7 +589,12 @@ export const evaluateExpr = async (
           const channelValue = await evaluateExpr(ast.children[0], context);
           const channel = getChannel(channelValue);
 
-          assert(channel, SystemError.invalidReceiveChannel().withNode(ast));
+          assert(
+            channel,
+            SystemError.invalidReceiveChannel()
+              .withNode(ast)
+              .withFileId(context.fileId)
+          );
 
           if (channel.queue.length > 0) {
             const next = channel.queue.shift()!;
@@ -550,7 +624,11 @@ export const evaluateExpr = async (
         }
 
         case OperatorType.TOKEN:
-          unreachable(SystemError.invalidTokenExpression().withNode(ast));
+          unreachable(
+            SystemError.invalidTokenExpression()
+              .withNode(ast)
+              .withFileId(context.fileId)
+          );
 
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
@@ -637,7 +715,9 @@ export const evaluateExpr = async (
 
           assert(
             typeof fnValue === 'function',
-            SystemError.invalidApplicationExpression(ast.data.position)
+            SystemError.invalidApplicationExpression(
+              ast.data.position
+            ).withFileId(context.fileId)
           );
 
           return await fnValue(argValue);
@@ -651,7 +731,9 @@ export const evaluateExpr = async (
       if (name === 'false') return false;
       assert(
         name in context.env,
-        SystemError.undeclaredName(name, ast.data.position)
+        SystemError.undeclaredName(name, ast.data.position).withFileId(
+          context.fileId
+        )
       );
       return context.env[name];
     case 'number':
@@ -659,7 +741,11 @@ export const evaluateExpr = async (
       return ast.data.value;
     case 'placeholder':
     case 'implicitPlaceholder':
-      unreachable(SystemError.invalidPlaceholderExpression().withNode(ast));
+      unreachable(
+        SystemError.invalidPlaceholderExpression()
+          .withNode(ast)
+          .withFileId(context.fileId)
+      );
     case 'error':
       unreachable(ast.data.cause);
     default:
@@ -703,7 +789,8 @@ export const evaluateModule = async (
     } else {
       const [name, expr] = child.children;
       const value = await evaluateExpr(expr, context);
-      await bindExport(name, value, record);
+      await bindExport(name, value, record, context);
+      await bind(name, value, context);
     }
   }
 
@@ -720,7 +807,7 @@ export const evaluateScriptString = async (
     return await evaluateScript(ast, context);
   } catch (e) {
     if (e instanceof SystemError) {
-      e.withFileId(context.fileId).print();
+      e.print();
     } else console.error(e);
     return null;
   }
@@ -736,9 +823,7 @@ export const evaluateModuleString = async (
     return await evaluateModule(ast, context);
   } catch (e) {
     if (e instanceof SystemError) {
-      console.log('err', context);
-
-      e.withFileId(context.fileId).print();
+      e.print();
     } else console.error(e);
     return null;
   }

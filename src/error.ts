@@ -372,7 +372,8 @@ export class SystemError extends Error {
 
     notes.push(`name: "${name}"`);
     notes.push(`resolved name: "${resolved}"`);
-    notes.push(`error: "${error.message}"`);
+    if (error instanceof Error) notes.push(`error: "${error.message}"`);
+    else notes.push(`error: "${error}"`);
 
     return new SystemError(ErrorType.IMPORT_FAILED, msg, options);
   }
@@ -385,11 +386,11 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static invalidCharAtTarget(): SystemError {
-    const msg = 'chat_at pattern is not a string';
+    const msg = 'char_at pattern is not a string';
     return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static invalidCharAtIndex(): SystemError {
-    const msg = 'chat_at index is not a string';
+    const msg = 'char_at index is not a string';
     return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
   static undeclaredName(name: string, pos: Position): SystemError {
