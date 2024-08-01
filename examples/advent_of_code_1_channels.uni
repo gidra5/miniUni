@@ -58,9 +58,9 @@ line_handled_count := 0
 
 sum := 0
 
-loop {
-  status := ?<-numbers
-  if status == :closed: break
+while true {
+  status := <-?numbers
+  if status == (:closed): break
   sum += <-numbers
 }
 

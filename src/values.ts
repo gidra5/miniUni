@@ -12,6 +12,7 @@ export type EvalValue =
   | null
   | EvalValue[]
   | EvalFunction
+  | { symbol: symbol }
   | { record: Record<string, EvalValue> }
   | { channel: symbol };
 type Channel = {
@@ -35,6 +36,14 @@ export const fn = (
   };
 };
 
+const atoms = new Map<string, symbol>();
+
+export const symbol = (): { symbol: symbol } => ({ symbol: Symbol() });
+export const atom = (name: string): { symbol: symbol } => {
+  if (!atoms.has(name)) atoms.set(name, Symbol(name));
+  return { symbol: atoms.get(name)! };
+};
+
 export function isChannel(
   channelValue: EvalValue
 ): channelValue is { channel: symbol } {
@@ -53,6 +62,14 @@ export function isRecord(
   );
 }
 
+export function isSymbol(
+  symbolValue: EvalValue
+): symbolValue is { symbol: symbol } {
+  return (
+    !!symbolValue && typeof symbolValue === 'object' && 'symbol' in symbolValue
+  );
+}
+
 const channels: Record<symbol, Channel> = {};
 
 export const createChannel = () => {
@@ -66,7 +83,7 @@ export const createChannel = () => {
 
 export const getChannel = (c: EvalValue) => {
   assert(isChannel(c), 'not a channel');
-  assert(c.channel in channels, 'channel not found');
+  assert(c.channel in channels, 'channel closed');
   const channel = channels[c.channel];
   return channel;
 };

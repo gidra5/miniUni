@@ -6,13 +6,15 @@ import {
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
-import { parseTokens } from './tokens.js';
+import { parseTokens, symbols } from './tokens.js';
 import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
+  atom,
   createChannel,
   EvalFunction,
   EvalValue,
   getChannel,
+  isChannel,
   isRecord,
   send,
 } from './values.js';
@@ -567,33 +569,52 @@ export const evaluateExpr = async (
           const [channelValue, value] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          const channel = getChannel(channelValue);
 
           assert(
-            channel,
+            isChannel(channelValue),
             SystemError.invalidSendChannel(ast.data.position).withFileId(
               context.fileId
             )
           );
 
-          const promise = channel.onReceive.shift();
-          if (promise) {
-            const { resolve, reject } = promise;
-            if (value instanceof Error) reject(value);
-            else resolve(value);
-
-            channel.onReceive = channel.onReceive.filter(
-              (_promise) => _promise !== promise
-            );
-          } else channel.queue.push(value);
-        }
-        case OperatorType.RECEIVE: {
-          const channelValue = await evaluateExpr(ast.children[0], context);
           const channel = getChannel(channelValue);
 
           assert(
             channel,
+            SystemError.channelClosed(ast.data.position).withFileId(
+              context.fileId
+            )
+          );
+
+          const promise = channel.onReceive.shift();
+          if (!promise) {
+            channel.queue.push(value);
+            return null;
+          }
+          const { resolve, reject } = promise;
+          if (value instanceof Error) reject(value);
+          else resolve(value);
+
+          channel.onReceive = channel.onReceive.filter(
+            (_promise) => _promise !== promise
+          );
+          return null;
+        }
+        case OperatorType.RECEIVE: {
+          const channelValue = await evaluateExpr(ast.children[0], context);
+
+          assert(
+            isChannel(channelValue),
             SystemError.invalidReceiveChannel(ast.data.position).withFileId(
+              context.fileId
+            )
+          );
+
+          const channel = getChannel(channelValue);
+
+          assert(
+            channel,
+            SystemError.channelClosed(ast.data.position).withFileId(
               context.fileId
             )
           );
@@ -624,6 +645,64 @@ export const evaluateExpr = async (
             channel.onReceive.push(promise);
           });
         }
+        case OperatorType.SEND_STATUS: {
+          const [channelValue, value] = await Promise.all(
+            ast.children.map((child) => evaluateExpr(child, context))
+          );
+
+          assert(
+            isChannel(channelValue),
+            SystemError.invalidSendChannel(ast.data.position).withFileId(
+              context.fileId
+            )
+          );
+
+          const channel = getChannel(channelValue);
+
+          if (!channel) {
+            return atom('closed');
+          }
+
+          const promise = channel.onReceive.shift();
+          if (!promise) return atom('none');
+
+          const { resolve, reject } = promise;
+          if (value instanceof Error) reject(value);
+          else resolve(value);
+
+          channel.onReceive = channel.onReceive.filter(
+            (_promise) => _promise !== promise
+          );
+          return atom('sent');
+        }
+        case OperatorType.RECEIVE_STATUS: {
+          const channelValue = await evaluateExpr(ast.children[0], context);
+
+          assert(
+            isChannel(channelValue),
+            SystemError.invalidReceiveChannel(ast.data.position).withFileId(
+              context.fileId
+            )
+          );
+
+          const channel = getChannel(channelValue);
+
+          if (!channel) {
+            return atom('closed');
+          }
+
+          if (channel.queue.length > 0) {
+            const next = channel.queue.shift()!;
+            if (next instanceof Error) throw next;
+            return [atom('received'), next];
+          }
+
+          return atom('empty');
+        }
+
+        case OperatorType.ATOM:
+          assert(ast.children[0].name === 'name', 'expected name');
+          return atom(ast.children[0].data.value);
 
         case OperatorType.TOKEN:
           unreachable(

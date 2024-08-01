@@ -343,6 +343,10 @@ export class SystemError extends Error {
     );
   }
 
+  static channelClosed(pos: Position): SystemError {
+    return SystemError.evaluationError('channel is already closed', [], pos);
+  }
+
   static invalidTokenExpression(pos: Position): SystemError {
     return SystemError.evaluationError(
       'token operator should only be used during parsing',

@@ -1825,6 +1825,216 @@ exports[`ast period operator 1`] = `
 }
 `;
 
+exports[`ast prefix parallel 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "operator": "sequence",
+                "position": {
+                  "end": 11,
+                  "start": 11,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+            "position": {
+              "end": 12,
+              "start": 9,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "parallel",
+        "position": {
+          "end": 12,
+          "start": 7,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "name": "operator",
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 26,
+              "start": 19,
+            },
+            "value": "numbers",
+          },
+          "name": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 37,
+                  "start": 30,
+                },
+                "value": "channel",
+              },
+              "name": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 38,
+                      "start": 38,
+                    },
+                  },
+                  "name": "implicit_placeholder",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 39,
+                  "start": 37,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "name": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 39,
+              "start": 30,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 39,
+          "start": 19,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast receive 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 13,
+              "start": 7,
+            },
+            "value": "status",
+          },
+          "name": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 20,
+                  "start": 17,
+                },
+                "value": "?<-",
+              },
+              "name": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 27,
+                  "start": 20,
+                },
+                "value": "numbers",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 27,
+              "start": 17,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 27,
+          "start": 7,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
 exports[`ast reduce list 1`] = `
 {
   "children": [
@@ -2744,7 +2954,7 @@ exports[`ast reduce list 1`] = `
                               "data": {
                                 "operator": "parallel",
                                 "position": {
-                                  "end": 363,
+                                  "end": 354,
                                   "start": 228,
                                 },
                                 "precedence": [

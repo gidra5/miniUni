@@ -140,4 +140,25 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast prefix parallel', () => {
+    const input = `
+      | { }
+      numbers := channel()
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast receive', () => {
+    const input = `
+      status := <-?numbers
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });

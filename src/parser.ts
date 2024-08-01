@@ -151,6 +151,10 @@ export const operator = (
         return rightAssociative(assignmentPrecedence + 2);
       case OperatorType.RECEIVE:
         return [null, assignmentPrecedence + 2];
+      case OperatorType.SEND_STATUS:
+        return rightAssociative(assignmentPrecedence + 2);
+      case OperatorType.RECEIVE_STATUS:
+        return [null, assignmentPrecedence + 2];
 
       case OperatorType.ADD:
         return associative(arithmeticPrecedence);
@@ -282,6 +286,8 @@ export enum OperatorType {
   DECREMENT = '--',
   INCREMENT = '++',
   EXPORT = 'export',
+  RECEIVE_STATUS = '<-?',
+  SEND_STATUS = '?<-',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -646,6 +652,8 @@ export const parseGroup =
         if (src[index].type === 'newline') index++;
       }
 
+      if (src[index - 1].type === 'newline') index--;
+
       return [index, node()];
     } else if (src[index].src === '|') {
       index++;
@@ -661,6 +669,16 @@ export const parseGroup =
           nodePosition()
         ),
       ];
+    }
+
+    if (!lhs && src[index].src === '<-?') {
+      index++;
+      return [index, operator(OperatorType.RECEIVE_STATUS, nodePosition())];
+    }
+
+    if (lhs && src[index].src === '?<-') {
+      index++;
+      return [index, operator(OperatorType.SEND_STATUS, nodePosition())];
     }
 
     if (src[index].src === '==') {
