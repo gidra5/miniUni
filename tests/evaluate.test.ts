@@ -58,17 +58,17 @@ describe('evaluate', () => {
         a1b2c3d4e5f
         treb7uchet
       `,
-      map: fn(2, (list, fn) => {
+      map: fn(2, (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
-        return Promise.all(list.map(fn));
+        return Promise.all(list.map(async (x) => await fn(x, cs)));
       }),
-      filter: fn(2, async (list, fn) => {
+      filter: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
         const result: EvalValue[] = [];
         for (const item of list) {
-          const keep = await fn(item);
+          const keep = await fn(item, cs);
           if (keep) result.push(item);
         }
         return result;
@@ -94,10 +94,12 @@ describe('evaluate', () => {
   it('evaluate parse numbers', async () => {
     const env: Context['env'] = {
       lines: ['1abc2', 'pqr3stu8vwx', 'a1b2c3d4e5f', 'treb7uchet'],
-      flat_map: fn(2, async (list, fn) => {
+      flat_map: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
-        return (await Promise.all(list.map(fn))).flat();
+        return (
+          await Promise.all(list.map(async (x) => await fn(x, cs)))
+        ).flat();
       }),
     };
     const input = `

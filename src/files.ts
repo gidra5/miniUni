@@ -34,76 +34,188 @@ export const prelude: Record<string, EvalValue> = {
     const channel = Symbol();
     return { channel };
   }),
-  length: fn(1, (list) => {
-    assert(Array.isArray(list), SystemError.invalidLengthTarget());
+  length: fn(1, ([position, fileId], list) => {
+    const lengthErrorFactory = SystemError.invalidArgumentType(
+      'length',
+      { args: [['list', 'list _']], returns: 'number' },
+      position
+    );
+    assert(Array.isArray(list), lengthErrorFactory(0).withFileId(fileId));
     return list.length;
   }),
-  number: fn(1, (n) => {
+  number: fn(1, (_, n) => {
     return Number(n);
   }),
-  print: fn(1, (value) => {
+  print: fn(1, (_, value) => {
     console.log(value);
     return value;
   }),
-  return: fn(1, (value) => {
+  return: fn(1, (_, value) => {
     throw { return: value };
   }),
 };
 
 export const modules = {
   'std/math': {
-    floor: fn(1, (n) => {
-      assert(typeof n === 'number', SystemError.invalidFloorTarget());
+    floor: fn(1, ([position, fileId], n) => {
+      const floorErrorFactory = SystemError.invalidArgumentType(
+        'floor',
+        { args: [['target', 'number']], returns: 'number' },
+        position
+      );
+      assert(typeof n === 'number', floorErrorFactory(0).withFileId(fileId));
       return Math.floor(n);
     }),
   },
   'std/string': {
-    split: fn(2, (string, separator) => {
-      assert(typeof string === 'string', SystemError.invalidSplitTarget());
+    split: fn(2, ([position, fileId], target, separator) => {
+      const splitErrorFactory = SystemError.invalidArgumentType(
+        'split',
+        {
+          args: [
+            ['target', 'string'],
+            ['separator', 'string'],
+          ],
+          returns: 'string[]',
+        },
+        position
+      );
+
+      assert(
+        typeof target === 'string',
+        splitErrorFactory(0).withFileId(fileId)
+      );
       assert(
         typeof separator === 'string',
-        SystemError.invalidSplitSeparator()
+        splitErrorFactory(1).withFileId(fileId)
       );
-      return string.split(separator);
+      return target.split(separator);
     }),
-    replace: fn(3, (pattern, replacement, string) => {
-      assert(typeof pattern === 'string', SystemError.invalidReplacePattern());
+    replace: fn(3, ([position, fileId], pattern, replacement, target) => {
+      const replaceErrorFactory = SystemError.invalidArgumentType(
+        'replace',
+        {
+          args: [
+            ['pattern', 'regex'],
+            ['replacement', 'string'],
+            ['target', 'string'],
+          ],
+          returns: 'string',
+        },
+        position
+      );
+      assert(
+        typeof pattern === 'string',
+        replaceErrorFactory(0).withFileId(fileId)
+      );
       assert(
         typeof replacement === 'string',
-        SystemError.invalidReplaceReplacement()
+        replaceErrorFactory(1).withFileId(fileId)
       );
-      assert(typeof string === 'string', SystemError.invalidReplaceTarget());
-      return string.replace(new RegExp(pattern, 'g'), replacement);
+      assert(
+        typeof target === 'string',
+        replaceErrorFactory(2).withFileId(fileId)
+      );
+      return target.replace(new RegExp(pattern, 'g'), replacement);
     }),
-    match: fn(2, (pattern, string) => {
-      assert(typeof pattern === 'string', SystemError.invalidMatchPattern());
-      assert(typeof string === 'string', SystemError.invalidMatchTarget());
-      return new RegExp(pattern).test(string);
+    match: fn(2, ([position, fileId], pattern, target) => {
+      const matchErrorFactory = SystemError.invalidArgumentType(
+        'match',
+        {
+          args: [
+            ['pattern', 'regex'],
+            ['target', 'string'],
+          ],
+          returns: 'string',
+        },
+        position
+      );
+      assert(
+        typeof pattern === 'string',
+        matchErrorFactory(0).withFileId(fileId)
+      );
+      assert(
+        typeof target === 'string',
+        matchErrorFactory(1).withFileId(fileId)
+      );
+      return new RegExp(pattern).test(target);
     }),
-    char_at: fn(2, (string, index) => {
-      assert(typeof index === 'number', SystemError.invalidCharAtIndex());
-      assert(typeof string === 'string', SystemError.invalidCharAtTarget());
-      return string.charAt(index);
+    char_at: fn(2, ([position, fileId], target, index) => {
+      const charAtErrorFactory = SystemError.invalidArgumentType(
+        'char_at',
+        {
+          args: [
+            ['target', 'string'],
+            ['index', 'integer'],
+          ],
+          returns: 'string',
+        },
+        position
+      );
+      assert(
+        typeof target === 'string',
+        charAtErrorFactory(0).withFileId(fileId)
+      );
+      assert(
+        typeof index === 'number',
+        charAtErrorFactory(1).withFileId(fileId)
+      );
+      return target.charAt(index);
     }),
-    slice: fn(1, (args) => {
-      assert(Array.isArray(args), 'expected tuple');
+    slice: fn(1, ([position, fileId], args) => {
+      const sliceErrorFactory = SystemError.invalidArgumentType(
+        'slice',
+        {
+          args: [
+            ['item', 'string | list a'],
+            ['start', 'number?'],
+            ['end', 'number?'],
+          ],
+          returns: 'string | list a',
+        },
+        position
+      );
+      assert(
+        Array.isArray(args),
+        SystemError.evaluationError(
+          'slice expects tuple of arguments as argument',
+          [],
+          position
+        ).withFileId(fileId)
+      );
       const [item, start, end] = args;
 
       assert(
         typeof item === 'string' || Array.isArray(item),
-        'expected string or array'
+        sliceErrorFactory(0).withFileId(fileId)
       );
-      assert(typeof start === 'number', 'expected start index');
+      if (start !== undefined) {
+        assert(
+          typeof start === 'number',
+          sliceErrorFactory(1).withFileId(fileId)
+        );
+      }
       if (end !== undefined) {
-        assert(typeof end === 'number', 'expected end index to be a number');
+        assert(
+          typeof end === 'number',
+          sliceErrorFactory(2).withFileId(fileId)
+        );
       }
 
       return item.slice(start, end);
     }),
   },
   'std/concurrency': {
-    all: fn(1, async (list) => {
-      assert(Array.isArray(list), 'invalid all target');
+    all: fn(1, async ([position, fileId], list) => {
+      const allErrorFactory = SystemError.invalidArgumentType(
+        'all',
+        {
+          args: [['target', 'list (channel a)']],
+          returns: 'list a',
+        },
+        position
+      );
+      assert(Array.isArray(list), allErrorFactory(0).withFileId(fileId));
       const x = list.map(receive);
       const y = await Promise.all(x);
 

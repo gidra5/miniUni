@@ -1,6 +1,10 @@
+import { Position } from './position.js';
 import { assert } from './utils.js';
 
-export type EvalFunction = (arg: EvalValue) => Promise<EvalValue>;
+export type EvalFunction = (
+  arg: EvalValue,
+  callSite: [Position, number]
+) => Promise<EvalValue>;
 export type EvalValue =
   | number
   | string
@@ -20,11 +24,14 @@ type Channel = {
 
 export const fn = (
   n: number,
-  f: (...args: EvalValue[]) => EvalValue | Promise<EvalValue>
-) => {
-  return async (arg: EvalValue) => {
-    if (n === 1) return await f(arg);
-    return fn(n - 1, async (...args) => f(arg, ...args));
+  f: (
+    callSite: [Position, number],
+    ...args: EvalValue[]
+  ) => EvalValue | Promise<EvalValue>
+): EvalFunction => {
+  return async (arg, callSite) => {
+    if (n === 1) return await f(callSite, arg);
+    return fn(n - 1, async (callSite, ...args) => f(callSite, arg, ...args));
   };
 };
 

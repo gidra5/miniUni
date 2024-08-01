@@ -924,7 +924,7 @@ export const parseGroup =
           ),
         ];
       }
-      return [index, error(SystemError.invalidIndex())];
+      return [index, error(SystemError.invalidIndex(nodePosition()))];
     }
 
     if (lhs) return [index, operator(OperatorType.APPLICATION, nodePosition())];

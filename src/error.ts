@@ -21,20 +21,9 @@ export enum ErrorType {
   INVALID_TUPLE_PATTERN,
   INVALID_APPLICATION_EXPRESSION,
   INVALID_TOKEN_EXPRESSION,
-  INVALID_RECEIVE_CHANNEL,
-  INVALID_SEND_CHANNEL,
-  INVALID_USE_OF_SPREAD,
-  INVALID_INDEX,
-  INVALID_INDEX_TARGET,
   INVALID_ASSIGNMENT,
-  INVALID_LENGTH_TARGET,
-  INVALID_FLOOR_TARGET,
   INVALID_PLACEHOLDER_EXPRESSION,
-  INVALID_SPLIT_SEPARATOR,
-  INVALID_SPLIT_TARGET,
-  INVALID_REPLACE_TARGET,
-  INVALID_REPLACE_PATTERN,
-  INVALID_REPLACE_REPLACEMENT,
+  EVALUATION_ERROR,
   UNDECLARED_NAME,
   INVALID_OBJECT_PATTERN,
   IMPORT_FAILED,
@@ -232,16 +221,6 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_PLACEHOLDER_EXPRESSION, msg);
   }
 
-  static invalidFloorTarget(): SystemError {
-    const msg = 'floor on non-number';
-    return new SystemError(ErrorType.INVALID_FLOOR_TARGET, msg);
-  }
-
-  static invalidLengthTarget(): SystemError {
-    const msg = 'length on non-list';
-    return new SystemError(ErrorType.INVALID_LENGTH_TARGET, msg);
-  }
-
   static invalidAssignment(
     name: string,
     pos: Position,
@@ -288,40 +267,92 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_TUPLE_PATTERN, msg, options);
   }
 
-  static invalidIndexTarget(): SystemError {
-    const msg = 'indexing on non-list';
-    return new SystemError(ErrorType.INVALID_INDEX_TARGET, msg);
+  static evaluationError(
+    msg: string,
+    notes: string[],
+    pos: Position
+  ): SystemError {
+    const labels: Array<ErrorLabel> = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'failed to evaluate this expression',
+      kind: 'primary',
+    });
+    return new SystemError(ErrorType.EVALUATION_ERROR, msg, options);
   }
 
-  static invalidIndex(): SystemError {
-    const msg = 'index is not an integer';
-    return new SystemError(ErrorType.INVALID_INDEX, msg);
+  static invalidArgumentType(
+    name: string,
+    signature: { args: [label: string, type: string][]; returns: string },
+    pos: Position
+  ) {
+    return (argIndex: number) => {
+      const argSignature = signature.args[argIndex];
+      const msg = `${name} ${argSignature[0]} expected ${argSignature[1]}`;
+      const argNote = `${name} expects ${argSignature[1]} ${
+        argSignature[0]
+      } as the ${argIndex + 1} argument`;
+      const signatureStringifiedArgs = signature.args
+        .map(([label, type]) => `${label}: ${type}`)
+        .join(', ');
+      const signatureNote = `${name} signature is: (${signatureStringifiedArgs}) => ${signature.returns}`;
+      return SystemError.evaluationError(msg, [argNote, signatureNote], pos);
+    };
   }
 
-  static invalidUseOfSpread(): SystemError {
-    const msg = 'spread operator can only be used during tuple construction';
-
-    return new SystemError(ErrorType.INVALID_USE_OF_SPREAD, msg);
+  static invalidIndexTarget(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'index operator expects a list value on the left side',
+      [],
+      pos
+    );
   }
 
-  static invalidSendChannel(): SystemError {
-    const msg = 'send operator on non-channel';
-    return new SystemError(ErrorType.INVALID_SEND_CHANNEL, msg);
+  static invalidIndex(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'index operator expects an integer, string or symbol',
+      [],
+      pos
+    );
   }
 
-  static invalidReceiveChannel(): SystemError {
-    const msg = 'receive operator on non-channel';
-    return new SystemError(ErrorType.INVALID_RECEIVE_CHANNEL, msg);
+  static invalidUseOfSpread(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'spread operator can only be used during tuple construction',
+      [],
+      pos
+    );
   }
 
-  static invalidTokenExpression(): SystemError {
-    const msg = 'token operator should only be used during parsing';
-    return new SystemError(ErrorType.INVALID_TOKEN_EXPRESSION, msg);
+  static invalidSendChannel(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'send operator expects a channel on the left side',
+      [],
+      pos
+    );
   }
 
-  static invalidApplicationExpression(fnPos: Position): SystemError {
+  static invalidReceiveChannel(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'receive operator expects a channel on the right side',
+      [],
+      pos
+    );
+  }
+
+  static invalidTokenExpression(pos: Position): SystemError {
+    return SystemError.evaluationError(
+      'token operator should only be used during parsing',
+      [],
+      pos
+    );
+  }
+
+  static invalidApplicationExpression(pos: Position): SystemError {
     const msg = 'application on a non-function';
-    const pos = fnPos;
     const labels: Array<ErrorLabel> = [];
     const notes: string[] = [];
     const options = { notes, labels };
@@ -337,28 +368,6 @@ export class SystemError extends Error {
       msg,
       options
     );
-  }
-  static invalidSplitSeparator(): SystemError {
-    const msg = 'split separator is not a string';
-    return new SystemError(ErrorType.INVALID_SPLIT_SEPARATOR, msg);
-  }
-  static invalidSplitTarget(): SystemError {
-    const msg = 'split target is not a string';
-
-    return new SystemError(ErrorType.INVALID_SPLIT_TARGET, msg);
-  }
-  static invalidReplaceTarget(): SystemError {
-    const msg = 'replace target is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_TARGET, msg);
-  }
-  static invalidReplaceReplacement(): SystemError {
-    const msg = 'replace replacement is not a string';
-
-    return new SystemError(ErrorType.INVALID_REPLACE_REPLACEMENT, msg);
-  }
-  static invalidReplacePattern(): SystemError {
-    const msg = 'replace pattern is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
   }
 
   static importFailed(
@@ -377,22 +386,7 @@ export class SystemError extends Error {
 
     return new SystemError(ErrorType.IMPORT_FAILED, msg, options);
   }
-  static invalidMatchTarget(): SystemError {
-    const msg = 'match target is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
-  }
-  static invalidMatchPattern(): SystemError {
-    const msg = 'match pattern is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
-  }
-  static invalidCharAtTarget(): SystemError {
-    const msg = 'char_at pattern is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
-  }
-  static invalidCharAtIndex(): SystemError {
-    const msg = 'char_at index is not a string';
-    return new SystemError(ErrorType.INVALID_REPLACE_PATTERN, msg);
-  }
+
   static undeclaredName(name: string, pos: Position): SystemError {
     const msg = `undeclared name ${name}`;
     const labels: Array<ErrorLabel> = [];

@@ -1,4 +1,4 @@
-import "std/string" as { split, replace, match, chat_at, ...strings }
+import "std/string" as { split, replace, match, char_at, slice }
 import "./list.unim" as { map, filter, flat_map, sum }
 
 // https://adventofcode.com/2023/day/1

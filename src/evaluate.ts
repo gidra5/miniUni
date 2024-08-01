@@ -76,13 +76,15 @@ export const assign = async (
     );
     assert(
       Array.isArray(list),
-      SystemError.invalidIndexTarget()
-        .withNode(patternAst)
-        .withFileId(context.fileId)
+      SystemError.invalidIndexTarget(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
     assert(
       Number.isInteger(index),
-      SystemError.invalidIndex().withNode(patternAst).withFileId(context.fileId)
+      SystemError.invalidIndex(patternAst.data.position).withFileId(
+        context.fileId
+      )
     );
     assert(typeof index === 'number');
     list[index] = value;
@@ -508,9 +510,9 @@ export const evaluateExpr = async (
           if (Array.isArray(list)) {
             assert(
               Number.isInteger(index),
-              SystemError.invalidIndex()
-                .withNode(ast)
-                .withFileId(context.fileId)
+              SystemError.invalidIndex(ast.data.position).withFileId(
+                context.fileId
+              )
             );
             assert(typeof index === 'number');
             return list[index];
@@ -518,17 +520,17 @@ export const evaluateExpr = async (
             const record = list.record;
             assert(
               typeof index === 'string',
-              SystemError.invalidIndex()
-                .withNode(ast)
-                .withFileId(context.fileId)
+              SystemError.invalidIndex(ast.data.position).withFileId(
+                context.fileId
+              )
             );
             return record[index];
           }
 
           unreachable(
-            SystemError.invalidIndexTarget()
-              .withNode(ast)
-              .withFileId(context.fileId)
+            SystemError.invalidIndexTarget(ast.data.position).withFileId(
+              context.fileId
+            )
           );
         }
         case OperatorType.TUPLE: {
@@ -543,9 +545,9 @@ export const evaluateExpr = async (
         }
         case OperatorType.SPREAD:
           unreachable(
-            SystemError.invalidUseOfSpread()
-              .withNode(ast)
-              .withFileId(context.fileId)
+            SystemError.invalidUseOfSpread(ast.data.position).withFileId(
+              context.fileId
+            )
           );
 
         case OperatorType.PARALLEL: {
@@ -569,9 +571,9 @@ export const evaluateExpr = async (
 
           assert(
             channel,
-            SystemError.invalidSendChannel()
-              .withNode(ast)
-              .withFileId(context.fileId)
+            SystemError.invalidSendChannel(ast.data.position).withFileId(
+              context.fileId
+            )
           );
 
           const promise = channel.onReceive.shift();
@@ -591,9 +593,9 @@ export const evaluateExpr = async (
 
           assert(
             channel,
-            SystemError.invalidReceiveChannel()
-              .withNode(ast)
-              .withFileId(context.fileId)
+            SystemError.invalidReceiveChannel(ast.data.position).withFileId(
+              context.fileId
+            )
           );
 
           if (channel.queue.length > 0) {
@@ -625,9 +627,9 @@ export const evaluateExpr = async (
 
         case OperatorType.TOKEN:
           unreachable(
-            SystemError.invalidTokenExpression()
-              .withNode(ast)
-              .withFileId(context.fileId)
+            SystemError.invalidTokenExpression(ast.data.position).withFileId(
+              context.fileId
+            )
           );
 
         case OperatorType.IF: {
@@ -720,7 +722,7 @@ export const evaluateExpr = async (
             ).withFileId(context.fileId)
           );
 
-          return await fnValue(argValue);
+          return await fnValue(argValue, [ast.data.position, context.fileId]);
         }
       }
     }
@@ -747,7 +749,7 @@ export const evaluateExpr = async (
           .withFileId(context.fileId)
       );
     case 'error':
-      unreachable(ast.data.cause);
+      unreachable(ast.data.cause.withFileId(context.fileId));
     default:
       return null;
   }
@@ -806,6 +808,7 @@ export const evaluateScriptString = async (
   try {
     return await evaluateScript(ast, context);
   } catch (e) {
+    // console.error(e);
     if (e instanceof SystemError) {
       e.print();
     } else console.error(e);
