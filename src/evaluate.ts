@@ -6,7 +6,7 @@ import {
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
-import { parseTokens, symbols } from './tokens.js';
+import { parseTokens } from './tokens.js';
 import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   atom,
@@ -27,6 +27,123 @@ export type Context = {
 
 export const newContext = (fileId: number, file: string): Context => {
   return { file, fileId, env: {} };
+};
+
+export const incAssign = async (
+  patternAst: AbstractSyntaxTree,
+  value: number | EvalValue[],
+  context: Context
+): Promise<Context> => {
+  if (
+    patternAst.name === 'placeholder' ||
+    patternAst.name === 'implicitPlaceholder'
+  ) {
+    return context;
+  }
+
+  if (patternAst.data.operator === OperatorType.TUPLE) {
+    assert(
+      Array.isArray(value),
+      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+        context.fileId
+      )
+    );
+
+    const patterns = patternAst.children;
+    let consumed = 0;
+    for (const pattern of patterns) {
+      if (pattern.data.operator === OperatorType.SPREAD) {
+        unreachable(
+          SystemError.evaluationError(
+            'you sick fuck, how would that work?',
+            [],
+            pattern.data.position
+          ).withFileId(context.fileId)
+        );
+      } else {
+        const v = value[consumed++];
+        assert(
+          typeof v === 'number' || Array.isArray(v),
+          SystemError.invalidIncrementValue(pattern.data.position).withFileId(
+            context.fileId
+          )
+        );
+        context = await incAssign(pattern, v, context);
+        continue;
+      }
+    }
+
+    return context;
+  }
+
+  if (patternAst.data.operator === OperatorType.PARENS) {
+    return await incAssign(patternAst.children[0], value, context);
+  }
+
+  assert(
+    typeof value === 'number',
+    SystemError.invalidIncrementValue(patternAst.data.position).withFileId(
+      context.fileId
+    )
+  );
+
+  if (patternAst.data.operator === OperatorType.INDEX) {
+    const [list, index] = await Promise.all(
+      patternAst.children.map((child) => evaluateExpr(child, context))
+    );
+    assert(
+      Array.isArray(list),
+      SystemError.invalidIndexTarget(patternAst.data.position).withFileId(
+        context.fileId
+      )
+    );
+    assert(
+      Number.isInteger(index),
+      SystemError.invalidIndex(patternAst.data.position).withFileId(
+        context.fileId
+      )
+    );
+    assert(typeof index === 'number');
+    const v = list[index];
+    assert(
+      typeof v === 'number',
+      SystemError.invalidIncrement(
+        index.toString(),
+        patternAst.data.position
+      ).withFileId(context.fileId)
+    );
+    list[index] = value;
+    return context;
+  }
+
+  if (patternAst.name === 'name') {
+    const env = { ...context.env };
+    const name = patternAst.data.value;
+    assert(
+      name in env,
+      SystemError.invalidAssignment(
+        name,
+        patternAst.data.position,
+        getClosestName(name, Object.keys(env))
+      ).withFileId(context.fileId)
+    );
+    const v = env[name];
+    assert(
+      typeof v === 'number',
+      SystemError.invalidIncrement(name, patternAst.data.position).withFileId(
+        context.fileId
+      )
+    );
+    env[name] = v + value;
+    context.env = env;
+    return context;
+  }
+
+  unreachable(
+    SystemError.invalidPattern(patternAst.data.position).withFileId(
+      context.fileId
+    )
+  );
 };
 
 export const assign = async (
@@ -553,11 +670,14 @@ export const evaluateExpr = async (
           );
 
         case OperatorType.PARALLEL: {
-          const _channels = ast.children.map((child) => {
-            const channel = createChannel();
+          const _channels = ast.children.map((child, i) => {
+            const channel = createChannel('parallel ' + i);
             evaluateExpr(child, { ...context }).then(
               (value) => send(channel, value),
-              (e) => send(channel, e)
+              (e) => {
+                send(channel, e);
+                e.print();
+              }
             );
 
             return channel;
@@ -733,6 +853,52 @@ export const evaluateExpr = async (
             result = await evaluateExpr(body, context);
           }
           return result;
+        }
+        case OperatorType.FOR: {
+          const [pattern, expr, body] = ast.children;
+          const list = await evaluateExpr(expr, context);
+
+          assert(
+            Array.isArray(list),
+            SystemError.evaluationError(
+              'for loop iterates over lists only.',
+              [],
+              expr.data.position
+            )
+          );
+
+          const mapped: EvalValue[] = [];
+          for (const item of list) {
+            const bound = await bind(pattern, item, context);
+            mapped.push(await evaluateExpr(body, bound));
+          }
+
+          return mapped;
+        }
+        case OperatorType.LOOP: {
+          const [body] = ast.children;
+
+          while (true) {
+            try {
+              await evaluateExpr(body, context);
+            } catch (e) {
+              if (typeof e === 'object' && e !== null && 'break' in e)
+                return e.break as EvalValue;
+              throw e;
+            }
+          }
+        }
+        case OperatorType.INC_ASSIGN: {
+          const [pattern, expr] = ast.children;
+          const value = await evaluateExpr(expr, context);
+          assert(
+            typeof value === 'number' || Array.isArray(value),
+            SystemError.invalidIncrementValue(expr.data.position).withFileId(
+              context.fileId
+            )
+          );
+          await incAssign(pattern, value, context);
+          return value;
         }
         case OperatorType.ASSIGN: {
           const [pattern, expr] = ast.children;

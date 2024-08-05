@@ -11,25 +11,33 @@ document := "
   treb7uchet\
 "
 
-lines := channel()
+lines := channel "lines"
 
 | {
+  print ("start lines")
   for line in split document "\n" {
+    print ("line")
     line = replace "\\s+" "" line
+    print ("fuck", line)
     if line != "": lines <- line
   }
 
+  print ("end lines")
   close lines
 }
 
-numbers := channel()
+numbers := channel "numbers"
 line_count := 0
 line_handled_count := 0
+lines_done := false
 
 | loop {
-  status := ?<-numbers
-  if status == :closed: break
-  line = <-numbers
+  status := print (<-?lines)
+  if status == :closed {
+    lines_done = true
+    break
+  }
+  line := print (<-lines)
   line_count++
 
   | {
@@ -52,15 +60,15 @@ line_handled_count := 0
     numbers <- last_digit
     line_handled_count++
 
-    if line_count == line_handled_count: close numbers
+    if line_count == line_handled_count and lines_done: close numbers
   }
 }
 
 sum := 0
 
 while true {
-  status := <-?numbers
-  if status == (:closed): break
+  if (<-?numbers) == (:closed): break
+  print sum
   sum += <-numbers
 }
 

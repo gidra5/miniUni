@@ -1983,17 +1983,6 @@ exports[`ast receive 1`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 20,
-                  "start": 17,
-                },
-                "value": "?<-",
-              },
-              "name": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
                   "end": 27,
                   "start": 20,
                 },
@@ -2003,14 +1992,14 @@ exports[`ast receive 1`] = `
             },
           ],
           "data": {
-            "operator": "application",
+            "operator": "<-?",
             "position": {
               "end": 27,
               "start": 17,
             },
             "precedence": [
-              9007199254740989,
-              9007199254740990,
+              null,
+              4,
             ],
           },
           "name": "operator",

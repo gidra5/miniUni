@@ -72,8 +72,8 @@ export function isSymbol(
 
 const channels: Record<symbol, Channel> = {};
 
-export const createChannel = () => {
-  const channel = Symbol();
+export const createChannel = (name?: string) => {
+  const channel = Symbol(name);
   channels[channel] = {
     queue: [],
     onReceive: [],
@@ -83,13 +83,19 @@ export const createChannel = () => {
 
 export const getChannel = (c: EvalValue) => {
   assert(isChannel(c), 'not a channel');
-  assert(c.channel in channels, 'channel closed');
+
   const channel = channels[c.channel];
   return channel;
 };
 
+export const closeChannel = (c: EvalValue) => {
+  assert(isChannel(c), 'not a channel');
+  delete channels[c.channel];
+};
+
 export const send = (_channel: EvalValue, value: EvalValue | Error) => {
   const channel = getChannel(_channel);
+  assert(channel, 'channel closed');
   const promise = channel.onReceive.shift();
   if (promise) {
     const { resolve, reject } = promise;
@@ -104,6 +110,7 @@ export const send = (_channel: EvalValue, value: EvalValue | Error) => {
 
 export const receive = (_channel: EvalValue) => {
   const channel = getChannel(_channel);
+  assert(channel, 'channel closed');
 
   if (channel.queue.length > 0) {
     const next = channel.queue.shift()!;

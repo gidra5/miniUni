@@ -2,6 +2,7 @@ import { type Token, type TokenPos } from './tokens.js';
 import { SystemError } from './error.js';
 import {
   Position,
+  indexPosition,
   mergePositions,
   position,
   tokenPosToSrcPos,
@@ -109,6 +110,7 @@ export const operator = (
 
       case OperatorType.DECLARE:
         return [null, 1];
+      case OperatorType.INC_ASSIGN:
       case OperatorType.ASSIGN:
         return [null, 1];
       case OperatorType.PARENS:
@@ -168,6 +170,8 @@ export const operator = (
         return leftAssociative(arithmeticPrecedence + 4);
       case OperatorType.POW:
         return rightAssociative(arithmeticPrecedence + 6);
+      case OperatorType.ATOM:
+        return [null, 1];
       default:
         return [null, null];
     }
@@ -288,6 +292,9 @@ export enum OperatorType {
   EXPORT = 'export',
   RECEIVE_STATUS = '<-?',
   SEND_STATUS = '?<-',
+  INC_ASSIGN = '+=',
+  LOOP = 'LOOP',
+  FOR = 'FOR',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -530,6 +537,13 @@ export const parseGroup =
         index++;
         return [index, operator(OperatorType.ASSIGN, nodePosition(), pattern)];
       }
+      if (src[index].src === '+=') {
+        index++;
+        return [
+          index,
+          operator(OperatorType.INC_ASSIGN, nodePosition(), pattern),
+        ];
+      }
       if (src[index].src === '->') {
         index++;
         return [
@@ -562,6 +576,108 @@ export const parseGroup =
       }
 
       return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'loop') {
+      index++;
+      if (src[index].type === 'newline') index++;
+      const hasOpeningBracket = src[index].src === '{';
+      const openingBracketPosition = tokenPosToSrcPos(
+        indexPosition(index),
+        src
+      );
+      if (hasOpeningBracket) index++;
+
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index);
+
+      const node = () => {
+        let node = operator(OperatorType.LOOP, nodePosition(), sequence);
+        node.data.precedence = [null, null];
+
+        if (!hasOpeningBracket)
+          node = error(
+            SystemError.missingToken(openingBracketPosition, '{'),
+            node
+          );
+
+        return node;
+      };
+
+      if (src[index].type === 'newline') index++;
+      if (src[index].src !== '}') {
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
+      }
+
+      index++;
+      return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'for') {
+      index++;
+      if (src[index].type === 'newline') index++;
+      let pattern: AbstractSyntaxTree;
+      [index, pattern] = parsePattern(0, ['in'])(src, index);
+
+      const hasInKeyword = src[index].src === 'in';
+      const inKeywordPosition = tokenPosToSrcPos(indexPosition(index), src);
+      if (hasInKeyword) index++;
+      let expr: AbstractSyntaxTree;
+      [index, expr] = parseExpr(0, ['{'])(src, index);
+
+      const hasOpeningBracket = ['{', ':', '\n'].includes(src[index].src);
+      const openingBracketPosition = tokenPosToSrcPos(
+        indexPosition(index),
+        src
+      );
+      if (hasOpeningBracket) index++;
+
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index);
+
+      const node = () => {
+        let node = operator(
+          OperatorType.FOR,
+          nodePosition(),
+          pattern,
+          expr,
+          sequence
+        );
+        node.data.precedence = [null, null];
+
+        if (!hasInKeyword)
+          node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
+
+        if (!hasOpeningBracket)
+          node = error(
+            SystemError.missingToken(openingBracketPosition, '{', ':', '\n'),
+            node
+          );
+
+        return node;
+      };
+
+      if (src[index].type === 'newline') index++;
+      if (src[index].src !== '}') {
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
+      }
+
+      index++;
+      return [index, node()];
+    }
+
+    if (src[index].src === ':') {
+      index++;
+      return [
+        index,
+        operator(lhs ? OperatorType.COLON : OperatorType.ATOM, nodePosition()),
+      ];
     }
 
     if (src[index].src === 'and') {
