@@ -105,7 +105,7 @@ export function getClosestName(
     return acc;
   }, declaredNames[0]);
 
-  if (distance(name, closestName) > 3) return undefined;
+  if (!closestName || distance(name, closestName) > 3) return undefined;
 
   return closestName;
 }

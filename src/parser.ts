@@ -524,35 +524,6 @@ export const parseGroup =
     if (banned.includes('\n') && src[index].type === 'newline')
       return [index, implicitPlaceholder(nodePosition())];
 
-    const patternResult = parsePattern(0, banned)(src, index);
-
-    if (src[patternResult[0]] && !lhs && patternResult[1].name !== 'error') {
-      let index = patternResult[0];
-      const pattern = patternResult[1];
-      if (src[index].src === ':=') {
-        index++;
-        return [index, operator(OperatorType.DECLARE, nodePosition(), pattern)];
-      }
-      if (src[index].src === '=') {
-        index++;
-        return [index, operator(OperatorType.ASSIGN, nodePosition(), pattern)];
-      }
-      if (src[index].src === '+=') {
-        index++;
-        return [
-          index,
-          operator(OperatorType.INC_ASSIGN, nodePosition(), pattern),
-        ];
-      }
-      if (src[index].src === '->') {
-        index++;
-        return [
-          index,
-          operator(OperatorType.FUNCTION, nodePosition(), pattern),
-        ];
-      }
-    }
-
     if (!lhs && src[index].src === 'import') {
       index++;
       const nameToken = src[index];
@@ -670,6 +641,200 @@ export const parseGroup =
 
       index++;
       return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'fn') {
+      index++;
+      let pattern: AbstractSyntaxTree;
+      [index, pattern] = parsePattern(0, ['{', '->'])(src, index);
+      const token = src[index].src;
+
+      if (token === '{') {
+        index++;
+        if (src[index].type === 'newline') index++;
+        let sequence: AbstractSyntaxTree;
+        [index, sequence] = parseSequence(src, index);
+
+        const node = () => {
+          const node = operator(
+            OperatorType.FUNCTION,
+            nodePosition(),
+            pattern,
+            sequence
+          );
+          node.data.precedence = [null, null];
+          return node;
+        };
+
+        if (src[index].type === 'newline') index++;
+        if (src[index].src !== '}') {
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
+        }
+
+        index++;
+        return [index, node()];
+      }
+
+      if (token === '->') {
+        index++;
+        return [
+          index,
+          operator(OperatorType.FUNCTION, nodePosition(), pattern),
+        ];
+      }
+
+      return [
+        index,
+        error(
+          SystemError.missingToken(nodePosition(), '->', '{'),
+          operator(OperatorType.FUNCTION, nodePosition(), pattern)
+        ),
+      ];
+    }
+
+    if (!lhs && src[index].src === 'if') {
+      index++;
+      let condition: AbstractSyntaxTree;
+      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
+      const token = src[index].src;
+
+      if (token === '{') {
+        index++;
+        if (src[index].type === 'newline') index++;
+        let sequence: AbstractSyntaxTree;
+        [index, sequence] = parseSequence(src, index);
+
+        const node = () => {
+          const node = operator(
+            OperatorType.IF,
+            nodePosition(),
+            condition,
+            sequence
+          );
+          node.data.precedence = [null, null];
+          return node;
+        };
+        if (src[index].type === 'newline') index++;
+        if (src[index].src !== '}') {
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
+        }
+        index++;
+
+        if (src[index].src === 'else') {
+          index++;
+          return [
+            index,
+            operator(OperatorType.IF_ELSE, nodePosition(), condition, sequence),
+          ];
+        }
+
+        return [index, node()];
+      }
+
+      if (token === ':' || token.includes('\n')) {
+        index++;
+        const [_index, body] = parseExpr(0, ['else'])(src, index);
+
+        if (src[_index].src !== 'else') {
+          return [index, operator(OperatorType.IF, nodePosition(), condition)];
+        }
+
+        index = _index + 1;
+        return [
+          index,
+          operator(OperatorType.IF_ELSE, nodePosition(), condition, body),
+        ];
+      }
+
+      return [
+        index,
+        error(
+          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
+          operator(OperatorType.IF, nodePosition(), condition)
+        ),
+      ];
+    }
+
+    if (!lhs && src[index].src === 'while') {
+      index++;
+      let condition: AbstractSyntaxTree;
+      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
+      const token = src[index].src;
+
+      if (token === '{') {
+        index++;
+        if (src[index].type === 'newline') index++;
+        let sequence: AbstractSyntaxTree;
+        [index, sequence] = parseSequence(src, index);
+        const node = () => {
+          const node = operator(
+            OperatorType.WHILE,
+            nodePosition(),
+            condition,
+            sequence
+          );
+          node.data.precedence = [null, null];
+          return node;
+        };
+        if (src[index].type === 'newline') index++;
+        if (src[index].src !== '}') {
+          return [
+            index,
+            error(SystemError.missingToken(nodePosition(), '}'), node()),
+          ];
+        }
+        index++;
+
+        return [index, node()];
+      }
+
+      if (token === ':' || token.includes('\n')) {
+        index++;
+        return [index, operator(OperatorType.WHILE, nodePosition(), condition)];
+      }
+
+      return [
+        index,
+        error(
+          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
+          operator(OperatorType.WHILE, nodePosition(), condition)
+        ),
+      ];
+    }
+
+    const patternResult = parsePattern(0, banned)(src, index);
+
+    if (src[patternResult[0]] && !lhs && patternResult[1].name !== 'error') {
+      let index = patternResult[0];
+      const pattern = patternResult[1];
+      if (src[index].src === ':=') {
+        index++;
+        return [index, operator(OperatorType.DECLARE, nodePosition(), pattern)];
+      }
+      if (src[index].src === '=') {
+        index++;
+        return [index, operator(OperatorType.ASSIGN, nodePosition(), pattern)];
+      }
+      if (src[index].src === '+=') {
+        index++;
+        return [
+          index,
+          operator(OperatorType.INC_ASSIGN, nodePosition(), pattern),
+        ];
+      }
+      if (src[index].src === '->') {
+        index++;
+        return [
+          index,
+          operator(OperatorType.FUNCTION, nodePosition(), pattern),
+        ];
+      }
     }
 
     if (src[index].src === ':') {
@@ -838,171 +1003,6 @@ export const parseGroup =
       }
       index++;
       return [index, node()];
-    }
-
-    if (!lhs && src[index].src === 'fn') {
-      index++;
-      let pattern: AbstractSyntaxTree;
-      [index, pattern] = parsePattern(0, ['{', '->'])(src, index);
-      const token = src[index].src;
-
-      if (token === '{') {
-        index++;
-        if (src[index].type === 'newline') index++;
-        let sequence: AbstractSyntaxTree;
-        [index, sequence] = parseSequence(src, index);
-
-        const node = () => {
-          const node = operator(
-            OperatorType.FUNCTION,
-            nodePosition(),
-            pattern,
-            sequence
-          );
-          node.data.precedence = [null, null];
-          return node;
-        };
-
-        if (src[index].type === 'newline') index++;
-        if (src[index].src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-
-        index++;
-        return [index, node()];
-      }
-
-      if (token === '->') {
-        index++;
-        return [
-          index,
-          operator(OperatorType.FUNCTION, nodePosition(), pattern),
-        ];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), '->', '{'),
-          operator(OperatorType.FUNCTION, nodePosition(), pattern)
-        ),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'if') {
-      index++;
-      let condition: AbstractSyntaxTree;
-      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
-      const token = src[index].src;
-
-      if (token === '{') {
-        index++;
-        if (src[index].type === 'newline') index++;
-        let sequence: AbstractSyntaxTree;
-        [index, sequence] = parseSequence(src, index);
-
-        const node = () => {
-          const node = operator(
-            OperatorType.IF,
-            nodePosition(),
-            condition,
-            sequence
-          );
-          node.data.precedence = [null, null];
-          return node;
-        };
-        if (src[index].type === 'newline') index++;
-        if (src[index].src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-        index++;
-
-        if (src[index].src === 'else') {
-          index++;
-          return [
-            index,
-            operator(OperatorType.IF_ELSE, nodePosition(), condition, sequence),
-          ];
-        }
-
-        return [index, node()];
-      }
-
-      if (token === ':' || token.includes('\n')) {
-        index++;
-        const [_index, body] = parseExpr(0, ['else'])(src, index);
-
-        if (src[_index].src !== 'else') {
-          return [index, operator(OperatorType.IF, nodePosition(), condition)];
-        }
-
-        index = _index + 1;
-        return [
-          index,
-          operator(OperatorType.IF_ELSE, nodePosition(), condition, body),
-        ];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          operator(OperatorType.IF, nodePosition(), condition)
-        ),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'while') {
-      index++;
-      let condition: AbstractSyntaxTree;
-      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
-      const token = src[index].src;
-
-      if (token === '{') {
-        index++;
-        if (src[index].type === 'newline') index++;
-        let sequence: AbstractSyntaxTree;
-        [index, sequence] = parseSequence(src, index);
-        const node = () => {
-          const node = operator(
-            OperatorType.WHILE,
-            nodePosition(),
-            condition,
-            sequence
-          );
-          node.data.precedence = [null, null];
-          return node;
-        };
-        if (src[index].type === 'newline') index++;
-        if (src[index].src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-        index++;
-
-        return [index, node()];
-      }
-
-      if (token === ':' || token.includes('\n')) {
-        index++;
-        return [index, operator(OperatorType.WHILE, nodePosition(), condition)];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          operator(OperatorType.WHILE, nodePosition(), condition)
-        ),
-      ];
     }
 
     if (src[index].src === '[') {

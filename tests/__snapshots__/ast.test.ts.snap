@@ -811,12 +811,11 @@ exports[`ast fn increment 1`] = `
           "children": [],
           "data": {
             "position": {
-              "end": 2,
-              "start": 0,
+              "end": 3,
+              "start": 3,
             },
-            "value": "fn",
           },
-          "name": "name",
+          "name": "implicit_placeholder",
         },
         {
           "children": [

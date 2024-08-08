@@ -50,7 +50,7 @@ export const incAssign = async (
 ): Promise<Context> => {
   if (
     patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.name === 'implicit_placeholder'
   ) {
     return context;
   }
@@ -165,7 +165,7 @@ export const assign = async (
 ): Promise<Context> => {
   if (
     patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.name === 'implicit_placeholder'
   ) {
     return context;
   }
@@ -250,7 +250,7 @@ export const bind = async (
 ): Promise<Context> => {
   if (
     patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.name === 'implicit_placeholder'
   ) {
     return context;
   }
@@ -350,7 +350,7 @@ async function bindExport(
 ): Promise<Record<string, EvalValue>> {
   if (
     patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.name === 'implicit_placeholder'
   ) {
     return exports;
   }
@@ -1056,7 +1056,7 @@ export const evaluateExpr = async (
       return ast.data.value;
     case 'placeholder':
       return null;
-    case 'implicitPlaceholder':
+    case 'implicit_placeholder':
       unreachable(
         SystemError.invalidPlaceholderExpression()
           .withNode(ast)

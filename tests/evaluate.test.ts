@@ -255,11 +255,11 @@ describe('evaluate', () => {
   it('evaluate fn increment', async () => {
     const input = `
       line_handled_count := 0
-      fn -> line_handled_count++
+      inc := fn -> line_handled_count++
       inc()
     `;
     const result = await evaluate(input);
 
-    expect(result).toBe(2);
+    expect(result).toBe(0);
   });
 });
