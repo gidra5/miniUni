@@ -89,9 +89,9 @@ export const operator = (
   const getPrecedence = (): Precedence => {
     const semicolonPrecedence = 1;
     const assignmentPrecedence = semicolonPrecedence + 1;
-    const booleanPrecedence = assignmentPrecedence + 2;
-    const tuplePrecedence = booleanPrecedence + 4;
-    const arithmeticPrecedence = tuplePrecedence + 3;
+    const tuplePrecedence = assignmentPrecedence + 4;
+    const booleanPrecedence = tuplePrecedence + 2;
+    const arithmeticPrecedence = booleanPrecedence + 3;
     const maxPrecedence = Number.MAX_SAFE_INTEGER;
     switch (operator) {
       case OperatorType.INCREMENT:
@@ -150,13 +150,13 @@ export const operator = (
       case OperatorType.PARALLEL:
         return associative(assignmentPrecedence + 1);
       case OperatorType.SEND:
-        return rightAssociative(assignmentPrecedence + 2);
+        return rightAssociative(tuplePrecedence + 2);
       case OperatorType.RECEIVE:
-        return [null, assignmentPrecedence + 2];
+        return [null, tuplePrecedence + 2];
       case OperatorType.SEND_STATUS:
-        return rightAssociative(assignmentPrecedence + 2);
+        return rightAssociative(tuplePrecedence + 2);
       case OperatorType.RECEIVE_STATUS:
-        return [null, assignmentPrecedence + 2];
+        return [null, tuplePrecedence + 2];
 
       case OperatorType.ADD:
         return associative(arithmeticPrecedence);
@@ -293,8 +293,8 @@ export enum OperatorType {
   RECEIVE_STATUS = '<-?',
   SEND_STATUS = '?<-',
   INC_ASSIGN = '+=',
-  LOOP = 'LOOP',
-  FOR = 'FOR',
+  LOOP = 'loop',
+  FOR = 'for',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -1011,18 +1011,18 @@ export const parseGroup =
 
       const [_index, expr] = parseExpr(0, [']'])(src, index);
       index = _index;
-      const node = operator(OperatorType.INDEX, nodePosition(), expr);
+      const node = () => operator(OperatorType.INDEX, nodePosition(), expr);
 
       if (src[index].type === 'newline') index++;
       if (src[index].src !== ']') {
         return [
           index,
-          error(SystemError.missingToken(nodePosition(), ']'), node),
+          error(SystemError.missingToken(nodePosition(), ']'), node()),
         ];
       }
       index++;
 
-      return [index, node];
+      return [index, node()];
     }
 
     if (!lhs && src[index].src === '(') {

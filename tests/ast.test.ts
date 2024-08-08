@@ -161,4 +161,12 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast index', () => {
+    const input = `x[0]`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });
