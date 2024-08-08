@@ -17,7 +17,7 @@ const examples = [
     expected: 142,
   },
   {
-    root: path.resolve('./examples/'),
+    root: path.resolve('./examples/advent_of_code_1_channels.uni'),
     name: 'advent of code 2023, day 1, single script, channels',
     file: './advent_of_code_1_channels.uni',
     expected: 142,

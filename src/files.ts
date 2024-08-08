@@ -37,7 +37,7 @@ export const addFile = (fileName: string, source: string) => {
 };
 
 export const prelude: Record<string, EvalValue> = {
-  channel: fn(1, (name) => {
+  channel: fn(1, (_, name) => {
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
   }),
@@ -54,7 +54,7 @@ export const prelude: Record<string, EvalValue> = {
     return Number(n);
   }),
   print: fn(1, (_, value) => {
-    console.log(value);
+    inspect(value);
     return value;
   }),
   return: fn(1, (_, value) => {
@@ -62,6 +62,9 @@ export const prelude: Record<string, EvalValue> = {
   }),
   break: fn(1, (_, value) => {
     throw { break: value };
+  }),
+  continue: fn(1, (_, value) => {
+    throw { continue: value };
   }),
   close: fn(1, (_, value) => {
     closeChannel(value);
@@ -261,7 +264,12 @@ export const getModule = async (
     return modules[name];
   }
   if (!resolvedPath) {
-    resolvedPath = await resolvePath(name, from);
+    resolvedPath = await resolvePath(name, from).catch((e) => {
+      const fileId = fileMap.getFileId(from);
+      const error = SystemError.unresolvedImport(name, e).withFileId(fileId);
+      error.print();
+      throw error;
+    });
   }
   if (resolvedPath in modules) {
     return modules[resolvedPath];

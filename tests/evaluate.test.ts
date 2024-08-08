@@ -21,7 +21,7 @@ const evaluate = async (
   const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  if (env) context.env = env;
+  if (env) Object.assign(context.env, env);
   return await evaluateScript(ast, context);
 };
 
@@ -210,5 +210,56 @@ describe('evaluate', () => {
     const result = await evaluate(input);
 
     expect(result).toStrictEqual([1]);
+  });
+
+  it('evaluate channels sync', async () => {
+    const input = `
+      lines := channel "lines"
+
+      | {
+        lines <- "1"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:empty): continue()
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('evaluate channels sync 2', async () => {
+    const input = `
+      lines := channel "lines"
+
+      | {
+        lines <- "1"
+        lines <- "2"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('evaluate fn increment', async () => {
+    const input = `
+      line_handled_count := 0
+      fn -> line_handled_count++
+      inc()
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toBe(2);
   });
 });

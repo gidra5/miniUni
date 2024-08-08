@@ -802,6 +802,69 @@ exports[`ast flat map list reducer 1`] = `
 }
 `;
 
+exports[`ast fn increment 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 2,
+              "start": 0,
+            },
+            "value": "fn",
+          },
+          "name": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 24,
+                  "start": 6,
+                },
+                "value": "line_handled_count",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "post_increment",
+            "position": {
+              "end": 26,
+              "start": 6,
+            },
+            "precedence": [
+              3,
+              null,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "func",
+        "position": {
+          "end": 26,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
 exports[`ast fn multiple args 1`] = `
 {
   "children": [

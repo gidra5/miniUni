@@ -1,4 +1,5 @@
 import "std/string" as { split, replace, match, char_at, slice }
+import "std/concurrency" as { all }
 
 // https://adventofcode.com/2023/day/1
 
@@ -16,9 +17,8 @@ lines := channel "lines"
 | {
   print ("start lines")
   for line in split document "\n" {
-    print ("line")
     line = replace "\\s+" "" line
-    print ("fuck", line)
+    print ("line send", line, line != "")
     if line != "": lines <- line
   }
 
@@ -30,15 +30,16 @@ numbers := channel "numbers"
 line_count := 0
 line_handled_count := 0
 lines_done := false
+inc := fn -> line_handled_count++
 
 | loop {
-  status := print (<-?lines)
-  if status == :closed {
+  if (<-?lines) == (:closed) {
     lines_done = true
-    break
+    break()
   }
-  line := print (<-lines)
+  line := (<-lines)
   line_count++
+  print ("line receive", line, line_count, line_handled_count, <-?lines)
 
   | {
     first_digit := false
@@ -58,18 +59,24 @@ lines_done := false
     }
 
     numbers <- last_digit
-    line_handled_count++
+    print ("line number end 1", line_count, line_handled_count, lines_done)
+    inc()
 
-    if line_count == line_handled_count and lines_done: close numbers
+    print ("line number end 2", line_count, line_handled_count, lines_done)
+    if line_count == line_handled_count and lines_done {
+      print "numbers done"
+      close numbers
+    }
   }
 }
 
 sum := 0
 
 while true {
-  if (<-?numbers) == (:closed): break
-  print sum
+  if (<-?numbers) == (:closed): break()
   sum += <-numbers
+  // print ("sum receive", sum)
 }
 
+// print "done"
 sum

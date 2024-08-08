@@ -95,13 +95,13 @@ export const operator = (
     const maxPrecedence = Number.MAX_SAFE_INTEGER;
     switch (operator) {
       case OperatorType.INCREMENT:
-        return [null, 1];
+        return [null, 3];
       case OperatorType.DECREMENT:
-        return [null, 1];
+        return [null, 3];
       case OperatorType.POST_DECREMENT:
-        return [1, null];
+        return [3, null];
       case OperatorType.POST_INCREMENT:
-        return [1, null];
+        return [3, null];
 
       case OperatorType.IMPORT:
         return [null, 1];

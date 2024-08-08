@@ -169,4 +169,12 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast fn increment', () => {
+    const input = `fn -> line_handled_count++`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });

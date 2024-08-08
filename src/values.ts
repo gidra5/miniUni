@@ -1,5 +1,5 @@
 import { Position } from './position.js';
-import { assert } from './utils.js';
+import { assert, inspect } from './utils.js';
 
 export type EvalFunction = (
   arg: EvalValue,
@@ -16,6 +16,7 @@ export type EvalValue =
   | { record: Record<string, EvalValue> }
   | { channel: symbol };
 type Channel = {
+  closed?: boolean;
   queue: (EvalValue | Error)[];
   onReceive: Array<{
     resolve: (v: EvalValue) => void;
@@ -90,12 +91,18 @@ export const getChannel = (c: EvalValue) => {
 
 export const closeChannel = (c: EvalValue) => {
   assert(isChannel(c), 'not a channel');
-  delete channels[c.channel];
+  const channel = channels[c.channel];
+  assert(channel, 'channel already closed');
+  if (channel.queue.length === 0 && channel.onReceive.length === 0) {
+    delete channels[c.channel];
+  } else {
+    channel.closed = true;
+  }
 };
 
 export const send = (_channel: EvalValue, value: EvalValue | Error) => {
   const channel = getChannel(_channel);
-  assert(channel, 'channel closed');
+  assert(channel && !channel.closed, 'channel closed');
   const promise = channel.onReceive.shift();
   if (promise) {
     const { resolve, reject } = promise;
@@ -116,6 +123,9 @@ export const receive = (_channel: EvalValue) => {
     const next = channel.queue.shift()!;
     if (next instanceof Error) throw next;
     return next;
+  } else if (channel.closed) {
+    closeChannel(_channel);
+    throw new Error('channel closed');
   }
 
   return new Promise<EvalValue>((resolve, reject) => {
@@ -125,6 +135,7 @@ export const receive = (_channel: EvalValue) => {
         channel.onReceive = channel.onReceive.filter(
           (_promise) => _promise !== promise
         );
+        if (channel.closed) closeChannel(_channel);
       },
 
       reject: (e: unknown) => {
@@ -132,6 +143,7 @@ export const receive = (_channel: EvalValue) => {
         channel.onReceive = channel.onReceive.filter(
           (_promise) => _promise !== promise
         );
+        if (channel.closed) closeChannel(_channel);
       },
     };
 
