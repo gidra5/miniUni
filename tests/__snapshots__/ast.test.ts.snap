@@ -802,6 +802,68 @@ exports[`ast flat map list reducer 1`] = `
 }
 `;
 
+exports[`ast fn increment 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 3,
+              "start": 3,
+            },
+          },
+          "name": "implicit_placeholder",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 24,
+                  "start": 6,
+                },
+                "value": "line_handled_count",
+              },
+              "name": "name",
+            },
+          ],
+          "data": {
+            "operator": "post_increment",
+            "position": {
+              "end": 26,
+              "start": 6,
+            },
+            "precedence": [
+              3,
+              null,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "func",
+        "position": {
+          "end": 26,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
 exports[`ast fn multiple args 1`] = `
 {
   "children": [
@@ -881,6 +943,116 @@ exports[`ast fn multiple args 1`] = `
         "precedence": [
           null,
           2,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast index 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "x",
+          },
+          "name": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 3,
+              "start": 2,
+            },
+            "value": 0,
+          },
+          "name": "number",
+        },
+      ],
+      "data": {
+        "operator": "index",
+        "position": {
+          "end": 4,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740991,
+          null,
+        ],
+      },
+      "name": "operator",
+    },
+  ],
+  "data": {},
+  "name": "script",
+}
+`;
+
+exports[`ast parallel multiline parens 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 11,
+                  "start": 10,
+                },
+                "value": 1,
+              },
+              "name": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 21,
+                  "start": 20,
+                },
+                "value": 2,
+              },
+              "name": "number",
+            },
+          ],
+          "data": {
+            "operator": "parallel",
+            "position": {
+              "end": 21,
+              "start": 8,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "name": "operator",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+        "position": {
+          "end": 27,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
         ],
       },
       "name": "operator",
@@ -1127,7 +1299,7 @@ exports[`ast parse numbers 1`] = `
                                       "data": {
                                         "operator": "index",
                                         "position": {
-                                          "end": 121,
+                                          "end": 122,
                                           "start": 115,
                                         },
                                         "precedence": [
@@ -1141,7 +1313,7 @@ exports[`ast parse numbers 1`] = `
                                   "data": {
                                     "operator": "application",
                                     "position": {
-                                      "end": 121,
+                                      "end": 122,
                                       "start": 105,
                                     },
                                     "precedence": [
@@ -1207,7 +1379,7 @@ exports[`ast parse numbers 1`] = `
                                               "data": {
                                                 "operator": "index",
                                                 "position": {
-                                                  "end": 159,
+                                                  "end": 160,
                                                   "start": 153,
                                                 },
                                                 "precedence": [
@@ -1221,7 +1393,7 @@ exports[`ast parse numbers 1`] = `
                                           "data": {
                                             "operator": "application",
                                             "position": {
-                                              "end": 159,
+                                              "end": 160,
                                               "start": 146,
                                             },
                                             "precedence": [
@@ -1235,7 +1407,7 @@ exports[`ast parse numbers 1`] = `
                                       "data": {
                                         "operator": ":=",
                                         "position": {
-                                          "end": 159,
+                                          "end": 160,
                                           "start": 137,
                                         },
                                         "precedence": [
@@ -1277,7 +1449,7 @@ exports[`ast parse numbers 1`] = `
                                               "data": {
                                                 "operator": "index",
                                                 "position": {
-                                                  "end": 185,
+                                                  "end": 186,
                                                   "start": 177,
                                                 },
                                                 "precedence": [
@@ -1291,7 +1463,7 @@ exports[`ast parse numbers 1`] = `
                                           "data": {
                                             "operator": "not",
                                             "position": {
-                                              "end": 185,
+                                              "end": 186,
                                               "start": 176,
                                             },
                                             "precedence": [
@@ -1331,7 +1503,7 @@ exports[`ast parse numbers 1`] = `
                                               "data": {
                                                 "operator": "index",
                                                 "position": {
-                                                  "end": 196,
+                                                  "end": 197,
                                                   "start": 188,
                                                 },
                                                 "precedence": [
@@ -1410,7 +1582,7 @@ exports[`ast parse numbers 1`] = `
                                           "data": {
                                             "operator": "index",
                                             "position": {
-                                              "end": 226,
+                                              "end": 227,
                                               "start": 218,
                                             },
                                             "precedence": [
@@ -1627,7 +1799,7 @@ exports[`ast parse numbers 1`] = `
                           "data": {
                             "operator": "index",
                             "position": {
-                              "end": 305,
+                              "end": 306,
                               "start": 297,
                             },
                             "precedence": [
@@ -1667,7 +1839,7 @@ exports[`ast parse numbers 1`] = `
                               "data": {
                                 "operator": "index",
                                 "position": {
-                                  "end": 316,
+                                  "end": 317,
                                   "start": 308,
                                 },
                                 "precedence": [
@@ -1983,17 +2155,6 @@ exports[`ast receive 1`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 20,
-                  "start": 17,
-                },
-                "value": "?<-",
-              },
-              "name": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
                   "end": 27,
                   "start": 20,
                 },
@@ -2003,14 +2164,14 @@ exports[`ast receive 1`] = `
             },
           ],
           "data": {
-            "operator": "application",
+            "operator": "<-?",
             "position": {
               "end": 27,
               "start": 17,
             },
             "precedence": [
-              9007199254740989,
-              9007199254740990,
+              null,
+              4,
             ],
           },
           "name": "operator",
@@ -2421,7 +2582,7 @@ exports[`ast reduce list 1`] = `
                       "data": {
                         "operator": "index",
                         "position": {
-                          "end": 186,
+                          "end": 187,
                           "start": 173,
                         },
                         "precedence": [
@@ -2435,7 +2596,7 @@ exports[`ast reduce list 1`] = `
                   "data": {
                     "operator": ":=",
                     "position": {
-                      "end": 186,
+                      "end": 187,
                       "start": 165,
                     },
                     "precedence": [

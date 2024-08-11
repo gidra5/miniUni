@@ -161,4 +161,31 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast index', () => {
+    const input = `x[0]`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast fn increment', () => {
+    const input = `fn -> line_handled_count++`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast parallel multiline parens', async () => {
+    const input = `(
+      | 1
+      | 2
+    )`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });
