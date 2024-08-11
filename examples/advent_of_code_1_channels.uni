@@ -1,4 +1,5 @@
 import "std/string" as { split, replace, match, char_at, slice }
+import "std/concurrency" as { all }
 
 // https://adventofcode.com/2023/day/1
 
@@ -11,9 +12,9 @@ document := "
   treb7uchet\
 "
 
-lines := channel()
+lines := channel "lines"
 
-| {
+async {
   for line in split document "\n" {
     line = replace "\\s+" "" line
     if line != "": lines <- line
@@ -22,17 +23,21 @@ lines := channel()
   close lines
 }
 
-numbers := channel()
+numbers := channel "numbers"
 line_count := 0
 line_handled_count := 0
+lines_done := false
+inc := fn -> line_handled_count++
 
-| loop {
-  status := ?<-numbers
-  if status == :closed: break
-  line = <-numbers
+async loop {
+  if (<-?lines) == (:closed) {
+    lines_done = true
+    break()
+  }
+  line := <-lines
   line_count++
-
-  | {
+  
+  async {
     first_digit := false
     last_digit := 0
 
@@ -50,17 +55,18 @@ line_handled_count := 0
     }
 
     numbers <- last_digit
-    line_handled_count++
+    inc()
 
-    if line_count == line_handled_count: close numbers
+    if line_count == line_handled_count and lines_done {
+      close numbers
+    }
   }
 }
 
 sum := 0
 
 while true {
-  status := <-?numbers
-  if status == (:closed): break
+  if (<-?numbers) == (:closed): break()
   sum += <-numbers
 }
 
