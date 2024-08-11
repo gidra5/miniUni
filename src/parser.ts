@@ -2,6 +2,7 @@ import { type Token, type TokenPos } from './tokens.js';
 import { SystemError } from './error.js';
 import {
   Position,
+  indexPosition,
   mergePositions,
   position,
   tokenPosToSrcPos,
@@ -121,6 +122,7 @@ export const operator = (
 
       case OperatorType.DECLARE:
         return [null, 1];
+      case OperatorType.INC_ASSIGN:
       case OperatorType.ASSIGN:
         return [null, 1];
       case OperatorType.PARENS:
@@ -727,9 +729,112 @@ export const parseGroup =
       return [index, node()];
     }
 
+    if (!lhs && src[index].src === 'loop') {
+      index++;
+      if (src[index].type === 'newline') index++;
+      const hasOpeningBracket = src[index].src === '{';
+      const openingBracketPosition = tokenPosToSrcPos(
+        indexPosition(index),
+        src
+      );
+      if (hasOpeningBracket) index++;
+
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index);
+
+      const node = () => {
+        let node = operator(OperatorType.LOOP, nodePosition(), sequence);
+        node.data.precedence = [null, null];
+
+        if (!hasOpeningBracket)
+          node = error(
+            SystemError.missingToken(openingBracketPosition, '{'),
+            node
+          );
+
+        return node;
+      };
+
+      if (src[index].type === 'newline') index++;
+      if (src[index].src !== '}') {
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
+      }
+
+      index++;
+      return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'for') {
+      index++;
+      if (src[index].type === 'newline') index++;
+      let pattern: AbstractSyntaxTree;
+      [index, pattern] = parsePattern(0, ['in'])(src, index);
+
+      const hasInKeyword = src[index].src === 'in';
+      const inKeywordPosition = tokenPosToSrcPos(indexPosition(index), src);
+      if (hasInKeyword) index++;
+      let expr: AbstractSyntaxTree;
+      [index, expr] = parseExpr(0, ['{'])(src, index);
+
+      const hasOpeningBracket = ['{', ':', '\n'].includes(src[index].src);
+      const openingBracketPosition = tokenPosToSrcPos(
+        indexPosition(index),
+        src
+      );
+      if (hasOpeningBracket) index++;
+
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index);
+
+      const node = () => {
+        let node = operator(
+          OperatorType.FOR,
+          nodePosition(),
+          pattern,
+          expr,
+          sequence
+        );
+        node.data.precedence = [null, null];
+
+        if (!hasInKeyword)
+          node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
+
+        if (!hasOpeningBracket)
+          node = error(
+            SystemError.missingToken(openingBracketPosition, '{', ':', '\n'),
+            node
+          );
+
+        return node;
+      };
+
+      if (src[index].type === 'newline') index++;
+      if (src[index].src !== '}') {
+        return [
+          index,
+          error(SystemError.missingToken(nodePosition(), '}'), node()),
+        ];
+      }
+
+      index++;
+      return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'async') {
+      index++;
+      return [index, operator(OperatorType.ASYNC, nodePosition())];
+    }
+
     const patternResult = parsePattern(0, banned)(src, index);
 
-    if (src[patternResult[0]] && !lhs && patternResult[1].type !== 'error') {
+    if (
+      src[patternResult[0]] &&
+      !lhs &&
+      patternResult[1].type !== NodeType.ERROR
+    ) {
       let index = patternResult[0];
       const pattern = patternResult[1];
       if (src[index].src === ':=') {
@@ -747,6 +852,21 @@ export const parseGroup =
           operator(OperatorType.FUNCTION, nodePosition(), pattern),
         ];
       }
+      if (src[index].src === '+=') {
+        index++;
+        return [
+          index,
+          operator(OperatorType.INC_ASSIGN, nodePosition(), pattern),
+        ];
+      }
+    }
+
+    if (src[index].src === ':') {
+      index++;
+      return [
+        index,
+        operator(lhs ? OperatorType.COLON : OperatorType.ATOM, nodePosition()),
+      ];
     }
 
     if (src[index].src === 'and') {
