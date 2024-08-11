@@ -1,6 +1,7 @@
 import { SystemError } from './error.js';
 import { getModule, getScriptResult, isScript, prelude } from './files.js';
 import {
+  NodeType,
   OperatorType,
   parseModule,
   parseScript,
@@ -35,8 +36,8 @@ export const assign = async (
   context: Context
 ): Promise<Context> => {
   if (
-    patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.type === NodeType.PLACEHOLDER ||
+    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
   ) {
     return context;
   }
@@ -93,7 +94,7 @@ export const assign = async (
     return context;
   }
 
-  if (patternAst.name === 'name') {
+  if (patternAst.type === NodeType.NAME) {
     const env = { ...context.env };
     const name = patternAst.data.value;
     assert(
@@ -122,8 +123,8 @@ export const bind = async (
   context: Context
 ): Promise<Context> => {
   if (
-    patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.type === NodeType.PLACEHOLDER ||
+    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
   ) {
     return context;
   }
@@ -174,7 +175,7 @@ export const bind = async (
     const patterns = patternAst.children;
     const consumedNames: string[] = [];
     for (const pattern of patterns) {
-      if (pattern.name === 'name') {
+      if (pattern.type === NodeType.NAME) {
         const name = pattern.data.value;
         context.env[name] = record[name];
         consumedNames.push(name);
@@ -201,7 +202,7 @@ export const bind = async (
     return context;
   }
 
-  if (patternAst.name === 'name') {
+  if (patternAst.type === NodeType.NAME) {
     const env = { ...context.env };
     const name = patternAst.data.value;
     env[name] = value;
@@ -224,8 +225,8 @@ async function bindExport(
   exporting = false
 ): Promise<Record<string, EvalValue>> {
   if (
-    patternAst.name === 'placeholder' ||
-    patternAst.name === 'implicitPlaceholder'
+    patternAst.type === NodeType.PLACEHOLDER ||
+    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
   ) {
     return exports;
   }
@@ -294,7 +295,7 @@ async function bindExport(
     const patterns = patternAst.children;
     const consumedNames: string[] = [];
     for (const pattern of patterns) {
-      if (pattern.name === 'name') {
+      if (pattern.type === 'name') {
         const name = pattern.data.value;
         if (exporting) exports[name] = record[name];
         consumedNames.push(name);
@@ -333,7 +334,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.name === 'name') {
+  if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
     if (exporting) exports[name] = value;
     return exports;
@@ -350,8 +351,8 @@ export const evaluateExpr = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
-  switch (ast.name) {
-    case 'operator': {
+  switch (ast.type) {
+    case NodeType.OPERATOR: {
       switch (ast.data.operator) {
         case OperatorType.IMPORT: {
           const name = ast.data.name;
@@ -417,7 +418,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.INCREMENT: {
           const arg = ast.children[0];
-          assert(arg.name === 'name', 'expected name');
+          assert(arg.type === 'name', 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value + 1, context);
@@ -425,7 +426,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.DECREMENT: {
           const arg = ast.children[0];
-          assert(arg.name === 'name', 'expected name');
+          assert(arg.type === 'name', 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value - 1, context);
@@ -433,7 +434,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.POST_DECREMENT: {
           const arg = ast.children[0];
-          assert(arg.name === 'name', 'expected name');
+          assert(arg.type === 'name', 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value - 1, context);
@@ -441,7 +442,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.POST_INCREMENT: {
           const arg = ast.children[0];
-          assert(arg.name === 'name', 'expected name');
+          assert(arg.type === 'name', 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value + 1, context);
@@ -501,7 +502,7 @@ export const evaluateExpr = async (
           return !arg;
         }
         case OperatorType.PARENS:
-          if (ast.children[0].name === 'implicit_placeholder') return [];
+          if (ast.children[0].type === 'implicit_placeholder') return [];
           return await evaluateExpr(ast.children[0], context);
 
         case OperatorType.INDEX: {
@@ -701,7 +702,7 @@ export const evaluateExpr = async (
         }
 
         case OperatorType.ATOM:
-          assert(ast.children[0].name === 'name', 'expected name');
+          assert(ast.children[0].type === 'name', 'expected name');
           return atom(ast.children[0].data.value);
 
         case OperatorType.TOKEN:
@@ -806,7 +807,7 @@ export const evaluateExpr = async (
       }
     }
 
-    case 'name':
+    case NodeType.NAME:
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
@@ -817,17 +818,17 @@ export const evaluateExpr = async (
         )
       );
       return context.env[name];
-    case 'number':
-    case 'string':
+    case NodeType.NUMBER:
+    case NodeType.STRING:
       return ast.data.value;
-    case 'placeholder':
-    case 'implicitPlaceholder':
+    case NodeType.PLACEHOLDER:
+    case NodeType.IMPLICIT_PLACEHOLDER:
       unreachable(
         SystemError.invalidPlaceholderExpression()
           .withNode(ast)
           .withFileId(context.fileId)
       );
-    case 'error':
+    case NodeType.ERROR:
       unreachable(ast.data.cause.withFileId(context.fileId));
     default:
       return null;
@@ -851,7 +852,7 @@ export const evaluateScript = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
-  assert(ast.name === 'script', 'expected script');
+  assert(ast.type === NodeType.SCRIPT, 'expected script');
   context.env = { ...prelude, ...context.env };
   return await evaluateSequence(ast, context);
 };
@@ -860,7 +861,7 @@ export const evaluateModule = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
-  assert(ast.name === 'module', 'expected module');
+  assert(ast.type === NodeType.MODULE, 'expected module');
   context.env = { ...prelude, ...context.env };
   const record: Record<string, EvalValue> = {};
 
@@ -887,10 +888,9 @@ export const evaluateScriptString = async (
   try {
     return await evaluateScript(ast, context);
   } catch (e) {
-    // console.error(e);
-    if (e instanceof SystemError) {
-      e.print();
-    } else console.error(e);
+    console.error(e);
+    if (e instanceof SystemError) e.print();
+
     return null;
   }
 };
@@ -904,9 +904,9 @@ export const evaluateModuleString = async (
   try {
     return await evaluateModule(ast, context);
   } catch (e) {
-    if (e instanceof SystemError) {
-      e.print();
-    } else console.error(e);
+    console.error(e);
+    if (e instanceof SystemError) e.print();
+
     return null;
   }
 };

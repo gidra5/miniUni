@@ -8,17 +8,29 @@ import {
 } from './position.js';
 
 export type AbstractSyntaxTree<T = any> = {
-  name: string;
+  type: string;
   data: T;
   children: AbstractSyntaxTree<T>[];
 };
 export type Precedence = [prefix: number | null, postfix: number | null];
 
+export enum NodeType {
+  ERROR = 'error',
+  IMPLICIT_PLACEHOLDER = 'implicit_placeholder',
+  PLACEHOLDER = 'placeholder',
+  NAME = 'name',
+  NUMBER = 'number',
+  STRING = 'string',
+  OPERATOR = 'operator',
+  SCRIPT = 'script',
+  MODULE = 'module',
+}
+
 export const error = (
   cause: SystemError,
   node?: AbstractSyntaxTree
 ): AbstractSyntaxTree => ({
-  name: 'error',
+  type: NodeType.ERROR,
   data: {
     cause: node ? cause.withNode(node) : cause,
     get position() {
@@ -31,13 +43,13 @@ export const error = (
 export const implicitPlaceholder = (
   position: Position
 ): AbstractSyntaxTree => ({
-  name: 'implicit_placeholder',
+  type: NodeType.IMPLICIT_PLACEHOLDER,
   data: { position },
   children: [],
 });
 
 export const placeholder = (position: Position): AbstractSyntaxTree => ({
-  name: 'placeholder',
+  type: NodeType.PLACEHOLDER,
   data: { position },
   children: [],
 });
@@ -46,7 +58,7 @@ export const name = (
   value: string | symbol,
   position: Position
 ): AbstractSyntaxTree => ({
-  name: 'name',
+  type: NodeType.NAME,
   data: { value, position },
   children: [],
 });
@@ -55,7 +67,7 @@ export const number = (
   value: number,
   position: Position
 ): AbstractSyntaxTree => ({
-  name: 'number',
+  type: NodeType.NUMBER,
   data: { value, position },
   children: [],
 });
@@ -64,7 +76,7 @@ export const string = (
   value: string,
   position: Position
 ): AbstractSyntaxTree => ({
-  name: 'string',
+  type: NodeType.STRING,
   data: { value, position },
   children: [],
 });
@@ -173,7 +185,7 @@ export const operator = (
     }
   };
   return {
-    name: 'operator',
+    type: NodeType.OPERATOR,
     data: { operator, precedence: getPrecedence(), position },
     children,
   };
@@ -233,13 +245,13 @@ export const prefix = (
 };
 
 const module = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
-  name: 'module',
+  type: NodeType.MODULE,
   data: {},
   children,
 });
 
 const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
-  name: 'script',
+  type: NodeType.SCRIPT,
   data: {},
   children,
 });
@@ -571,7 +583,7 @@ export const parseGroup =
 
     const patternResult = parsePattern(0, banned)(src, index);
 
-    if (src[patternResult[0]] && !lhs && patternResult[1].name !== 'error') {
+    if (src[patternResult[0]] && !lhs && patternResult[1].type !== 'error') {
       let index = patternResult[0];
       const pattern = patternResult[1];
       if (src[index].src === ':=') {
@@ -1002,7 +1014,7 @@ export const parseExpr =
       if (
         left === right &&
         group.data.operator === lhs.data.operator &&
-        rhs.name !== 'implicit_placeholder'
+        rhs.type !== 'implicit_placeholder'
       ) {
         lhs.children.push(rhs);
       } else {
