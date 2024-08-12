@@ -329,6 +329,10 @@ export const associative = (precedence: number): Precedence => [
   precedence,
 ];
 
+const tokenIncludes = (token: Token, tokens: string[]): boolean =>
+  tokens.includes(token.src) ||
+  (tokens.includes('\n') && token.type === 'newline');
+
 export const parsePatternGroup =
   (banned: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
@@ -337,9 +341,7 @@ export const parsePatternGroup =
     const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
-    if (banned.includes(src[index].src))
-      return [index, implicitPlaceholder(nodePosition())];
-    if (banned.includes('\n') && src[index].type === 'newline')
+    if (tokenIncludes(src[index], banned))
       return [index, implicitPlaceholder(nodePosition())];
 
     if (src[index].src === ',') {
@@ -534,9 +536,7 @@ export const parseGroup =
     const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
 
     if (!src[index]) return [index, error(SystemError.endOfSource())];
-    if (banned.includes(src[index].src))
-      return [index, implicitPlaceholder(nodePosition())];
-    if (banned.includes('\n') && src[index].type === 'newline')
+    if (tokenIncludes(src[index], banned))
       return [index, implicitPlaceholder(nodePosition())];
 
     if (!lhs && src[index].src === 'fn') {
