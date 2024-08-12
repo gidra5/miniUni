@@ -557,8 +557,8 @@ export const evaluateExpr = async (
           const _channels = ast.children.map((child) => {
             const channel = createChannel();
             evaluateExpr(child, { ...context }).then(
-              (value) => send(channel, value),
-              (e) => send(channel, e)
+              (value) => send(channel.channel, value),
+              (e) => send(channel.channel, e)
             );
 
             return channel;
@@ -578,7 +578,7 @@ export const evaluateExpr = async (
             )
           );
 
-          const channel = getChannel(channelValue);
+          const channel = getChannel(channelValue.channel);
 
           assert(
             channel,
@@ -611,7 +611,7 @@ export const evaluateExpr = async (
             )
           );
 
-          const channel = getChannel(channelValue);
+          const channel = getChannel(channelValue.channel);
 
           assert(
             channel,
@@ -658,7 +658,7 @@ export const evaluateExpr = async (
             )
           );
 
-          const channel = getChannel(channelValue);
+          const channel = getChannel(channelValue.channel);
 
           if (!channel) {
             return atom('closed');
@@ -686,7 +686,7 @@ export const evaluateExpr = async (
             )
           );
 
-          const channel = getChannel(channelValue);
+          const channel = getChannel(channelValue.channel);
 
           if (!channel) {
             return atom('closed');

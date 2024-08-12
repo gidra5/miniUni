@@ -6,7 +6,15 @@ import {
 } from './evaluate.js';
 import { SystemError } from './error.js';
 import { assert, inspect, unreachable } from './utils.js';
-import { EvalValue, fn, isRecord, receive } from './values.js';
+import {
+  closeChannel,
+  createChannel,
+  EvalValue,
+  fn,
+  isChannel,
+  isRecord,
+  receive,
+} from './values.js';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -30,9 +38,9 @@ export const addFile = (fileName: string, source: string) => {
 };
 
 export const prelude: Record<string, EvalValue> = {
-  channel: fn(1, () => {
-    const channel = Symbol();
-    return { channel };
+  channel: fn(1, (_, name) => {
+    if (typeof name === 'string') return createChannel(name);
+    else return createChannel();
   }),
   length: fn(1, ([position, fileId], list) => {
     const lengthErrorFactory = SystemError.invalidArgumentType(
@@ -47,11 +55,23 @@ export const prelude: Record<string, EvalValue> = {
     return Number(n);
   }),
   print: fn(1, (_, value) => {
-    console.log(value);
+    inspect(value);
     return value;
   }),
   return: fn(1, (_, value) => {
     throw { return: value };
+  }),
+  break: fn(1, (_, value) => {
+    throw { break: value };
+  }),
+  continue: fn(1, (_, value) => {
+    throw { continue: value };
+  }),
+  close: fn(1, (_, value) => {
+    assert(value !== null, 'expected value');
+    assert(isChannel(value), 'expected channel');
+    closeChannel(value.channel);
+    return null;
   }),
 };
 
@@ -216,10 +236,11 @@ export const modules = {
         position
       );
       assert(Array.isArray(list), allErrorFactory(0).withFileId(fileId));
-      const x = list.map(receive);
-      const y = await Promise.all(x);
-
-      return y;
+      const x = list.map(async (channel) => {
+        assert(isChannel(channel), allErrorFactory(0).withFileId(fileId));
+        return await receive(channel.channel);
+      });
+      return (await Promise.all(x)).filter((x) => x !== null);
     }),
   },
 };

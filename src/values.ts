@@ -16,6 +16,7 @@ export type EvalValue =
   | { record: Record<string, EvalValue> }
   | { channel: symbol };
 type Channel = {
+  closed?: boolean;
   queue: (EvalValue | Error)[];
   onReceive: Array<{
     resolve: (v: EvalValue) => void;
@@ -72,37 +73,43 @@ export function isSymbol(
 
 const channels: Record<symbol, Channel> = {};
 
-export const createChannel = () => {
-  const channel = Symbol();
+export const createChannel = (name?: string) => {
+  const channel = Symbol(name);
   channels[channel] = {
+    closed: false,
     queue: [],
     onReceive: [],
   };
   return { channel };
 };
 
-export const getChannel = (c: EvalValue) => {
-  assert(isChannel(c), 'not a channel');
-  assert(c.channel in channels, 'channel closed');
-  const channel = channels[c.channel];
+export const closeChannel = (c: symbol) => {
+  const channel = channels[c];
+  assert(channel, 'channel already closed');
+  if (channel.queue.length === 0 && channel.onReceive.length === 0) {
+    delete channels[c];
+  } else {
+    channel.closed = true;
+  }
+};
+
+export const getChannel = (c: symbol) => {
+  assert(c in channels, 'channel closed');
+  const channel = channels[c];
   return channel;
 };
 
-export const send = (_channel: EvalValue, value: EvalValue | Error) => {
+export const send = (_channel: symbol, value: EvalValue | Error) => {
   const channel = getChannel(_channel);
   const promise = channel.onReceive.shift();
   if (promise) {
     const { resolve, reject } = promise;
     if (value instanceof Error) reject(value);
     else resolve(value);
-
-    channel.onReceive = channel.onReceive.filter(
-      (_promise) => _promise !== promise
-    );
   } else channel.queue.push(value);
 };
 
-export const receive = (_channel: EvalValue) => {
+export const receive = (_channel: symbol) => {
   const channel = getChannel(_channel);
 
   if (channel.queue.length > 0) {
@@ -112,22 +119,6 @@ export const receive = (_channel: EvalValue) => {
   }
 
   return new Promise<EvalValue>((resolve, reject) => {
-    const promise = {
-      resolve: (v: EvalValue) => {
-        resolve(v);
-        channel.onReceive = channel.onReceive.filter(
-          (_promise) => _promise !== promise
-        );
-      },
-
-      reject: (e: unknown) => {
-        reject(e);
-        channel.onReceive = channel.onReceive.filter(
-          (_promise) => _promise !== promise
-        );
-      },
-    };
-
-    channel.onReceive.push(promise);
+    channel.onReceive.push({ resolve, reject });
   });
 };
