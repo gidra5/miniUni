@@ -15,14 +15,22 @@ export type EvalValue =
   | { symbol: symbol }
   | { record: Record<string, EvalValue> }
   | { channel: symbol };
+
+type ChannelReceiver = {
+  resolve: (v: EvalValue | null) => void;
+  reject: (e: unknown) => void;
+};
 type Channel = {
   closed?: boolean;
   queue: (EvalValue | Error)[];
-  onReceive: Array<{
-    resolve: (v: EvalValue) => void;
-    reject: (e: unknown) => void;
-  }>;
+  onReceive: Array<ChannelReceiver>;
 };
+export enum ChannelStatus {
+  Empty = 'empty',
+  Pending = 'pending',
+  Queued = 'queued',
+  Closed = 'closed',
+}
 
 export const fn = (
   n: number,
@@ -95,8 +103,7 @@ export const closeChannel = (c: symbol) => {
 
 export const getChannel = (c: symbol) => {
   assert(c in channels, 'channel closed');
-  const channel = channels[c];
-  return channel;
+  return channels[c];
 };
 
 export const send = (_channel: symbol, value: EvalValue | Error) => {
@@ -121,4 +128,49 @@ export const receive = (_channel: symbol) => {
   return new Promise<EvalValue>((resolve, reject) => {
     channel.onReceive.push({ resolve, reject });
   });
+};
+
+export const channelStatus = (c: symbol): ChannelStatus => {
+  const channel = channels[c];
+  if (!channel) {
+    return ChannelStatus.Closed;
+  }
+
+  while (channel.onReceive.length > 0 && channel.queue.length > 0) {
+    const receiver = channel.onReceive.shift()!;
+    const value = channel.queue.shift()!;
+    if (value instanceof Error) {
+      receiver.reject(value);
+    } else {
+      receiver.resolve(value);
+    }
+  }
+
+  if (channel.queue.length > 0) {
+    return ChannelStatus.Pending;
+  }
+
+  if (channel.onReceive.length > 0) {
+    return ChannelStatus.Queued;
+  }
+
+  if (channel.closed) {
+    delete channels[c];
+    return ChannelStatus.Closed;
+  }
+
+  return ChannelStatus.Empty;
+};
+
+export const tryReceive = (
+  c: symbol
+): [EvalValue | null | Error, ChannelStatus] => {
+  const status = channelStatus(c);
+
+  if (status === ChannelStatus.Pending) {
+    const value = channels[c].queue.shift()!;
+    return [value, status];
+  }
+
+  return [null, status];
 };
