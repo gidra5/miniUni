@@ -340,7 +340,8 @@ export const parsePatternGroup =
     const start = index;
     const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
 
-    if (!src[index]) return [index, error(SystemError.endOfSource())];
+    if (!src[index])
+      return [index, error(SystemError.endOfSource(indexPosition(index)))];
     if (tokenIncludes(src[index], banned))
       return [index, implicitPlaceholder(nodePosition())];
 
@@ -453,7 +454,8 @@ export const parsePatternPrefix =
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
-    if (!src[index]) return [index, error(SystemError.endOfSource())];
+    if (!src[index])
+      return [index, error(SystemError.endOfSource(indexPosition(index)))];
 
     let [nextIndex, group] = parsePatternGroup(banned)(src, index);
     index = nextIndex;
@@ -535,7 +537,8 @@ export const parseGroup =
     const start = index;
     const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
 
-    if (!src[index]) return [index, error(SystemError.endOfSource())];
+    if (!src[index])
+      return [index, error(SystemError.endOfSource(indexPosition(index)))];
     if (tokenIncludes(src[index], banned))
       return [index, implicitPlaceholder(nodePosition())];
 
@@ -1100,7 +1103,8 @@ export const parsePrefix =
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
-    if (!src[index]) return [index, error(SystemError.endOfSource())];
+    if (!src[index])
+      return [index, error(SystemError.endOfSource(indexPosition(index)))];
 
     let [nextIndex, group] = parseGroup(banned)(src, index);
     index = nextIndex;

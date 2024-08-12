@@ -102,9 +102,9 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.UNKNOWN, msg);
   }
 
-  static endOfSource(): SystemError {
+  static endOfSource(pos: Position): SystemError {
     const msg = 'Unexpected end of source';
-    return new SystemError(ErrorType.END_OF_SOURCE, msg);
+    return new SystemError(ErrorType.END_OF_SOURCE, msg).withPosition(pos);
   }
 
   static unterminatedString(pos: Position): SystemError {
