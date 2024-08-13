@@ -233,9 +233,10 @@ describe('evaluate', () => {
       }
 
       while true {
-        if (<-?lines) == (:empty): continue()
-        if (<-?lines) == (:closed): break()
-        <-lines
+        value, status := <-?lines
+        if status == (:empty): continue()
+        if status == (:closed): break()
+        value
       }
     `;
     const result = await evaluate(input);
@@ -251,9 +252,10 @@ describe('evaluate', () => {
       }
 
       while true {
-        if (<-?lines) == (:empty): continue()
-        if (<-?lines) == (:closed): break()
-        <-lines
+        value, status := <-?lines
+        if status == (:empty): continue()
+        if status == (:closed): break()
+        value
       }
     `;
     const result2 = await evaluate(input2);
@@ -272,8 +274,10 @@ describe('evaluate', () => {
       }
 
       while true {
-        if (<-?lines) == (:closed): break()
-        <-lines
+        value, status := <-?lines
+        if status == (:empty): continue()
+        if status == (:closed): break()
+        value
       }
     `;
     const result = await evaluate(input);
@@ -290,8 +294,10 @@ describe('evaluate', () => {
       }
 
       while true {
-        if (<-?lines) == (:closed): break()
-        <-lines
+        value, status := <-?lines
+        if status == (:empty): continue()
+        if status == (:closed): break()
+        value
       }
     `;
     const result2 = await evaluate(input2);

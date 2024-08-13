@@ -1139,7 +1139,7 @@ export const evaluateScriptString = async (
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  
+
   try {
     return await evaluateScript(ast, context);
   } catch (e) {
@@ -1156,7 +1156,7 @@ export const evaluateModuleString = async (
 ): Promise<Extract<EvalValue, { record: unknown }>> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
-  
+
   try {
     return await evaluateModule(ast, context);
   } catch (e) {
