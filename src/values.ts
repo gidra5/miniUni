@@ -108,6 +108,7 @@ export const getChannel = (c: symbol) => {
 
 export const send = (_channel: symbol, value: EvalValue | Error) => {
   const channel = getChannel(_channel);
+  assert(!channel.closed, 'channel closed');
   const promise = channel.onReceive.shift();
   if (promise) {
     const { resolve, reject } = promise;
@@ -123,6 +124,9 @@ export const receive = (_channel: symbol) => {
     const next = channel.queue.shift()!;
     if (next instanceof Error) throw next;
     return next;
+  } else if (channel.closed) {
+    closeChannel(_channel);
+    throw new Error('channel closed');
   }
 
   return new Promise<EvalValue>((resolve, reject) => {
