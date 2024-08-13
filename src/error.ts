@@ -28,6 +28,7 @@ export enum ErrorType {
   INVALID_OBJECT_PATTERN,
   IMPORT_FAILED,
   IMPORT_RESOLVE_FAILED,
+  INVALID_INCREMENT_ASSIGN,
 }
 
 type Options = {
@@ -426,6 +427,44 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.INVALID_OBJECT_PATTERN, msg, options);
+  }
+
+  static invalidIncrement(name: string, pos: Position) {
+    const msg = `can't increment a non number variable`;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: `value of "${name}" is not a number`,
+      kind: 'primary',
+    });
+    notes.push(
+      `To use += operator, all names in its pattern should have number values`
+    );
+
+    return new SystemError(ErrorType.INVALID_INCREMENT_ASSIGN, msg, options);
+  }
+
+  static invalidIncrementValue(pos: Position) {
+    const msg = `can't increment by a non number`;
+    const labels: Array<ErrorLabel> = [];
+    const notes: string[] = [];
+    const options = { notes, labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: `value is not a number`,
+      kind: 'primary',
+    });
+    notes.push(
+      `To use += operator, value to be incremented by should be a number`
+    );
+
+    return new SystemError(ErrorType.INVALID_INCREMENT_ASSIGN, msg, options);
   }
 
   static unresolvedImport(name: string, error: unknown) {
