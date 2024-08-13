@@ -77,9 +77,10 @@ export class SystemError extends Error {
     return this;
   }
 
-  print(): void {
+  print(): SystemError {
     const diag = this.diagnostic();
     diag.emitStd(fileMap);
+    return this;
   }
 
   diagnostic(): Diagnostic {

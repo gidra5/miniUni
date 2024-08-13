@@ -1,5 +1,12 @@
+import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from './error.js';
-import { getModule, getScriptResult, isScript, prelude } from './files.js';
+import {
+  fileMap,
+  getModule,
+  getScriptResult,
+  isScript,
+  prelude,
+} from './files.js';
 import {
   NodeType,
   OperatorType,
@@ -17,6 +24,7 @@ import {
   getChannel,
   isChannel,
   isRecord,
+  isSymbol,
   send,
 } from './values.js';
 
@@ -26,8 +34,14 @@ export type Context = {
   env: Record<string, EvalValue>;
 };
 
+const forkEnv = (env: Record<string, EvalValue>): Record<string, EvalValue> => {
+  const forked: Record<string, EvalValue> = {};
+  Object.setPrototypeOf(forked, env);
+  return forked;
+};
+
 export const newContext = (fileId: number, file: string): Context => {
-  return { file, fileId, env: {} };
+  return { file, fileId, env: { ...prelude } };
 };
 
 export const assign = async (
@@ -351,6 +365,19 @@ export const evaluateExpr = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
+  const showNode = (msg: string = '', node = ast) => {
+    const { position } = node.data;
+    const diag = Diagnostic.note();
+
+    diag.withLabels([
+      primaryDiagnosticLabel(context.fileId, {
+        message: msg,
+        start: position.start,
+        end: position.end,
+      }),
+    ]);
+    diag.emitStd(fileMap);
+  };
   switch (ast.type) {
     case NodeType.OPERATOR: {
       switch (ast.data.operator) {
@@ -477,13 +504,27 @@ export const evaluateExpr = async (
           const [left, right] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          return left === right;
+
+          if (isSymbol(left) && isSymbol(right)) {
+            return left.symbol === right.symbol;
+          } else if (isChannel(left) && isChannel(right)) {
+            return left.channel === right.channel;
+          } else if (isRecord(left) && isRecord(right)) {
+            return left.record === right.record;
+          } else return left === right;
         }
         case OperatorType.NOT_EQUAL: {
           const [left, right] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
-          return left !== right;
+
+          if (isSymbol(left) && isSymbol(right)) {
+            return left.symbol !== right.symbol;
+          } else if (isChannel(left) && isChannel(right)) {
+            return left.channel !== right.channel;
+          } else if (isRecord(left) && isRecord(right)) {
+            return left.record !== right.record;
+          } else return left !== right;
         }
         case OperatorType.LESS: {
           const [left, right] = (await Promise.all(
@@ -730,10 +771,86 @@ export const evaluateExpr = async (
         case OperatorType.WHILE: {
           const [condition, body] = ast.children;
           let result: EvalValue = null;
-          while (await evaluateExpr(condition, context)) {
-            result = await evaluateExpr(body, context);
+          while (true) {
+            try {
+              const cond = await evaluateExpr(condition, context);
+              if (!cond) break;
+              result = await evaluateExpr(body, context);
+            } catch (e) {
+              if (typeof e === 'object' && e !== null && 'break' in e) {
+                result = e.break as EvalValue;
+                break;
+              }
+              if (typeof e === 'object' && e !== null && 'continue' in e) {
+                result = e.continue as EvalValue;
+                continue;
+              }
+              throw e;
+            }
           }
           return result;
+        }
+        case OperatorType.FOR: {
+          const [pattern, expr, body] = ast.children;
+          const list = await evaluateExpr(expr, context);
+
+          assert(
+            Array.isArray(list),
+            SystemError.evaluationError(
+              'for loop iterates over lists only.',
+              [],
+              expr.data.position
+            )
+          );
+
+          const mapped: EvalValue[] = [];
+          for (const item of list) {
+            try {
+              const bound = await bind(pattern, item, context);
+              const value = await evaluateExpr(body, bound);
+              if (value === null) continue;
+              mapped.push(value);
+            } catch (e) {
+              if (typeof e === 'object' && e !== null && 'break' in e) {
+                const value = e.break as EvalValue;
+                if (value !== null) mapped.push(value);
+                break;
+              }
+              if (typeof e === 'object' && e !== null && 'continue' in e) {
+                const value = e.continue as EvalValue;
+                if (value !== null) mapped.push(value);
+                continue;
+              }
+              throw e;
+            }
+          }
+
+          return mapped;
+        }
+        case OperatorType.LOOP: {
+          const [body] = ast.children;
+          const collected: EvalValue[] = [];
+
+          while (true) {
+            try {
+              const value = await evaluateExpr(body, context);
+              if (value === null) continue;
+              collected.push(value);
+            } catch (e) {
+              if (typeof e === 'object' && e !== null && 'break' in e) {
+                const value = e.break as EvalValue;
+                if (value !== null) collected.push(value);
+                break;
+              }
+              if (typeof e === 'object' && e !== null && 'continue' in e) {
+                const value = e.continue as EvalValue;
+                if (value !== null) collected.push(value);
+                continue;
+              }
+              throw e;
+            }
+          }
+          return collected;
         }
         case OperatorType.ASSIGN: {
           const [pattern, expr] = ast.children;
@@ -791,9 +908,11 @@ export const evaluateExpr = async (
           return binder();
         }
         case OperatorType.APPLICATION: {
-          const [fnValue, argValue] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
+          const [fnExpr, argStmt] = ast.children;
+          const [fnValue, argValue] = await Promise.all([
+            evaluateExpr(fnExpr, context),
+            evaluateExpr(argStmt, context),
+          ]);
 
           assert(
             typeof fnValue === 'function',
@@ -822,6 +941,7 @@ export const evaluateExpr = async (
     case NodeType.STRING:
       return ast.data.value;
     case NodeType.PLACEHOLDER:
+      return null;
     case NodeType.IMPLICIT_PLACEHOLDER:
       unreachable(
         SystemError.invalidPlaceholderExpression()
@@ -853,16 +973,14 @@ export const evaluateScript = async (
   context: Context
 ): Promise<EvalValue> => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
-  context.env = { ...prelude, ...context.env };
   return await evaluateSequence(ast, context);
 };
 
 export const evaluateModule = async (
   ast: AbstractSyntaxTree,
   context: Context
-): Promise<EvalValue> => {
+): Promise<Extract<EvalValue, { record: unknown }>> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
-  context.env = { ...prelude, ...context.env };
   const record: Record<string, EvalValue> = {};
 
   for (const child of ast.children) {
@@ -898,7 +1016,7 @@ export const evaluateScriptString = async (
 export const evaluateModuleString = async (
   input: string,
   context: Context
-): Promise<EvalValue> => {
+): Promise<Extract<EvalValue, { record: unknown }>> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
   try {
@@ -907,6 +1025,6 @@ export const evaluateModuleString = async (
     console.error(e);
     if (e instanceof SystemError) e.print();
 
-    return null;
+    return { record: {} };
   }
 };
