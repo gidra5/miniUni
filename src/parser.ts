@@ -950,8 +950,7 @@ export const parseGroup =
       index = _index;
       const node = () => operator(OperatorType.INDEX, nodePosition(), expr);
 
-      if (src[index].type === 'newline') index++;
-      while (tokenIncludes(src[index], skip)) index++;
+      while (tokenIncludes(src[index], ['\n'])) index++;
 
       if (src[index].src !== ']') {
         return [
@@ -971,8 +970,7 @@ export const parseGroup =
       [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
       const node = () => operator(OperatorType.PARENS, nodePosition(), expr);
 
-      if (src[index].type === 'newline') index++;
-      while (tokenIncludes(src[index], skip)) index++;
+      while (tokenIncludes(src[index], ['\n'])) index++;
 
       if (src[index].src !== ')') {
         return [

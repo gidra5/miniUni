@@ -223,6 +223,82 @@ describe('evaluate', () => {
     expect(result).toStrictEqual([1]);
   });
 
+  it('evaluate channels sync', async () => {
+    const input = `
+      lines := channel "lines"
+
+      | {
+        lines <- "1"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:empty): continue()
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toStrictEqual([]);
+
+    const input2 = `
+      lines := channel "lines"
+
+      async {
+        lines <- "1"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:empty): continue()
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result2 = await evaluate(input2);
+
+    expect(result2).toStrictEqual([]);
+  });
+
+  it('evaluate channels sync 2', async () => {
+    const input = `
+      lines := channel "lines"
+
+      | {
+        lines <- "1"
+        lines <- "2"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toStrictEqual([]);
+
+    const input2 = `
+      lines := channel "lines"
+
+      async {
+        lines <- "1"
+        lines <- "2"
+        close lines
+      }
+
+      while true {
+        if (<-?lines) == (:closed): break()
+        <-lines
+      }
+    `;
+    const result2 = await evaluate(input2);
+
+    expect(result2).toStrictEqual([]);
+  });
+
   it('evaluate fn increment', async () => {
     const input = `
       line_handled_count := 0
