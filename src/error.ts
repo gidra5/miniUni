@@ -6,7 +6,6 @@ import {
 } from 'codespan-napi';
 import { assert } from './utils.js';
 import { fileMap } from './files.js';
-import { AbstractSyntaxTree } from './parser.js';
 import { Position } from './position.js';
 
 export enum ErrorType {
@@ -45,7 +44,7 @@ type ErrorLabel = LabelInfo & {
 
 export class SystemError extends Error {
   data: Record<string, any>;
-  private fileId?: number;
+  fileId?: number;
   private type: ErrorType;
   private labels: ErrorLabel[];
   private notes: string[];
@@ -58,6 +57,10 @@ export class SystemError extends Error {
     this.labels = options.labels ?? [];
   }
 
+  toObject(): any {
+    return { ...this, type: ErrorType[this.type] };
+  }
+
   withFileId(fileId: number): SystemError {
     this.fileId = fileId;
     return this;
@@ -65,16 +68,6 @@ export class SystemError extends Error {
 
   withCause(cause: unknown): SystemError {
     this.cause = cause;
-    return this;
-  }
-
-  withNode(node: AbstractSyntaxTree): SystemError {
-    this.data.node = node;
-    return this.withPosition(node.data.position);
-  }
-
-  withPosition(position: Position): SystemError {
-    this.data.position = position;
     return this;
   }
 
@@ -107,7 +100,17 @@ export class SystemError extends Error {
 
   static endOfSource(pos: Position): SystemError {
     const msg = 'Unexpected end of source';
-    return new SystemError(ErrorType.END_OF_SOURCE, msg).withPosition(pos);
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'here',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.END_OF_SOURCE, msg, options);
   }
 
   static unterminatedString(pos: Position): SystemError {
@@ -219,9 +222,23 @@ export class SystemError extends Error {
     return new SystemError(ErrorType.INVALID_PATTERN, msg, options);
   }
 
-  static invalidPlaceholderExpression(): SystemError {
+  static invalidPlaceholderExpression(pos: Position): SystemError {
     const msg = "placeholder can't be evaluated";
-    return new SystemError(ErrorType.INVALID_PLACEHOLDER_EXPRESSION, msg);
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'here',
+      kind: 'primary',
+    });
+
+    return new SystemError(
+      ErrorType.INVALID_PLACEHOLDER_EXPRESSION,
+      msg,
+      options
+    );
   }
 
   static invalidAssignment(

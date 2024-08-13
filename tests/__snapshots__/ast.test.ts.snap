@@ -1000,6 +1000,216 @@ exports[`ast index 1`] = `
 }
 `;
 
+exports[`ast infix-infix multiline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "b",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 11,
+              "start": 10,
+            },
+            "value": "c",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 21,
+              "start": 20,
+            },
+            "value": "d",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 11,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`ast infix-prefix multiline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "b",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 20,
+                  "start": 19,
+                },
+                "value": "a",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "not",
+            "position": {
+              "end": 20,
+              "start": 11,
+            },
+            "precedence": [
+              null,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 20,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`ast no parens multiline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 8,
+              "start": 7,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 18,
+              "start": 17,
+            },
+            "value": 2,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 18,
+          "start": 7,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "operator": "plus",
+            "position": {
+              "end": 26,
+              "start": 25,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 28,
+              "start": 27,
+            },
+            "value": 3,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 28,
+          "start": 25,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`ast parallel multiline parens 1`] = `
 {
   "children": [
@@ -1987,6 +2197,42 @@ exports[`ast period operator 1`] = `
         "precedence": [
           9007199254740991,
           null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`ast prefix multiline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 9,
+              "start": 8,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "operator": "not",
+        "position": {
+          "end": 9,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          13,
         ],
       },
       "type": "operator",

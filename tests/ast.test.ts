@@ -188,4 +188,45 @@ describe('ast', () => {
 
     expect(ast).toMatchSnapshot();
   });
+
+  it('ast no parens multiline', async () => {
+    const input = `
+      1 +
+      2
+      + 3
+    `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast prefix multiline', async () => {
+    const input = `!
+      a`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast infix-prefix multiline', async () => {
+    const input = `b :=
+      !
+      a`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast infix-infix multiline', async () => {
+    const input = `b +
+      c +
+      d`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
 });

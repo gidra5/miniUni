@@ -84,7 +84,8 @@ export const parseToken = (
   let index = i;
 
   if (!src.charAt(index)) {
-    return [index, error(SystemError.endOfSource(), indexPosition(index))];
+    const pos = indexPosition(index);
+    return [index, error(SystemError.endOfSource(pos), pos)];
   }
   const tokenSrc = (start: number) => src.substring(start, index);
   const position = (start: number) => _position(start, index);

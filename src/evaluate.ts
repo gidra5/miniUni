@@ -1064,9 +1064,9 @@ export const evaluateStatement = async (
       return null;
     case NodeType.IMPLICIT_PLACEHOLDER:
       unreachable(
-        SystemError.invalidPlaceholderExpression()
-          .withNode(ast)
-          .withFileId(context.fileId)
+        SystemError.invalidPlaceholderExpression(ast.data.position).withFileId(
+          context.fileId
+        )
       );
     case NodeType.ERROR:
       unreachable(ast.data.cause.withFileId(context.fileId));
@@ -1139,6 +1139,7 @@ export const evaluateScriptString = async (
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
+  
   try {
     return await evaluateScript(ast, context);
   } catch (e) {
@@ -1155,6 +1156,7 @@ export const evaluateModuleString = async (
 ): Promise<Extract<EvalValue, { record: unknown }>> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
+  
   try {
     return await evaluateModule(ast, context);
   } catch (e) {

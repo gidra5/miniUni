@@ -33,9 +33,9 @@ export const error = (
 ): AbstractSyntaxTree => ({
   type: NodeType.ERROR,
   data: {
-    cause: node ? cause.withNode(node) : cause,
+    cause,
     get position() {
-      return node?.data.position ?? cause.data.position;
+      return node?.data.position;
     },
   },
   children: node ? [node] : [],
@@ -82,6 +82,15 @@ export const string = (
   children: [],
 });
 
+export const tokenError = (
+  token: Extract<Token, { type: 'error' }>,
+  position: Position
+): AbstractSyntaxTree => ({
+  type: NodeType.ERROR,
+  data: { cause: token.cause, position },
+  children: [],
+});
+
 export const token = (token: Token, position: Position): AbstractSyntaxTree =>
   token.type === 'number'
     ? number(token.value, position)
@@ -90,7 +99,7 @@ export const token = (token: Token, position: Position): AbstractSyntaxTree =>
     : token.type === 'placeholder'
     ? placeholder(position)
     : token.type === 'error'
-    ? error(token.cause)
+    ? tokenError(token, position)
     : name(token.src, position);
 
 export const operator = (
