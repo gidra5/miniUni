@@ -14,10 +14,11 @@ import {
   parseScript,
   type AbstractSyntaxTree,
 } from './parser.js';
-import { parseTokens, symbols } from './tokens.js';
+import { parseTokens } from './tokens.js';
 import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   atom,
+  closeChannel,
   createChannel,
   EvalFunction,
   EvalValue,
@@ -41,10 +42,10 @@ const forkEnv = (env: Record<string, EvalValue>): Record<string, EvalValue> => {
 };
 
 export const newContext = (fileId: number, file: string): Context => {
-  return { file, fileId, env: { ...prelude } };
+  return { file, fileId, env: forkEnv(prelude) };
 };
 
-const incAssign = async (
+export const incAssign = async (
   patternAst: AbstractSyntaxTree,
   value: number | EvalValue[],
   context: Context
@@ -224,18 +225,16 @@ const assign = async (
   }
 
   if (patternAst.type === NodeType.NAME) {
-    const env = { ...context.env };
     const name = patternAst.data.value;
     assert(
-      name in env,
+      name in context.env,
       SystemError.invalidAssignment(
         name,
         patternAst.data.position,
-        getClosestName(name, Object.keys(env))
+        getClosestName(name, Object.keys(context.env))
       ).withFileId(context.fileId)
     );
-    env[name] = value;
-    context.env = env;
+    context.env[name] = value;
     return context;
   }
 
@@ -332,10 +331,8 @@ const bind = async (
   }
 
   if (patternAst.type === NodeType.NAME) {
-    const env = { ...context.env };
     const name = patternAst.data.value;
-    env[name] = value;
-    context.env = env;
+    context.env[name] = value;
     return context;
   }
 
@@ -709,13 +706,39 @@ export const evaluateExpr = async (
             )
           );
 
-        case OperatorType.PARALLEL: {
-          const _channels = ast.children.map((child) => {
-            const channel = createChannel();
-            evaluateExpr(child, { ...context }).then(
+        case OperatorType.ASYNC: {
+          const channel = createChannel('async');
+          evaluateExpr(ast.children[0], context)
+            .then(
               (value) => send(channel.channel, value),
-              (e) => send(channel.channel, e)
-            );
+              (e) => {
+                send(channel.channel, e);
+                e.print();
+                console.error(e);
+              }
+            )
+            .finally(() => {
+              closeChannel(channel.channel);
+            });
+
+          return channel;
+        }
+
+        case OperatorType.PARALLEL: {
+          const _channels = ast.children.map((child, i) => {
+            const channel = createChannel('parallel ' + i);
+            evaluateExpr(child, context)
+              .then(
+                (value) => send(channel.channel, value),
+                (e) => {
+                  send(channel.channel, e);
+                  e.print();
+                  console.error(e);
+                }
+              )
+              .finally(() => {
+                closeChannel(channel.channel);
+              });
 
             return channel;
           });
@@ -821,7 +844,7 @@ export const evaluateExpr = async (
           }
 
           const promise = channel.onReceive.shift();
-          if (!promise) return atom('none');
+          if (!promise) return atom('empty');
 
           const { resolve, reject } = promise;
           if (value instanceof Error) reject(value);
@@ -845,7 +868,7 @@ export const evaluateExpr = async (
           const channel = getChannel(channelValue.channel);
 
           if (!channel) {
-            return atom('closed');
+            return [atom('closed'), null];
           }
 
           if (channel.queue.length > 0) {
@@ -854,7 +877,7 @@ export const evaluateExpr = async (
             return [atom('received'), next];
           }
 
-          return atom('empty');
+          return [atom('empty'), null];
         }
 
         case OperatorType.ATOM:
@@ -994,14 +1017,20 @@ export const evaluateExpr = async (
         case OperatorType.SEQUENCE:
           return await evaluateSequence(ast, context);
         case OperatorType.BLOCK:
-          return await evaluateExpr(ast.children[0], { ...context });
+          return await evaluateExpr(ast.children[0], {
+            ...context,
+            env: forkEnv(context.env),
+          });
 
         case OperatorType.FUNCTION: {
           const [patterns, body] = ast.children;
 
           if (patterns.data.operator !== OperatorType.TUPLE) {
             return async (arg) => {
-              const bound = await bind(patterns, arg, { ...context });
+              const bound = await bind(patterns, arg, {
+                ...context,
+                env: forkEnv(context.env),
+              });
               try {
                 return await evaluateExpr(body, bound);
               } catch (e) {
@@ -1013,7 +1042,7 @@ export const evaluateExpr = async (
           }
 
           const binder = (...args: EvalValue[]): EvalFunction => {
-            const _context = { ...context, env: { ...context.env } };
+            const _context = { ...context, env: forkEnv(context.env) };
             return async (arg) => {
               if (args.length < patterns.children.length - 1) {
                 return binder(...args, arg);
