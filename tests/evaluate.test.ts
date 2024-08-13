@@ -61,7 +61,13 @@ describe('evaluate', () => {
       map: fn(2, (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
-        return Promise.all(list.map(async (x) => await fn(x, cs)));
+        return Promise.all(
+          list.map(async (x) => {
+            const result = await fn(x, cs);
+            assert(result !== null);
+            return result;
+          })
+        );
       }),
       filter: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
@@ -97,9 +103,14 @@ describe('evaluate', () => {
       flat_map: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
-        return (
-          await Promise.all(list.map(async (x) => await fn(x, cs)))
-        ).flat();
+        const mapped = await Promise.all(
+          list.map(async (x) => {
+            const result = await fn(x, cs);
+            assert(result !== null);
+            return result;
+          })
+        );
+        return mapped.flat();
       }),
     };
     const input = `

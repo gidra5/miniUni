@@ -26,7 +26,9 @@ import {
   isChannel,
   isRecord,
   isSymbol,
+  receive,
   send,
+  tryReceive,
 } from './values.js';
 
 export type Context = {
@@ -414,6 +416,7 @@ async function bindExport(
   }
 
   if (patternAst.data.operator === OperatorType.OBJECT) {
+    assert(value !== null, 'expected value');
     assert(
       isRecord(value),
       SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
@@ -793,23 +796,14 @@ export const evaluateStatement = async (
             )
           );
 
-          const channel = getChannel(channelValue.channel);
-
-          assert(
-            channel,
-            SystemError.channelClosed(ast.data.position).withFileId(
-              context.fileId
-            )
-          );
-
-          if (channel.queue.length > 0) {
-            const next = channel.queue.shift()!;
-            if (next instanceof Error) throw next;
-            return next;
-          }
-
-          return new Promise<EvalValue>((resolve, reject) => {
-            channel.onReceive.push({ resolve, reject });
+          return receive(channelValue.channel).catch((e) => {
+            assert(
+              e !== 'channel closed',
+              SystemError.channelClosed(ast.data.position).withFileId(
+                context.fileId
+              )
+            );
+            throw e;
           });
         }
         case OperatorType.SEND_STATUS: {
@@ -824,23 +818,8 @@ export const evaluateStatement = async (
             )
           );
 
-          const channel = getChannel(channelValue.channel);
-
-          if (!channel) {
-            return atom('closed');
-          }
-
-          const promise = channel.onReceive.shift();
-          if (!promise) return atom('empty');
-
-          const { resolve, reject } = promise;
-          if (value instanceof Error) reject(value);
-          else resolve(value);
-
-          channel.onReceive = channel.onReceive.filter(
-            (_promise) => _promise !== promise
-          );
-          return atom('sent');
+          const status = send(channelValue.channel, value);
+          return atom(status);
         }
         case OperatorType.RECEIVE_STATUS: {
           const channelValue = await evaluateExpr(ast.children[0], context);
@@ -852,19 +831,11 @@ export const evaluateStatement = async (
             )
           );
 
-          const channel = getChannel(channelValue.channel);
+          const [value, status] = tryReceive(channelValue.channel);
 
-          if (!channel) {
-            return [atom('closed'), null];
-          }
+          if (value instanceof Error) throw value;
 
-          if (channel.queue.length > 0) {
-            const next = channel.queue.shift()!;
-            if (next instanceof Error) throw next;
-            return [atom('received'), next];
-          }
-
-          return [atom('empty'), null];
+          return [value ?? [], atom(status)];
         }
 
         case OperatorType.ATOM:

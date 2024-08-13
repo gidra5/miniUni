@@ -93,7 +93,7 @@ export const createChannel = (name?: string) => {
 
 export const closeChannel = (c: symbol) => {
   const channel = channels[c];
-  assert(channel, 'channel already closed');
+  if (!channel || channel.closed) throw 'channel closed';
   if (channel.queue.length === 0 && channel.onReceive.length === 0) {
     delete channels[c];
   } else {
@@ -102,35 +102,37 @@ export const closeChannel = (c: symbol) => {
 };
 
 export const getChannel = (c: symbol) => {
-  assert(c in channels, 'channel closed');
   return channels[c];
 };
 
-export const send = (_channel: symbol, value: EvalValue | Error) => {
-  const channel = getChannel(_channel);
-  assert(!channel.closed, 'channel closed');
-  const promise = channel.onReceive.shift();
-  if (promise) {
-    const { resolve, reject } = promise;
-    if (value instanceof Error) reject(value);
-    else resolve(value);
-  } else channel.queue.push(value);
-};
+export const send = (c: symbol, value: EvalValue | Error): ChannelStatus => {
+  const status = channelStatus(c);
 
-export const receive = (_channel: symbol) => {
-  const channel = getChannel(_channel);
-
-  if (channel.queue.length > 0) {
-    const next = channel.queue.shift()!;
-    if (next instanceof Error) throw next;
-    return next;
-  } else if (channel.closed) {
-    closeChannel(_channel);
-    throw new Error('channel closed');
+  if (status === ChannelStatus.Queued) {
+    const receiver = channels[c].onReceive.shift()!;
+    if (value instanceof Error) receiver.reject(value);
+    else receiver.resolve(value);
   }
 
-  return new Promise<EvalValue>((resolve, reject) => {
-    channel.onReceive.push({ resolve, reject });
+  if (status !== ChannelStatus.Closed) {
+    channels[c].queue.push(value);
+  } else {
+    throw 'channel closed';
+  }
+
+  return status;
+};
+
+export const receive = async (c: symbol): Promise<EvalValue> => {
+  const [value, status] = tryReceive(c);
+  if (status === ChannelStatus.Pending) {
+    if (value instanceof Error) throw value;
+    return value;
+  }
+  if (status === ChannelStatus.Closed) throw 'channel closed';
+
+  return new Promise((resolve, reject) => {
+    channels[c].onReceive.push({ resolve, reject });
   });
 };
 
@@ -166,9 +168,7 @@ export const channelStatus = (c: symbol): ChannelStatus => {
   return ChannelStatus.Empty;
 };
 
-export const tryReceive = (
-  c: symbol
-): [EvalValue | null | Error, ChannelStatus] => {
+export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   const status = channelStatus(c);
 
   if (status === ChannelStatus.Pending) {
