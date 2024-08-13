@@ -21,7 +21,7 @@ const evaluate = async (
   const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  if (env) context.env = env;
+  if (env) Object.assign(context.env, env);
   return await evaluateScript(ast, context);
 };
 
@@ -210,5 +210,16 @@ describe('evaluate', () => {
     const result = await evaluate(input);
 
     expect(result).toStrictEqual([1]);
+  });
+
+  it('evaluate fn increment', async () => {
+    const input = `
+      line_handled_count := 0
+      inc := fn -> line_handled_count++
+      inc()
+    `;
+    const result = await evaluate(input);
+
+    expect(result).toBe(0);
   });
 });
