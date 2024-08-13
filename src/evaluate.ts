@@ -220,6 +220,7 @@ const assign = async (
       )
     );
     assert(typeof index === 'number');
+    assert(value !== null, 'expected value');
     list[index] = value;
     return context;
   }
@@ -234,7 +235,8 @@ const assign = async (
         getClosestName(name, Object.keys(context.env))
       ).withFileId(context.fileId)
     );
-    context.env[name] = value;
+    if (value === null) delete context.env[name];
+    else context.env[name] = value;
     return context;
   }
 
@@ -293,6 +295,7 @@ const bind = async (
   }
 
   if (patternAst.data.operator === OperatorType.OBJECT) {
+    assert(value !== null, 'expected value');
     assert(
       isRecord(value),
       SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
@@ -332,7 +335,7 @@ const bind = async (
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
-    context.env[name] = value;
+    if (value !== null) context.env[name] = value;
     return context;
   }
 
@@ -462,7 +465,7 @@ async function bindExport(
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
-    if (exporting) exports[name] = value;
+    if (exporting && value !== null) exports[name] = value;
     return exports;
   }
 
@@ -473,7 +476,7 @@ async function bindExport(
   );
 }
 
-export const evaluateExpr = async (
+export const evaluateStatement = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
@@ -557,7 +560,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.INCREMENT: {
           const arg = ast.children[0];
-          assert(arg.type === 'name', 'expected name');
+          assert(arg.type === NodeType.NAME, 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value + 1, context);
@@ -565,7 +568,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.DECREMENT: {
           const arg = ast.children[0];
-          assert(arg.type === 'name', 'expected name');
+          assert(arg.type === NodeType.NAME, 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value - 1, context);
@@ -573,7 +576,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.POST_DECREMENT: {
           const arg = ast.children[0];
-          assert(arg.type === 'name', 'expected name');
+          assert(arg.type === NodeType.NAME, 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value - 1, context);
@@ -581,7 +584,7 @@ export const evaluateExpr = async (
         }
         case OperatorType.POST_INCREMENT: {
           const arg = ast.children[0];
-          assert(arg.type === 'name', 'expected name');
+          assert(arg.type === NodeType.NAME, 'expected name');
           const value = await evaluateExpr(arg, context);
           assert(typeof value === 'number', 'expected number');
           await assign(arg, value + 1, context);
@@ -655,8 +658,8 @@ export const evaluateExpr = async (
           return !arg;
         }
         case OperatorType.PARENS:
-          if (ast.children[0].type === 'implicit_placeholder') return [];
-          return await evaluateExpr(ast.children[0], context);
+          if (ast.children[0].type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+          return await evaluateStatement(ast.children[0], context);
 
         case OperatorType.INDEX: {
           const [list, index] = await Promise.all(
@@ -708,7 +711,7 @@ export const evaluateExpr = async (
 
         case OperatorType.ASYNC: {
           const channel = createChannel('async');
-          evaluateExpr(ast.children[0], context)
+          evaluateStatement(ast.children[0], context)
             .then(
               (value) => send(channel.channel, value),
               (e) => {
@@ -727,7 +730,7 @@ export const evaluateExpr = async (
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child, i) => {
             const channel = createChannel('parallel ' + i);
-            evaluateExpr(child, context)
+            evaluateStatement(child, context)
               .then(
                 (value) => send(channel.channel, value),
                 (e) => {
@@ -806,23 +809,7 @@ export const evaluateExpr = async (
           }
 
           return new Promise<EvalValue>((resolve, reject) => {
-            const promise = {
-              resolve: (v: EvalValue) => {
-                resolve(v);
-                channel.onReceive = channel.onReceive.filter(
-                  (_promise) => _promise !== promise
-                );
-              },
-
-              reject: (e: unknown) => {
-                reject(e);
-                channel.onReceive = channel.onReceive.filter(
-                  (_promise) => _promise !== promise
-                );
-              },
-            };
-
-            channel.onReceive.push(promise);
+            channel.onReceive.push({ resolve, reject });
           });
         }
         case OperatorType.SEND_STATUS: {
@@ -881,7 +868,7 @@ export const evaluateExpr = async (
         }
 
         case OperatorType.ATOM:
-          assert(ast.children[0].type === 'name', 'expected name');
+          assert(ast.children[0].type === NodeType.NAME, 'expected name');
           return atom(ast.children[0].data.value);
 
         case OperatorType.TOKEN:
@@ -895,7 +882,7 @@ export const evaluateExpr = async (
           const [condition, branch] = ast.children;
           const result = await evaluateExpr(condition, context);
           if (result) {
-            return await evaluateExpr(branch, context);
+            return await evaluateStatement(branch, context);
           }
           return null;
         }
@@ -903,8 +890,8 @@ export const evaluateExpr = async (
           const [condition, trueBranch, falseBranch] = ast.children;
 
           const result = await evaluateExpr(condition, context);
-          if (result) return await evaluateExpr(trueBranch, context);
-          else return await evaluateExpr(falseBranch, context);
+          if (result) return await evaluateStatement(trueBranch, context);
+          else return await evaluateStatement(falseBranch, context);
         }
         case OperatorType.WHILE: {
           const [condition, body] = ast.children;
@@ -913,7 +900,7 @@ export const evaluateExpr = async (
             try {
               const cond = await evaluateExpr(condition, context);
               if (!cond) break;
-              result = await evaluateExpr(body, context);
+              result = await evaluateStatement(body, context);
             } catch (e) {
               if (typeof e === 'object' && e !== null && 'break' in e) {
                 result = e.break as EvalValue;
@@ -945,7 +932,7 @@ export const evaluateExpr = async (
           for (const item of list) {
             try {
               const bound = await bind(pattern, item, context);
-              const value = await evaluateExpr(body, bound);
+              const value = await evaluateStatement(body, bound);
               if (value === null) continue;
               mapped.push(value);
             } catch (e) {
@@ -971,7 +958,7 @@ export const evaluateExpr = async (
 
           while (true) {
             try {
-              const value = await evaluateExpr(body, context);
+              const value = await evaluateStatement(body, context);
               if (value === null) continue;
               collected.push(value);
             } catch (e) {
@@ -1004,20 +991,20 @@ export const evaluateExpr = async (
         }
         case OperatorType.ASSIGN: {
           const [pattern, expr] = ast.children;
-          const value = await evaluateExpr(expr, context);
+          const value = await evaluateStatement(expr, context);
           await assign(pattern, value, context);
           return value;
         }
         case OperatorType.DECLARE: {
           const [pattern, expr] = ast.children;
-          const value = await evaluateExpr(expr, context);
+          const value = await evaluateStatement(expr, context);
           await bind(pattern, value, context);
           return value;
         }
         case OperatorType.SEQUENCE:
           return await evaluateSequence(ast, context);
         case OperatorType.BLOCK:
-          return await evaluateExpr(ast.children[0], {
+          return await evaluateStatement(ast.children[0], {
             ...context,
             env: forkEnv(context.env),
           });
@@ -1032,7 +1019,7 @@ export const evaluateExpr = async (
                 env: forkEnv(context.env),
               });
               try {
-                return await evaluateExpr(body, bound);
+                return await evaluateStatement(body, bound);
               } catch (e) {
                 if (typeof e === 'object' && e !== null && 'return' in e)
                   return e.return as EvalValue;
@@ -1048,11 +1035,17 @@ export const evaluateExpr = async (
                 return binder(...args, arg);
               }
               args.push(arg);
-              const bound = await bind(patterns, args, _context);
+              const bound = await patterns.children.reduce(
+                async (acc, pattern, i) => {
+                  const value = args[i];
+                  return await bind(pattern, value, await acc);
+                },
+                Promise.resolve(_context)
+              );
               bound.env['self'] = binder();
 
               try {
-                const x = await evaluateExpr(body, bound);
+                const x = await evaluateStatement(body, bound);
                 return x;
               } catch (e) {
                 if (typeof e === 'object' && e !== null && 'return' in e) {
@@ -1067,7 +1060,7 @@ export const evaluateExpr = async (
           const [fnExpr, argStmt] = ast.children;
           const [fnValue, argValue] = await Promise.all([
             evaluateExpr(fnExpr, context),
-            evaluateExpr(argStmt, context),
+            evaluateStatement(argStmt, context),
           ]);
 
           assert(
@@ -1111,6 +1104,22 @@ export const evaluateExpr = async (
   }
 };
 
+export const evaluateExpr = async (
+  ast: AbstractSyntaxTree,
+  context: Context
+): Promise<Exclude<EvalValue, null>> => {
+  const result = await evaluateStatement(ast, context);
+  assert(
+    result !== null,
+    SystemError.evaluationError(
+      'expected a value',
+      [],
+      ast.data.position
+    ).withFileId(context.fileId)
+  );
+  return result;
+};
+
 export const evaluateSequence = async (
   ast: AbstractSyntaxTree,
   context: Context
@@ -1118,7 +1127,7 @@ export const evaluateSequence = async (
   let result: EvalValue = null;
 
   for (const child of ast.children) {
-    result = await evaluateExpr(child, context);
+    result = await evaluateStatement(child, context);
   }
 
   return result;
@@ -1141,7 +1150,7 @@ export const evaluateModule = async (
 
   for (const child of ast.children) {
     if (child.data.operator === OperatorType.IMPORT) {
-      await evaluateExpr(child, context);
+      await evaluateStatement(child, context);
     } else {
       const [name, expr] = child.children;
       const value = await evaluateExpr(expr, context);
