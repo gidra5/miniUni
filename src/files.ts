@@ -268,7 +268,12 @@ export const getModule = async (
     return modules[name];
   }
   if (!resolvedPath) {
-    resolvedPath = await resolvePath(name, from);
+    resolvedPath = await resolvePath(name, from).catch((e) => {
+      const fileId = fileMap.getFileId(from);
+      const error = SystemError.unresolvedImport(name, e).withFileId(fileId);
+      error.print();
+      throw error;
+    });
   }
   if (resolvedPath in modules) {
     return modules[resolvedPath];

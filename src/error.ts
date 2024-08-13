@@ -27,6 +27,7 @@ export enum ErrorType {
   UNDECLARED_NAME,
   INVALID_OBJECT_PATTERN,
   IMPORT_FAILED,
+  IMPORT_RESOLVE_FAILED,
 }
 
 type Options = {
@@ -424,5 +425,17 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.INVALID_OBJECT_PATTERN, msg, options);
+  }
+
+  static unresolvedImport(name: string, error: unknown) {
+    const msg = "can't resolve import";
+    const notes: string[] = [];
+    const options = { notes };
+
+    notes.push(`name: "${name}"`);
+    if (error instanceof Error) notes.push(`error: "${error.message}"`);
+    else notes.push(`error: "${error}"`);
+
+    return new SystemError(ErrorType.IMPORT_RESOLVE_FAILED, msg, options);
   }
 }
