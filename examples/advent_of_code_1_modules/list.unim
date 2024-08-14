@@ -5,22 +5,15 @@ slice := fn (list, start, end) {
   if !start: start = 0
   if !end and end != 0: end = length list
 
-  //print (start, end, list)
-
   while start != 0 {
     start--
     end--
     _, ...list = list
   }
 
-  //print (start, end, list)
-
   while end != length list {
     ...list, _ = list
-    //print (list, end,  length list)
   }
-
-  //print (start, end, list)
 
   list
 }
@@ -28,8 +21,6 @@ slice := fn (list, start, end) {
 export reduce := fn list, reducer, merge, initial {
   len := length list
   if len == 0: return initial
-
-  //print list
 
   midpoint := math.floor(len / 2)
   item := list[midpoint]

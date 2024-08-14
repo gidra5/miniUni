@@ -151,7 +151,10 @@ export const incAssign = async (
         context.fileId
       )
     );
-    context.env[name] = v + value;
+    const enclosing = Object.getPrototypeOf(context.env);
+    if (name in enclosing) {
+      await incAssign(patternAst, value, { ...context, env: enclosing });
+    } else context.env[name] = v + value;
     return context;
   }
 
@@ -237,8 +240,12 @@ const assign = async (
         getClosestName(name, Object.keys(context.env))
       ).withFileId(context.fileId)
     );
+
+    const enclosing = Object.getPrototypeOf(context.env);
     if (value === null) delete context.env[name];
-    else context.env[name] = value;
+    else if (name in enclosing) {
+      await assign(patternAst, value, { ...context, env: enclosing });
+    } else context.env[name] = value;
     return context;
   }
 
@@ -700,6 +707,8 @@ export const evaluateStatement = async (
             ast.children.map(async (child) => {
               if (child.data.operator === OperatorType.SPREAD)
                 return await evaluateExpr(child.children[0], context);
+              if (child.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+
               return [await evaluateExpr(child, context)];
             })
           );
@@ -714,7 +723,9 @@ export const evaluateStatement = async (
 
         case OperatorType.ASYNC: {
           const channel = createChannel('async');
-          evaluateStatement(ast.children[0], context)
+          // const _context = { ...context, env: forkEnv(context.env) };
+          const _context = context;
+          evaluateStatement(ast.children[0], _context)
             .then(
               (value) => send(channel.channel, value),
               (e) => {
@@ -733,7 +744,9 @@ export const evaluateStatement = async (
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child, i) => {
             const channel = createChannel('parallel ' + i);
-            evaluateStatement(child, context)
+            // const _context = { ...context, env: forkEnv(context.env) };
+            const _context = context;
+            evaluateStatement(child, _context)
               .then(
                 (value) => send(channel.channel, value),
                 (e) => {
@@ -781,9 +794,6 @@ export const evaluateStatement = async (
           if (value instanceof Error) reject(value);
           else resolve(value);
 
-          channel.onReceive = channel.onReceive.filter(
-            (_promise) => _promise !== promise
-          );
           return null;
         }
         case OperatorType.RECEIVE: {
@@ -852,8 +862,10 @@ export const evaluateStatement = async (
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
           const result = await evaluateExpr(condition, context);
+          // const _context = { ...context, env: forkEnv(context.env) };
+          const _context = context;
           if (result) {
-            return await evaluateStatement(branch, context);
+            return await evaluateStatement(branch, _context);
           }
           return null;
         }
@@ -861,17 +873,21 @@ export const evaluateStatement = async (
           const [condition, trueBranch, falseBranch] = ast.children;
 
           const result = await evaluateExpr(condition, context);
-          if (result) return await evaluateStatement(trueBranch, context);
-          else return await evaluateStatement(falseBranch, context);
+          // const _context = { ...context, env: forkEnv(context.env) };
+          const _context = context;
+          if (result) return await evaluateStatement(trueBranch, _context);
+          else return await evaluateStatement(falseBranch, _context);
         }
         case OperatorType.WHILE: {
           const [condition, body] = ast.children;
           let result: EvalValue = null;
           while (true) {
+            const _context = { ...context, env: forkEnv(context.env) };
+            // const _context = context;
             try {
-              const cond = await evaluateExpr(condition, context);
+              const cond = await evaluateExpr(condition, _context);
               if (!cond) break;
-              result = await evaluateStatement(body, context);
+              result = await evaluateStatement(body, _context);
             } catch (e) {
               if (typeof e === 'object' && e !== null && 'break' in e) {
                 result = e.break as EvalValue;
@@ -901,8 +917,9 @@ export const evaluateStatement = async (
 
           const mapped: EvalValue[] = [];
           for (const item of list) {
+            const _context = { ...context, env: forkEnv(context.env) };
             try {
-              const bound = await bind(pattern, item, context);
+              const bound = await bind(pattern, item, _context);
               const value = await evaluateStatement(body, bound);
               if (value === null) continue;
               mapped.push(value);
@@ -929,7 +946,7 @@ export const evaluateStatement = async (
 
           while (true) {
             try {
-              const value = await evaluateStatement(body, context);
+              const value = await evaluateBlock(body, context);
               if (value === null) continue;
               collected.push(value);
             } catch (e) {
@@ -974,21 +991,24 @@ export const evaluateStatement = async (
         }
         case OperatorType.SEQUENCE:
           return await evaluateSequence(ast, context);
-        case OperatorType.BLOCK:
-          return await evaluateStatement(ast.children[0], {
-            ...context,
-            env: forkEnv(context.env),
-          });
+        case OperatorType.BLOCK: {
+          try {
+            return await evaluateBlock(ast.children[0], context);
+          } catch (e) {
+            if (typeof e === 'object' && e !== null && 'break' in e)
+              return e.break as EvalValue;
+            else throw e;
+          }
+        }
 
         case OperatorType.FUNCTION: {
           const [patterns, body] = ast.children;
+          const _context = { ...context, env: forkEnv(context.env) };
 
           if (patterns.data.operator !== OperatorType.TUPLE) {
             return async (arg) => {
-              const bound = await bind(patterns, arg, {
-                ...context,
-                env: forkEnv(context.env),
-              });
+              const __context = { ..._context, env: forkEnv(_context.env) };
+              const bound = await bind(patterns, arg, __context);
               try {
                 return await evaluateStatement(body, bound);
               } catch (e) {
@@ -1037,7 +1057,7 @@ export const evaluateStatement = async (
           assert(
             typeof fnValue === 'function',
             SystemError.invalidApplicationExpression(
-              ast.data.position
+              fnExpr.data.position
             ).withFileId(context.fileId)
           );
 
@@ -1073,6 +1093,14 @@ export const evaluateStatement = async (
     default:
       return null;
   }
+};
+
+export const evaluateBlock = async (
+  ast: AbstractSyntaxTree,
+  context: Context
+): Promise<EvalValue> => {
+  const _context = { ...context, env: forkEnv(context.env) };
+  return await evaluateStatement(ast, _context);
 };
 
 export const evaluateExpr = async (

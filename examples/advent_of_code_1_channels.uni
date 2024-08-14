@@ -30,11 +30,12 @@ lines_done := false
 inc := fn -> line_handled_count++
 
 async loop {
-  if (<-?lines) == (:closed) {
+  line, status := <-?lines
+  if status == (:closed) {
     lines_done = true
     break()
   }
-  line := <-lines
+  if status == (:empty): continue();
   line_count++
   
   async {
@@ -66,8 +67,10 @@ async loop {
 sum := 0
 
 while true {
-  if (<-?numbers) == (:closed): break()
-  sum += <-numbers
+  number, status := <-?numbers
+  if status == (:closed): break()
+  if status == (:empty): continue();
+  sum += number
 }
 
 sum
