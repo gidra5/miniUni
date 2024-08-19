@@ -126,3 +126,4941 @@ exports[`ast parens multiline 2`] = `
   "type": "script",
 }
 `;
+
+exports[`finds all errors in example ' - )/q + )/' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 13,
+    "labels": [
+      {
+        "end": 7,
+        "kind": "primary",
+        "message": "here",
+        "start": 7,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example ' - )/q + )/' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "operator": "minus",
+                    "position": {
+                      "end": 2,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 4,
+                      "start": 3,
+                    },
+                    "value": ")",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 4,
+                  "start": 1,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 6,
+                  "start": 5,
+                },
+                "value": "q",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 6,
+              "start": 1,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 10,
+                  "start": 9,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 7,
+                  "start": 7,
+                },
+              },
+              "type": "implicit_placeholder",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 11,
+              "start": 7,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 11,
+          "start": 1,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example ' q + )/' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 12,
+    "labels": [
+      {
+        "end": 4,
+        "kind": "primary",
+        "message": "here",
+        "start": 4,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example ' q + )/' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 2,
+              "start": 1,
+            },
+            "value": "q",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 6,
+                  "start": 5,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 4,
+                },
+              },
+              "type": "implicit_placeholder",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 7,
+              "start": 4,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 7,
+          "start": 1,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '(' 1`] = `
+[
+  {
+    "data": {
+      "tokens": [
+        ")",
+      ],
+    },
+    "fileId": 2,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 0,
+      },
+    ],
+    "notes": [
+      "Some pairs of tokens like {} or () must be balanced.",
+      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
+    ],
+    "type": "MISSING_TOKEN",
+  },
+  {
+    "data": {},
+    "fileId": 2,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "here",
+        "start": 1,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '(' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 1,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '(,) + .. + a' 1`] = `[]`;
+
+exports[`finds all errors in example '(,) + .. + a' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 2,
+                  "start": 1,
+                },
+                "value": ",",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 3,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 8,
+                  "start": 7,
+                },
+                "value": ".",
+              },
+              "type": "string",
+            },
+          ],
+          "data": {
+            "operator": "index",
+            "position": {
+              "end": 8,
+              "start": 6,
+            },
+            "precedence": [
+              9007199254740991,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 12,
+              "start": 11,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 8,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '(,) + a' 1`] = `[]`;
+
+exports[`finds all errors in example '(,) + a' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 2,
+                  "start": 1,
+                },
+                "value": ",",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 3,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 7,
+              "start": 6,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 7,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )/q + send(-(2+7)/A,[j, i, 127.0.1 ) + 1)/1' 1`] = `
+[
+  {
+    "data": {
+      "tokens": [
+        ")",
+      ],
+    },
+    "fileId": 25,
+    "labels": [
+      {
+        "end": 84,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 51,
+      },
+    ],
+    "notes": [
+      "Some pairs of tokens like {} or () must be balanced.",
+      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
+    ],
+    "type": "MISSING_TOKEN",
+  },
+  {
+    "data": {
+      "tokens": [
+        "]",
+      ],
+    },
+    "fileId": 25,
+    "labels": [
+      {
+        "end": 84,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 61,
+      },
+    ],
+    "notes": [
+      "Some pairs of tokens like {} or () must be balanced.",
+      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
+    ],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )/q + send(-(2+7)/A,[j, i, 127.0.1 ) + 1)/1' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 2,
+                                  "start": 1,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 4,
+                                  "start": 3,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "^",
+                            "position": {
+                              "end": 4,
+                              "start": 1,
+                            },
+                            "precedence": [
+                              18,
+                              17,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 6,
+                                  "start": 5,
+                                },
+                                "value": 5,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 7,
+                                  "start": 6,
+                                },
+                                "value": "x",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 7,
+                              "start": 5,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "subtract",
+                        "position": {
+                          "end": 7,
+                          "start": 1,
+                        },
+                        "precedence": [
+                          12,
+                          13,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 9,
+                          "start": 8,
+                        },
+                        "value": 7,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 9,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 10,
+                  "start": 0,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "operator": "minus",
+                        "position": {
+                          "end": 13,
+                          "start": 12,
+                        },
+                        "precedence": [
+                          null,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 14,
+                          "start": 13,
+                        },
+                        "value": "i",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 14,
+                      "start": 12,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 15,
+                  "start": 11,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 15,
+              "start": 0,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 19,
+                          "start": 18,
+                        },
+                        "value": "j",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 20,
+                      "start": 17,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 22,
+                      "start": 21,
+                    },
+                    "value": 0,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 22,
+                  "start": 17,
+                },
+                "precedence": [
+                  15,
+                  16,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 26,
+                          "start": 25,
+                        },
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 27,
+                          "start": 26,
+                        },
+                        "value": ")",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 27,
+                      "start": 25,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 30,
+                              "start": 29,
+                            },
+                            "value": 1,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 32,
+                              "start": 31,
+                            },
+                            "value": "f",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "*",
+                        "position": {
+                          "end": 32,
+                          "start": 29,
+                        },
+                        "precedence": [
+                          14,
+                          14,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 33,
+                      "start": 28,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "*",
+                "position": {
+                  "end": 33,
+                  "start": 25,
+                },
+                "precedence": [
+                  14,
+                  14,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 33,
+              "start": 17,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 37,
+                              "start": 35,
+                            },
+                            "value": 27,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 39,
+                              "start": 38,
+                            },
+                            "value": "x",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "subtract",
+                        "position": {
+                          "end": 39,
+                          "start": 35,
+                        },
+                        "precedence": [
+                          12,
+                          13,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 41,
+                          "start": 41,
+                        },
+                      },
+                      "type": "implicit_placeholder",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 41,
+                      "start": 35,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 42,
+                  "start": 34,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 44,
+                  "start": 43,
+                },
+                "value": "q",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 44,
+              "start": 34,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 51,
+                  "start": 47,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "operator": "minus",
+                                "position": {
+                                  "end": 53,
+                                  "start": 52,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 55,
+                                          "start": 54,
+                                        },
+                                        "value": 2,
+                                      },
+                                      "type": "number",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 57,
+                                          "start": 56,
+                                        },
+                                        "value": 7,
+                                      },
+                                      "type": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "add",
+                                    "position": {
+                                      "end": 57,
+                                      "start": 54,
+                                    },
+                                    "precedence": [
+                                      11,
+                                      11,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                                "position": {
+                                  "end": 58,
+                                  "start": 53,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 58,
+                              "start": 52,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 60,
+                              "start": 59,
+                            },
+                            "value": "A",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "/",
+                        "position": {
+                          "end": 60,
+                          "start": 52,
+                        },
+                        "precedence": [
+                          15,
+                          16,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 63,
+                                  "start": 62,
+                                },
+                                "value": "j",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 66,
+                                  "start": 65,
+                                },
+                                "value": "i",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 73,
+                                              "start": 68,
+                                            },
+                                            "value": 127,
+                                          },
+                                          "type": "number",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 75,
+                                              "start": 73,
+                                            },
+                                            "value": 0.1,
+                                          },
+                                          "type": "number",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                        "position": {
+                                          "end": 75,
+                                          "start": 68,
+                                        },
+                                        "precedence": [
+                                          9007199254740989,
+                                          9007199254740990,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 77,
+                                          "start": 76,
+                                        },
+                                        "value": ")",
+                                      },
+                                      "type": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                    "position": {
+                                      "end": 77,
+                                      "start": 68,
+                                    },
+                                    "precedence": [
+                                      9007199254740989,
+                                      9007199254740990,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 81,
+                                              "start": 80,
+                                            },
+                                            "value": 1,
+                                          },
+                                          "type": "number",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 82,
+                                              "start": 81,
+                                            },
+                                            "value": ")",
+                                          },
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                        "position": {
+                                          "end": 82,
+                                          "start": 80,
+                                        },
+                                        "precedence": [
+                                          9007199254740989,
+                                          9007199254740990,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 84,
+                                          "start": 83,
+                                        },
+                                        "value": 1,
+                                      },
+                                      "type": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "/",
+                                    "position": {
+                                      "end": 84,
+                                      "start": 80,
+                                    },
+                                    "precedence": [
+                                      15,
+                                      16,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "add",
+                                "position": {
+                                  "end": 84,
+                                  "start": 68,
+                                },
+                                "precedence": [
+                                  11,
+                                  11,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": ",",
+                            "position": {
+                              "end": 66,
+                              "start": 62,
+                            },
+                            "precedence": [
+                              6,
+                              6,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "index",
+                        "position": {
+                          "end": 84,
+                          "start": 61,
+                        },
+                        "precedence": [
+                          9007199254740991,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 84,
+                      "start": 52,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 84,
+                  "start": 51,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 84,
+              "start": 47,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 33,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, )/q + send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 24,
+    "labels": [
+      {
+        "end": 64,
+        "kind": "primary",
+        "message": "here",
+        "start": 64,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, )/q + send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 2,
+                                      "start": 1,
+                                    },
+                                    "value": 2,
+                                  },
+                                  "type": "number",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 3,
+                                      "start": 2,
+                                    },
+                                    "value": "x",
+                                  },
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                                "position": {
+                                  "end": 3,
+                                  "start": 1,
+                                },
+                                "precedence": [
+                                  9007199254740989,
+                                  9007199254740990,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 5,
+                                  "start": 4,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "^",
+                            "position": {
+                              "end": 5,
+                              "start": 1,
+                            },
+                            "precedence": [
+                              18,
+                              17,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 7,
+                                  "start": 6,
+                                },
+                                "value": 5,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 8,
+                                  "start": 7,
+                                },
+                                "value": "x",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 8,
+                              "start": 6,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "subtract",
+                        "position": {
+                          "end": 8,
+                          "start": 1,
+                        },
+                        "precedence": [
+                          12,
+                          13,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 10,
+                          "start": 9,
+                        },
+                        "value": 7,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 10,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 11,
+                  "start": 0,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "operator": "minus",
+                        "position": {
+                          "end": 14,
+                          "start": 13,
+                        },
+                        "precedence": [
+                          null,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 15,
+                          "start": 14,
+                        },
+                        "value": "i",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 15,
+                      "start": 13,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 16,
+                  "start": 12,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 16,
+              "start": 0,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 20,
+                              "start": 19,
+                            },
+                            "value": "j",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "post_increment",
+                        "position": {
+                          "end": 22,
+                          "start": 19,
+                        },
+                        "precedence": [
+                          3,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 23,
+                      "start": 18,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 25,
+                      "start": 24,
+                    },
+                    "value": 0,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 25,
+                  "start": 18,
+                },
+                "precedence": [
+                  15,
+                  16,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 29,
+                              "start": 28,
+                            },
+                            "value": ")",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 31,
+                                      "start": 30,
+                                    },
+                                    "value": "*",
+                                  },
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 32,
+                                      "start": 31,
+                                    },
+                                    "value": "f",
+                                  },
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": "application",
+                                "position": {
+                                  "end": 32,
+                                  "start": 30,
+                                },
+                                "precedence": [
+                                  9007199254740989,
+                                  9007199254740990,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "parens",
+                            "position": {
+                              "end": 33,
+                              "start": 29,
+                            },
+                            "precedence": [
+                              null,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 33,
+                          "start": 28,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 35,
+                                      "start": 34,
+                                    },
+                                    "value": 2,
+                                  },
+                                  "type": "number",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 38,
+                                          "start": 37,
+                                        },
+                                        "value": 7,
+                                      },
+                                      "type": "number",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 40,
+                                          "start": 39,
+                                        },
+                                        "value": "x",
+                                      },
+                                      "type": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "subtract",
+                                    "position": {
+                                      "end": 40,
+                                      "start": 37,
+                                    },
+                                    "precedence": [
+                                      12,
+                                      13,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": ",",
+                                "position": {
+                                  "end": 40,
+                                  "start": 34,
+                                },
+                                "precedence": [
+                                  6,
+                                  6,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 42,
+                                  "start": 42,
+                                },
+                              },
+                              "type": "implicit_placeholder",
+                            },
+                          ],
+                          "data": {
+                            "operator": ",",
+                            "position": {
+                              "end": 42,
+                              "start": 34,
+                            },
+                            "precedence": [
+                              6,
+                              6,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                        "position": {
+                          "end": 43,
+                          "start": 33,
+                        },
+                        "precedence": [
+                          null,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 43,
+                      "start": 28,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 45,
+                      "start": 44,
+                    },
+                    "value": "q",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 45,
+                  "start": 28,
+                },
+                "precedence": [
+                  15,
+                  16,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 45,
+              "start": 18,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 52,
+                  "start": 48,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "operator": "minus",
+                                "position": {
+                                  "end": 54,
+                                  "start": 53,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 56,
+                                              "start": 55,
+                                            },
+                                            "value": 2,
+                                          },
+                                          "type": "number",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 57,
+                                              "start": 56,
+                                            },
+                                            "value": "x",
+                                          },
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                        "position": {
+                                          "end": 57,
+                                          "start": 55,
+                                        },
+                                        "precedence": [
+                                          9007199254740989,
+                                          9007199254740990,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 59,
+                                          "start": 58,
+                                        },
+                                        "value": 7,
+                                      },
+                                      "type": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "add",
+                                    "position": {
+                                      "end": 59,
+                                      "start": 55,
+                                    },
+                                    "precedence": [
+                                      11,
+                                      11,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                                "position": {
+                                  "end": 60,
+                                  "start": 54,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 60,
+                              "start": 53,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 62,
+                                  "start": 61,
+                                },
+                                "value": "A",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 64,
+                                      "start": 63,
+                                    },
+                                    "value": "j",
+                                  },
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 67,
+                                      "start": 66,
+                                    },
+                                    "value": "i",
+                                  },
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": ",",
+                                "position": {
+                                  "end": 67,
+                                  "start": 63,
+                                },
+                                "precedence": [
+                                  6,
+                                  6,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "index",
+                            "position": {
+                              "end": 68,
+                              "start": 61,
+                            },
+                            "precedence": [
+                              9007199254740991,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "/",
+                        "position": {
+                          "end": 68,
+                          "start": 53,
+                        },
+                        "precedence": [
+                          15,
+                          16,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 75,
+                                  "start": 70,
+                                },
+                                "value": 127,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 77,
+                                  "start": 75,
+                                },
+                                "value": 0,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 77,
+                              "start": 70,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 79,
+                              "start": 77,
+                            },
+                            "value": 0.1,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 79,
+                          "start": 70,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 79,
+                      "start": 53,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 81,
+                  "start": 52,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 81,
+              "start": 48,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 85,
+                  "start": 84,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 64,
+                  "start": 64,
+                },
+              },
+              "type": "implicit_placeholder",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 86,
+              "start": 64,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 45,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example ')' 1`] = `[]`;
+
+exports[`finds all errors in example ')' 2`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+        "value": ")",
+      },
+      "type": "name",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '* 1' 1`] = `[]`;
+
+exports[`finds all errors in example '* 1' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "*",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 3,
+              "start": 2,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 3,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 (2)' 1`] = `[]`;
+
+exports[`finds all errors in example '1 (2)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 3,
+                },
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 5,
+              "start": 2,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 5,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 * (* 2)' 1`] = `[]`;
+
+exports[`finds all errors in example '1 * (* 2)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": "*",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 8,
+                      "start": 7,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 8,
+                  "start": 5,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 9,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "*",
+        "position": {
+          "end": 9,
+          "start": 0,
+        },
+        "precedence": [
+          14,
+          14,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 * (2) (3)' 1`] = `[]`;
+
+exports[`finds all errors in example '1 * (2) (3)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 7,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 10,
+                      "start": 9,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 11,
+                  "start": 8,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 11,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "*",
+        "position": {
+          "end": 11,
+          "start": 0,
+        },
+        "precedence": [
+          14,
+          14,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
+[
+  {
+    "data": {
+      "tokens": [
+        ")",
+      ],
+    },
+    "fileId": 14,
+    "labels": [
+      {
+        "end": 13,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 10,
+      },
+    ],
+    "notes": [
+      "Some pairs of tokens like {} or () must be balanced.",
+      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
+    ],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 * (5/3) (*4' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 6,
+                          "start": 5,
+                        },
+                        "value": 5,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 8,
+                          "start": 7,
+                        },
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "/",
+                    "position": {
+                      "end": 8,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      15,
+                      16,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 9,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 12,
+                          "start": 11,
+                        },
+                        "value": "*",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 13,
+                          "start": 12,
+                        },
+                        "value": 4,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 13,
+                      "start": 11,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 13,
+                  "start": 10,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 13,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "*",
+        "position": {
+          "end": 13,
+          "start": 0,
+        },
+        "precedence": [
+          14,
+          14,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 *' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 11,
+    "labels": [
+      {
+        "end": 2,
+        "kind": "primary",
+        "message": "here",
+        "start": 2,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 *' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 2,
+              "start": 2,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "*",
+        "position": {
+          "end": 3,
+          "start": 0,
+        },
+        "precedence": [
+          14,
+          14,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + (2 + 3' 1`] = `
+[
+  {
+    "data": {
+      "tokens": [
+        ")",
+      ],
+    },
+    "fileId": 5,
+    "labels": [
+      {
+        "end": 10,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 4,
+      },
+    ],
+    "notes": [
+      "Some pairs of tokens like {} or () must be balanced.",
+      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
+    ],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + (2 + 3' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 10,
+                      "start": 9,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "add",
+                "position": {
+                  "end": 10,
+                  "start": 5,
+                },
+                "precedence": [
+                  11,
+                  11,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 10,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 10,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + (2 + 3) +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 7,
+    "labels": [
+      {
+        "end": 8,
+        "kind": "primary",
+        "message": "here",
+        "start": 8,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + (2 + 3) +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 10,
+                      "start": 9,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "add",
+                "position": {
+                  "end": 10,
+                  "start": 5,
+                },
+                "precedence": [
+                  11,
+                  11,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 11,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 8,
+              "start": 8,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 11,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + (2 + 3)) +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 8,
+    "labels": [
+      {
+        "end": 9,
+        "kind": "primary",
+        "message": "here",
+        "start": 9,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + (2 + 3)) +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 6,
+                          "start": 5,
+                        },
+                        "value": 2,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 10,
+                          "start": 9,
+                        },
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 10,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 11,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 12,
+                  "start": 11,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 12,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 9,
+              "start": 9,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 12,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + (2 + 3))' 1`] = `[]`;
+
+exports[`finds all errors in example '1 + (2 + 3))' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 6,
+                          "start": 5,
+                        },
+                        "value": 2,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 10,
+                          "start": 9,
+                        },
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 10,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 11,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 12,
+                  "start": 11,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 12,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 12,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + * 2' 1`] = `[]`;
+
+exports[`finds all errors in example '1 + * 2' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 5,
+                  "start": 4,
+                },
+                "value": "*",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 7,
+                  "start": 6,
+                },
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 7,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 7,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + 2 +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 9,
+    "labels": [
+      {
+        "end": 4,
+        "kind": "primary",
+        "message": "here",
+        "start": 4,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + 2 +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 5,
+              "start": 4,
+            },
+            "value": 2,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 4,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 5,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 10,
+    "labels": [
+      {
+        "end": 2,
+        "kind": "primary",
+        "message": "here",
+        "start": 2,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 2,
+              "start": 2,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 3,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 - 1)*1' 1`] = `[]`;
+
+exports[`finds all errors in example '1 - 1)*1' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 5,
+                      "start": 4,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": ")",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 6,
+                  "start": 4,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 8,
+                  "start": 7,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "*",
+            "position": {
+              "end": 8,
+              "start": 4,
+            },
+            "precedence": [
+              14,
+              14,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "subtract",
+        "position": {
+          "end": 8,
+          "start": 0,
+        },
+        "precedence": [
+          12,
+          13,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 - 1)*1+' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 23,
+    "labels": [
+      {
+        "end": 7,
+        "kind": "primary",
+        "message": "here",
+        "start": 7,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 - 1)*1+' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 1,
+                  "start": 0,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 5,
+                          "start": 4,
+                        },
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 6,
+                          "start": 5,
+                        },
+                        "value": ")",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 6,
+                      "start": 4,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 8,
+                      "start": 7,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "*",
+                "position": {
+                  "end": 8,
+                  "start": 4,
+                },
+                "precedence": [
+                  14,
+                  14,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 8,
+              "start": 0,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 7,
+              "start": 7,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 9,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'send((1+2), 3+,4)' 1`] = `[]`;
+
+exports[`finds all errors in example 'send((1+2), 3+,4)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 7,
+                              "start": 6,
+                            },
+                            "value": 1,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 9,
+                              "start": 8,
+                            },
+                            "value": 2,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "add",
+                        "position": {
+                          "end": 9,
+                          "start": 6,
+                        },
+                        "precedence": [
+                          11,
+                          11,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 10,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 13,
+                          "start": 12,
+                        },
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 15,
+                              "start": 14,
+                            },
+                            "value": ",",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 16,
+                              "start": 15,
+                            },
+                            "value": 4,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 16,
+                          "start": 14,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 16,
+                      "start": 12,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 16,
+                  "start": 5,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 17,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 17,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'send([j, i])' 1`] = `[]`;
+
+exports[`finds all errors in example 'send([j, i])' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 7,
+                          "start": 6,
+                        },
+                        "value": "j",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 10,
+                          "start": 9,
+                        },
+                        "value": "i",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 10,
+                      "start": 6,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "index",
+                "position": {
+                  "end": 11,
+                  "start": 5,
+                },
+                "precedence": [
+                  9007199254740991,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 12,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 12,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 21,
+    "labels": [
+      {
+        "end": 24,
+        "kind": "primary",
+        "message": "here",
+        "start": 24,
+      },
+    ],
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 0,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "operator": "minus",
+                                "position": {
+                                  "end": 6,
+                                  "start": 5,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 8,
+                                              "start": 7,
+                                            },
+                                            "value": 2,
+                                          },
+                                          "type": "number",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 9,
+                                              "start": 8,
+                                            },
+                                            "value": "x",
+                                          },
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "application",
+                                        "position": {
+                                          "end": 9,
+                                          "start": 7,
+                                        },
+                                        "precedence": [
+                                          9007199254740989,
+                                          9007199254740990,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 11,
+                                          "start": 10,
+                                        },
+                                        "value": 7,
+                                      },
+                                      "type": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "add",
+                                    "position": {
+                                      "end": 11,
+                                      "start": 7,
+                                    },
+                                    "precedence": [
+                                      11,
+                                      11,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                                "position": {
+                                  "end": 12,
+                                  "start": 6,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 12,
+                              "start": 5,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 14,
+                                  "start": 13,
+                                },
+                                "value": "A",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 16,
+                                      "start": 15,
+                                    },
+                                    "value": "j",
+                                  },
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 19,
+                                      "start": 18,
+                                    },
+                                    "value": "i",
+                                  },
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": ",",
+                                "position": {
+                                  "end": 19,
+                                  "start": 15,
+                                },
+                                "precedence": [
+                                  6,
+                                  6,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "index",
+                            "position": {
+                              "end": 20,
+                              "start": 13,
+                            },
+                            "precedence": [
+                              9007199254740991,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "/",
+                        "position": {
+                          "end": 20,
+                          "start": 5,
+                        },
+                        "precedence": [
+                          15,
+                          16,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 27,
+                                  "start": 22,
+                                },
+                                "value": 127,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 29,
+                                  "start": 27,
+                                },
+                                "value": 0,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "application",
+                            "position": {
+                              "end": 29,
+                              "start": 22,
+                            },
+                            "precedence": [
+                              9007199254740989,
+                              9007199254740990,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 31,
+                              "start": 29,
+                            },
+                            "value": 0.1,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 31,
+                          "start": 22,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 31,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 33,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 33,
+              "start": 0,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 37,
+                  "start": 36,
+                },
+                "value": ")",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 24,
+                  "start": 24,
+                },
+              },
+              "type": "implicit_placeholder",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 38,
+              "start": 24,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 38,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 1`] = `[]`;
+
+exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "operator": "minus",
+                            "position": {
+                              "end": 6,
+                              "start": 5,
+                            },
+                            "precedence": [
+                              null,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 8,
+                                          "start": 7,
+                                        },
+                                        "value": 2,
+                                      },
+                                      "type": "number",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 9,
+                                          "start": 8,
+                                        },
+                                        "value": "x",
+                                      },
+                                      "type": "name",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "application",
+                                    "position": {
+                                      "end": 9,
+                                      "start": 7,
+                                    },
+                                    "precedence": [
+                                      9007199254740989,
+                                      9007199254740990,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 11,
+                                      "start": 10,
+                                    },
+                                    "value": 7,
+                                  },
+                                  "type": "number",
+                                },
+                              ],
+                              "data": {
+                                "operator": "add",
+                                "position": {
+                                  "end": 11,
+                                  "start": 7,
+                                },
+                                "precedence": [
+                                  11,
+                                  11,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "parens",
+                            "position": {
+                              "end": 12,
+                              "start": 6,
+                            },
+                            "precedence": [
+                              null,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 12,
+                          "start": 5,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 14,
+                              "start": 13,
+                            },
+                            "value": "A",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 16,
+                                  "start": 15,
+                                },
+                                "value": "j",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 19,
+                                  "start": 18,
+                                },
+                                "value": "i",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {
+                            "operator": ",",
+                            "position": {
+                              "end": 19,
+                              "start": 15,
+                            },
+                            "precedence": [
+                              6,
+                              6,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "index",
+                        "position": {
+                          "end": 20,
+                          "start": 13,
+                        },
+                        "precedence": [
+                          9007199254740991,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "/",
+                    "position": {
+                      "end": 20,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      15,
+                      16,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 27,
+                              "start": 22,
+                            },
+                            "value": 127,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 29,
+                              "start": 27,
+                            },
+                            "value": 0,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "application",
+                        "position": {
+                          "end": 29,
+                          "start": 22,
+                        },
+                        "precedence": [
+                          9007199254740989,
+                          9007199254740990,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 31,
+                          "start": 29,
+                        },
+                        "value": 0.1,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 31,
+                      "start": 22,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 31,
+                  "start": 5,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 32,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 32,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;

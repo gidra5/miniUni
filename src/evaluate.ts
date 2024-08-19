@@ -24,6 +24,7 @@ import {
   send,
   tryReceive,
 } from './values.js';
+import { validate } from './validate.js';
 
 export type Context = {
   file: string;
@@ -1164,9 +1165,15 @@ export const evaluateScriptString = async (
 ): Promise<EvalValue> => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
+  const [errors, validated] = validate(ast, context.fileId);
+
+  if (errors.length > 0) {
+    errors.forEach((e) => e.print());
+    return null;
+  }
 
   try {
-    return await evaluateScript(ast, context);
+    return await evaluateScript(validated, context);
   } catch (e) {
     console.error(e);
     if (e instanceof SystemError) e.print();
