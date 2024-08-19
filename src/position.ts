@@ -27,27 +27,23 @@ export function mergePositions(...positions: Position[]): Position {
   );
 }
 
-export const tokenPosToSrcPos = (
-  tokenPos: Position,
-  tokens: Position[]
-): Position => {
-  assert(tokenPos.start >= 0, 'tokenPos.start must be greater than or equal 0');
+export const mapListPosToPos = (pos: Position, list: Position[]): Position => {
+  assert(pos.start >= 0, 'pos.start must be greater than or equal 0');
   assert(
-    tokenPos.start <= tokenPos.end,
-    'tokenPos.start must be less than or equal to tokenPos.end'
+    pos.start <= pos.end,
+    'pos.start must be less than or equal to pos.end'
   );
   assert(
-    tokenPos.end <= tokens.length,
-    'tokenPos.end must be less than or equal to tokens.length'
+    pos.end <= list.length,
+    'pos.end must be less than or equal to list.length'
   );
-  if (tokenPos.start === tokenPos.end)
-    return indexPosition(tokens[tokenPos.start].start);
+  if (pos.start === pos.end) return indexPosition(list[pos.start].start);
 
-  if (tokenPos.start === tokens.length)
-    return indexPosition(tokens[tokens.length - 1].end);
+  if (pos.start === list.length)
+    return indexPosition(list[list.length - 1].end);
 
-  const startToken = tokens[tokenPos.start];
-  const endToken = tokens[clamp(tokenPos.end - 1, 0, tokens.length)];
+  const startToken = list[pos.start];
+  const endToken = list[clamp(pos.end - 1, 0, list.length)];
 
   return position(startToken.start, endToken.end);
 };

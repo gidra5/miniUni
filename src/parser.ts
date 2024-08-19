@@ -5,7 +5,7 @@ import {
   indexPosition,
   mergePositions,
   position,
-  tokenPosToSrcPos,
+  mapListPosToPos,
 } from './position.js';
 
 export type AbstractSyntaxTree<T = any> = {
@@ -404,7 +404,7 @@ export const parsePatternGroup =
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     const start = index;
-    const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
+    const nodePosition = () => mapListPosToPos(position(start, index), src);
 
     if (!src[index])
       return [
@@ -566,7 +566,7 @@ export const parseSequence = (
 ): [index: number, ast: AbstractSyntaxTree] => {
   let index = i;
   const start = index;
-  const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
+  const nodePosition = () => mapListPosToPos(position(start, index), src);
   const children: AbstractSyntaxTree[] = [];
 
   while (
@@ -590,7 +590,7 @@ export const parseGroup =
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
     const start = index;
-    const nodePosition = () => tokenPosToSrcPos(position(start, index), src);
+    const nodePosition = () => mapListPosToPos(position(start, index), src);
 
     if (!src[index])
       return [
@@ -800,10 +800,7 @@ export const parseGroup =
       index++;
       if (src[index]?.type === 'newline') index++;
       const hasOpeningBracket = src[index]?.src === '{';
-      const openingBracketPosition = tokenPosToSrcPos(
-        indexPosition(index),
-        src
-      );
+      const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
       if (hasOpeningBracket) index++;
 
       let sequence: AbstractSyntaxTree;
@@ -841,16 +838,13 @@ export const parseGroup =
       [index, pattern] = parsePattern(0, ['in'])(src, index);
 
       const hasInKeyword = src[index]?.src === 'in';
-      const inKeywordPosition = tokenPosToSrcPos(indexPosition(index), src);
+      const inKeywordPosition = mapListPosToPos(indexPosition(index), src);
       if (hasInKeyword) index++;
       let expr: AbstractSyntaxTree;
       [index, expr] = parseExpr(0, ['{'])(src, index);
 
       const hasOpeningBracket = ['{', ':', '\n'].includes(src[index]?.src);
-      const openingBracketPosition = tokenPosToSrcPos(
-        indexPosition(index),
-        src
-      );
+      const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
       if (hasOpeningBracket) index++;
 
       let sequence: AbstractSyntaxTree;
