@@ -21,6 +21,7 @@ import fs from 'fs/promises';
 const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
 const LOCAL_DEPENDENCIES_PATH = 'dependencies';
+const DIRECTORY_INDEX_FILE_NAME = 'index' + SCRIPT_FILE_EXTENSION;
 
 type Module =
   | { module: Record<string, EvalValue> }
@@ -288,29 +289,28 @@ export const getModule = async (
   const isScript = resolvedPath.endsWith(SCRIPT_FILE_EXTENSION);
 
   async function loadFile(): Promise<Module> {
-    if (!isModule && !isScript) return { buffer: file };
+    if (!isModule && !isScript) return buffer(file);
 
     const source = file.toString('utf-8');
     const fileId = addFile(resolvedPath!, source);
     const context = newContext(fileId, resolvedPath!);
 
     if (isModule) {
-      const module = await evaluateModuleString(source, context);
-      assert(isRecord(module), 'expected module to be a record');
-      return { module: module.record };
+      const _module = await evaluateModuleString(source, context);
+      assert(isRecord(_module), 'expected module to be a record');
+      return module(_module.record);
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);
-      const module = { script: result };
-      return module;
+      return script(result);
     }
 
     unreachable('unknown file type');
   }
 
-  const module = await loadFile();
-  modules[resolvedPath] = module;
-  return module;
+  const _module = await loadFile();
+  modules[resolvedPath] = _module;
+  return _module;
 };
 
 /**
@@ -319,27 +319,85 @@ export const getModule = async (
  * @param from absolute path of the file that is importing the module
  * @returns resolved absolute path of the module
  */
-async function resolvePath(name: string, from: string): Promise<string> {
+async function resolvePath(
+  name: string,
+  from: string,
+  _root = root
+): Promise<string> {
   from = path.dirname(from);
   const resolve = () => {
     if (name.startsWith('.')) {
       // limit the path to the project's directory
       // so that the user can't accidentally access files outside of the project
       const _path = path.resolve(from, name);
-      if (root.startsWith(_path)) {
-        return root;
-      }
+      if (_root.startsWith(_path)) return _root;
+      if (!_path.startsWith(_root)) return _root;
+
       return _path;
     }
 
     if (name.startsWith('/')) {
-      return path.join(root, name.slice(1));
+      return path.join(_root, name.slice(1));
     }
 
-    return path.join(root, '..', LOCAL_DEPENDENCIES_PATH, name);
+    return path.join(_root, '..', LOCAL_DEPENDENCIES_PATH, name);
   };
 
   const resolved = resolve();
-  const stat = await fs.stat(resolved);
-  return stat.isDirectory() ? path.join(resolved, 'index.uni') : resolved;
+  const isDirectory = await fs
+    .stat(resolved)
+    .then((stat) => stat.isDirectory())
+    .catch(() => false);
+  return isDirectory
+    ? path.join(resolved, DIRECTORY_INDEX_FILE_NAME)
+    : resolved;
+}
+
+if (import.meta.vitest) {
+  const { it, expect } = import.meta.vitest;
+
+  it('resolve abs path', async () => {
+    const cwd = process.cwd();
+    const root = path.resolve(cwd, 'src');
+    const from = path.join(root, 'one/two/three/file.uni');
+    const resolved = await resolvePath('/file', from, root);
+    const expected = path.join(root, 'file');
+    expect(resolved).toBe(expected);
+  });
+
+  it('resolve rel path', async () => {
+    const cwd = process.cwd();
+    const root = path.resolve(cwd, 'src');
+    const from = path.join(root, 'one/two/three/file.uni');
+    const resolved = await resolvePath('./file2', from, root);
+    const expected = path.join(root, 'one/two/three/file2');
+    expect(resolved).toBe(expected);
+  });
+
+  it('resolve rel path 2', async () => {
+    const cwd = process.cwd();
+    const root = path.resolve(cwd, 'src');
+    const from = path.join(root, 'one/two/three/file.uni');
+    const resolved = await resolvePath('../name', from, root);
+    const expected = path.join(root, 'one/two/name');
+    expect(resolved).toBe(expected);
+  });
+
+  it('resolve dep path', async () => {
+    const cwd = process.cwd();
+    const root = path.resolve(cwd, 'src');
+    const from = path.join(root, 'one/two/three/file.uni');
+    const resolved = await resolvePath('file', from, root);
+    const expected = path.join(root, `../${LOCAL_DEPENDENCIES_PATH}/file`);
+    expect(resolved).toBe(expected);
+  });
+
+  it('resolve dir path', async () => {
+    const cwd = process.cwd();
+    const root = path.resolve(cwd, 'src');
+    const from = path.join(root, 'one/two/three/file.uni');
+    const resolved = await resolvePath('/', from, root);
+    const expected = path.join(root, 'index.uni');
+    expect(resolved).toBe(expected);
+  });
 }
