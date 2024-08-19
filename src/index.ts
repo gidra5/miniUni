@@ -2,10 +2,10 @@ import { program } from 'commander';
 import readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
 import { evaluateScriptString, newContext } from './evaluate.js';
-import { addFile, getModule, getScriptResult, isScript } from './files.js';
-import { assert } from 'console';
+import { addFile, getModule } from './files.js';
 import path from 'path';
 import fs from 'fs/promises';
+import { assert } from './utils.js';
 
 program
   .command('run <file>')
@@ -19,8 +19,8 @@ program
       ? path.join(resolved, 'index.uni')
       : resolved;
     const module = await getModule(file, 'cli', _path);
-    assert(isScript(module), 'expected script');
-    console.dir(getScriptResult(module), { depth: null });
+    assert('script' in module, 'expected script');
+    console.dir(module.script, { depth: null });
 
     console.log('Exiting interpreter');
   });

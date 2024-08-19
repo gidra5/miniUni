@@ -1,12 +1,6 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from './error.js';
-import {
-  fileMap,
-  getModule,
-  getScriptResult,
-  isScript,
-  prelude,
-} from './files.js';
+import { fileMap, getModule, prelude } from './files.js';
 import {
   NodeType,
   OperatorType,
@@ -513,9 +507,12 @@ export const evaluateStatement = async (
             !Buffer.isBuffer(module),
             'binary file import is not supported'
           );
-          const value = isScript(module)
-            ? getScriptResult(module)
-            : { record: module };
+          const value =
+            'script' in module
+              ? module.script
+              : 'module' in module
+              ? { record: module.module }
+              : unreachable('arbitrary binary is not supported');
           const pattern = ast.children[0];
           if (pattern) {
             await bind(pattern, value, context);

@@ -22,13 +22,18 @@ const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
 const LOCAL_DEPENDENCIES_PATH = 'dependencies';
 
-export const Prelude = Symbol('Prelude');
-export const ScriptResult = Symbol('ScriptResult');
-
 type Module =
-  | Record<string, EvalValue>
-  | { [ScriptResult]: EvalValue }
-  | Buffer;
+  | { module: Record<string, EvalValue> }
+  | { script: EvalValue }
+  | { buffer: Buffer };
+
+type Dictionary = Record<string, Module>;
+
+const module = (entries: Record<string, EvalValue>): Module => ({
+  module: entries,
+});
+const script = (value: EvalValue): Module => ({ script: value });
+const buffer = (value: Buffer): Module => ({ buffer: value });
 
 export const fileMap = new FileMap();
 
@@ -75,8 +80,8 @@ export const prelude: Record<string, EvalValue> = {
   }),
 };
 
-export const modules = {
-  'std/math': {
+export const modules: Dictionary = {
+  'std/math': module({
     floor: fn(1, ([position, fileId], n) => {
       const floorErrorFactory = SystemError.invalidArgumentType(
         'floor',
@@ -86,8 +91,8 @@ export const modules = {
       assert(typeof n === 'number', floorErrorFactory(0).withFileId(fileId));
       return Math.floor(n);
     }),
-  },
-  'std/string': {
+  }),
+  'std/string': module({
     split: fn(2, ([position, fileId], target, separator) => {
       const splitErrorFactory = SystemError.invalidArgumentType(
         'split',
@@ -224,8 +229,8 @@ export const modules = {
 
       return item.slice(start, end);
     }),
-  },
-  'std/concurrency': {
+  }),
+  'std/concurrency': module({
     all: fn(1, async ([position, fileId], list) => {
       const allErrorFactory = SystemError.invalidArgumentType(
         'all',
@@ -242,21 +247,13 @@ export const modules = {
       });
       return (await Promise.all(x)).filter((x) => x !== null);
     }),
-  },
+  }),
 };
 
 let root = process.cwd();
 
 export const setRootDirectory = (_root: string) => {
   root = _root;
-};
-
-export const isScript = (module: Module) => {
-  return ScriptResult in module;
-};
-
-export const getScriptResult = (module: Module) => {
-  return module[ScriptResult];
 };
 
 export const getModule = async (
@@ -291,7 +288,7 @@ export const getModule = async (
   const isScript = resolvedPath.endsWith(SCRIPT_FILE_EXTENSION);
 
   async function loadFile(): Promise<Module> {
-    if (!isModule && !isScript) return file;
+    if (!isModule && !isScript) return { buffer: file };
 
     const source = file.toString('utf-8');
     const fileId = addFile(resolvedPath!, source);
@@ -300,11 +297,11 @@ export const getModule = async (
     if (isModule) {
       const module = await evaluateModuleString(source, context);
       assert(isRecord(module), 'expected module to be a record');
-      return module.record;
+      return { module: module.record };
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);
-      const module = { [ScriptResult]: result };
+      const module = { script: result };
       return module;
     }
 
@@ -325,7 +322,7 @@ export const getModule = async (
 async function resolvePath(name: string, from: string): Promise<string> {
   from = path.dirname(from);
   const resolve = () => {
-    if (name.startsWith('./')) {
+    if (name.startsWith('.')) {
       // limit the path to the project's directory
       // so that the user can't accidentally access files outside of the project
       const _path = path.resolve(from, name);

@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
-import { getModule, getScriptResult } from '../src/files.ts';
+import { getModule } from '../src/files.ts';
 import path from 'path';
+import { assert } from '../src/utils.ts';
 
 // TODO: better root handling
 const examples = [
@@ -27,6 +28,7 @@ const examples = [
 for (const { root, name, file, expected } of examples) {
   it(name, async () => {
     const module = await getModule(file, root);
-    expect(getScriptResult(module)).toEqual(expected);
+    assert('script' in module, 'expected script');
+    expect(module.script).toEqual(expected);
   });
 }
