@@ -23,6 +23,12 @@ const examples = [
     file: './advent_of_code_1_channels.uni',
     expected: 142,
   },
+  {
+    root: path.resolve('./examples/advent_of_code_14/test.uni'),
+    name: 'advent of code 2023, day 14, single script',
+    file: './advent_of_code_14/test.uni',
+    expected: 136,
+  },
 ];
 
 for (const { root, name, file, expected } of examples) {

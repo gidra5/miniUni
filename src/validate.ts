@@ -1,6 +1,6 @@
-import { assert } from 'console';
-import { AbstractSyntaxTree, implicitPlaceholder, NodeType } from './parser';
-import { SystemError } from './error';
+import { AbstractSyntaxTree, implicitPlaceholder, NodeType } from './parser.js';
+import { SystemError } from './error.js';
+import { assert } from './utils.js';
 
 export const validate = (
   ast: AbstractSyntaxTree,

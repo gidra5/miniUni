@@ -42,7 +42,7 @@ export const newContext = (fileId: number, file: string): Context => {
   return { file, fileId, env: forkEnv(prelude) };
 };
 
-export const incAssign = async (
+const incAssign = async (
   patternAst: AbstractSyntaxTree,
   value: number | EvalValue[],
   context: Context
@@ -513,7 +513,7 @@ export const evaluateStatement = async (
               ? module.script
               : 'module' in module
               ? { record: module.module }
-              : unreachable('arbitrary binary is not supported');
+              : (module.buffer as unknown as EvalValue);
           const pattern = ast.children[0];
           if (pattern) {
             await bind(pattern, value, context);

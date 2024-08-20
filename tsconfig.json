@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "ESNext",
     "target": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "strict": true,
     "noErrorTruncation": true,
@@ -10,7 +10,6 @@
     "emitDeclarationOnly": false,
     "outDir": "dist",
     "noImplicitAny": false,
-    
     "types": [
       "vitest/importMeta"
     ]

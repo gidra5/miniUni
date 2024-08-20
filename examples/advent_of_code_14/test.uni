@@ -1,0 +1,36 @@
+import "std/string" as { split }
+
+content := string import "./test.txt"
+matrix := (split content "\n").filter(line -> length line).map(line -> split line "")
+sum := 0
+
+for columnIndex in (0..matrix[0].length) {
+  availableSpace := 0
+
+  for rowIndex in (0..matrix.length) {
+    load := matrix.length - rowIndex
+    char := matrix[rowIndex][columnIndex]
+
+    if char == "." {
+      availableSpace++
+      continue()
+    }
+
+    if char == "#" {
+      availableSpace = 0
+      continue()
+    }
+
+    if availableSpace > 0 {
+      load += availableSpace
+      matrix[rowIndex][columnIndex] = "."
+      matrix[rowIndex - availableSpace][columnIndex] = char
+    }
+
+    sum += load
+  }
+}
+
+sum
+
+console.log(sum)

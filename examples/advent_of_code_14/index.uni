@@ -1,0 +1,34 @@
+content := string import "./input.txt"
+matrix := content.split("\n").filter(line -> line.length).map(line -> line.split(""))
+sum := 0
+
+for columnIndex in (0..matrix[0].length) {
+  availableSpace := 0
+
+  for rowIndex in (0..matrix.length) {
+    load := matrix.length - rowIndex
+    char := matrix[rowIndex][columnIndex]
+
+    if char == "." {
+      availableSpace++
+      continue()
+    }
+
+    if char == "#" {
+      availableSpace = 0
+      continue()
+    }
+
+    if availableSpace > 0 {
+      load += availableSpace
+      matrix[rowIndex][columnIndex] = "."
+      matrix[rowIndex - availableSpace][columnIndex] = char
+    }
+
+    sum += load
+  }
+}
+
+sum
+
+console.log(sum)

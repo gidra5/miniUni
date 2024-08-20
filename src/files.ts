@@ -60,6 +60,9 @@ export const prelude: Record<string, EvalValue> = {
   number: fn(1, (_, n) => {
     return Number(n);
   }),
+  string: fn(1, (_, n) => {
+    return String(n);
+  }),
   print: fn(1, (_, value) => {
     inspect(value);
     return value;
@@ -279,10 +282,9 @@ export const getModule = async (
 
   const file = await fs.readFile(resolvedPath).catch((e) => {
     const fileId = fileMap.getFileId(from);
-    const error = SystemError.importFailed(name, resolvedPath, e).withFileId(
-      fileId
-    );
-    error.print();
+    const error = SystemError.importFailed(name, resolvedPath, e)
+      .withFileId(fileId)
+      .print();
     throw error;
   });
   const isModule = resolvedPath.endsWith(MODULE_FILE_EXTENSION);

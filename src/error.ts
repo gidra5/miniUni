@@ -325,7 +325,7 @@ export class SystemError extends Error {
 
   static invalidIndexTarget(pos: Position): SystemError {
     return SystemError.evaluationError(
-      'index operator expects a list value on the left side',
+      'index operator expects a list or record value on the left side',
       [],
       pos
     );
