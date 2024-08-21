@@ -158,21 +158,6 @@ exports[`finds all errors in example ' - )/q + )/' 2`] = `
                 {
                   "children": [],
                   "data": {
-                    "operator": "minus",
-                    "position": {
-                      "end": 2,
-                      "start": 1,
-                    },
-                    "precedence": [
-                      null,
-                      null,
-                    ],
-                  },
-                  "type": "operator",
-                },
-                {
-                  "children": [],
-                  "data": {
                     "position": {
                       "end": 4,
                       "start": 3,
@@ -183,14 +168,14 @@ exports[`finds all errors in example ' - )/q + )/' 2`] = `
                 },
               ],
               "data": {
-                "operator": "application",
+                "operator": "minus",
                 "position": {
                   "end": 4,
                   "start": 1,
                 },
                 "precedence": [
-                  9007199254740989,
-                  9007199254740990,
+                  null,
+                  18,
                 ],
               },
               "type": "operator",
@@ -499,7 +484,7 @@ exports[`finds all errors in example '(,) + .. + a' 2`] = `
               "start": 6,
             },
             "precedence": [
-              9007199254740991,
+              9007199254740988,
               null,
             ],
           },
@@ -797,21 +782,6 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                     {
                       "children": [],
                       "data": {
-                        "operator": "minus",
-                        "position": {
-                          "end": 13,
-                          "start": 12,
-                        },
-                        "precedence": [
-                          null,
-                          null,
-                        ],
-                      },
-                      "type": "operator",
-                    },
-                    {
-                      "children": [],
-                      "data": {
                         "position": {
                           "end": 14,
                           "start": 13,
@@ -822,14 +792,14 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                     },
                   ],
                   "data": {
-                    "operator": "application",
+                    "operator": "minus",
                     "position": {
                       "end": 14,
                       "start": 12,
                     },
                     "precedence": [
-                      9007199254740989,
-                      9007199254740990,
+                      null,
+                      18,
                     ],
                   },
                   "type": "operator",
@@ -1169,21 +1139,6 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                         {
                           "children": [
                             {
-                              "children": [],
-                              "data": {
-                                "operator": "minus",
-                                "position": {
-                                  "end": 53,
-                                  "start": 52,
-                                },
-                                "precedence": [
-                                  null,
-                                  null,
-                                ],
-                              },
-                              "type": "operator",
-                            },
-                            {
                               "children": [
                                 {
                                   "children": [
@@ -1239,14 +1194,14 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                             },
                           ],
                           "data": {
-                            "operator": "application",
+                            "operator": "minus",
                             "position": {
                               "end": 58,
                               "start": 52,
                             },
                             "precedence": [
-                              9007199254740989,
-                              9007199254740990,
+                              null,
+                              18,
                             ],
                           },
                           "type": "operator",
@@ -1470,7 +1425,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                           "start": 61,
                         },
                         "precedence": [
-                          9007199254740991,
+                          9007199254740988,
                           null,
                         ],
                       },
@@ -1733,21 +1688,6 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
                     {
                       "children": [],
                       "data": {
-                        "operator": "minus",
-                        "position": {
-                          "end": 14,
-                          "start": 13,
-                        },
-                        "precedence": [
-                          null,
-                          null,
-                        ],
-                      },
-                      "type": "operator",
-                    },
-                    {
-                      "children": [],
-                      "data": {
                         "position": {
                           "end": 15,
                           "start": 14,
@@ -1758,14 +1698,14 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
                     },
                   ],
                   "data": {
-                    "operator": "application",
+                    "operator": "minus",
                     "position": {
                       "end": 15,
                       "start": 13,
                     },
                     "precedence": [
-                      9007199254740989,
-                      9007199254740990,
+                      null,
+                      18,
                     ],
                   },
                   "type": "operator",
@@ -2137,21 +2077,6 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
                         {
                           "children": [
                             {
-                              "children": [],
-                              "data": {
-                                "operator": "minus",
-                                "position": {
-                                  "end": 54,
-                                  "start": 53,
-                                },
-                                "precedence": [
-                                  null,
-                                  null,
-                                ],
-                              },
-                              "type": "operator",
-                            },
-                            {
                               "children": [
                                 {
                                   "children": [
@@ -2234,14 +2159,14 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
                             },
                           ],
                           "data": {
-                            "operator": "application",
+                            "operator": "minus",
                             "position": {
                               "end": 60,
                               "start": 53,
                             },
                             "precedence": [
-                              9007199254740989,
-                              9007199254740990,
+                              null,
+                              18,
                             ],
                           },
                           "type": "operator",
@@ -2305,7 +2230,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
                               "start": 61,
                             },
                             "precedence": [
-                              9007199254740991,
+                              9007199254740988,
                               null,
                             ],
                           },
@@ -4299,7 +4224,7 @@ exports[`finds all errors in example 'send([j, i])' 2`] = `
                   "start": 5,
                 },
                 "precedence": [
-                  9007199254740991,
+                  9007199254740988,
                   null,
                 ],
               },
@@ -4385,21 +4310,6 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`
                         {
                           "children": [
                             {
-                              "children": [],
-                              "data": {
-                                "operator": "minus",
-                                "position": {
-                                  "end": 6,
-                                  "start": 5,
-                                },
-                                "precedence": [
-                                  null,
-                                  null,
-                                ],
-                              },
-                              "type": "operator",
-                            },
-                            {
                               "children": [
                                 {
                                   "children": [
@@ -4482,14 +4392,14 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`
                             },
                           ],
                           "data": {
-                            "operator": "application",
+                            "operator": "minus",
                             "position": {
                               "end": 12,
                               "start": 5,
                             },
                             "precedence": [
-                              9007199254740989,
-                              9007199254740990,
+                              null,
+                              18,
                             ],
                           },
                           "type": "operator",
@@ -4553,7 +4463,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`
                               "start": 13,
                             },
                             "precedence": [
-                              9007199254740991,
+                              9007199254740988,
                               null,
                             ],
                           },
@@ -4764,21 +4674,6 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
                     {
                       "children": [
                         {
-                          "children": [],
-                          "data": {
-                            "operator": "minus",
-                            "position": {
-                              "end": 6,
-                              "start": 5,
-                            },
-                            "precedence": [
-                              null,
-                              null,
-                            ],
-                          },
-                          "type": "operator",
-                        },
-                        {
                           "children": [
                             {
                               "children": [
@@ -4861,14 +4756,14 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
                         },
                       ],
                       "data": {
-                        "operator": "application",
+                        "operator": "minus",
                         "position": {
                           "end": 12,
                           "start": 5,
                         },
                         "precedence": [
-                          9007199254740989,
-                          9007199254740990,
+                          null,
+                          18,
                         ],
                       },
                       "type": "operator",
@@ -4932,7 +4827,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
                           "start": 13,
                         },
                         "precedence": [
-                          9007199254740991,
+                          9007199254740988,
                           null,
                         ],
                       },

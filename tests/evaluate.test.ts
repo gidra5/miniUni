@@ -119,7 +119,7 @@ describe('evaluate', () => {
             if !digits[0]: digits[0] = digit
             digits[1] = digit
           }
-          line = slice(line, 1)
+          line = slice line (1,)
         }
         digits[0] * 10, digits[1]
       }
@@ -180,8 +180,8 @@ describe('evaluate', () => {
         midpoint := floor(len / 2)
         item := list[midpoint]
         first, second := all(
-          | (self (slice(list, 0, midpoint)) reducer merge initial)
-          | (self (slice(list, midpoint + 1)) reducer merge initial)
+          | (self (slice list (0, midpoint)) reducer merge initial)
+          | (self (slice list (midpoint + 1,)) reducer merge initial)
         )
         merge (reducer first item) second
       }
@@ -347,7 +347,7 @@ describe('evaluate', () => {
     expect(result).toEqual(5);
   });
 
-  it('evaluate scope 6', async () => {
+  it('evaluate scope 7', async () => {
     const input = `
       n := 1
       { n += 5 }

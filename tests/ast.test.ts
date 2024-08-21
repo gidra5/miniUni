@@ -52,8 +52,8 @@ describe('ast', () => {
         digits := ()
 
         while line != "" {
-          if match "\d" line[0] {
-            digit := number line[0]
+          if match "\d" (char_at line 0) {
+            digit := number(char_at line 0)
             if !digits[0]: digits[0] = digit
             digits[1] = digit
           }
@@ -135,6 +135,14 @@ describe('ast', () => {
 
   it('ast period operator', () => {
     const input = `math.floor`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('ast methods', () => {
+    const input = `math.floor(1).multiply(2)`;
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
 

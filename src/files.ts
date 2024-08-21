@@ -51,10 +51,13 @@ export const prelude: Record<string, EvalValue> = {
   length: fn(1, ([position, fileId], list) => {
     const lengthErrorFactory = SystemError.invalidArgumentType(
       'length',
-      { args: [['list', 'list _']], returns: 'number' },
+      { args: [['list', 'list _ | string']], returns: 'number' },
       position
     );
-    assert(Array.isArray(list), lengthErrorFactory(0).withFileId(fileId));
+    assert(
+      Array.isArray(list) || typeof list === 'string',
+      lengthErrorFactory(0).withFileId(fileId)
+    );
     return list.length;
   }),
   number: fn(1, (_, n) => {
@@ -191,7 +194,7 @@ export const modules: Dictionary = {
       );
       return target.charAt(index);
     }),
-    slice: fn(1, ([position, fileId], args) => {
+    slice: fn(2, ([position, fileId], item, args) => {
       const sliceErrorFactory = SystemError.invalidArgumentType(
         'slice',
         {
@@ -212,7 +215,7 @@ export const modules: Dictionary = {
           position
         ).withFileId(fileId)
       );
-      const [item, start, end] = args;
+      const [start, end] = args;
 
       assert(
         typeof item === 'string' || Array.isArray(item),
@@ -234,6 +237,31 @@ export const modules: Dictionary = {
       return item.slice(start, end);
     }),
   }),
+  'std/iter': module({
+    range: fn(2, ([position, fileId], start, end) => {
+      const rangeErrorFactory = SystemError.invalidArgumentType(
+        'range',
+        {
+          args: [
+            ['start', 'number'],
+            ['end', 'number?'],
+          ],
+          returns: 'list number',
+        },
+        position
+      );
+      assert(
+        typeof start === 'number',
+        rangeErrorFactory(0).withFileId(fileId)
+      );
+      assert(typeof end === 'number', rangeErrorFactory(1).withFileId(fileId));
+      const list: number[] = [];
+      for (let i = start; i < end; i++) {
+        list.push(i);
+      }
+      return list;
+    }),
+  }),
   'std/concurrency': module({
     all: fn(1, async ([position, fileId], list) => {
       const allErrorFactory = SystemError.invalidArgumentType(
@@ -253,6 +281,85 @@ export const modules: Dictionary = {
     }),
   }),
 };
+
+export const stringMethods = (() => {
+  const strmod = modules['std/string'];
+  const { module } = strmod as Extract<typeof strmod, { module: any }>;
+  return {
+    split: module.split,
+    char_at: module.char_at,
+    slice: module.slice,
+    replace: fn(3, async (callSite, target, pattern, replacement) => {
+      const method = module.replace;
+      assert(typeof method === 'function', 'expected method');
+      const x1 = await method(pattern, callSite);
+      assert(typeof x1 === 'function', 'expected method');
+      const x2 = await x1(replacement, callSite);
+      assert(typeof x2 === 'function', 'expected method');
+      return await x2(target, callSite);
+    }),
+    match: fn(2, async (callSite, target, pattern) => {
+      const method = module.match;
+      assert(typeof method === 'function', 'expected method');
+      const x1 = await method(pattern, callSite);
+      assert(typeof x1 === 'function', 'expected method');
+      return await x1(target, callSite);
+    }),
+  };
+})();
+
+export const listMethods = (() => {
+  const strmod = modules['std/string'];
+  const { module } = strmod as Extract<typeof strmod, { module: any }>;
+  return {
+    slice: module.slice,
+    map: fn(2, async ([pos, fileId], list, fn) => {
+      const mapErrorFactory = SystemError.invalidArgumentType(
+        'map',
+        {
+          args: [
+            ['list', 'list a'],
+            ['fn', 'a -> b'],
+          ],
+          returns: 'list b',
+        },
+        pos
+      );
+      assert(Array.isArray(list), mapErrorFactory(0).withFileId(fileId));
+      assert(typeof fn === 'function', mapErrorFactory(1).withFileId(fileId));
+      const mapped: EvalValue[] = [];
+      for (const item of list) {
+        const x = await fn(item, [pos, fileId]);
+        mapped.push(x);
+      }
+      return mapped;
+    }),
+    filter: fn(2, async ([pos, fileId], list, fn) => {
+      const filterErrorFactory = SystemError.invalidArgumentType(
+        'filter',
+        {
+          args: [
+            ['list', 'list a'],
+            ['fn', 'a -> boolean'],
+          ],
+          returns: 'list a',
+        },
+        pos
+      );
+      assert(Array.isArray(list), filterErrorFactory(0).withFileId(fileId));
+      assert(
+        typeof fn === 'function',
+        filterErrorFactory(1).withFileId(fileId)
+      );
+      const filtered: EvalValue[] = [];
+      for (const item of list) {
+        const x = await fn(item, [pos, fileId]);
+        if (x) filtered.push(item);
+      }
+      return filtered;
+    }),
+  };
+})();
 
 let root = process.cwd();
 

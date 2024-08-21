@@ -1,36 +1,30 @@
-import "std/string" as { split }
+import "std/iter" as { range }
 
 content := string import "./test.txt"
-matrix := (split content "\n").filter(line -> length line).map(line -> split line "")
+matrix := content.split("\n").filter(line -> length line).map(line -> line.split("").filter(char -> char != "\r"))
 sum := 0
 
-for columnIndex in (0..matrix[0].length) {
-  availableSpace := 0
+col_height := length matrix
 
-  for rowIndex in (0..matrix.length) {
-    load := matrix.length - rowIndex
+for columnIndex in range 0 (length (matrix[0])) {
+  handle := -1
+  count := 0
+
+  for rowIndex in range 0 col_height {
     char := matrix[rowIndex][columnIndex]
-
-    if char == "." {
-      availableSpace++
-      continue()
-    }
-
+    
     if char == "#" {
-      availableSpace = 0
-      continue()
+      load := col_height - handle - (1 + count)/2
+      sum += count * load
+      count = 0
+      handle = rowIndex
     }
 
-    if availableSpace > 0 {
-      load += availableSpace
-      matrix[rowIndex][columnIndex] = "."
-      matrix[rowIndex - availableSpace][columnIndex] = char
-    }
-
-    sum += load
+    if char == "O": count++
   }
+
+  load := col_height - handle - (1 + count)/2
+  sum += count * load
 }
 
 sum
-
-console.log(sum)

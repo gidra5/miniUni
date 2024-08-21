@@ -140,7 +140,7 @@ export const operator = (
       case OperatorType.APPLICATION:
         return leftAssociative(maxPrecedence - 2);
       case OperatorType.INDEX:
-        return [maxPrecedence, null];
+        return [maxPrecedence - 3, null];
 
       case OperatorType.TUPLE:
         return associative(tuplePrecedence);
@@ -164,6 +164,10 @@ export const operator = (
       case OperatorType.LESS:
         return rightAssociative(booleanPrecedence + 4);
       case OperatorType.LESS_EQUAL:
+        return rightAssociative(booleanPrecedence + 4);
+      case OperatorType.GREATER:
+        return rightAssociative(booleanPrecedence + 4);
+      case OperatorType.GREATER_EQUAL:
         return rightAssociative(booleanPrecedence + 4);
       case OperatorType.NOT:
         return [null, booleanPrecedence + 5];
@@ -193,6 +197,10 @@ export const operator = (
         return leftAssociative(arithmeticPrecedence + 4);
       case OperatorType.POW:
         return rightAssociative(arithmeticPrecedence + 6);
+      case OperatorType.MINUS:
+        return [null, arithmeticPrecedence + 7];
+      case OperatorType.PLUS:
+        return [null, arithmeticPrecedence + 7];
       case OperatorType.ATOM:
         return [null, 1];
       default:
@@ -319,6 +327,8 @@ export enum OperatorType {
   LOOP = 'loop',
   FOR = 'for',
   ASYNC = 'async',
+  GREATER = '>',
+  GREATER_EQUAL = '>=',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -349,6 +359,8 @@ const idToExprOp = {
   '!=': OperatorType.NOT_EQUAL,
   '<': OperatorType.LESS,
   '<=': OperatorType.LESS_EQUAL,
+  '>': OperatorType.GREATER,
+  '>=': OperatorType.GREATER_EQUAL,
   '++': OperatorType.POST_INCREMENT,
   '--': OperatorType.POST_DECREMENT,
   '->': OperatorType.FUNCTION,

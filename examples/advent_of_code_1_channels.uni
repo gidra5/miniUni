@@ -52,7 +52,7 @@ async loop {
         last_digit = digit
       }
 
-      line = slice(line, 1)
+    line = slice line (1,)
     }
 
     numbers <- last_digit

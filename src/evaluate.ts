@@ -1,6 +1,12 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from './error.js';
-import { fileMap, getModule, prelude } from './files.js';
+import {
+  fileMap,
+  getModule,
+  listMethods,
+  prelude,
+  stringMethods,
+} from './files.js';
 import {
   NodeType,
   OperatorType,
@@ -559,11 +565,11 @@ export const evaluateStatement = async (
           return left ** right;
         }
         case OperatorType.MINUS: {
-          const arg = evaluateExpr(ast.children[0], context);
+          const arg = await evaluateExpr(ast.children[0], context);
           return -arg;
         }
         case OperatorType.PLUS: {
-          const arg = evaluateExpr(ast.children[0], context);
+          const arg = await evaluateExpr(ast.children[0], context);
           return +arg;
         }
         case OperatorType.INCREMENT: {
@@ -661,6 +667,18 @@ export const evaluateStatement = async (
           )) as number[];
           return left <= right;
         }
+        case OperatorType.GREATER: {
+          const [left, right] = (await Promise.all(
+            ast.children.map((child) => evaluateExpr(child, context))
+          )) as number[];
+          return left > right;
+        }
+        case OperatorType.GREATER_EQUAL: {
+          const [left, right] = (await Promise.all(
+            ast.children.map((child) => evaluateExpr(child, context))
+          )) as number[];
+          return left >= right;
+        }
         case OperatorType.NOT: {
           const arg = await evaluateExpr(ast.children[0], context);
           return !arg;
@@ -670,21 +688,26 @@ export const evaluateStatement = async (
           return await evaluateStatement(ast.children[0], context);
 
         case OperatorType.INDEX: {
-          const [list, index] = await Promise.all(
+          const [target, index] = await Promise.all(
             ast.children.map((child) => evaluateExpr(child, context))
           );
 
-          if (Array.isArray(list)) {
-            assert(
-              Number.isInteger(index),
-              SystemError.invalidIndex(ast.data.position).withFileId(
-                context.fileId
-              )
-            );
-            assert(typeof index === 'number');
-            return list[index];
-          } else if (isRecord(list)) {
-            const record = list.record;
+          if (Array.isArray(target)) {
+            if (!Number.isInteger(index)) {
+              assert(
+                typeof index === 'string',
+                SystemError.invalidIndex(ast.data.position).withFileId(
+                  context.fileId
+                )
+              );
+              return await listMethods[index](target, [
+                ast.data.position,
+                context.fileId,
+              ]);
+            }
+            return target[index as number];
+          } else if (isRecord(target)) {
+            const record = target.record;
             assert(
               typeof index === 'string',
               SystemError.invalidIndex(ast.data.position).withFileId(
@@ -692,6 +715,19 @@ export const evaluateStatement = async (
               )
             );
             return record[index];
+          }
+
+          if (typeof target === 'string') {
+            assert(
+              typeof index === 'string' && index in stringMethods,
+              SystemError.invalidIndex(ast.data.position).withFileId(
+                context.fileId
+              )
+            );
+            return await stringMethods[index](target, [
+              ast.data.position,
+              context.fileId,
+            ]);
           }
 
           unreachable(
@@ -728,8 +764,10 @@ export const evaluateStatement = async (
               (value) => send(channel.channel, value),
               (e) => {
                 send(channel.channel, e);
-                e.print();
                 console.error(e);
+
+                if (e instanceof SystemError) e.print();
+                else showNode(e.message, ast.children[0]);
               }
             )
             .finally(() => {
@@ -748,9 +786,10 @@ export const evaluateStatement = async (
               .then(
                 (value) => send(channel.channel, value),
                 (e) => {
-                  send(channel.channel, e);
-                  e.print();
                   console.error(e);
+                  send(channel.channel, e);
+                  if (e instanceof SystemError) e.print();
+                  else showNode(e.message, child);
                 }
               )
               .finally(() => {
