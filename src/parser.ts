@@ -335,15 +335,15 @@ export enum OperatorType {
 // left associative - left one will take precedence
 // right associative - right one will take precedence
 // associative - does not matter, can be grouped in any order
-export const leftAssociative = (precedence: number): Precedence => [
+const leftAssociative = (precedence: number): Precedence => [
   precedence,
   precedence + 1,
 ];
-export const rightAssociative = (precedence: number): Precedence => [
+const rightAssociative = (precedence: number): Precedence => [
   precedence + 1,
   precedence,
 ];
-export const associative = (precedence: number): Precedence => [
+const associative = (precedence: number): Precedence => [
   precedence,
   precedence,
 ];
@@ -411,7 +411,7 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
   (tokens.includes(token.src) ||
     (tokens.includes('\n') && token.type === 'newline'));
 
-export const parsePatternGroup =
+const parsePatternGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -516,7 +516,7 @@ export const parsePatternGroup =
     return [index, token(src[index - 1], nodePosition())];
   };
 
-export const parsePatternPrefix =
+const parsePatternPrefix =
   (banned: string[] = [], skip: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -533,7 +533,7 @@ export const parsePatternPrefix =
     return [index, group];
   };
 
-export const parsePattern =
+const parsePattern =
   (precedence = 0, banned: string[] = [], skip: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -571,7 +571,7 @@ export const parsePattern =
     return [index, lhs];
   };
 
-export const parseSequence = (
+const parseSequence = (
   src: TokenPos[],
   i: number,
   banned: string[] = []
@@ -597,7 +597,7 @@ export const parseSequence = (
   return [index, operator(OperatorType.SEQUENCE, nodePosition(), ...children)];
 };
 
-export const parseGroup =
+const parseGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -716,7 +716,7 @@ export const parseGroup =
         index++;
         const [_index, body] = parseExpr(0, ['else'])(src, index);
 
-        if (src[_index].src !== 'else') {
+        if (src[_index]?.src !== 'else') {
           return [index, operator(OperatorType.IF, nodePosition(), condition)];
         }
 
@@ -941,10 +941,10 @@ export const parseGroup =
         let node: AbstractSyntaxTree;
         [index, node] = parseExpr(0, ['|'])(src, index);
         children.push(node);
-        if (src[index].type === 'newline') index++;
+        if (src[index]?.type === 'newline') index++;
       }
 
-      if (src[index - 1].type === 'newline') index--;
+      if (src[index - 1]?.type === 'newline') index--;
 
       return [index, node()];
       // index++;
@@ -1030,7 +1030,7 @@ export const parseGroup =
     return [index, token(src[index - 1], nodePosition())];
   };
 
-export const parsePrefix =
+const parsePrefix =
   (banned: string[] = [], skip: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -1058,7 +1058,7 @@ export const parsePrefix =
     return [index, group];
   };
 
-export const parseExpr =
+const parseExpr =
   (precedence = 0, banned: string[] = [], skip: string[] = []) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
     let index = i;
@@ -1082,11 +1082,10 @@ export const parseExpr =
 
       // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
       // which means we can put all arguments into one group
-      if (
-        left === right &&
-        group.data.operator === lhs.data.operator &&
-        rhs.type !== NodeType.IMPLICIT_PLACEHOLDER
-      ) {
+      const associative = left === right;
+      const hasSameOperator = group.data.operator === lhs.data.operator;
+      const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
+      if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
       } else {
         lhs = infix(group, lhs, rhs);
@@ -1096,7 +1095,7 @@ export const parseExpr =
     return [index, lhs];
   };
 
-export const parseDeclaration = (
+const parseDeclaration = (
   src: TokenPos[],
   i = 0
 ): [index: number, ast: AbstractSyntaxTree] => {

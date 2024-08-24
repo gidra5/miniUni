@@ -69,7 +69,7 @@ export const placeholder = (src: string, pos: Position): TokenPos => ({
   ...pos,
 });
 
-export const parseBlockComment = (src: string, i: number): number => {
+const parseBlockComment = (src: string, i: number): number => {
   let index = i;
   while (src.charAt(index) && !src.startsWith('*/', index)) {
     index++;
