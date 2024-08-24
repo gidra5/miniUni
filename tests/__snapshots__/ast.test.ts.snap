@@ -1418,6 +1418,119 @@ exports[`ast parallel multiline parens 1`] = `
 }
 `;
 
+exports[`ast parens multiline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 9,
+                          "start": 8,
+                        },
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 19,
+                          "start": 18,
+                        },
+                        "value": 2,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 19,
+                      "start": 8,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 26,
+                  "start": 0,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "cause": [Error: Missing token: ")"],
+            "position": {
+              "end": 26,
+              "start": 0,
+            },
+          },
+          "type": "error",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 29,
+              "start": 28,
+            },
+            "value": 3,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 29,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 35,
+          "start": 34,
+        },
+        "value": ")",
+      },
+      "type": "name",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`ast parse numbers 1`] = `
 {
   "children": [

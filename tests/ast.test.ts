@@ -197,6 +197,18 @@ describe('ast', () => {
     expect(ast).toMatchSnapshot();
   });
 
+  it('ast parens multiline', async () => {
+    const input = `(
+      1 +
+      2
+      + 3
+    )`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
   it('ast no parens multiline', async () => {
     const input = `
       1 +

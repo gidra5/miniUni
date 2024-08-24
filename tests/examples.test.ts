@@ -24,10 +24,10 @@ const examples = [
     expected: 142,
   },
   {
-    root: path.resolve('./examples/advent_of_code_14/test.uni'),
+    root: path.resolve('./examples/advent_of_code_14/index.uni'),
     name: 'advent of code 2023, day 14, single script',
-    file: './test.uni',
-    expected: 136,
+    file: './index.uni',
+    expected: 113456,
   },
 ];
 
