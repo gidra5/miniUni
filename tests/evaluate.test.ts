@@ -77,9 +77,9 @@ it('evaluate split lines', async () => {
     }),
   };
   const input = `
-      import "std/string" as { split, replace }
-      lines := split document "\\n"
-      lines = map lines (replace "\\\\s+" "")
+      import "std/string" as { split, replace };
+      lines := split document "\\n";
+      lines = map lines (replace "\\\\s+" "");
       filter lines fn line -> line != ""
     `;
   const result = await evaluate(input, env);
@@ -103,18 +103,18 @@ it('evaluate parse numbers', async () => {
     }),
   };
   const input = `
-      import "std/string" as { char_at, match, slice }
+      import "std/string" as { char_at, match, slice };
       numbers := flat_map lines fn line {
-        digits := ()
+        digits := ();
         while line != "" {
           if match "\\\\d" (char_at line 0) {
-            digit := number (char_at line 0)
-            if !digits[0]: digits[0] = digit
-            digits[1] = digit
-          }
-          line = slice line (1,)
-        }
-        digits[0] * 10, digits[1]
+            digit := number (char_at line 0);
+            if !digits[0]: digits[0] = digit;
+            digits[1] = digit;
+          };
+          line = slice line (1,);
+        };
+        digits[0] * 10, digits[1];
       }
     `;
   const result = await evaluate(input, env);
@@ -123,8 +123,8 @@ it('evaluate parse numbers', async () => {
 
 it('evaluate drop last', async () => {
   const input = `
-      list := 1, 2, 3
-      ...list, _ = list
+      list := 1, 2, 3;
+      ...list, _ = list;
       list
     `;
   const result = await evaluate(input);
@@ -143,7 +143,7 @@ it('evaluate flat map list impl', async () => {
 
 it('evaluate parallel all', async () => {
   const input = `
-      import "std/concurrency" as { all }
+      import "std/concurrency" as { all };
       all(1 | 2)
     `;
   const result = await evaluate(input);
@@ -152,7 +152,7 @@ it('evaluate parallel all', async () => {
 
 it('evaluate parallel all multiline', async () => {
   const input = `
-      import "std/concurrency" as { all }
+      import "std/concurrency" as { all };
       all(
         | 1
         | 2
@@ -164,20 +164,24 @@ it('evaluate parallel all multiline', async () => {
 
 it('evaluate reduce list', async () => {
   const input = `
-      import "std/concurrency" as { all }
-      import "std/math" as { floor }
-      import "std/string" as { slice }
+      import "std/concurrency" as { all };
+      import "std/math" as { floor };
+      import "std/string" as { slice };
+
       reduce := fn list, reducer, merge, initial {
-        len := length list
-        if len == 0: return initial
-        midpoint := floor(len / 2)
-        item := list[midpoint]
+        len := length list;
+        if len == 0: return initial;
+
+        midpoint := floor(len / 2);
+        item := list[midpoint];
         first, second := all(
           | (self (slice list (0, midpoint)) reducer merge initial)
           | (self (slice list (midpoint + 1,)) reducer merge initial)
-        )
+        );
+
         merge (reducer first item) second
-      }
+      };
+
       reduce (1, 2, 3, 4, 5) (fn acc, item -> acc + item) (fn first, second -> first + second) 0
     `;
   const result = await evaluate(input);
@@ -186,10 +190,10 @@ it('evaluate reduce list', async () => {
 
 it('evaluate filter list impl', async () => {
   const input = `
-      predicate := true
-      first := ()
-      item := 1
-      acc := ()
+      predicate := true;
+      first := ();
+      item := 1;
+      acc := ();
       if predicate: (...first, item) else acc
     `;
   const result = await evaluate(input);
@@ -198,30 +202,34 @@ it('evaluate filter list impl', async () => {
 
 it('evaluate channels sync', async () => {
   const input = `
-      lines := channel "lines"
+      lines := channel "lines";
+
       | {
-        lines <- "1"
+        lines <- "1";
         close lines
-      }
+      };
+
       while true {
-        value, status := <-?lines
-        if status == (:empty): continue()
-        if status == (:closed): break()
+        value, status := <-?lines;
+        if status == (:empty): continue();
+        if status == (:closed): break();
         value
       }
     `;
   const result = await evaluate(input);
   expect(result).toStrictEqual([]);
   const input2 = `
-      lines := channel "lines"
+      lines := channel "lines";
+
       async {
-        lines <- "1"
+        lines <- "1";
         close lines
-      }
+      };
+
       while true {
-        value, status := <-?lines
-        if status == (:empty): continue()
-        if status == (:closed): break()
+        value, status := <-?lines;
+        if status == (:empty): continue();
+        if status == (:closed): break();
         value
       }
     `;
@@ -231,32 +239,36 @@ it('evaluate channels sync', async () => {
 
 it('evaluate channels sync 2', async () => {
   const input = `
-      lines := channel "lines"
+      lines := channel "lines";
+
       | {
-        lines <- "1"
-        lines <- "2"
+        lines <- "1";
+        lines <- "2";
         close lines
-      }
+      };
+
       while true {
-        value, status := <-?lines
-        if status == (:empty): continue()
-        if status == (:closed): break()
+        value, status := <-?lines;
+        if status == (:empty): continue();
+        if status == (:closed): break();
         value
       }
     `;
   const result = await evaluate(input);
   expect(result).toStrictEqual([]);
   const input2 = `
-      lines := channel "lines"
+      lines := channel "lines";
+
       async {
-        lines <- "1"
-        lines <- "2"
+        lines <- "1";
+        lines <- "2";
         close lines
-      }
+      };
+
       while true {
-        value, status := <-?lines
-        if status == (:empty): continue()
-        if status == (:closed): break()
+        value, status := <-?lines;
+        if status == (:empty): continue();
+        if status == (:closed): break();
         value
       }
     `;
@@ -266,8 +278,8 @@ it('evaluate channels sync 2', async () => {
 
 it('evaluate fn increment', async () => {
   const input = `
-      line_handled_count := 0
-      inc := fn -> line_handled_count++
+      line_handled_count := 0;
+      inc := fn -> line_handled_count++;
       inc()
     `;
   const result = await evaluate(input);
@@ -276,8 +288,8 @@ it('evaluate fn increment', async () => {
 
 it('evaluate scope 1', async () => {
   const input = `
-      x := 1
-      { x := 2 }
+      x := 1;
+      { x := 2 };
       x
     `;
   const result = await evaluate(input);
@@ -286,8 +298,8 @@ it('evaluate scope 1', async () => {
 
 it('evaluate scope 2', async () => {
   const input = `
-      x := 1
-      loop { x := 2; break() }
+      x := 1;
+      loop { x := 2; break() };
       x
     `;
   const result = await evaluate(input);
@@ -296,8 +308,10 @@ it('evaluate scope 2', async () => {
 
 it('evaluate scope 3', async () => {
   const input = `
-      import "std/concurrency" as { all }
-      x := fn (a, b) -> a + b
+      import "std/concurrency" as { all };
+
+      x := fn (a, b) -> a + b;
+
       all(x(1, 2) | x(3, 4))
     `;
   const result = await evaluate(input);
@@ -306,11 +320,13 @@ it('evaluate scope 3', async () => {
 
 it('evaluate scope 4', async () => {
   const input = `
-      number := 1
+      number := 1;
+
       while true {
-        number := 5
+        number := 5;
         break()
-      }
+      };
+
       number
     `;
   const result = await evaluate(input);
@@ -319,11 +335,13 @@ it('evaluate scope 4', async () => {
 
 it('evaluate scope 5', async () => {
   const input = `
-      number := 1
+      number := 1;
+
       for x in 1, 2, 3 {
-        number := 5
+        number := 5;
         break()
-      }
+      };
+
       number
     `;
   const result = await evaluate(input);
@@ -332,8 +350,8 @@ it('evaluate scope 5', async () => {
 
 it('evaluate scope 6', async () => {
   const input = `
-      n := 1
-      { n = 5 }
+      n := 1;
+      { n = 5 };
       n
     `;
   const result = await evaluate(input);
@@ -342,8 +360,8 @@ it('evaluate scope 6', async () => {
 
 it('evaluate scope 7', async () => {
   const input = `
-      n := 1
-      { n += 5 }
+      n := 1;
+      { n += 5 };
       n
     `;
   const result = await evaluate(input);

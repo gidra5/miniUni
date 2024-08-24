@@ -1,30 +1,35 @@
-import "std/iter" as { range }
+import "std/iter" as { range };
 
-content := string import "./input.txt"
-matrix := content.split("\n").filter(line -> length line).map(line -> line.split("").filter(char -> char != "\r"))
-sum := 0
+content := string import "./input.txt";
+matrix := content
+  .split("\n")
+  .filter(line -> length line)
+  .map(line -> line.split("")
+    .filter(char -> char != "\r")
+  );
+sum := 0;
 
-col_height := length matrix
+col_height := length matrix;
 
 for columnIndex in range 0 (length (matrix[0])) {
-  handle := -1
-  count := 0
+  handle := -1;
+  count := 0;
 
   for rowIndex in range 0 col_height {
-    char := matrix[rowIndex][columnIndex]
+    char := matrix[rowIndex][columnIndex];
     
     if char == "#" {
-      load := col_height - handle - (1 + count)/2
-      sum += count * load
-      count = 0
-      handle = rowIndex
-    }
+      load := col_height - handle - (1 + count)/2;
+      sum += count * load;
+      count = 0;
+      handle = rowIndex;
+    };
 
-    if char == "O": count++
-  }
+    if char == "O": count++;
+  };
 
-  load := col_height - handle - (1 + count)/2
-  sum += count * load
-}
+  load := col_height - handle - (1 + count)/2;
+  sum += count * load;
+};
 
 sum

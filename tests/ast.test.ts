@@ -46,9 +46,9 @@ it('ast variable', () => {
 it('ast split lines', () => {
   const input = `
       lines := {
-        lines := split document "\\n"
-        lines = map lines (replace "\\w+" "")
-        lines = filter lines fn line -> line != ""
+        lines := split document "\\n";
+        lines = map lines (replace "\\w+" "");
+        lines = filter lines fn line -> line != "";
       }
     `;
   const tokens = parseTokens(input);
@@ -68,16 +68,16 @@ it('ast unit', () => {
 it('ast parse numbers', () => {
   const input = `
       numbers := flat_map lines fn line {
-        digits := ()
+        digits := ();
 
         while line != "" {
           if match "\d" (char_at line 0) {
-            digit := number(char_at line 0)
-            if !digits[0]: digits[0] = digit
-            digits[1] = digit
-          }
-          (_, ...line) = line
-        }
+            digit := number(char_at line 0);
+            if !digits[0]: digits[0] = digit;
+            digits[1] = digit;
+          };
+          (_, ...line) = line;
+        };
 
         digits[0], digits[1] * 10
       }
@@ -133,15 +133,15 @@ it('ast args list', () => {
 it('ast reduce list', () => {
   const input = `
       reduce := fn list, reducer, merge, initial {
-        len := length list
-        if len == 0: return initial
+        len := length list;
+        if len == 0: return initial;
       
-        midpoint := floor(len / 2)
-        item := list[midpoint]
+        midpoint := floor(len / 2);
+        item := list[midpoint];
         first, second := all(
           | (reduce slice(list, 0, midpoint) reducer merge initial)
           | (reduce slice(list, midpoint + 1) reducer merge initial)
-        )
+        );
       
         merge (reducer first item) second
       }
@@ -170,7 +170,7 @@ it('ast methods', () => {
 
 it('ast prefix parallel', () => {
   const input = `
-      | { }
+      | { };
       numbers := channel()
     `;
   const tokens = parseTokens(input);

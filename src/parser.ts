@@ -899,30 +899,8 @@ const parseGroup =
     }
 
     if (!lhs && src[index].src === '|') {
-      const children: AbstractSyntaxTree[] = [];
-      const node = () => {
-        const node = operator(
-          OperatorType.PARALLEL,
-          nodePosition(),
-          ...children
-        );
-        node.data.precedence = [null, null];
-        return node;
-      };
-
-      while (src[index] && src[index].src === '|') {
-        index++;
-        let node: AbstractSyntaxTree;
-        [index, node] = parseExpr(0, ['|'])(src, index);
-        children.push(node);
-        if (src[index]?.type === 'newline') index++;
-      }
-
-      if (src[index - 1]?.type === 'newline') index--;
-
-      return [index, node()];
-      // index++;
-      // return parseGroup(banned, skip, lhs)(src, index);
+      index++;
+      return parseGroup(banned, skip, lhs)(src, index);
     }
 
     if (!lhs && src[index].src === '{') {
@@ -1038,31 +1016,39 @@ const parseExpr =
     let index = i;
     let lhs: AbstractSyntaxTree;
     [index, lhs] = parsePrefix(banned, skip)(src, index);
+    const until = () => {
+      return banned.length === 0 || !tokenIncludes(src[index], banned);
+    };
 
-    while (src[index] && !tokenIncludes(src[index], ['\n'])) {
-      let [nextIndex, group] = parseGroup(banned, skip, true)(src, index);
-      const [left, right] = group.data.precedence ?? [null, null];
+    while (src[index] && until()) {
+      let [nextIndex, opGroup] = parseGroup(
+        banned,
+        [...skip, '\n'],
+        true
+      )(src, index);
+      const [left, right] = opGroup.data.precedence ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
 
       if (right === null) {
-        lhs = postfix(group, lhs);
+        lhs = postfix(opGroup, lhs);
         continue;
       }
 
       let rhs: AbstractSyntaxTree;
       [index, rhs] = parseExpr(right, banned, skip)(src, index);
 
-      // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
+      // if two same operators are next to each other, and their precedence is the same on both sides
+      // so it is both left and right associative
       // which means we can put all arguments into one group
       const associative = left === right;
-      const hasSameOperator = group.data.operator === lhs.data.operator;
+      const hasSameOperator = opGroup.data.operator === lhs.data.operator;
       const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
       if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
       } else {
-        lhs = infix(group, lhs, rhs);
+        lhs = infix(opGroup, lhs, rhs);
       }
     }
 
@@ -1088,7 +1074,7 @@ const parseSequence = (
       continue;
     }
     let node: AbstractSyntaxTree;
-    [index, node] = parseExpr(0, ['\n', ';', ...banned])(src, index);
+    [index, node] = parseExpr(0, [';', ...banned])(src, index);
     children.push(node);
   }
 
@@ -1099,7 +1085,7 @@ const parseDeclaration = (
   src: TokenPos[],
   i = 0
 ): [index: number, ast: AbstractSyntaxTree] => {
-  return parseExpr(0, ['\n', ';'])(src, i);
+  return parseExpr(0, [';'])(src, i);
 };
 
 export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {

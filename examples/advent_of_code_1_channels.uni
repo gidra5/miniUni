@@ -1,5 +1,5 @@
-import "std/string" as { split, replace, match, char_at, slice }
-import "std/concurrency" as { all }
+import "std/string" as { split, replace, match, char_at, slice };
+import "std/concurrency" as { all };
 
 // https://adventofcode.com/2023/day/1
 
@@ -10,67 +10,67 @@ document := "
   pqr3stu8vwx\
   a1b2c3d4e5f\
   treb7uchet\
-"
+";
 
-lines := channel "lines"
+lines := channel "lines";
 
 async {
   for line in split document "\n" {
-    line = replace "\\s+" "" line
-    if line != "": lines <- line
-  }
+    line = replace "\\s+" "" line;
+    if line != "": lines <- line;
+  };
 
   close lines
-}
+};
 
-numbers := channel "numbers"
-line_count := 0
-line_handled_count := 0
-lines_done := false
-inc := fn -> line_handled_count++
+numbers := channel "numbers";
+line_count := 0;
+line_handled_count := 0;
+lines_done := false;
+inc := fn -> line_handled_count++;
 
 async loop {
-  line, status := <-?lines
+  line, status := <-?lines;
   if status == (:closed) {
-    lines_done = true
-    break()
-  }
+    lines_done = true;
+    break();
+  };
   if status == (:empty): continue();
-  line_count++
+  line_count++;
   
   async {
-    first_digit := false
-    last_digit := 0
+    first_digit := false;
+    last_digit := 0;
 
     while line != "" {
       if match "\\d" (char_at line 0) {
-        digit := number (char_at line 0)
+        digit := number (char_at line 0);
         if !first_digit {
-          numbers <- digit * 10
-          first_digit = true
-        }
-        last_digit = digit
-      }
+          numbers <- digit * 10;
+          first_digit = true;
+        };
+        last_digit = digit;
+      };
 
-    line = slice line (1,)
-    }
+      line = slice line (1,);
+    };
 
-    numbers <- last_digit
-    inc()
+    numbers <- last_digit;
+    inc();
 
     if line_count == line_handled_count and lines_done {
       close numbers
     }
   }
-}
+};
 
-sum := 0
+sum := 0;
 
 while true {
-  number, status := <-?numbers
-  if status == (:closed): break()
+  number, status := <-?numbers;
+  if status == (:closed): break();
   if status == (:empty): continue();
-  sum += number
-}
+  sum += number;
+};
 
 sum
