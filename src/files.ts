@@ -17,6 +17,7 @@ import {
 } from './values.js';
 import path from 'path';
 import fs from 'fs/promises';
+import { inject, Injectable } from './injector.js';
 
 const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
@@ -36,9 +37,8 @@ const module = (entries: Record<string, EvalValue>): Module => ({
 const script = (value: EvalValue): Module => ({ script: value });
 const buffer = (value: Buffer): Module => ({ buffer: value });
 
-export const fileMap = new FileMap();
-
 export const addFile = (fileName: string, source: string) => {
+  const fileMap = inject(Injectable.FileMap);
   fileMap.addFile(fileName, source);
   return fileMap.getFileId(fileName);
 };
@@ -361,15 +361,9 @@ export const listMethods = (() => {
   };
 })();
 
-let root = process.cwd();
-
-export const setRootDirectory = (_root: string) => {
-  root = _root;
-};
-
 export const getModule = async (
   name: string,
-  from: string,
+  from = inject(Injectable.RootDir),
   resolvedPath?: string
 ): Promise<Module> => {
   if (name.startsWith('std') && name in modules) {
@@ -377,6 +371,7 @@ export const getModule = async (
   }
   if (!resolvedPath) {
     resolvedPath = await resolvePath(name, from).catch((e) => {
+      const fileMap = inject(Injectable.FileMap);
       const fileId = fileMap.getFileId(from);
       const error = SystemError.unresolvedImport(name, e).withFileId(fileId);
       error.print();
@@ -388,6 +383,7 @@ export const getModule = async (
   }
 
   const file = await fs.readFile(resolvedPath).catch((e) => {
+    const fileMap = inject(Injectable.FileMap);
     const fileId = fileMap.getFileId(from);
     const error = SystemError.importFailed(name, resolvedPath, e)
       .withFileId(fileId)
@@ -431,7 +427,7 @@ export const getModule = async (
 async function resolvePath(
   name: string,
   from: string,
-  _root = root
+  _root = inject(Injectable.RootDir)
 ): Promise<string> {
   from = path.dirname(from);
   const resolve = () => {

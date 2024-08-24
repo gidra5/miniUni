@@ -5,8 +5,8 @@ import {
   secondaryDiagnosticLabel,
 } from 'codespan-napi';
 import { assert } from './utils.js';
-import { fileMap } from './files.js';
 import { Position } from './position.js';
+import { inject, Injectable } from './injector.js';
 
 export enum ErrorType {
   UNKNOWN,
@@ -72,6 +72,7 @@ export class SystemError extends Error {
   }
 
   print(): SystemError {
+    const fileMap = inject(Injectable.FileMap);
     const diag = this.diagnostic();
     diag.emitStd(fileMap);
     return this;

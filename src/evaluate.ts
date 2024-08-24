@@ -1,12 +1,6 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from './error.js';
-import {
-  fileMap,
-  getModule,
-  listMethods,
-  prelude,
-  stringMethods,
-} from './files.js';
+import { getModule, listMethods, prelude, stringMethods } from './files.js';
 import {
   NodeType,
   OperatorType,
@@ -15,7 +9,7 @@ import {
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
+import { assert, getClosestName, omit, unreachable } from './utils.js';
 import {
   atom,
   closeChannel,
@@ -31,6 +25,7 @@ import {
   tryReceive,
 } from './values.js';
 import { validate } from './validate.js';
+import { inject, Injectable } from './injector.js';
 
 export type Context = {
   file: string;
@@ -502,6 +497,7 @@ export const evaluateStatement = async (
         end: position.end,
       }),
     ]);
+    const fileMap = inject(Injectable.FileMap);
     diag.emitStd(fileMap);
   };
   switch (ast.type) {
