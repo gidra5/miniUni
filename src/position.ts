@@ -37,7 +37,10 @@ export const mapListPosToPos = (pos: Position, list: Position[]): Position => {
     pos.end <= list.length,
     'pos.end must be less than or equal to list.length'
   );
-  if (pos.start === pos.end) return indexPosition(list[pos.start].start);
+  if (pos.start === pos.end) {
+    const index = Math.min(pos.start, list.length - 1);
+    return indexPosition(list[index]?.start ?? 0);
+  }
 
   if (pos.start === list.length)
     return indexPosition(list[list.length - 1].end);
