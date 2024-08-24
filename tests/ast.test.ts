@@ -1,11 +1,20 @@
-import { expect, it } from 'vitest';
-import { describe } from 'node:test';
+import { expect, describe } from 'vitest';
+import { it, fc } from '@fast-check/vitest';
 import { parseTokens } from '../src/tokens.ts';
-import { parseScript } from '../src/parser.ts';
+import { parseModule, parseScript } from '../src/parser.ts';
 
-describe('ast', () => {
-  it('ast variable', () => {
-    const input = `
+it.prop([fc.string()])('module never throws', (src) => {
+  const tokens = parseTokens(src);
+  expect(() => parseModule(tokens)).not.toThrow();
+});
+
+it.prop([fc.string()])('script never throws', (src) => {
+  const tokens = parseTokens(src);
+  expect(() => parseScript(tokens)).not.toThrow();
+});
+
+it('ast variable', () => {
+  const input = `
       // https://adventofcode.com/2023/day/1
 
       /* take first and last digit on line, concat into two-digit number
@@ -18,36 +27,36 @@ describe('ast', () => {
         treb7uchet
       "
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast split lines', () => {
-    const input = `
+it('ast split lines', () => {
+  const input = `
       lines := {
         lines := split document "\\n"
         lines = map lines (replace "\\w+" "")
         lines = filter lines fn line -> line != ""
       }
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast unit', () => {
-    const input = `()`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+it('ast unit', () => {
+  const input = `()`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast parse numbers', () => {
-    const input = `
+it('ast parse numbers', () => {
+  const input = `
       numbers := flat_map lines fn line {
         digits := ()
 
@@ -63,56 +72,56 @@ describe('ast', () => {
         digits[0], digits[1] * 10
       }
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast fn multiple args', () => {
-    const input = `
+it('ast fn multiple args', () => {
+  const input = `
       fn acc, item -> ()
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast flat map list reducer', () => {
-    const input = `
+it('ast flat map list reducer', () => {
+  const input = `
       fn acc, item -> (...acc, ...mapper item)
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast flat map list impl', () => {
-    const input = `
+it('ast flat map list impl', () => {
+  const input = `
       flat_map := fn list, mapper {
         reduce list (fn acc, item -> (...acc, ...mapper item)) (fn first, second -> (...first, ...second)) ()
       }
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast args list', () => {
-    const input = `
+it('ast args list', () => {
+  const input = `
       list, reducer, merge, initial
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast reduce list', () => {
-    const input = `
+it('ast reduce list', () => {
+  const input = `
       reduce := fn list, reducer, merge, initial {
         len := length list
         if len == 0: return initial
@@ -127,126 +136,134 @@ describe('ast', () => {
         merge (reducer first item) second
       }
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast period operator', () => {
-    const input = `math.floor`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+it('ast period operator', () => {
+  const input = `math.floor`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast methods', () => {
-    const input = `math.floor(1).multiply(2)`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+it('ast methods', () => {
+  const input = `math.floor(1).multiply(2)`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast prefix parallel', () => {
-    const input = `
+it('ast prefix parallel', () => {
+  const input = `
       | { }
       numbers := channel()
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast receive', () => {
-    const input = `
+it('ast receive', () => {
+  const input = `
       status := <-?numbers
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast index', () => {
-    const input = `x[0]`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+it('ast index', () => {
+  const input = `x[0]`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast fn increment', () => {
-    const input = `fn -> line_handled_count++`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+it('ast fn increment', () => {
+  const input = `fn -> line_handled_count++`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast parallel multiline parens', async () => {
-    const input = `(
+it('ast parallel multiline parens', async () => {
+  const input = `(
       | 1
       | 2
     )`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast parens multiline', async () => {
-    const input = `(
+it('ast chaining multiline', async () => {
+  const input = `a
+      .b`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
+it('ast parens multiline', async () => {
+  const input = `(
       1 +
       2
       + 3
     )`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast no parens multiline', async () => {
-    const input = `
+it('ast no parens multiline', async () => {
+  const input = `
       1 +
       2
       + 3
     `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast prefix multiline', async () => {
-    const input = `!
+it('ast prefix multiline', async () => {
+  const input = `!
       a`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast infix-prefix multiline', async () => {
-    const input = `b :=
+it('ast infix-prefix multiline', async () => {
+  const input = `b :=
       !
       a`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
+});
 
-  it('ast infix-infix multiline', async () => {
-    const input = `b +
+it('ast infix-infix multiline', async () => {
+  const input = `b +
       c +
       d`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
 
-    expect(ast).toMatchSnapshot();
-  });
+  expect(ast).toMatchSnapshot();
 });
