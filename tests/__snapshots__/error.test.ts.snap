@@ -1,137 +1,10 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ast parens multiline 1`] = `
-[
-  {
-    "data": {
-      "tokens": [
-        ")",
-      ],
-    },
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 26,
-        "kind": "primary",
-        "message": "somewhere here",
-        "start": 0,
-      },
-    ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
-    "type": "MISSING_TOKEN",
-  },
-]
-`;
-
-exports[`ast parens multiline 2`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 9,
-                      "start": 8,
-                    },
-                    "value": 1,
-                  },
-                  "type": "number",
-                },
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 19,
-                      "start": 18,
-                    },
-                    "value": 2,
-                  },
-                  "type": "number",
-                },
-              ],
-              "data": {
-                "operator": "add",
-                "position": {
-                  "end": 19,
-                  "start": 8,
-                },
-                "precedence": [
-                  11,
-                  11,
-                ],
-              },
-              "type": "operator",
-            },
-          ],
-          "data": {
-            "operator": "parens",
-            "position": {
-              "end": 26,
-              "start": 0,
-            },
-            "precedence": [
-              null,
-              null,
-            ],
-          },
-          "type": "operator",
-        },
-        {
-          "children": [],
-          "data": {
-            "position": {
-              "end": 29,
-              "start": 28,
-            },
-            "value": 3,
-          },
-          "type": "number",
-        },
-      ],
-      "data": {
-        "operator": "add",
-        "position": {
-          "end": 29,
-          "start": 0,
-        },
-        "precedence": [
-          11,
-          11,
-        ],
-      },
-      "type": "operator",
-    },
-    {
-      "children": [],
-      "data": {
-        "position": {
-          "end": 35,
-          "start": 34,
-        },
-        "value": ")",
-      },
-      "type": "name",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
 exports[`finds all errors in example ' - )/q + )/' 1`] = `
 [
   {
     "data": {},
-    "fileId": 13,
+    "fileId": 0,
     "labels": [
       {
         "end": 7,
@@ -266,7 +139,7 @@ exports[`finds all errors in example ' q + )/' 1`] = `
 [
   {
     "data": {},
-    "fileId": 12,
+    "fileId": 0,
     "labels": [
       {
         "end": 4,
@@ -362,7 +235,7 @@ exports[`finds all errors in example '(' 1`] = `
         ")",
       ],
     },
-    "fileId": 2,
+    "fileId": 0,
     "labels": [
       {
         "end": 1,
@@ -379,7 +252,7 @@ exports[`finds all errors in example '(' 1`] = `
   },
   {
     "data": {},
-    "fileId": 2,
+    "fileId": 0,
     "labels": [
       {
         "end": 1,
@@ -594,7 +467,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         ")",
       ],
     },
-    "fileId": 25,
+    "fileId": 0,
     "labels": [
       {
         "end": 84,
@@ -615,7 +488,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "]",
       ],
     },
-    "fileId": 25,
+    "fileId": 0,
     "labels": [
       {
         "end": 84,
@@ -1497,7 +1370,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
 [
   {
     "data": {},
-    "fileId": 24,
+    "fileId": 0,
     "labels": [
       {
         "end": 64,
@@ -2758,7 +2631,7 @@ exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
         ")",
       ],
     },
-    "fileId": 14,
+    "fileId": 0,
     "labels": [
       {
         "end": 13,
@@ -2940,7 +2813,7 @@ exports[`finds all errors in example '1 *' 1`] = `
 [
   {
     "data": {},
-    "fileId": 11,
+    "fileId": 0,
     "labels": [
       {
         "end": 2,
@@ -3009,7 +2882,7 @@ exports[`finds all errors in example '1 + (2 + 3' 1`] = `
         ")",
       ],
     },
-    "fileId": 5,
+    "fileId": 0,
     "labels": [
       {
         "end": 10,
@@ -3121,7 +2994,7 @@ exports[`finds all errors in example '1 + (2 + 3) +' 1`] = `
 [
   {
     "data": {},
-    "fileId": 7,
+    "fileId": 0,
     "labels": [
       {
         "end": 8,
@@ -3240,7 +3113,7 @@ exports[`finds all errors in example '1 + (2 + 3)) +' 1`] = `
 [
   {
     "data": {},
-    "fileId": 8,
+    "fileId": 0,
     "labels": [
       {
         "end": 9,
@@ -3581,7 +3454,7 @@ exports[`finds all errors in example '1 + 2 +' 1`] = `
 [
   {
     "data": {},
-    "fileId": 9,
+    "fileId": 0,
     "labels": [
       {
         "end": 4,
@@ -3657,7 +3530,7 @@ exports[`finds all errors in example '1 +' 1`] = `
 [
   {
     "data": {},
-    "fileId": 10,
+    "fileId": 0,
     "labels": [
       {
         "end": 2,
@@ -3825,7 +3698,7 @@ exports[`finds all errors in example '1 - 1)*1+' 1`] = `
 [
   {
     "data": {},
-    "fileId": 23,
+    "fileId": 0,
     "labels": [
       {
         "end": 7,
@@ -4268,7 +4141,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`
 [
   {
     "data": {},
-    "fileId": 21,
+    "fileId": 0,
     "labels": [
       {
         "end": 24,
