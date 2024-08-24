@@ -4860,7 +4860,7 @@ exports[`ast chaining multiline 1`] = `
         "operator": "index",
         "position": {
           "end": 10,
-          "start": 8,
+          "start": 0,
         },
         "precedence": [
           9007199254740988,
@@ -6235,8 +6235,8 @@ exports[`ast parens multiline 1`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 8,
-                  "start": 7,
+                  "end": 9,
+                  "start": 8,
                 },
                 "value": 1,
               },
@@ -6246,8 +6246,8 @@ exports[`ast parens multiline 1`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 18,
-                  "start": 17,
+                  "end": 19,
+                  "start": 18,
                 },
                 "value": 2,
               },
@@ -6257,8 +6257,8 @@ exports[`ast parens multiline 1`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 28,
-                  "start": 27,
+                  "end": 29,
+                  "start": 28,
                 },
                 "value": 3,
               },
@@ -6268,8 +6268,8 @@ exports[`ast parens multiline 1`] = `
           "data": {
             "operator": "add",
             "position": {
-              "end": 18,
-              "start": 7,
+              "end": 19,
+              "start": 8,
             },
             "precedence": [
               11,
@@ -6282,7 +6282,7 @@ exports[`ast parens multiline 1`] = `
       "data": {
         "operator": "parens",
         "position": {
-          "end": 26,
+          "end": 35,
           "start": 0,
         },
         "precedence": [
