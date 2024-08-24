@@ -571,32 +571,6 @@ const parsePattern =
     return [index, lhs];
   };
 
-const parseSequence = (
-  src: TokenPos[],
-  i: number,
-  banned: string[] = []
-): [index: number, ast: AbstractSyntaxTree] => {
-  let index = i;
-  const start = index;
-  const nodePosition = () => mapListPosToPos(position(start, index), src);
-  const children: AbstractSyntaxTree[] = [];
-
-  while (
-    src[index] &&
-    (banned.length === 0 || !tokenIncludes(src[index], banned))
-  ) {
-    if (tokenIncludes(src[index], ['\n', ';'])) {
-      index++;
-      continue;
-    }
-    let node: AbstractSyntaxTree;
-    [index, node] = parseExpr(0, ['\n', ';', ...banned])(src, index);
-    children.push(node);
-  }
-
-  return [index, operator(OperatorType.SEQUENCE, nodePosition(), ...children)];
-};
-
 const parseGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
@@ -1094,6 +1068,32 @@ const parseExpr =
 
     return [index, lhs];
   };
+
+const parseSequence = (
+  src: TokenPos[],
+  i: number,
+  banned: string[] = []
+): [index: number, ast: AbstractSyntaxTree] => {
+  let index = i;
+  const start = index;
+  const nodePosition = () => mapListPosToPos(position(start, index), src);
+  const children: AbstractSyntaxTree[] = [];
+
+  while (
+    src[index] &&
+    (banned.length === 0 || !tokenIncludes(src[index], banned))
+  ) {
+    if (tokenIncludes(src[index], ['\n', ';'])) {
+      index++;
+      continue;
+    }
+    let node: AbstractSyntaxTree;
+    [index, node] = parseExpr(0, ['\n', ';', ...banned])(src, index);
+    children.push(node);
+  }
+
+  return [index, operator(OperatorType.SEQUENCE, nodePosition(), ...children)];
+};
 
 const parseDeclaration = (
   src: TokenPos[],

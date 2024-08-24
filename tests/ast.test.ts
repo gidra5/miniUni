@@ -1,16 +1,26 @@
-import { expect, describe } from 'vitest';
+import { expect } from 'vitest';
 import { it, fc } from '@fast-check/vitest';
 import { parseTokens } from '../src/tokens.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
 
 it.prop([fc.string()])('module never throws', (src) => {
   const tokens = parseTokens(src);
-  expect(() => parseModule(tokens)).not.toThrow();
+  try {
+    parseModule(tokens);
+  } catch (e) {
+    const msg = e instanceof Error ? e.stack : e;
+    expect.unreachable(msg);
+  }
 });
 
 it.prop([fc.string()])('script never throws', (src) => {
   const tokens = parseTokens(src);
-  expect(() => parseScript(tokens)).not.toThrow();
+  try {
+    parseScript(tokens);
+  } catch (e) {
+    const msg = e instanceof Error ? e.stack : e;
+    expect.unreachable(msg);
+  }
 });
 
 it('ast variable', () => {
