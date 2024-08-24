@@ -12,11 +12,14 @@ type InjectableType = {
 
 const registry = new Map<string, any>();
 
-const register = <T extends Injectable>(name: T, value: InjectableType[T]) => {
+const register = <const T extends Injectable>(
+  name: T,
+  value: InjectableType[T]
+) => {
   registry.set(name, value);
 };
 
-const inject = <T extends Injectable>(name: T): InjectableType[T] => {
+const inject = <const T extends Injectable>(name: T): InjectableType[T] => {
   if (!registry.has(name)) {
     throw new Error(`Missing injection entry for: ${name}`);
   }

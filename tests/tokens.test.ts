@@ -257,3 +257,7 @@ test('parseTokens', () => {
 
   expect(tokens).toMatchSnapshot();
 });
+
+it.prop([fc.string()])('parseTokens never throws', (src) => {
+  expect(() => parseTokens(src)).not.toThrow();
+});

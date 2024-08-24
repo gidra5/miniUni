@@ -363,7 +363,7 @@ export const listMethods = (() => {
 
 export const getModule = async (
   name: string,
-  from = inject(Injectable.RootDir),
+  from?: string,
   resolvedPath?: string
 ): Promise<Module> => {
   if (name.startsWith('std') && name in modules) {
@@ -372,7 +372,7 @@ export const getModule = async (
   if (!resolvedPath) {
     resolvedPath = await resolvePath(name, from).catch((e) => {
       const fileMap = inject(Injectable.FileMap);
-      const fileId = fileMap.getFileId(from);
+      const fileId = fileMap.getFileId(from ?? 'cli');
       const error = SystemError.unresolvedImport(name, e).withFileId(fileId);
       error.print();
       throw error;
@@ -384,7 +384,7 @@ export const getModule = async (
 
   const file = await fs.readFile(resolvedPath).catch((e) => {
     const fileMap = inject(Injectable.FileMap);
-    const fileId = fileMap.getFileId(from);
+    const fileId = fileMap.getFileId(from ?? 'cli');
     const error = SystemError.importFailed(name, resolvedPath, e)
       .withFileId(fileId)
       .print();
@@ -426,12 +426,13 @@ export const getModule = async (
  */
 async function resolvePath(
   name: string,
-  from: string,
+  from?: string,
   _root = inject(Injectable.RootDir)
 ): Promise<string> {
-  from = path.dirname(from);
   const resolve = () => {
     if (name.startsWith('.')) {
+      assert(from, 'relative imports require a "from" path');
+      from = path.dirname(from);
       // limit the path to the project's directory
       // so that the user can't accidentally access files outside of the project
       const _path = path.resolve(from, name);
