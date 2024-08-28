@@ -7,10 +7,10 @@ exports[`finds all errors in example ' - )/q + )/' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 7,
+        "end": 10,
         "kind": "primary",
         "message": "here",
-        "start": 7,
+        "start": 10,
       },
     ],
     "notes": [],
@@ -95,8 +95,8 @@ exports[`finds all errors in example ' - )/q + )/' 2`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 7,
-                  "start": 7,
+                  "end": 10,
+                  "start": 10,
                 },
               },
               "type": "implicit_placeholder",
@@ -106,7 +106,7 @@ exports[`finds all errors in example ' - )/q + )/' 2`] = `
             "operator": "/",
             "position": {
               "end": 11,
-              "start": 7,
+              "start": 9,
             },
             "precedence": [
               15,
@@ -142,10 +142,10 @@ exports[`finds all errors in example ' q + )/' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 4,
+        "end": 6,
         "kind": "primary",
         "message": "here",
-        "start": 4,
+        "start": 6,
       },
     ],
     "notes": [],
@@ -187,8 +187,8 @@ exports[`finds all errors in example ' q + )/' 2`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 4,
-                  "start": 4,
+                  "end": 6,
+                  "start": 6,
                 },
               },
               "type": "implicit_placeholder",
@@ -198,7 +198,7 @@ exports[`finds all errors in example ' q + )/' 2`] = `
             "operator": "/",
             "position": {
               "end": 7,
-              "start": 4,
+              "start": 5,
             },
             "precedence": [
               15,
@@ -230,39 +230,24 @@ exports[`finds all errors in example ' q + )/' 2`] = `
 exports[`finds all errors in example '(' 1`] = `
 [
   {
-    "data": {
-      "tokens": [
-        ")",
-      ],
-    },
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 1,
-        "kind": "primary",
-        "message": "somewhere here",
-        "start": 0,
-      },
-    ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
-    "type": "MISSING_TOKEN",
-  },
-  {
     "data": {},
     "fileId": 0,
     "labels": [
       {
         "end": 1,
         "kind": "primary",
-        "message": "here",
+        "message": "must be closed with ")" by that point",
         "start": 1,
+      },
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "opening token "(" here",
+        "start": 0,
       },
     ],
     "notes": [],
-    "type": "END_OF_SOURCE",
+    "type": "MISSING_TOKEN",
   },
 ]
 `;
@@ -277,7 +262,7 @@ exports[`finds all errors in example '(' 2`] = `
           "data": {
             "position": {
               "end": 1,
-              "start": 1,
+              "start": 0,
             },
           },
           "type": "implicit_placeholder",
@@ -459,14 +444,138 @@ exports[`finds all errors in example '(,) + a' 2`] = `
 }
 `;
 
+exports[`finds all errors in example '({ 1 )' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 6,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 0,
+      },
+    ],
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 6,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 1,
+      },
+    ],
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '({ 1 )' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 4,
+                          "start": 3,
+                        },
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 6,
+                          "start": 5,
+                        },
+                        "value": ")",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 6,
+                      "start": 3,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "sequence",
+                "position": {
+                  "end": 6,
+                  "start": 3,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+            "position": {
+              "end": 6,
+              "start": 1,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+        "position": {
+          "end": 6,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )/q + send(-(2+7)/A,[j, i, 127.0.1 ) + 1)/1' 1`] = `
 [
   {
-    "data": {
-      "tokens": [
-        ")",
-      ],
-    },
+    "data": {},
     "fileId": 0,
     "labels": [
       {
@@ -476,18 +585,11 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 51,
       },
     ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
+    "notes": [],
     "type": "MISSING_TOKEN",
   },
   {
-    "data": {
-      "tokens": [
-        "]",
-      ],
-    },
+    "data": {},
     "fileId": 0,
     "labels": [
       {
@@ -497,10 +599,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 61,
       },
     ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
+    "notes": [],
     "type": "MISSING_TOKEN",
   },
 ]
@@ -1373,10 +1472,10 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
     "fileId": 0,
     "labels": [
       {
-        "end": 64,
+        "end": 85,
         "kind": "primary",
         "message": "here",
-        "start": 64,
+        "start": 85,
       },
     ],
     "notes": [],
@@ -2247,8 +2346,8 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
               "children": [],
               "data": {
                 "position": {
-                  "end": 64,
-                  "start": 64,
+                  "end": 85,
+                  "start": 85,
                 },
               },
               "type": "implicit_placeholder",
@@ -2258,7 +2357,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
             "operator": "/",
             "position": {
               "end": 86,
-              "start": 64,
+              "start": 84,
             },
             "precedence": [
               15,
@@ -2287,7 +2386,24 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
 }
 `;
 
-exports[`finds all errors in example ')' 1`] = `[]`;
+exports[`finds all errors in example ')' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "unexpected closing token",
+        "start": 0,
+      },
+    ],
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
 
 exports[`finds all errors in example ')' 2`] = `
 {
@@ -2299,9 +2415,8 @@ exports[`finds all errors in example ')' 2`] = `
           "end": 1,
           "start": 0,
         },
-        "value": ")",
       },
-      "type": "name",
+      "type": "implicit_placeholder",
     },
   ],
   "data": {},
@@ -2626,11 +2741,7 @@ exports[`finds all errors in example '1 * (2) (3)' 2`] = `
 exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
 [
   {
-    "data": {
-      "tokens": [
-        ")",
-      ],
-    },
+    "data": {},
     "fileId": 0,
     "labels": [
       {
@@ -2640,10 +2751,7 @@ exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
         "start": 10,
       },
     ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
+    "notes": [],
     "type": "MISSING_TOKEN",
   },
 ]
@@ -2877,11 +2985,7 @@ exports[`finds all errors in example '1 *' 2`] = `
 exports[`finds all errors in example '1 + (2 + 3' 1`] = `
 [
   {
-    "data": {
-      "tokens": [
-        ")",
-      ],
-    },
+    "data": {},
     "fileId": 0,
     "labels": [
       {
@@ -2891,10 +2995,7 @@ exports[`finds all errors in example '1 + (2 + 3' 1`] = `
         "start": 4,
       },
     ],
-    "notes": [
-      "Some pairs of tokens like {} or () must be balanced.",
-      "If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.",
-    ],
+    "notes": [],
     "type": "MISSING_TOKEN",
   },
 ]
@@ -2997,10 +3098,10 @@ exports[`finds all errors in example '1 + (2 + 3) +' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 8,
+        "end": 12,
         "kind": "primary",
         "message": "here",
-        "start": 8,
+        "start": 12,
       },
     ],
     "notes": [],
@@ -3083,8 +3184,8 @@ exports[`finds all errors in example '1 + (2 + 3) +' 2`] = `
           "children": [],
           "data": {
             "position": {
-              "end": 8,
-              "start": 8,
+              "end": 12,
+              "start": 12,
             },
           },
           "type": "implicit_placeholder",
@@ -3116,10 +3217,10 @@ exports[`finds all errors in example '1 + (2 + 3)) +' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 9,
+        "end": 13,
         "kind": "primary",
         "message": "here",
-        "start": 9,
+        "start": 13,
       },
     ],
     "notes": [],
@@ -3229,8 +3330,8 @@ exports[`finds all errors in example '1 + (2 + 3)) +' 2`] = `
           "children": [],
           "data": {
             "position": {
-              "end": 9,
-              "start": 9,
+              "end": 13,
+              "start": 13,
             },
           },
           "type": "implicit_placeholder",
@@ -3457,10 +3558,10 @@ exports[`finds all errors in example '1 + 2 +' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 4,
+        "end": 6,
         "kind": "primary",
         "message": "here",
-        "start": 4,
+        "start": 6,
       },
     ],
     "notes": [],
@@ -3500,8 +3601,8 @@ exports[`finds all errors in example '1 + 2 +' 2`] = `
           "children": [],
           "data": {
             "position": {
-              "end": 4,
-              "start": 4,
+              "end": 6,
+              "start": 6,
             },
           },
           "type": "implicit_placeholder",
@@ -3701,10 +3802,10 @@ exports[`finds all errors in example '1 - 1)*1+' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 7,
+        "end": 8,
         "kind": "primary",
         "message": "here",
-        "start": 7,
+        "start": 8,
       },
     ],
     "notes": [],
@@ -3814,8 +3915,8 @@ exports[`finds all errors in example '1 - 1)*1+' 2`] = `
           "children": [],
           "data": {
             "position": {
-              "end": 7,
-              "start": 7,
+              "end": 8,
+              "start": 8,
             },
           },
           "type": "implicit_placeholder",
@@ -4144,10 +4245,10 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`
     "fileId": 0,
     "labels": [
       {
-        "end": 24,
+        "end": 37,
         "kind": "primary",
         "message": "here",
-        "start": 24,
+        "start": 37,
       },
     ],
     "notes": [],
@@ -4480,8 +4581,8 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`
               "children": [],
               "data": {
                 "position": {
-                  "end": 24,
-                  "start": 24,
+                  "end": 37,
+                  "start": 37,
                 },
               },
               "type": "implicit_placeholder",
@@ -4491,7 +4592,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 2`
             "operator": "/",
             "position": {
               "end": 38,
-              "start": 24,
+              "start": 36,
             },
             "precedence": [
               15,

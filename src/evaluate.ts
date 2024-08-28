@@ -1223,9 +1223,15 @@ export const evaluateModuleString = async (
 ): Promise<Extract<EvalValue, { record: unknown }>> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
+  const [errors, validated] = validate(ast, context.fileId);
+
+  if (errors.length > 0) {
+    errors.forEach((e) => e.print());
+    return { record: {} };
+  }
 
   try {
-    return await evaluateModule(ast, context);
+    return await evaluateModule(validated, context);
   } catch (e) {
     console.error(e);
     if (e instanceof SystemError) e.print();

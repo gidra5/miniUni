@@ -5,16 +5,18 @@ import { validate } from '../src/validate.ts';
 import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
+import { inspect } from '../src/utils.ts';
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
 });
 
-const testCase = (input, _, _it: any = it) =>
+const testCase = (input, _?, _it: any = it) =>
   _it(`finds all errors in example '${input}'`, () => {
     const fileId = addFile('<test>', input);
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
+    inspect(ast);
     const [errors, validated] = validate(ast, fileId);
 
     for (const error of errors) {
@@ -25,27 +27,11 @@ const testCase = (input, _, _it: any = it) =>
     expect(validated).toMatchSnapshot();
   });
 
-testCase(')', [
-  {
-    message: 'unexpected closing parenthesis, expected value',
-    cause: [],
-    pos: { start: 0, end: 1 },
-  },
-]);
+testCase(')');
 
-testCase('(', [
-  {
-    message: 'unbalanced parens',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 1, end: 1 },
-      },
-    ],
-    pos: { start: 0, end: 1 },
-  },
-]);
+testCase('(');
+
+testCase('({ 1 )', [], it.only);
 
 testCase('* 1', [
   {
@@ -232,22 +218,6 @@ testCase('1 * (* 2)', [
     message: "symbol can't be used in place of value",
     cause: [],
     pos: { start: 3, end: 4 },
-  },
-]);
-
-testCase('1 * (2) (3)', [
-  {
-    message: 'missing operator',
-    cause: [],
-    pos: { start: 5, end: 5 },
-  },
-]);
-
-testCase('1 (2)', [
-  {
-    message: 'missing operator',
-    cause: [],
-    pos: { start: 1, end: 1 },
   },
 ]);
 

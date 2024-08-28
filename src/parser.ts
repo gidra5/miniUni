@@ -411,6 +411,10 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
   (tokens.includes(token.src) ||
     (tokens.includes('\n') && token.type === 'newline'));
 
+let parens = 0;
+let squareBrackets = 0;
+let brackets = 0;
+
 const parsePatternGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
   (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
@@ -421,10 +425,7 @@ const parsePatternGroup =
     if (!src[index])
       return [
         index,
-        error(
-          SystemError.endOfSource(indexPosition(index)),
-          indexPosition(index)
-        ),
+        error(SystemError.endOfSource(nodePosition()), nodePosition()),
       ];
 
     if (tokenIncludes(src[index], skip))
@@ -446,6 +447,7 @@ const parsePatternGroup =
 
     if (src[index].src === '{') {
       index++;
+      brackets++;
       if (src[index]?.type === 'newline') index++;
 
       const [_index, pattern] = parsePattern(0, ['}'])(src, index);
@@ -468,12 +470,14 @@ const parsePatternGroup =
         ];
       }
       index++;
+      brackets--;
 
       return [index, node()];
     }
 
     if (src[index].src === '(') {
       index++;
+      parens++;
       if (src[index]?.type === 'newline') index++;
 
       const [_index, pattern] = parsePattern(0, [')'], ['\n'])(src, index);
@@ -487,6 +491,7 @@ const parsePatternGroup =
           error(SystemError.missingToken(nodePosition(), ')'), node()),
         ];
       }
+      parens--;
       index++;
 
       return [index, node()];
@@ -494,6 +499,7 @@ const parsePatternGroup =
 
     if (lhs && src[index].src === '[') {
       index++;
+      squareBrackets++;
       if (src[index]?.type === 'newline') index++;
 
       const [_index, pattern] = parseExpr(0, [']'], ['\n'])(src, index);
@@ -507,6 +513,7 @@ const parsePatternGroup =
           error(SystemError.missingToken(nodePosition(), ']'), node()),
         ];
       }
+      squareBrackets--;
       index++;
 
       return [index, node()];
@@ -581,12 +588,19 @@ const parseGroup =
     if (!src[index])
       return [
         index,
-        error(
-          SystemError.endOfSource(indexPosition(index)),
-          indexPosition(index)
-        ),
+        error(SystemError.endOfSource(nodePosition()), nodePosition()),
       ];
 
+    if (parens === 0 && src[index].src === ')') {
+      while (src[index] && src[index].src === ')') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['(', ')'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
     if (tokenIncludes(src[index], skip))
       return parseGroup(banned, skip, lhs)(src, index + 1);
     if (tokenIncludes(src[index], banned))
@@ -600,6 +614,7 @@ const parseGroup =
 
       if (token === '{') {
         index++;
+        brackets++;
         if (src[index]?.type === 'newline') index++;
         let sequence: AbstractSyntaxTree;
         [index, sequence] = parseSequence(src, index, ['}']);
@@ -623,6 +638,7 @@ const parseGroup =
           ];
         }
 
+        brackets--;
         index++;
         return [index, node()];
       }
@@ -652,6 +668,7 @@ const parseGroup =
 
       if (token === '{') {
         index++;
+        brackets++;
         if (src[index]?.type === 'newline') index++;
         let sequence: AbstractSyntaxTree;
         [index, sequence] = parseSequence(src, index, ['}']);
@@ -673,6 +690,7 @@ const parseGroup =
             error(SystemError.missingToken(nodePosition(), '}'), node()),
           ];
         }
+        brackets--;
         index++;
 
         if (src[index]?.src === 'else') {
@@ -718,6 +736,7 @@ const parseGroup =
 
       if (token === '{') {
         index++;
+        brackets++;
         if (src[index]?.type === 'newline') index++;
         let sequence: AbstractSyntaxTree;
         [index, sequence] = parseSequence(src, index, ['}']);
@@ -738,6 +757,7 @@ const parseGroup =
             error(SystemError.missingToken(nodePosition(), '}'), node()),
           ];
         }
+        brackets--;
         index++;
 
         return [index, node()];
@@ -788,6 +808,7 @@ const parseGroup =
       const hasOpeningBracket = src[index]?.src === '{';
       const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
       if (hasOpeningBracket) index++;
+      brackets++;
 
       let sequence: AbstractSyntaxTree;
       [index, sequence] = parseSequence(src, index, ['}']);
@@ -812,7 +833,7 @@ const parseGroup =
           error(SystemError.missingToken(nodePosition(), '}'), node()),
         ];
       }
-
+      brackets--;
       index++;
       return [index, node()];
     }
@@ -832,6 +853,7 @@ const parseGroup =
       const hasOpeningBracket = ['{', ':', '\n'].includes(src[index]?.src);
       const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
       if (hasOpeningBracket) index++;
+      brackets++;
 
       let sequence: AbstractSyntaxTree;
       [index, sequence] = parseSequence(src, index, ['}']);
@@ -866,6 +888,7 @@ const parseGroup =
         ];
       }
 
+      brackets--;
       index++;
       return [index, node()];
     }
@@ -905,6 +928,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === '{') {
       index++;
+      brackets++;
       if (src[index]?.type === 'newline') index++;
       let sequence: AbstractSyntaxTree;
       [index, sequence] = parseSequence(src, index, ['}']);
@@ -917,12 +941,14 @@ const parseGroup =
           error(SystemError.missingToken(nodePosition(), '}'), node()),
         ];
       }
+      brackets--;
       index++;
       return [index, node()];
     }
 
     if (src[index].src === '[') {
       index++;
+      squareBrackets++;
       if (src[index]?.type === 'newline') index++;
 
       const [_index, expr] = parseExpr(0, [']'], ['\n'])(src, index);
@@ -937,6 +963,7 @@ const parseGroup =
           error(SystemError.missingToken(nodePosition(), ']'), node()),
         ];
       }
+      squareBrackets--;
       index++;
 
       return [index, node()];
@@ -944,7 +971,27 @@ const parseGroup =
 
     if (!lhs && src[index].src === '(') {
       index++;
+      parens++;
       if (src[index]?.type === 'newline') index++;
+
+      if (!src[index]) {
+        return [
+          index,
+          error(
+            SystemError.unbalancedOpenToken(
+              ['(', ')'],
+              nodePosition(),
+              indexPosition(index)
+            ),
+            operator(
+              OperatorType.PARENS,
+              nodePosition(),
+              implicitPlaceholder(nodePosition())
+            )
+          ),
+        ];
+      }
+
       let expr: AbstractSyntaxTree;
       [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
       const node = () => operator(OperatorType.PARENS, nodePosition(), expr);
@@ -957,6 +1004,7 @@ const parseGroup =
           error(SystemError.missingToken(nodePosition(), ')'), node()),
         ];
       }
+      parens--;
       index++;
 
       return [index, node()];
@@ -972,9 +1020,13 @@ const parseGroup =
       }
       return [
         index,
-        error(SystemError.invalidIndex(nodePosition()), indexPosition(index)),
+        error(SystemError.invalidIndex(nodePosition()), nodePosition()),
       ];
     }
+
+    // if (parens !== 0 && src[index].src === ')') {
+    //   return [index, implicitPlaceholder(nodePosition())];
+    // }
 
     if (lhs) return [index, operator(OperatorType.APPLICATION, nodePosition())];
 
@@ -988,13 +1040,13 @@ const parsePrefix =
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
+
+    const start = index;
+    const nodePosition = () => mapListPosToPos(position(start, index), src);
     if (!src[index])
       return [
         index,
-        error(
-          SystemError.endOfSource(indexPosition(index)),
-          indexPosition(index)
-        ),
+        error(SystemError.endOfSource(nodePosition()), nodePosition()),
       ];
 
     let [nextIndex, group] = parseGroup(banned, skip)(src, index);

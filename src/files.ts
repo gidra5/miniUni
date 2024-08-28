@@ -422,6 +422,7 @@ export const getModule = async (
  * resolve module name to an absolute path
  * @param name name being imported
  * @param from absolute path of the file that is importing the module
+ * @param _root project's root directory
  * @returns resolved absolute path of the module
  */
 async function resolvePath(
@@ -432,10 +433,10 @@ async function resolvePath(
   const resolve = () => {
     if (name.startsWith('.')) {
       assert(from, 'relative imports require a "from" path');
-      from = path.dirname(from);
       // limit the path to the project's directory
       // so that the user can't accidentally access files outside of the project
-      const _path = path.resolve(from, name);
+      const dir = path.dirname(from);
+      const _path = path.resolve(dir, name);
       if (_root.startsWith(_path)) return _root;
       if (!_path.startsWith(_root)) return _root;
 

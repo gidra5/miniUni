@@ -3,7 +3,11 @@ import { it, fc } from '@fast-check/vitest';
 import { parseTokens } from '../src/tokens.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
 
-it.prop([fc.string()])('module never throws', (src) => {
+// const anyStringArb = fc.string({ size: 'large', unit: 'binary' });
+const anyStringArb = fc.fullUnicodeString({ size: 'large' });
+// const anyStringArb = fc.string();
+
+it.prop([anyStringArb])('module never throws', (src) => {
   const tokens = parseTokens(src);
   try {
     parseModule(tokens);
@@ -13,7 +17,7 @@ it.prop([fc.string()])('module never throws', (src) => {
   }
 });
 
-it.prop([fc.string()])('script never throws', (src) => {
+it.prop([anyStringArb])('script never throws', (src) => {
   const tokens = parseTokens(src);
   try {
     parseScript(tokens);

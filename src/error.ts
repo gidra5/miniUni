@@ -190,10 +190,10 @@ export class SystemError extends Error {
 
   static missingToken(pos: Position, ...tokens: string[]): SystemError {
     const list = tokens.map((token) => `"${token}"`).join(' or ');
-    const msg = `Missing token: ${list}`;
+    const msg = `Missing token, expected one of: ${list}`;
     const labels: Array<ErrorLabel> = [];
     const notes: string[] = [];
-    const options = { data: { tokens }, notes, labels };
+    const options = { notes, labels };
 
     labels.push({
       start: pos.start,
@@ -201,10 +201,6 @@ export class SystemError extends Error {
       message: 'somewhere here',
       kind: 'primary',
     });
-    notes.push(`Some pairs of tokens like {} or () must be balanced.`);
-    notes.push(
-      `If you have hard time finding where token is missing, consider refactoring to reduce nesting of code.`
-    );
 
     return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
   }
@@ -495,5 +491,48 @@ export class SystemError extends Error {
     else notes.push(`error: "${error}"`);
 
     return new SystemError(ErrorType.IMPORT_RESOLVE_FAILED, msg, options);
+  }
+
+  static unbalancedOpenToken(
+    tokens: [string, string],
+    openPos: Position,
+    closePos: Position
+  ): SystemError {
+    const msg = `Missing closing token`;
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: closePos.start,
+      end: closePos.end,
+      message: `must be closed with "${tokens[1]}" by that point`,
+      kind: 'primary',
+    });
+    labels.push({
+      start: openPos.start,
+      end: openPos.end,
+      message: `opening token "${tokens[0]}" here`,
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
+  }
+
+  static unbalancedCloseToken(
+    tokens: [string, string],
+    pos: Position
+  ): SystemError {
+    const msg = `Unexpected closing token "${tokens[1]}"`;
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'unexpected closing token',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
   }
 }
