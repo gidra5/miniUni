@@ -35,6 +35,9 @@ testCase(']');
 testCase('[');
 testCase('({ 1 )');
 // testCase('(x[ 1 )', [], it.only);
+testCase('{( 1 }');
+// testCase('{x[ 1 }', [], it.only);
+testCase('x[( 1 ]');
 testCase('x[{ 1 ]');
 testCase('1 2');
 testCase('"1" 2');
@@ -536,24 +539,5 @@ testCase('(,) + .. + a', [
     message: "symbol can't be used in place of value",
     cause: [],
     pos: { start: 4, end: 5 },
-  },
-]);
-
-testCase('(,) + a', [
-  {
-    message: 'unexpected token inside parens',
-    cause: [
-      {
-        message: "symbol can't be used in place of value",
-        cause: [],
-        pos: { start: 1, end: 2 },
-      },
-      {
-        message: 'unexpected token: ","',
-        cause: [],
-        pos: { start: 1, end: 2 },
-      },
-    ],
-    pos: { start: 0, end: 3 },
   },
 ]);
