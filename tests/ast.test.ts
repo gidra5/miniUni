@@ -281,3 +281,23 @@ it('ast infix-infix multiline', async () => {
 
   expect(ast).toMatchSnapshot();
 });
+
+it('ast effect handlers', async () => {
+  const input = `
+    inject a: 1, b: 2 {
+      use { a, b }
+      inject a: a+1, b: b+2 {
+        mask (:a,) {
+          without (:b,) {
+            use { a }
+            a + 1
+          }
+        }
+      }  
+    }
+    `;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});

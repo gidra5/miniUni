@@ -327,6 +327,11 @@ export enum OperatorType {
   LOOP = 'loop',
   FOR = 'for',
   ASYNC = 'async',
+  MATCH = 'match',
+  USE = 'use',
+  INJECT = 'inject',
+  MASK = 'mask',
+  WITHOUT = 'without',
   GREATER = '>',
   GREATER_EQUAL = '>=',
 }
@@ -594,11 +599,12 @@ const parseGroup =
     const start = index;
     const nodePosition = () => mapListPosToPos(position(start, index), src);
 
-    if (!src[index])
+    if (!src[index]) {
       return [
         index,
         error(SystemError.endOfSource(nodePosition()), nodePosition()),
       ];
+    }
 
     if (parens === 0 && src[index].src === ')') {
       while (src[index] && src[index].src === ')') index++;
@@ -934,6 +940,205 @@ const parseGroup =
       brackets--;
       index++;
       return [index, node()];
+    }
+
+    if (!lhs && src[index].src === 'switch') {
+      index++;
+      let value: AbstractSyntaxTree;
+      [index, value] = parseExpr(0, ['{'])(src, index);
+
+      if (src[index]?.src !== '{') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '{'),
+            operator(OperatorType.MATCH, nodePosition(), value)
+          ),
+        ];
+      }
+
+      index++;
+      brackets++;
+      if (src[index]?.type === 'newline') index++;
+
+      const cases: AbstractSyntaxTree[] = [];
+      followSet.push('}');
+
+      while (src[index] && src[index].src !== '}') {
+        let pattern: AbstractSyntaxTree;
+        [index, pattern] = parsePattern(0, ['->', ','])(src, index);
+        if (src[index]?.src === ',') index++;
+        let body: AbstractSyntaxTree;
+        [index, body] = parseExpr(0, ['}'])(src, index);
+        cases.push(operator(OperatorType.TUPLE, nodePosition(), pattern, body));
+      }
+      followSet.pop();
+
+      if (src[index]?.src !== '}') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '}'),
+            operator(OperatorType.MATCH, nodePosition(), value, ...cases)
+          ),
+        ];
+      }
+
+      brackets--;
+      index++;
+      return [
+        index,
+        operator(OperatorType.MATCH, nodePosition(), value, ...cases),
+      ];
+    }
+
+    if (!lhs && src[index].src === 'use') {
+      index++;
+      let pattern: AbstractSyntaxTree;
+      [index, pattern] = parsePattern()(src, index);
+
+      return [index, operator(OperatorType.USE, nodePosition(), pattern)];
+    }
+
+    if (!lhs && src[index].src === 'inject') {
+      index++;
+      let value: AbstractSyntaxTree;
+      [index, value] = parseExpr(0, ['{'])(src, index);
+
+      if (src[index]?.src !== '{') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '{'),
+            operator(
+              OperatorType.INJECT,
+              nodePosition(),
+              value,
+              implicitPlaceholder(nodePosition())
+            )
+          ),
+        ];
+      }
+
+      index++;
+      brackets++;
+      if (src[index]?.type === 'newline') index++;
+
+      followSet.push('}');
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
+
+      if (src[index]?.src !== '}') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '}'),
+            operator(OperatorType.INJECT, nodePosition(), value, sequence)
+          ),
+        ];
+      }
+
+      brackets--;
+      index++;
+      return [
+        index,
+        operator(OperatorType.INJECT, nodePosition(), value, sequence),
+      ];
+    }
+
+    if (!lhs && src[index].src === 'without') {
+      index++;
+      let value: AbstractSyntaxTree;
+      [index, value] = parseExpr(0, ['{'])(src, index);
+
+      if (src[index]?.src !== '{') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '{'),
+            operator(
+              OperatorType.WITHOUT,
+              nodePosition(),
+              value,
+              implicitPlaceholder(nodePosition())
+            )
+          ),
+        ];
+      }
+
+      index++;
+      brackets++;
+      if (src[index]?.type === 'newline') index++;
+
+      followSet.push('}');
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
+
+      if (src[index]?.src !== '}') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '}'),
+            operator(OperatorType.WITHOUT, nodePosition(), value, sequence)
+          ),
+        ];
+      }
+
+      brackets--;
+      index++;
+      return [
+        index,
+        operator(OperatorType.WITHOUT, nodePosition(), value, sequence),
+      ];
+    }
+
+    if (!lhs && src[index].src === 'mask') {
+      index++;
+      let value: AbstractSyntaxTree;
+      [index, value] = parseExpr(0, ['{'])(src, index);
+
+      if (src[index]?.src !== '{') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '{'),
+            operator(
+              OperatorType.MASK,
+              nodePosition(),
+              value,
+              implicitPlaceholder(nodePosition())
+            )
+          ),
+        ];
+      }
+
+      index++;
+      brackets++;
+      if (src[index]?.type === 'newline') index++;
+
+      followSet.push('}');
+      let sequence: AbstractSyntaxTree;
+      [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
+
+      if (src[index]?.src !== '}') {
+        return [
+          index,
+          error(
+            SystemError.missingToken(nodePosition(), '}'),
+            operator(OperatorType.MASK, nodePosition(), value, sequence)
+          ),
+        ];
+      }
+
+      brackets--;
+      index++;
+      return [
+        index,
+        operator(OperatorType.MASK, nodePosition(), value, sequence),
+      ];
     }
 
     const patternResult = parsePattern(0, banned, skip)(src, index);
