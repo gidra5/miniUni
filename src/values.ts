@@ -81,6 +81,38 @@ export function isSymbol(
 
 const channels: Record<symbol, Channel> = {};
 
+const channelStatus = (c: symbol): ChannelStatus => {
+  const channel = channels[c];
+  if (!channel) {
+    return ChannelStatus.Closed;
+  }
+
+  while (channel.onReceive.length > 0 && channel.queue.length > 0) {
+    const receiver = channel.onReceive.shift()!;
+    const value = channel.queue.shift()!;
+    if (value instanceof Error) {
+      receiver.reject(value);
+    } else {
+      receiver.resolve(value);
+    }
+  }
+
+  if (channel.queue.length > 0) {
+    return ChannelStatus.Pending;
+  }
+
+  if (channel.onReceive.length > 0) {
+    return ChannelStatus.Queued;
+  }
+
+  if (channel.closed) {
+    delete channels[c];
+    return ChannelStatus.Closed;
+  }
+
+  return ChannelStatus.Empty;
+};
+
 export const createChannel = (name?: string) => {
   const channel = Symbol(name);
   channels[channel] = {
@@ -136,37 +168,6 @@ export const receive = async (c: symbol): Promise<EvalValue> => {
   });
 };
 
-export const channelStatus = (c: symbol): ChannelStatus => {
-  const channel = channels[c];
-  if (!channel) {
-    return ChannelStatus.Closed;
-  }
-
-  while (channel.onReceive.length > 0 && channel.queue.length > 0) {
-    const receiver = channel.onReceive.shift()!;
-    const value = channel.queue.shift()!;
-    if (value instanceof Error) {
-      receiver.reject(value);
-    } else {
-      receiver.resolve(value);
-    }
-  }
-
-  if (channel.queue.length > 0) {
-    return ChannelStatus.Pending;
-  }
-
-  if (channel.onReceive.length > 0) {
-    return ChannelStatus.Queued;
-  }
-
-  if (channel.closed) {
-    delete channels[c];
-    return ChannelStatus.Closed;
-  }
-
-  return ChannelStatus.Empty;
-};
 
 export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   const status = channelStatus(c);
