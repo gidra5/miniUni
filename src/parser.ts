@@ -414,6 +414,7 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
 let parens = 0;
 let squareBrackets = 0;
 let brackets = 0;
+const followSet: string[] = [];
 
 const parsePatternGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
@@ -431,6 +432,8 @@ const parsePatternGroup =
     if (tokenIncludes(src[index], skip))
       return parsePatternGroup(banned, skip, lhs)(src, index + 1);
     if (tokenIncludes(src[index], banned))
+      return [index, implicitPlaceholder(nodePosition())];
+    if (tokenIncludes(src[index], followSet))
       return [index, implicitPlaceholder(nodePosition())];
 
     if (!lhs && src[index].src in idToPrefixPatternOp) {
@@ -450,7 +453,9 @@ const parsePatternGroup =
       brackets++;
       if (src[index]?.type === 'newline') index++;
 
+      followSet.push('}');
       const [_index, pattern] = parsePattern(0, ['}'])(src, index);
+      followSet.pop();
       index = _index;
       const node = () => {
         const node = operator(OperatorType.OBJECT, nodePosition());
@@ -480,7 +485,9 @@ const parsePatternGroup =
       parens++;
       if (src[index]?.type === 'newline') index++;
 
+      followSet.push(')');
       const [_index, pattern] = parsePattern(0, [')'], ['\n'])(src, index);
+      followSet.pop();
       index = _index;
       const node = () => operator(OperatorType.PARENS, nodePosition(), pattern);
 
@@ -502,7 +509,9 @@ const parsePatternGroup =
       squareBrackets++;
       if (src[index]?.type === 'newline') index++;
 
+      followSet.push(']');
       const [_index, pattern] = parseExpr(0, [']'], ['\n'])(src, index);
+      followSet.pop();
       index = _index;
       const node = () => operator(OperatorType.INDEX, nodePosition(), pattern);
 
@@ -601,9 +610,32 @@ const parseGroup =
         ),
       ];
     }
+    if (brackets === 0 && src[index].src === '}') {
+      while (src[index] && src[index].src === '}') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['{', '}'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
+    if (squareBrackets === 0 && src[index].src === ']') {
+      while (src[index] && src[index].src === ']') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['[', ']'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
+
     if (tokenIncludes(src[index], skip))
       return parseGroup(banned, skip, lhs)(src, index + 1);
     if (tokenIncludes(src[index], banned))
+      return [index, implicitPlaceholder(nodePosition())];
+    if (tokenIncludes(src[index], followSet))
       return [index, implicitPlaceholder(nodePosition())];
 
     if (!lhs && src[index].src === 'fn') {
@@ -617,7 +649,9 @@ const parseGroup =
         brackets++;
         if (src[index]?.type === 'newline') index++;
         let sequence: AbstractSyntaxTree;
+        followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
+        followSet.pop();
 
         const node = () => {
           const node = operator(
@@ -671,7 +705,9 @@ const parseGroup =
         brackets++;
         if (src[index]?.type === 'newline') index++;
         let sequence: AbstractSyntaxTree;
+        followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
+        followSet.pop();
 
         const node = () => {
           const node = operator(
@@ -738,8 +774,11 @@ const parseGroup =
         index++;
         brackets++;
         if (src[index]?.type === 'newline') index++;
+
         let sequence: AbstractSyntaxTree;
+        followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
+        followSet.pop();
         const node = () => {
           const node = operator(
             OperatorType.WHILE,
@@ -811,7 +850,9 @@ const parseGroup =
       brackets++;
 
       let sequence: AbstractSyntaxTree;
+      followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
 
       const node = () => {
         let node = operator(OperatorType.LOOP, nodePosition(), sequence);
@@ -856,7 +897,9 @@ const parseGroup =
       brackets++;
 
       let sequence: AbstractSyntaxTree;
+      followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
 
       const node = () => {
         let node = operator(
@@ -931,7 +974,9 @@ const parseGroup =
       brackets++;
       if (src[index]?.type === 'newline') index++;
       let sequence: AbstractSyntaxTree;
+      followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
+      followSet.pop();
       const node = () => operator(OperatorType.BLOCK, nodePosition(), sequence);
 
       if (src[index]?.type === 'newline') index++;
@@ -951,7 +996,9 @@ const parseGroup =
       squareBrackets++;
       if (src[index]?.type === 'newline') index++;
 
+      followSet.push(']');
       const [_index, expr] = parseExpr(0, [']'], ['\n'])(src, index);
+      followSet.pop();
       index = _index;
       const node = () => operator(OperatorType.INDEX, nodePosition(), expr);
 
@@ -993,7 +1040,9 @@ const parseGroup =
       }
 
       let expr: AbstractSyntaxTree;
+      followSet.push(')');
       [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
+      followSet.pop();
       const node = () => operator(OperatorType.PARENS, nodePosition(), expr);
 
       while (tokenIncludes(src[index], ['\n'])) index++;
@@ -1119,7 +1168,8 @@ const parseSequence = (
 
   while (
     src[index] &&
-    (banned.length === 0 || !tokenIncludes(src[index], banned))
+    (banned.length === 0 || !tokenIncludes(src[index], banned)) &&
+    (followSet.length === 0 || !tokenIncludes(src[index], followSet))
   ) {
     if (tokenIncludes(src[index], ['\n', ';'])) {
       index++;

@@ -28,12 +28,14 @@ const testCase = (input, _?, _it: any = it) =>
   });
 
 testCase(')');
-
 testCase('(');
-
-// testCase('({ 1 )', [], it.only);
+testCase('}');
+testCase('{');
+testCase(']');
+testCase('[');
 testCase('({ 1 )');
-
+// testCase('(x[ 1 )', [], it.only);
+testCase('x[{ 1 ]');
 testCase('1 2');
 testCase('"1" 2');
 
@@ -122,33 +124,9 @@ testCase('1 + 2 +', [
   },
 ]);
 
-testCase('1 +', [
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 2, end: 2 },
-      },
-    ],
-    pos: { start: 1, end: 2 },
-  },
-]);
+testCase('1 +');
 
-testCase('1 *', [
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 2, end: 2 },
-      },
-    ],
-    pos: { start: 1, end: 2 },
-  },
-]);
+testCase('1 *');
 
 testCase(' q + )/', [
   {
@@ -194,11 +172,6 @@ testCase(' - )/q + )/', [
 ]);
 
 testCase('1 * (5/3) (*4', [
-  {
-    message: 'missing operator',
-    cause: [],
-    pos: { start: 7, end: 7 },
-  },
   {
     message: 'unbalanced parens',
     cause: [

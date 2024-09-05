@@ -7,15 +7,17 @@ exports[`finds all errors in example ' - )/q + )/' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 10,
+        "end": 11,
         "kind": "primary",
-        "message": "here",
-        "start": 10,
+        "message": "can't evaluate this expression",
+        "start": 9,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -143,15 +145,17 @@ exports[`finds all errors in example ' q + )/' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 6,
+        "end": 7,
         "kind": "primary",
-        "message": "here",
-        "start": 6,
+        "message": "can't evaluate this expression",
+        "start": 5,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -520,22 +524,7 @@ exports[`finds all errors in example '({ 1 )' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 6,
-        "kind": "primary",
-        "message": "somewhere here",
-        "start": 0,
-      },
-    ],
-    "message": "Missing token, expected one of: ")"",
-    "notes": [],
-    "type": "MISSING_TOKEN",
-  },
-  {
-    "data": {},
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 6,
+        "end": 4,
         "kind": "primary",
         "message": "somewhere here",
         "start": 1,
@@ -544,21 +533,6 @@ exports[`finds all errors in example '({ 1 )' 1`] = `
     "message": "Missing token, expected one of: "}"",
     "notes": [],
     "type": "MISSING_TOKEN",
-  },
-  {
-    "data": {},
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 4,
-        "kind": "primary",
-        "message": "can't evaluate this expression",
-        "start": 3,
-      },
-    ],
-    "message": "Cannot apply a number or string as a function",
-    "notes": [],
-    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -573,47 +547,21 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
             {
               "children": [
                 {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "position": {
-                          "end": 4,
-                          "start": 3,
-                        },
-                      },
-                      "type": "implicit_placeholder",
-                    },
-                    {
-                      "children": [],
-                      "data": {
-                        "position": {
-                          "end": 6,
-                          "start": 5,
-                        },
-                        "value": ")",
-                      },
-                      "type": "name",
-                    },
-                  ],
+                  "children": [],
                   "data": {
-                    "operator": "application",
                     "position": {
-                      "end": 6,
+                      "end": 4,
                       "start": 3,
                     },
-                    "precedence": [
-                      9007199254740989,
-                      9007199254740990,
-                    ],
+                    "value": 1,
                   },
-                  "type": "operator",
+                  "type": "number",
                 },
               ],
               "data": {
                 "operator": "sequence",
                 "position": {
-                  "end": 6,
+                  "end": 4,
                   "start": 3,
                 },
                 "precedence": [
@@ -627,7 +575,7 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
           "data": {
             "operator": "block",
             "position": {
-              "end": 6,
+              "end": 4,
               "start": 1,
             },
             "precedence": [
@@ -670,7 +618,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 5,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -685,7 +633,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 25,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -694,22 +642,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
     "fileId": 0,
     "labels": [
       {
-        "end": 84,
-        "kind": "primary",
-        "message": "somewhere here",
-        "start": 51,
-      },
-    ],
-    "message": "Missing token, expected one of: ")"",
-    "notes": [],
-    "type": "MISSING_TOKEN",
-  },
-  {
-    "data": {},
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 84,
+        "end": 75,
         "kind": "primary",
         "message": "somewhere here",
         "start": 61,
@@ -730,7 +663,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 68,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -745,7 +678,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
         "start": 80,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -1377,143 +1310,36 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                             {
                               "children": [
                                 {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 73,
-                                              "start": 68,
-                                            },
-                                          },
-                                          "type": "implicit_placeholder",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 75,
-                                              "start": 73,
-                                            },
-                                            "value": 0.1,
-                                          },
-                                          "type": "number",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "application",
-                                        "position": {
-                                          "end": 75,
-                                          "start": 68,
-                                        },
-                                        "precedence": [
-                                          9007199254740989,
-                                          9007199254740990,
-                                        ],
-                                      },
-                                      "type": "operator",
-                                    },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "position": {
-                                          "end": 77,
-                                          "start": 76,
-                                        },
-                                        "value": ")",
-                                      },
-                                      "type": "name",
-                                    },
-                                  ],
+                                  "children": [],
                                   "data": {
-                                    "operator": "application",
                                     "position": {
-                                      "end": 77,
+                                      "end": 73,
                                       "start": 68,
                                     },
-                                    "precedence": [
-                                      9007199254740989,
-                                      9007199254740990,
-                                    ],
                                   },
-                                  "type": "operator",
+                                  "type": "implicit_placeholder",
                                 },
                                 {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 81,
-                                              "start": 80,
-                                            },
-                                          },
-                                          "type": "implicit_placeholder",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 82,
-                                              "start": 81,
-                                            },
-                                            "value": ")",
-                                          },
-                                          "type": "name",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "application",
-                                        "position": {
-                                          "end": 82,
-                                          "start": 80,
-                                        },
-                                        "precedence": [
-                                          9007199254740989,
-                                          9007199254740990,
-                                        ],
-                                      },
-                                      "type": "operator",
-                                    },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "position": {
-                                          "end": 84,
-                                          "start": 83,
-                                        },
-                                        "value": 1,
-                                      },
-                                      "type": "number",
-                                    },
-                                  ],
+                                  "children": [],
                                   "data": {
-                                    "operator": "/",
                                     "position": {
-                                      "end": 84,
-                                      "start": 80,
+                                      "end": 75,
+                                      "start": 73,
                                     },
-                                    "precedence": [
-                                      15,
-                                      16,
-                                    ],
+                                    "value": 0.1,
                                   },
-                                  "type": "operator",
+                                  "type": "number",
                                 },
                               ],
                               "data": {
-                                "operator": "add",
+                                "operator": "application",
                                 "position": {
-                                  "end": 84,
+                                  "end": 75,
                                   "start": 68,
                                 },
                                 "precedence": [
-                                  11,
-                                  11,
+                                  9007199254740989,
+                                  9007199254740990,
                                 ],
                               },
                               "type": "operator",
@@ -1536,7 +1362,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                       "data": {
                         "operator": "index",
                         "position": {
-                          "end": 84,
+                          "end": 75,
                           "start": 61,
                         },
                         "precedence": [
@@ -1550,7 +1376,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
                   "data": {
                     "operator": ",",
                     "position": {
-                      "end": 84,
+                      "end": 75,
                       "start": 52,
                     },
                     "precedence": [
@@ -1564,7 +1390,7 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
               "data": {
                 "operator": "parens",
                 "position": {
-                  "end": 84,
+                  "end": 77,
                   "start": 51,
                 },
                 "precedence": [
@@ -1578,12 +1404,76 @@ exports[`finds all errors in example '(2^2-5x+7)-(-i)+ (j)/0 - 1)*(1*f)+(27-x, )
           "data": {
             "operator": "application",
             "position": {
-              "end": 84,
+              "end": 77,
               "start": 47,
             },
             "precedence": [
               9007199254740989,
               9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 81,
+                      "start": 80,
+                    },
+                  },
+                  "type": "implicit_placeholder",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 82,
+                      "start": 81,
+                    },
+                    "value": ")",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 82,
+                  "start": 80,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 84,
+                  "start": 83,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 84,
+              "start": 80,
+            },
+            "precedence": [
+              15,
+              16,
             ],
           },
           "type": "operator",
@@ -1621,7 +1511,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
         "start": 1,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -1636,7 +1526,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
         "start": 6,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -1651,7 +1541,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
         "start": 55,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -1666,7 +1556,7 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
         "start": 70,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -1675,15 +1565,17 @@ exports[`finds all errors in example '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, 
     "fileId": 0,
     "labels": [
       {
-        "end": 85,
+        "end": 86,
         "kind": "primary",
-        "message": "here",
-        "start": 85,
+        "message": "can't evaluate this expression",
+        "start": 84,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -2674,6 +2566,214 @@ exports[`finds all errors in example '* 1' 2`] = `
 }
 `;
 
+exports[`finds all errors in example '[' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 0,
+      },
+    ],
+    "message": "Missing token, expected one of: "]"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 0,
+        "kind": "primary",
+        "message": "here",
+        "start": 0,
+      },
+    ],
+    "message": "Unexpected end of source",
+    "notes": [],
+    "type": "END_OF_SOURCE",
+  },
+]
+`;
+
+exports[`finds all errors in example '[' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 0,
+              "start": 0,
+            },
+          },
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {
+        "operator": "index",
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740988,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example ']' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "unexpected closing token",
+        "start": 0,
+      },
+    ],
+    "message": "Unexpected closing token "]"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example ']' 2`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+      },
+      "type": "implicit_placeholder",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '{' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 0,
+      },
+    ],
+    "message": "Missing token, expected one of: "}"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '{' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 0,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "block",
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '}' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "unexpected closing token",
+        "start": 0,
+      },
+    ],
+    "message": "Unexpected closing token "}"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '}' 2`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 1,
+          "start": 0,
+        },
+      },
+      "type": "implicit_placeholder",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '1 * (* 2)' 1`] = `[]`;
 
 exports[`finds all errors in example '1 * (* 2)' 2`] = `
@@ -2953,15 +3053,17 @@ exports[`finds all errors in example '1 *' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 2,
+        "end": 3,
         "kind": "primary",
-        "message": "here",
-        "start": 2,
+        "message": "can't evaluate this expression",
+        "start": 0,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -3668,15 +3770,17 @@ exports[`finds all errors in example '1 +' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 2,
+        "end": 3,
         "kind": "primary",
-        "message": "here",
-        "start": 2,
+        "message": "can't evaluate this expression",
+        "start": 0,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -3740,7 +3844,7 @@ exports[`finds all errors in example '1 - 1)*1' 1`] = `
         "start": 4,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -3854,14 +3958,16 @@ exports[`finds all errors in example '1 - 1)*1+' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 5,
+        "end": 9,
         "kind": "primary",
         "message": "can't evaluate this expression",
-        "start": 4,
+        "start": 0,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
-    "notes": [],
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
     "type": "EVALUATION_ERROR",
   },
   {
@@ -3869,15 +3975,15 @@ exports[`finds all errors in example '1 - 1)*1+' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 8,
+        "end": 5,
         "kind": "primary",
-        "message": "here",
-        "start": 8,
+        "message": "can't evaluate this expression",
+        "start": 4,
       },
     ],
-    "message": "Unexpected end of source",
+    "message": "Cannot apply a number as a function",
     "notes": [],
-    "type": "END_OF_SOURCE",
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -4021,7 +4127,7 @@ exports[`finds all errors in example '1 2' 1`] = `
         "start": 0,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -4384,7 +4490,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`
         "start": 7,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -4399,7 +4505,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`
         "start": 22,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -4408,15 +4514,17 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/' 1`
     "fileId": 0,
     "labels": [
       {
-        "end": 37,
+        "end": 38,
         "kind": "primary",
-        "message": "here",
-        "start": 37,
+        "message": "can't evaluate this expression",
+        "start": 36,
       },
     ],
-    "message": "Unexpected end of source",
-    "notes": [],
-    "type": "END_OF_SOURCE",
+    "message": "Expected right hand side for operator",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "EVALUATION_ERROR",
   },
 ]
 `;
@@ -4796,7 +4904,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 1`] = `
         "start": 7,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -4811,7 +4919,7 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 1`] = `
         "start": 22,
       },
     ],
-    "message": "Cannot apply a number or string as a function",
+    "message": "Cannot apply a number as a function",
     "notes": [],
     "type": "EVALUATION_ERROR",
   },
@@ -5117,6 +5225,105 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
         "precedence": [
           9007199254740989,
           9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'x[{ 1 ]' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 5,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 2,
+      },
+    ],
+    "message": "Missing token, expected one of: "}"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 5,
+                      "start": 4,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "sequence",
+                "position": {
+                  "end": 5,
+                  "start": 4,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+            "position": {
+              "end": 5,
+              "start": 2,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "index",
+        "position": {
+          "end": 7,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740988,
+          null,
         ],
       },
       "type": "operator",

@@ -68,6 +68,13 @@ export class SystemError extends Error {
 
   withCause(cause: unknown): SystemError {
     this.cause = cause;
+
+    if (this.cause instanceof SystemError) {
+      const causeMsg = this.cause.message;
+      const causeErrorType = ErrorType[this.cause.type];
+      this.notes.push(`Caused by: [${causeErrorType}] ${causeMsg}`);
+    }
+    
     return this;
   }
 
@@ -82,15 +89,17 @@ export class SystemError extends Error {
     assert(this.fileId !== undefined, 'fileId is not set for SystemError');
     const id = this.fileId;
     const diag = Diagnostic.error();
-    diag.withMessage(this.message);
-    diag.withCode(ErrorType[this.type]);
     const labels = this.labels.map(({ kind, ...label }) =>
       kind === 'primary'
         ? primaryDiagnosticLabel(id, label)
         : secondaryDiagnosticLabel(id, label)
     );
+
+    diag.withMessage(this.message);
+    diag.withCode(ErrorType[this.type]);
     diag.withLabels(labels);
     diag.withNotes(this.notes);
+
     return diag;
   }
 
