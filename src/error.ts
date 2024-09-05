@@ -58,7 +58,7 @@ export class SystemError extends Error {
   }
 
   toObject(): any {
-    return { ...this, type: ErrorType[this.type] };
+    return { ...this, type: ErrorType[this.type], message: this.message };
   }
 
   withFileId(fileId: number): SystemError {
@@ -295,7 +295,7 @@ export class SystemError extends Error {
     labels.push({
       start: pos.start,
       end: pos.end,
-      message: 'failed to evaluate this expression',
+      message: "can't evaluate this expression",
       kind: 'primary',
     });
     return new SystemError(ErrorType.EVALUATION_ERROR, msg, options);

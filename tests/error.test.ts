@@ -31,7 +31,11 @@ testCase(')');
 
 testCase('(');
 
-testCase('({ 1 )', [], it.only);
+// testCase('({ 1 )', [], it.only);
+testCase('({ 1 )');
+
+testCase('1 2');
+testCase('"1" 2');
 
 testCase('* 1', [
   {
