@@ -328,6 +328,7 @@ export enum OperatorType {
   FOR = 'for',
   ASYNC = 'async',
   MATCH = 'match',
+  MATCH_CASE = 'match_case',
   USE = 'use',
   INJECT = 'inject',
   MASK = 'mask',
@@ -970,7 +971,9 @@ const parseGroup =
         if (src[index]?.src === ',') index++;
         let body: AbstractSyntaxTree;
         [index, body] = parseExpr(0, ['}'])(src, index);
-        cases.push(operator(OperatorType.TUPLE, nodePosition(), pattern, body));
+        cases.push(
+          operator(OperatorType.MATCH_CASE, nodePosition(), pattern, body)
+        );
       }
       followSet.pop();
 
@@ -992,12 +995,10 @@ const parseGroup =
       ];
     }
 
-    if (!lhs && src[index].src === 'use') {
+    if (!lhs && src[index].src === 'handlers') {
       index++;
-      let pattern: AbstractSyntaxTree;
-      [index, pattern] = parsePattern()(src, index);
 
-      return [index, operator(OperatorType.USE, nodePosition(), pattern)];
+      return [index, operator(OperatorType.USE, nodePosition())];
     }
 
     if (!lhs && src[index].src === 'inject') {

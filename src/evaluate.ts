@@ -31,16 +31,50 @@ export type Context = {
   file: string;
   fileId: number;
   env: Record<string, EvalValue>;
+  handlers: Record<string | symbol, EvalValue>;
 };
 
-const forkEnv = (env: Record<string, EvalValue>): Record<string, EvalValue> => {
-  const forked: Record<string, EvalValue> = {};
+const forkEnv = (env: Context['env']): Context['env'] => {
+  const forked: Context['env'] = {};
   Object.setPrototypeOf(forked, env);
   return forked;
 };
 
+const maskHandlers = (
+  handlers: Context['handlers'],
+  names: (string | symbol)[]
+) => {
+  const prototypes = [handlers];
+  while (true) {
+    const head = prototypes[prototypes.length - 1];
+    const prototype = Object.getPrototypeOf(head);
+    if (prototype === null) break;
+    prototypes.push(prototype);
+  }
+  return new Proxy(handlers, {
+    get(target, prop, receiver) {
+      if (!names.includes(prop)) return Reflect.get(target, prop, receiver);
+      const proto = prototypes.find((proto) => Object.hasOwn(proto, prop));
+      if (proto) return Object.getPrototypeOf(proto)[prop];
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+};
+
+const omitHandlers = (
+  handlers: Context['handlers'],
+  names: (string | symbol)[]
+) => {
+  return new Proxy(handlers, {
+    get(target, prop, receiver) {
+      if (names.includes(prop)) return undefined;
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+};
+
 export const newContext = (fileId: number, file: string): Context => {
-  return { file, fileId, env: forkEnv(prelude) };
+  return { file, fileId, env: forkEnv(prelude), handlers: {} };
 };
 
 const incAssign = async (
@@ -892,6 +926,64 @@ export const evaluateStatement = async (
             )
           );
 
+        case OperatorType.INJECT: {
+          const [expr, body] = ast.children;
+          const value = await evaluateExpr(expr, context);
+          assert(isRecord(value), 'expected record');
+
+          const handlers = { ...value.record, ...context.handlers };
+          Object.setPrototypeOf(handlers, context.handlers);
+          return await evaluateStatement(body, { ...context, handlers });
+        }
+        case OperatorType.WITHOUT: {
+          const [expr, body] = ast.children;
+          const value = await evaluateExpr(expr, context);
+          assert(Array.isArray(value), 'expected tuple');
+          assert(
+            value.every((v) => typeof v === 'string' || isSymbol(v)),
+            'expected strings or symbols'
+          );
+
+          const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+          const handlers = omitHandlers(context.handlers, handlerNames);
+          return await evaluateStatement(body, { ...context, handlers });
+        }
+        case OperatorType.MASK: {
+          const [expr, body] = ast.children;
+          const value = await evaluateExpr(expr, context);
+          assert(Array.isArray(value), 'expected tuple');
+          assert(
+            value.every((v) => typeof v === 'string' || isSymbol(v)),
+            'expected strings or symbols'
+          );
+
+          const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+          const handlers = maskHandlers(context.handlers, handlerNames);
+          return await evaluateStatement(body, { ...context, handlers });
+        }
+        case OperatorType.USE: {
+          const record = { record: context.handlers };
+
+          return record;
+        }
+
+        case OperatorType.MATCH: {
+          const [expr, ...branches] = ast.children;
+          const value = await evaluateExpr(expr, context);
+
+          for (const branch of branches) {
+            assert(
+              branch.type === OperatorType.MATCH_CASE,
+              'expected match case'
+            );
+            const [pattern, body] = branch.children;
+
+            const bound = await bind(pattern, value, context).catch();
+            if (bound) return await evaluateStatement(body, bound);
+          }
+
+          return null;
+        }
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
           const result = await evaluateExpr(condition, context);

@@ -301,3 +301,17 @@ it('ast effect handlers', async () => {
 
   expect(ast).toMatchSnapshot();
 });
+
+it('ast switch', async () => {
+  const input = `
+    switch a {
+      1 -> 2,
+      2 -> 3,
+      _ -> 4,
+    }
+    `;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
