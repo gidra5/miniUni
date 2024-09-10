@@ -146,6 +146,8 @@ export const operator = (
         return associative(tuplePrecedence);
       case OperatorType.SPREAD:
         return [null, tuplePrecedence + 1];
+      case OperatorType.COLON:
+        return rightAssociative(tuplePrecedence + 1);
       case OperatorType.FUNCTION:
         return [null, 2];
       case OperatorType.IF:
@@ -202,7 +204,7 @@ export const operator = (
       case OperatorType.PLUS:
         return [null, arithmeticPrecedence + 7];
       case OperatorType.ATOM:
-        return [null, 1];
+        return [null, maxPrecedence - 3];
       default:
         return [null, null];
     }
@@ -329,7 +331,6 @@ export enum OperatorType {
   ASYNC = 'async',
   MATCH = 'match',
   MATCH_CASE = 'match_case',
-  USE = 'use',
   INJECT = 'inject',
   MASK = 'mask',
   WITHOUT = 'without',
@@ -998,12 +999,6 @@ const parseGroup =
         index,
         operator(OperatorType.MATCH, nodePosition(), value, ...cases),
       ];
-    }
-
-    if (!lhs && src[index].src === 'handlers') {
-      index++;
-
-      return [index, operator(OperatorType.USE, nodePosition())];
     }
 
     if (!lhs && src[index].src === 'inject') {

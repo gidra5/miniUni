@@ -168,7 +168,6 @@ export const receive = async (c: symbol): Promise<EvalValue> => {
   });
 };
 
-
 export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   const status = channelStatus(c);
 

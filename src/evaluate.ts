@@ -961,11 +961,6 @@ export const evaluateStatement = async (
           const handlers = maskHandlers(context.handlers, handlerNames);
           return await evaluateStatement(body, { ...context, handlers });
         }
-        case OperatorType.USE: {
-          const record = { record: context.handlers };
-
-          return record;
-        }
 
         case OperatorType.MATCH: {
           const [expr, ...branches] = ast.children;
@@ -1195,6 +1190,7 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
+      if (name === 'handlers') return { record: context.handlers };
       assert(
         name in context.env,
         SystemError.undeclaredName(name, ast.data.position).withFileId(

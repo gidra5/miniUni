@@ -282,14 +282,46 @@ it('ast infix-infix multiline', async () => {
   expect(ast).toMatchSnapshot();
 });
 
+it('ast record single', async () => {
+  const input = `a: 1`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
+it('ast record', async () => {
+  const input = `a: 1, b: 2`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
+it('ast tuple with single item (atom)', async () => {
+  const input = `(:a,)`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
+it('ast declare record pattern', async () => {
+  const input = `{ a, b } := handlers`;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
 it('ast effect handlers', async () => {
   const input = `
     inject a: 1, b: 2 {
-      use { a, b }
+      { a, b } := handlers;
       inject a: a+1, b: b+2 {
         mask (:a,) {
           without (:b,) {
-            { a } := handlers
+            { a } := handlers;
             a + 1
           }
         }
