@@ -9,7 +9,7 @@ import {
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, omit, unreachable } from './utils.js';
+import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   atom,
   closeChannel,
@@ -767,16 +767,49 @@ export const evaluateStatement = async (
           );
         }
         case OperatorType.TUPLE: {
-          const list = await Promise.all(
-            ast.children.map(async (child) => {
-              if (child.data.operator === OperatorType.SPREAD)
-                return await evaluateExpr(child.children[0], context);
-              if (child.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+          const list: EvalValue[] = [];
+          const record = {};
 
-              return [await evaluateExpr(child, context)];
-            })
-          );
-          return list.flat();
+          for (const child of ast.children) {
+            if (child.data.operator === OperatorType.SPREAD) {
+              const rest = await evaluateExpr(child.children[0], context);
+              if (Array.isArray(rest)) list.push(...rest);
+              else if (isRecord(rest)) Object.assign(record, rest.record);
+              else {
+                unreachable(
+                  SystemError.invalidTuplePattern(
+                    child.data.position
+                  ).withFileId(context.fileId)
+                );
+              }
+            } else if (child.data.operator === OperatorType.COLON) {
+              const _key = child.children[0];
+              const key =
+                _key.type === NodeType.NAME
+                  ? _key.data.value
+                  : await evaluateExpr(_key, context);
+              const value = await evaluateExpr(child.children[1], context);
+              record[key] = value;
+            } else if (child.type === NodeType.IMPLICIT_PLACEHOLDER) continue;
+            else list.push(await evaluateExpr(child, context));
+          }
+
+          if (Object.keys(record).length > 0) {
+            Object.assign(record, list);
+            return { record };
+          }
+
+          return list;
+        }
+        case OperatorType.COLON: {
+          const _key = ast.children[0];
+          const key =
+            _key.type === NodeType.NAME
+              ? _key.data.value
+              : await evaluateExpr(_key, context);
+          const value = await evaluateExpr(ast.children[1], context);
+
+          return { record: { [key]: value } };
         }
         case OperatorType.SPREAD:
           unreachable(
@@ -931,13 +964,15 @@ export const evaluateStatement = async (
           const value = await evaluateExpr(expr, context);
           assert(isRecord(value), 'expected record');
 
-          const handlers = { ...value.record, ...context.handlers };
+          const handlers = { ...context.handlers, ...value.record };
           Object.setPrototypeOf(handlers, context.handlers);
+          // inspect({ value, handlers });
           return await evaluateStatement(body, { ...context, handlers });
         }
         case OperatorType.WITHOUT: {
           const [expr, body] = ast.children;
-          const value = await evaluateExpr(expr, context);
+          let value = await evaluateExpr(expr, context);
+          if (isSymbol(value)) value = [value];
           assert(Array.isArray(value), 'expected tuple');
           assert(
             value.every((v) => typeof v === 'string' || isSymbol(v)),
@@ -950,7 +985,8 @@ export const evaluateStatement = async (
         }
         case OperatorType.MASK: {
           const [expr, body] = ast.children;
-          const value = await evaluateExpr(expr, context);
+          let value = await evaluateExpr(expr, context);
+          if (isSymbol(value)) value = [value];
           assert(Array.isArray(value), 'expected tuple');
           assert(
             value.every((v) => typeof v === 'string' || isSymbol(v)),
@@ -1126,8 +1162,12 @@ export const evaluateStatement = async (
           const _context = { ...context, env: forkEnv(context.env) };
 
           if (patterns.data.operator !== OperatorType.TUPLE) {
-            return async (arg) => {
-              const __context = { ..._context, env: forkEnv(_context.env) };
+            return async (arg, [, , callerContext]) => {
+              const __context = {
+                ..._context,
+                env: forkEnv(_context.env),
+                handlers: callerContext.handlers,
+              };
               const bound = await bind(patterns, arg, __context);
               try {
                 return await evaluateStatement(body, bound);
@@ -1141,7 +1181,7 @@ export const evaluateStatement = async (
 
           const binder = (...args: EvalValue[]): EvalFunction => {
             const _context = { ...context, env: forkEnv(context.env) };
-            return async (arg) => {
+            return async (arg, [, , callerContext]) => {
               if (args.length < patterns.children.length - 1) {
                 return binder(...args, arg);
               }
@@ -1154,6 +1194,7 @@ export const evaluateStatement = async (
                 Promise.resolve(_context)
               );
               bound.env['self'] = binder();
+              bound.handlers = callerContext.handlers;
 
               try {
                 const x = await evaluateStatement(body, bound);
@@ -1181,7 +1222,11 @@ export const evaluateStatement = async (
             ).withFileId(context.fileId)
           );
 
-          return await fnValue(argValue, [ast.data.position, context.fileId]);
+          return await fnValue(argValue, [
+            ast.data.position,
+            context.fileId,
+            context,
+          ]);
         }
       }
     }
@@ -1190,6 +1235,7 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
+      // inspect(context);
       if (name === 'handlers') return { record: context.handlers };
       assert(
         name in context.env,

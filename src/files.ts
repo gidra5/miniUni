@@ -44,6 +44,15 @@ export const addFile = (fileName: string, source: string) => {
 };
 
 export const prelude: Record<string, EvalValue> = {
+  await: fn(1, async ([position, fileId], value) => {
+    const awaitErrorFactory = SystemError.invalidArgumentType(
+      'await',
+      { args: [['target', 'channel a']], returns: 'a' },
+      position
+    );
+    assert(isChannel(value), awaitErrorFactory(0).withFileId(fileId));
+    return await receive(value.channel);
+  }),
   channel: fn(1, (_, name) => {
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
@@ -313,7 +322,7 @@ export const listMethods = (() => {
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
     slice: module.slice,
-    map: fn(2, async ([pos, fileId], list, fn) => {
+    map: fn(2, async ([pos, fileId, context], list, fn) => {
       const mapErrorFactory = SystemError.invalidArgumentType(
         'map',
         {
@@ -329,12 +338,12 @@ export const listMethods = (() => {
       assert(typeof fn === 'function', mapErrorFactory(1).withFileId(fileId));
       const mapped: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(item, [pos, fileId]);
+        const x = await fn(item, [pos, fileId, context]);
         mapped.push(x);
       }
       return mapped;
     }),
-    filter: fn(2, async ([pos, fileId], list, fn) => {
+    filter: fn(2, async ([pos, fileId, context], list, fn) => {
       const filterErrorFactory = SystemError.invalidArgumentType(
         'filter',
         {
@@ -353,7 +362,7 @@ export const listMethods = (() => {
       );
       const filtered: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(item, [pos, fileId]);
+        const x = await fn(item, [pos, fileId, context]);
         if (x) filtered.push(item);
       }
       return filtered;

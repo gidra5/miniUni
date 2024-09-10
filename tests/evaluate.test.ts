@@ -367,3 +367,47 @@ it('evaluate scope 7', async () => {
   const result = await evaluate(input);
   expect(result).toEqual(6);
 });
+
+it.only('effect handlers', async () => {
+  const input = `
+    inject a: 1, b: 2 {
+      { a, b } := handlers;
+      inject a: a+1, b: b+2 {
+        mask ("a",) {
+          without ("b",) {
+            { a } := handlers;
+            a + 1
+          }
+        }
+      }  
+    }
+    `;
+  const result = await evaluate(input);
+  expect(result).toEqual(2);
+});
+
+it('parallel effect handlers', async () => {
+  const input = `
+    f := fn {
+      { a, b } := handlers;
+      a + b
+    };
+    
+    inject a: 1, b: 2 {
+      x1 := f();
+      x2 := async {
+        inject a: 3 {
+          f()
+        }
+      };
+      x3 := async {
+        inject a: 5, b: 4 {
+          f()
+        }
+      };
+      x1, await x2, await x3
+    }
+    `;
+  const result = await evaluate(input);
+  expect(result).toEqual([3, 5, 9]);
+});

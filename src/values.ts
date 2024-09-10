@@ -1,9 +1,10 @@
+import type { Context } from './evaluate.js';
 import { Position } from './position.js';
 import { assert } from './utils.js';
 
 export type EvalFunction = (
   arg: EvalValue,
-  callSite: [Position, number]
+  callSite: [Position, number, Context]
 ) => Promise<EvalValue>;
 export type EvalValue =
   | number
@@ -35,7 +36,7 @@ export enum ChannelStatus {
 export const fn = (
   n: number,
   f: (
-    callSite: [Position, number],
+    callSite: [Position, number, Context],
     ...args: EvalValue[]
   ) => EvalValue | Promise<EvalValue>
 ): EvalFunction => {
