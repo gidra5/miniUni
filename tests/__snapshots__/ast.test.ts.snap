@@ -246,32 +246,75 @@ exports[`ast effect handlers 1`] = `
                         {
                           "children": [
                             {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 34,
+                                  "start": 31,
+                                },
+                                "value": "use",
+                              },
+                              "type": "name",
+                            },
+                            {
                               "children": [
                                 {
-                                  "children": [],
-                                  "data": {
-                                    "position": {
-                                      "end": 38,
-                                      "start": 37,
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 38,
+                                              "start": 37,
+                                            },
+                                            "value": "a",
+                                          },
+                                          "type": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 41,
+                                              "start": 40,
+                                            },
+                                            "value": "b",
+                                          },
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ",",
+                                        "position": {
+                                          "end": 41,
+                                          "start": 37,
+                                        },
+                                        "precedence": [
+                                          6,
+                                          6,
+                                        ],
+                                      },
+                                      "type": "operator",
                                     },
-                                    "value": "a",
-                                  },
-                                  "type": "name",
-                                },
-                                {
-                                  "children": [],
+                                  ],
                                   "data": {
+                                    "operator": "sequence",
                                     "position": {
                                       "end": 41,
-                                      "start": 40,
+                                      "start": 37,
                                     },
-                                    "value": "b",
+                                    "precedence": [
+                                      null,
+                                      null,
+                                    ],
                                   },
-                                  "type": "name",
+                                  "type": "operator",
                                 },
                               ],
                               "data": {
-                                "operator": "object",
+                                "operator": "block",
                                 "position": {
                                   "end": 43,
                                   "start": 35,
@@ -285,14 +328,14 @@ exports[`ast effect handlers 1`] = `
                             },
                           ],
                           "data": {
-                            "operator": "use",
+                            "operator": "application",
                             "position": {
                               "end": 43,
                               "start": 31,
                             },
                             "precedence": [
-                              null,
-                              null,
+                              9007199254740989,
+                              9007199254740990,
                             ],
                           },
                           "type": "operator",
@@ -480,36 +523,52 @@ exports[`ast effect handlers 1`] = `
                                                 {
                                                   "children": [
                                                     {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 89,
-                                                          "start": 88,
+                                                      "children": [
+                                                        {
+                                                          "children": [],
+                                                          "data": {
+                                                            "position": {
+                                                              "end": 90,
+                                                              "start": 89,
+                                                            },
+                                                            "value": "a",
+                                                          },
+                                                          "type": "name",
                                                         },
-                                                        "value": "a",
-                                                      },
-                                                      "type": "name",
-                                                    },
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 90,
-                                                          "start": 90,
+                                                        {
+                                                          "children": [],
+                                                          "data": {
+                                                            "position": {
+                                                              "end": 91,
+                                                              "start": 91,
+                                                            },
+                                                          },
+                                                          "type": "implicit_placeholder",
                                                         },
+                                                      ],
+                                                      "data": {
+                                                        "operator": ",",
+                                                        "position": {
+                                                          "end": 91,
+                                                          "start": 89,
+                                                        },
+                                                        "precedence": [
+                                                          6,
+                                                          6,
+                                                        ],
                                                       },
-                                                      "type": "implicit_placeholder",
+                                                      "type": "operator",
                                                     },
                                                   ],
                                                   "data": {
-                                                    "operator": ",",
+                                                    "operator": "atom",
                                                     "position": {
-                                                      "end": 90,
+                                                      "end": 91,
                                                       "start": 88,
                                                     },
                                                     "precedence": [
-                                                      6,
-                                                      6,
+                                                      null,
+                                                      1,
                                                     ],
                                                   },
                                                   "type": "operator",
@@ -518,7 +577,7 @@ exports[`ast effect handlers 1`] = `
                                               "data": {
                                                 "operator": "parens",
                                                 "position": {
-                                                  "end": 91,
+                                                  "end": 92,
                                                   "start": 87,
                                                 },
                                                 "precedence": [
@@ -537,36 +596,52 @@ exports[`ast effect handlers 1`] = `
                                                         {
                                                           "children": [
                                                             {
-                                                              "children": [],
-                                                              "data": {
-                                                                "position": {
-                                                                  "end": 114,
-                                                                  "start": 113,
+                                                              "children": [
+                                                                {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "position": {
+                                                                      "end": 116,
+                                                                      "start": 115,
+                                                                    },
+                                                                    "value": "b",
+                                                                  },
+                                                                  "type": "name",
                                                                 },
-                                                                "value": "b",
-                                                              },
-                                                              "type": "name",
-                                                            },
-                                                            {
-                                                              "children": [],
+                                                                {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "position": {
+                                                                      "end": 117,
+                                                                      "start": 117,
+                                                                    },
+                                                                  },
+                                                                  "type": "implicit_placeholder",
+                                                                },
+                                                              ],
                                                               "data": {
+                                                                "operator": ",",
                                                                 "position": {
-                                                                  "end": 115,
+                                                                  "end": 117,
                                                                   "start": 115,
                                                                 },
+                                                                "precedence": [
+                                                                  6,
+                                                                  6,
+                                                                ],
                                                               },
-                                                              "type": "implicit_placeholder",
+                                                              "type": "operator",
                                                             },
                                                           ],
                                                           "data": {
-                                                            "operator": ",",
+                                                            "operator": "atom",
                                                             "position": {
-                                                              "end": 115,
-                                                              "start": 113,
+                                                              "end": 117,
+                                                              "start": 114,
                                                             },
                                                             "precedence": [
-                                                              6,
-                                                              6,
+                                                              null,
+                                                              1,
                                                             ],
                                                           },
                                                           "type": "operator",
@@ -575,8 +650,8 @@ exports[`ast effect handlers 1`] = `
                                                       "data": {
                                                         "operator": "parens",
                                                         "position": {
-                                                          "end": 116,
-                                                          "start": 112,
+                                                          "end": 118,
+                                                          "start": 113,
                                                         },
                                                         "precedence": [
                                                           null,
@@ -592,44 +667,66 @@ exports[`ast effect handlers 1`] = `
                                                             {
                                                               "children": [
                                                                 {
+                                                                  "children": [],
+                                                                  "data": {
+                                                                    "position": {
+                                                                      "end": 136,
+                                                                      "start": 135,
+                                                                    },
+                                                                    "value": "a",
+                                                                  },
+                                                                  "type": "name",
+                                                                },
+                                                              ],
+                                                              "data": {
+                                                                "operator": "object",
+                                                                "position": {
+                                                                  "end": 138,
+                                                                  "start": 133,
+                                                                },
+                                                                "precedence": [
+                                                                  null,
+                                                                  null,
+                                                                ],
+                                                              },
+                                                              "type": "operator",
+                                                            },
+                                                            {
+                                                              "children": [
+                                                                {
                                                                   "children": [
                                                                     {
-                                                                      "children": [
-                                                                        {
-                                                                          "children": [],
-                                                                          "data": {
-                                                                            "position": {
-                                                                              "end": 138,
-                                                                              "start": 137,
-                                                                            },
-                                                                            "value": "a",
-                                                                          },
-                                                                          "type": "name",
-                                                                        },
-                                                                      ],
+                                                                      "children": [],
                                                                       "data": {
-                                                                        "operator": "object",
                                                                         "position": {
-                                                                          "end": 140,
-                                                                          "start": 135,
+                                                                          "end": 150,
+                                                                          "start": 142,
                                                                         },
-                                                                        "precedence": [
-                                                                          null,
-                                                                          null,
-                                                                        ],
+                                                                        "value": "handlers",
                                                                       },
-                                                                      "type": "operator",
+                                                                      "type": "name",
+                                                                    },
+                                                                    {
+                                                                      "children": [],
+                                                                      "data": {
+                                                                        "position": {
+                                                                          "end": 164,
+                                                                          "start": 163,
+                                                                        },
+                                                                        "value": "a",
+                                                                      },
+                                                                      "type": "name",
                                                                     },
                                                                   ],
                                                                   "data": {
-                                                                    "operator": "use",
+                                                                    "operator": "application",
                                                                     "position": {
-                                                                      "end": 140,
-                                                                      "start": 131,
+                                                                      "end": 164,
+                                                                      "start": 142,
                                                                     },
                                                                     "precedence": [
-                                                                      null,
-                                                                      null,
+                                                                      9007199254740989,
+                                                                      9007199254740990,
                                                                     ],
                                                                   },
                                                                   "type": "operator",
@@ -638,48 +735,37 @@ exports[`ast effect handlers 1`] = `
                                                                   "children": [],
                                                                   "data": {
                                                                     "position": {
-                                                                      "end": 154,
-                                                                      "start": 153,
+                                                                      "end": 168,
+                                                                      "start": 167,
                                                                     },
-                                                                    "value": "a",
+                                                                    "value": 1,
                                                                   },
-                                                                  "type": "name",
+                                                                  "type": "number",
                                                                 },
                                                               ],
                                                               "data": {
-                                                                "operator": "application",
+                                                                "operator": "add",
                                                                 "position": {
-                                                                  "end": 154,
-                                                                  "start": 131,
+                                                                  "end": 168,
+                                                                  "start": 142,
                                                                 },
                                                                 "precedence": [
-                                                                  9007199254740989,
-                                                                  9007199254740990,
+                                                                  11,
+                                                                  11,
                                                                 ],
                                                               },
                                                               "type": "operator",
                                                             },
-                                                            {
-                                                              "children": [],
-                                                              "data": {
-                                                                "position": {
-                                                                  "end": 158,
-                                                                  "start": 157,
-                                                                },
-                                                                "value": 1,
-                                                              },
-                                                              "type": "number",
-                                                            },
                                                           ],
                                                           "data": {
-                                                            "operator": "add",
+                                                            "operator": ":=",
                                                             "position": {
-                                                              "end": 158,
-                                                              "start": 131,
+                                                              "end": 168,
+                                                              "start": 133,
                                                             },
                                                             "precedence": [
-                                                              11,
-                                                              11,
+                                                              null,
+                                                              1,
                                                             ],
                                                           },
                                                           "type": "operator",
@@ -688,8 +774,8 @@ exports[`ast effect handlers 1`] = `
                                                       "data": {
                                                         "operator": "sequence",
                                                         "position": {
-                                                          "end": 169,
-                                                          "start": 131,
+                                                          "end": 179,
+                                                          "start": 133,
                                                         },
                                                         "precedence": [
                                                           null,
@@ -702,8 +788,8 @@ exports[`ast effect handlers 1`] = `
                                                   "data": {
                                                     "operator": "without",
                                                     "position": {
-                                                      "end": 170,
-                                                      "start": 104,
+                                                      "end": 180,
+                                                      "start": 105,
                                                     },
                                                     "precedence": [
                                                       null,
@@ -716,8 +802,8 @@ exports[`ast effect handlers 1`] = `
                                               "data": {
                                                 "operator": "sequence",
                                                 "position": {
-                                                  "end": 179,
-                                                  "start": 104,
+                                                  "end": 189,
+                                                  "start": 105,
                                                 },
                                                 "precedence": [
                                                   null,
@@ -730,7 +816,7 @@ exports[`ast effect handlers 1`] = `
                                           "data": {
                                             "operator": "mask",
                                             "position": {
-                                              "end": 180,
+                                              "end": 190,
                                               "start": 82,
                                             },
                                             "precedence": [
@@ -744,7 +830,7 @@ exports[`ast effect handlers 1`] = `
                                       "data": {
                                         "operator": "sequence",
                                         "position": {
-                                          "end": 187,
+                                          "end": 197,
                                           "start": 82,
                                         },
                                         "precedence": [
@@ -758,7 +844,7 @@ exports[`ast effect handlers 1`] = `
                                   "data": {
                                     "operator": "block",
                                     "position": {
-                                      "end": 188,
+                                      "end": 198,
                                       "start": 72,
                                     },
                                     "precedence": [
@@ -772,7 +858,7 @@ exports[`ast effect handlers 1`] = `
                               "data": {
                                 "operator": "application",
                                 "position": {
-                                  "end": 188,
+                                  "end": 198,
                                   "start": 70,
                                 },
                                 "precedence": [
@@ -786,7 +872,7 @@ exports[`ast effect handlers 1`] = `
                           "data": {
                             "operator": "add",
                             "position": {
-                              "end": 188,
+                              "end": 198,
                               "start": 68,
                             },
                             "precedence": [
@@ -800,7 +886,7 @@ exports[`ast effect handlers 1`] = `
                       "data": {
                         "operator": "atom",
                         "position": {
-                          "end": 188,
+                          "end": 198,
                           "start": 66,
                         },
                         "precedence": [
@@ -814,7 +900,7 @@ exports[`ast effect handlers 1`] = `
                   "data": {
                     "operator": "sequence",
                     "position": {
-                      "end": 195,
+                      "end": 205,
                       "start": 31,
                     },
                     "precedence": [
@@ -828,7 +914,7 @@ exports[`ast effect handlers 1`] = `
               "data": {
                 "operator": "block",
                 "position": {
-                  "end": 196,
+                  "end": 206,
                   "start": 23,
                 },
                 "precedence": [
@@ -842,7 +928,7 @@ exports[`ast effect handlers 1`] = `
           "data": {
             "operator": "application",
             "position": {
-              "end": 196,
+              "end": 206,
               "start": 21,
             },
             "precedence": [
@@ -856,7 +942,7 @@ exports[`ast effect handlers 1`] = `
       "data": {
         "operator": "atom",
         "position": {
-          "end": 196,
+          "end": 206,
           "start": 19,
         },
         "precedence": [
@@ -5131,6 +5217,155 @@ exports[`ast split lines 1`] = `
         "precedence": [
           null,
           1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`ast switch 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 13,
+              "start": 12,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 23,
+                  "start": 22,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 28,
+                  "start": 27,
+                },
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "match_case",
+            "position": {
+              "end": 36,
+              "start": 5,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 37,
+                  "start": 36,
+                },
+                "value": 2,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 42,
+                  "start": 41,
+                },
+                "value": 3,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "match_case",
+            "position": {
+              "end": 50,
+              "start": 5,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 51,
+                  "start": 50,
+                },
+              },
+              "type": "placeholder",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 56,
+                  "start": 55,
+                },
+                "value": 4,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "match_case",
+            "position": {
+              "end": 62,
+              "start": 5,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "match",
+        "position": {
+          "end": 63,
+          "start": 5,
+        },
+        "precedence": [
+          null,
+          null,
         ],
       },
       "type": "operator",

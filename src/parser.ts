@@ -966,11 +966,16 @@ const parseGroup =
       followSet.push('}');
 
       while (src[index] && src[index].src !== '}') {
+        if (src[index]?.type === 'newline') index++;
         let pattern: AbstractSyntaxTree;
-        [index, pattern] = parsePattern(0, ['->', ','])(src, index);
-        if (src[index]?.src === ',') index++;
+        [index, pattern] = parsePattern(0, ['->'])(src, index);
+        if (src[index]?.src === '->') index++;
+        // else error missing ->
+        if (src[index]?.type === 'newline') index++;
         let body: AbstractSyntaxTree;
-        [index, body] = parseExpr(0, ['}'])(src, index);
+        [index, body] = parseExpr(0, ['}', ','])(src, index);
+        if (src[index]?.src === ',') index++;
+        if (src[index]?.type === 'newline') index++;
         cases.push(
           operator(OperatorType.MATCH_CASE, nodePosition(), pattern, body)
         );

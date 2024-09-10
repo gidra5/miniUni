@@ -289,7 +289,7 @@ it('ast effect handlers', async () => {
       inject a: a+1, b: b+2 {
         mask (:a,) {
           without (:b,) {
-            use { a }
+            { a } := handlers
             a + 1
           }
         }
