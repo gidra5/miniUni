@@ -966,14 +966,12 @@ export const evaluateStatement = async (
 
           const handlers = { ...context.handlers, ...value.record };
           Object.setPrototypeOf(handlers, context.handlers);
-          // inspect({ value, handlers });
-          return await evaluateStatement(body, { ...context, handlers });
+          return await evaluateBlock(body, { ...context, handlers });
         }
         case OperatorType.WITHOUT: {
           const [expr, body] = ast.children;
           let value = await evaluateExpr(expr, context);
-          if (isSymbol(value)) value = [value];
-          assert(Array.isArray(value), 'expected tuple');
+          if (!Array.isArray(value)) value = [value];
           assert(
             value.every((v) => typeof v === 'string' || isSymbol(v)),
             'expected strings or symbols'
@@ -986,8 +984,7 @@ export const evaluateStatement = async (
         case OperatorType.MASK: {
           const [expr, body] = ast.children;
           let value = await evaluateExpr(expr, context);
-          if (isSymbol(value)) value = [value];
-          assert(Array.isArray(value), 'expected tuple');
+          if (!Array.isArray(value)) value = [value];
           assert(
             value.every((v) => typeof v === 'string' || isSymbol(v)),
             'expected strings or symbols'
@@ -1235,8 +1232,7 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      // inspect(context);
-      if (name === 'handlers') return { record: context.handlers };
+      if (name === 'injected') return { record: context.handlers };
       assert(
         name in context.env,
         SystemError.undeclaredName(name, ast.data.position).withFileId(

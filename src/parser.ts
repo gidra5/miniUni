@@ -154,6 +154,8 @@ export const operator = (
         return [null, 2];
       case OperatorType.IF_ELSE:
         return [null, 2];
+      case OperatorType.LOOP:
+        return [null, 2];
 
       case OperatorType.OR:
         return associative(booleanPrecedence);
@@ -281,6 +283,18 @@ const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
   children,
 });
 
+const block = (
+  sequence: AbstractSyntaxTree,
+  position: Position = sequence.data.position
+): AbstractSyntaxTree => operator(OperatorType.BLOCK, position, sequence);
+
+const fn = (
+  pattern: AbstractSyntaxTree,
+  body: AbstractSyntaxTree,
+  position: Position = mergePositions(pattern.data.position, body.data.position)
+): AbstractSyntaxTree =>
+  operator(OperatorType.FUNCTION, position, pattern, body);
+
 export enum OperatorType {
   ADD = 'add',
   PLUS = 'plus',
@@ -392,6 +406,7 @@ const idToPrefixExprOp = {
   '<-?': OperatorType.RECEIVE_STATUS,
   not: OperatorType.NOT,
   async: OperatorType.ASYNC,
+  loop: OperatorType.LOOP,
 };
 
 const idToLhsPatternExprOp = {
@@ -662,12 +677,7 @@ const parseGroup =
         followSet.pop();
 
         const node = () => {
-          const node = operator(
-            OperatorType.FUNCTION,
-            nodePosition(),
-            pattern,
-            sequence
-          );
+          const node = fn(pattern, sequence, nodePosition());
           node.data.precedence = [null, null];
           return node;
         };
@@ -1183,7 +1193,7 @@ const parseGroup =
       followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
-      const node = () => operator(OperatorType.BLOCK, nodePosition(), sequence);
+      const node = () => block(sequence, nodePosition());
 
       if (src[index]?.type === 'newline') index++;
       if (src[index]?.src !== '}') {

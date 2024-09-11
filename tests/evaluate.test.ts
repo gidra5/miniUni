@@ -368,20 +368,32 @@ it('evaluate scope 7', async () => {
   expect(result).toEqual(6);
 });
 
-it.only('effect handlers', async () => {
+it('effect handlers scoping', async () => {
+  const input = `
+    x := 1;
+    inject a: 1, b: 2 {
+      x := 2;
+    };
+    x
+  `;
+  const result = await evaluate(input);
+  expect(result).toEqual(1);
+});
+
+it('effect handlers', async () => {
   const input = `
     inject a: 1, b: 2 {
-      { a, b } := handlers;
+      { a, b } := injected;
       inject a: a+1, b: b+2 {
-        mask ("a",) {
-          without ("b",) {
-            { a } := handlers;
+        mask "a" {
+          without "b" {
+            { a } := injected;
             a + 1
           }
         }
       }  
     }
-    `;
+  `;
   const result = await evaluate(input);
   expect(result).toEqual(2);
 });
@@ -389,7 +401,7 @@ it.only('effect handlers', async () => {
 it('parallel effect handlers', async () => {
   const input = `
     f := fn {
-      { a, b } := handlers;
+      { a, b } := injected;
       a + b
     };
     
@@ -407,7 +419,7 @@ it('parallel effect handlers', async () => {
       };
       x1, await x2, await x3
     }
-    `;
+  `;
   const result = await evaluate(input);
   expect(result).toEqual([3, 5, 9]);
 });

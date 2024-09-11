@@ -314,6 +314,16 @@ it('ast declare record pattern', async () => {
   expect(ast).toMatchSnapshot();
 });
 
+it('ast loop scope', async () => {
+  const input = `
+    loop { x }
+  `;
+  const tokens = parseTokens(input);
+  const ast = parseScript(tokens);
+
+  expect(ast).toMatchSnapshot();
+});
+
 it('ast effect handlers', async () => {
   const input = `
     inject a: 1, b: 2 {

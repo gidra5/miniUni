@@ -1912,6 +1912,74 @@ exports[`ast infix-prefix multiline 1`] = `
 }
 `;
 
+exports[`ast loop scope 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 13,
+                      "start": 12,
+                    },
+                    "value": "x",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "sequence",
+                "position": {
+                  "end": 13,
+                  "start": 12,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "block",
+            "position": {
+              "end": 15,
+              "start": 10,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "loop",
+        "position": {
+          "end": 15,
+          "start": 5,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`ast methods 1`] = `
 {
   "children": [

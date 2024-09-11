@@ -1,14 +1,14 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
-import dts from 'vite-plugin-dts';
+// import dts from 'vite-plugin-dts';
 
 const reportName = process.argv[3]?.split('=')?.[1] ?? 'node';
 const date = Date.now();
 const reportFolder = `test-results/report-${date}`;
 
 export default defineConfig({
-  plugins: [dts()],
+  // plugins: [dts()],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
