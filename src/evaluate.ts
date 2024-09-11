@@ -820,9 +820,10 @@ export const evaluateStatement = async (
 
         case OperatorType.ASYNC: {
           const channel = createChannel('async');
-          // const _context = { ...context, env: forkEnv(context.env) };
-          const _context = context;
-          evaluateStatement(ast.children[0], _context)
+          const expr = ast.children[0];
+
+          // any async expression should be evaluated in a new scope
+          evaluateBlock(expr, context)
             .then(
               (value) => send(channel.channel, value),
               (e) => {
@@ -830,7 +831,7 @@ export const evaluateStatement = async (
                 console.error(e);
 
                 if (e instanceof SystemError) e.print();
-                else showNode(e.message, ast.children[0]);
+                else showNode(e.message, expr);
               }
             )
             .finally(() => {
@@ -843,9 +844,9 @@ export const evaluateStatement = async (
         case OperatorType.PARALLEL: {
           const _channels = ast.children.map((child, i) => {
             const channel = createChannel('parallel ' + i);
-            // const _context = { ...context, env: forkEnv(context.env) };
-            const _context = context;
-            evaluateStatement(child, _context)
+
+            // any async expression should be evaluated in a new scope
+            evaluateBlock(child, context)
               .then(
                 (value) => send(channel.channel, value),
                 (e) => {
@@ -979,7 +980,7 @@ export const evaluateStatement = async (
 
           const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
           const handlers = omitHandlers(context.handlers, handlerNames);
-          return await evaluateStatement(body, { ...context, handlers });
+          return await evaluateBlock(body, { ...context, handlers });
         }
         case OperatorType.MASK: {
           const [expr, body] = ast.children;
@@ -992,7 +993,7 @@ export const evaluateStatement = async (
 
           const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
           const handlers = maskHandlers(context.handlers, handlerNames);
-          return await evaluateStatement(body, { ...context, handlers });
+          return await evaluateBlock(body, { ...context, handlers });
         }
 
         case OperatorType.MATCH: {
@@ -1007,7 +1008,7 @@ export const evaluateStatement = async (
             const [pattern, body] = branch.children;
 
             const bound = await bind(pattern, value, context).catch();
-            if (bound) return await evaluateStatement(body, bound);
+            if (bound) return await evaluateBlock(body, bound);
           }
 
           return null;
@@ -1015,10 +1016,8 @@ export const evaluateStatement = async (
         case OperatorType.IF: {
           const [condition, branch] = ast.children;
           const result = await evaluateExpr(condition, context);
-          // const _context = { ...context, env: forkEnv(context.env) };
-          const _context = context;
           if (result) {
-            return await evaluateStatement(branch, _context);
+            return await evaluateBlock(branch, context);
           }
           return null;
         }
@@ -1026,10 +1025,8 @@ export const evaluateStatement = async (
           const [condition, trueBranch, falseBranch] = ast.children;
 
           const result = await evaluateExpr(condition, context);
-          // const _context = { ...context, env: forkEnv(context.env) };
-          const _context = context;
-          if (result) return await evaluateStatement(trueBranch, _context);
-          else return await evaluateStatement(falseBranch, _context);
+          if (result) return await evaluateBlock(trueBranch, context);
+          else return await evaluateBlock(falseBranch, context);
         }
         case OperatorType.WHILE: {
           const [condition, body] = ast.children;
