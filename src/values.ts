@@ -1,6 +1,5 @@
 import type { Context } from './evaluate.js';
 import { Position } from './position.js';
-import { assert } from './utils.js';
 
 export type EvalFunction = (
   arg: EvalValue,

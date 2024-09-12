@@ -32,9 +32,9 @@ testCase('{');
 testCase(']');
 testCase('[');
 testCase('({ 1 )');
-testCase('(x[1 )', [], it.skip);
+testCase('(x[1 )', [], it.todo);
 testCase('{ (1 }');
-testCase('{ x[1 }', [], it.skip);
+testCase('{ x[1 }', [], it.todo);
 testCase('x[(1]');
 testCase('x[{ 1 ]');
 testCase('1 2');
@@ -49,7 +49,7 @@ testCase(
       pos: { start: 0, end: 1 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -61,7 +61,7 @@ testCase(
       pos: { start: 2, end: 3 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -79,7 +79,7 @@ testCase(
       pos: { start: 2, end: 6 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -91,7 +91,7 @@ testCase(
       pos: { start: 7, end: 8 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -109,7 +109,7 @@ testCase(
       pos: { start: 7, end: 8 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -132,7 +132,7 @@ testCase(
       pos: { start: 8, end: 9 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -150,7 +150,7 @@ testCase(
       pos: { start: 3, end: 4 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase('1 +');
@@ -177,7 +177,7 @@ testCase(
       pos: { start: 3, end: 4 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -205,7 +205,7 @@ testCase(
       pos: { start: 6, end: 7 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -228,7 +228,7 @@ testCase(
       pos: { start: 8, end: 9 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -240,7 +240,7 @@ testCase(
       pos: { start: 3, end: 4 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -258,7 +258,7 @@ testCase(
       pos: { start: 8, end: 10 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -286,7 +286,7 @@ testCase(
       pos: { start: 6, end: 7 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -325,7 +325,7 @@ testCase(
       pos: { start: 18, end: 19 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -380,7 +380,7 @@ testCase(
       pos: { start: 23, end: 24 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -392,7 +392,7 @@ testCase(
       pos: { start: 3, end: 4 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -415,7 +415,7 @@ testCase(
       pos: { start: 6, end: 7 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -523,7 +523,7 @@ testCase(
       pos: { start: 63, end: 64 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -583,7 +583,7 @@ testCase(
       pos: { start: 61, end: 62 },
     },
   ],
-  it.skip
+  it.todo
 );
 
 testCase(
@@ -611,5 +611,5 @@ testCase(
       pos: { start: 4, end: 5 },
     },
   ],
-  it.skip
+  it.todo
 );
