@@ -859,44 +859,6 @@ const parseGroup =
       return [index, node()];
     }
 
-    if (!lhs && src[index].src === 'loop') {
-      index++;
-      if (src[index]?.type === 'newline') index++;
-      const hasOpeningBracket = src[index]?.src === '{';
-      const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
-      if (hasOpeningBracket) index++;
-      brackets++;
-
-      let sequence: AbstractSyntaxTree;
-      followSet.push('}');
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-
-      const node = () => {
-        let node = operator(OperatorType.LOOP, nodePosition(), sequence);
-        node.data.precedence = [null, null];
-
-        if (!hasOpeningBracket)
-          node = error(
-            SystemError.missingToken(openingBracketPosition, '{'),
-            node
-          );
-
-        return node;
-      };
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '}'), node()),
-        ];
-      }
-      brackets--;
-      index++;
-      return [index, node()];
-    }
-
     if (!lhs && src[index].src === 'for') {
       index++;
       if (src[index]?.type === 'newline') index++;

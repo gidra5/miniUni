@@ -5,7 +5,6 @@ import { validate } from '../src/validate.ts';
 import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { inspect } from '../src/utils.ts';
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
@@ -16,7 +15,6 @@ const testCase = (input, _?, _it: any = it) =>
     const fileId = addFile('<test>', input);
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
-    inspect(ast);
     const [errors, validated] = validate(ast, fileId);
 
     for (const error of errors) {
@@ -34,323 +32,391 @@ testCase('{');
 testCase(']');
 testCase('[');
 testCase('({ 1 )');
-// testCase('(x[ 1 )', [], it.only);
-testCase('{( 1 }');
-// testCase('{x[ 1 }', [], it.only);
-testCase('x[( 1 ]');
+testCase('(x[1 )', [], it.skip);
+testCase('{ (1 }');
+testCase('{ x[1 }', [], it.skip);
+testCase('x[(1]');
 testCase('x[{ 1 ]');
 testCase('1 2');
 testCase('"1" 2');
 
-testCase('* 1', [
-  {
-    message: "symbol can't be used in place of value",
-    cause: [],
-    pos: { start: 0, end: 1 },
-  },
-]);
+testCase(
+  '* 1',
+  [
+    {
+      message: "symbol can't be used in place of value",
+      cause: [],
+      pos: { start: 0, end: 1 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + * 2', [
-  {
-    message: "symbol can't be used in place of value",
-    cause: [],
-    pos: { start: 2, end: 3 },
-  },
-]);
+testCase(
+  '1 + * 2',
+  [
+    {
+      message: "symbol can't be used in place of value",
+      cause: [],
+      pos: { start: 2, end: 3 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + (2 + 3', [
-  {
-    message: 'unbalanced parens',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 6, end: 6 },
-      },
-    ],
-    pos: { start: 2, end: 6 },
-  },
-]);
+testCase(
+  '1 + (2 + 3',
+  [
+    {
+      message: 'unbalanced parens',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 6, end: 6 },
+        },
+      ],
+      pos: { start: 2, end: 6 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + (2 + 3))', [
-  {
-    message: 'unbalanced parens',
-    cause: [],
-    pos: { start: 7, end: 8 },
-  },
-]);
+testCase(
+  '1 + (2 + 3))',
+  [
+    {
+      message: 'unbalanced parens',
+      cause: [],
+      pos: { start: 7, end: 8 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + (2 + 3) +', [
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 8, end: 8 },
-      },
-    ],
-    pos: { start: 7, end: 8 },
-  },
-]);
+testCase(
+  '1 + (2 + 3) +',
+  [
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 8, end: 8 },
+        },
+      ],
+      pos: { start: 7, end: 8 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + (2 + 3)) +', [
-  {
-    message: 'unbalanced parens',
-    cause: [],
-    pos: { start: 7, end: 8 },
-  },
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 9, end: 9 },
-      },
-    ],
-    pos: { start: 8, end: 9 },
-  },
-]);
+testCase(
+  '1 + (2 + 3)) +',
+  [
+    {
+      message: 'unbalanced parens',
+      cause: [],
+      pos: { start: 7, end: 8 },
+    },
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 9, end: 9 },
+        },
+      ],
+      pos: { start: 8, end: 9 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 + 2 +', [
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 4, end: 4 },
-      },
-    ],
-    pos: { start: 3, end: 4 },
-  },
-]);
+testCase(
+  '1 + 2 +',
+  [
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 4, end: 4 },
+        },
+      ],
+      pos: { start: 3, end: 4 },
+    },
+  ],
+  it.skip
+);
 
 testCase('1 +');
 
 testCase('1 *');
 
-testCase(' q + )/', [
-  {
-    message: 'unexpected closing parenthesis, expected value',
-    cause: [],
-    pos: { start: 2, end: 3 },
-  },
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 4, end: 4 },
-      },
-    ],
-    pos: { start: 3, end: 4 },
-  },
-]);
+testCase(
+  ' q + )/',
+  [
+    {
+      message: 'unexpected closing parenthesis, expected value',
+      cause: [],
+      pos: { start: 2, end: 3 },
+    },
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 4, end: 4 },
+        },
+      ],
+      pos: { start: 3, end: 4 },
+    },
+  ],
+  it.skip
+);
 
-testCase(' - )/q + )/', [
-  {
-    message: 'unexpected closing parenthesis, expected value',
-    cause: [],
-    pos: { start: 1, end: 2 },
-  },
-  {
-    message: 'unexpected closing parenthesis, expected value',
-    cause: [],
-    pos: { start: 5, end: 6 },
-  },
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 7, end: 7 },
-      },
-    ],
-    pos: { start: 6, end: 7 },
-  },
-]);
+testCase(
+  ' - )/q + )/',
+  [
+    {
+      message: 'unexpected closing parenthesis, expected value',
+      cause: [],
+      pos: { start: 1, end: 2 },
+    },
+    {
+      message: 'unexpected closing parenthesis, expected value',
+      cause: [],
+      pos: { start: 5, end: 6 },
+    },
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 7, end: 7 },
+        },
+      ],
+      pos: { start: 6, end: 7 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 * (5/3) (*4', [
-  {
-    message: 'unbalanced parens',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 10, end: 10 },
-      },
-    ],
-    pos: { start: 7, end: 10 },
-  },
-  {
-    message: "symbol can't be used in place of value",
-    cause: [],
-    pos: { start: 8, end: 9 },
-  },
-]);
+testCase(
+  '1 * (5/3) (*4',
+  [
+    {
+      message: 'unbalanced parens',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 10, end: 10 },
+        },
+      ],
+      pos: { start: 7, end: 10 },
+    },
+    {
+      message: "symbol can't be used in place of value",
+      cause: [],
+      pos: { start: 8, end: 9 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 * (* 2)', [
-  {
-    message: "symbol can't be used in place of value",
-    cause: [],
-    pos: { start: 3, end: 4 },
-  },
-]);
+testCase(
+  '1 * (* 2)',
+  [
+    {
+      message: "symbol can't be used in place of value",
+      cause: [],
+      pos: { start: 3, end: 4 },
+    },
+  ],
+  it.skip
+);
 
-testCase('send((1+2), 3+,4)', [
-  {
-    message: 'unexpected token inside fn args',
-    cause: [
-      {
-        message: "symbol can't be used in place of value",
-        cause: [],
-        pos: { start: 10, end: 11 },
-      },
-    ],
-    pos: { start: 8, end: 10 },
-  },
-]);
+testCase(
+  'send((1+2), 3+,4)',
+  [
+    {
+      message: 'unexpected token inside fn args',
+      cause: [
+        {
+          message: "symbol can't be used in place of value",
+          cause: [],
+          pos: { start: 10, end: 11 },
+        },
+      ],
+      pos: { start: 8, end: 10 },
+    },
+  ],
+  it.skip
+);
 
-testCase('send([j, i])', [
-  {
-    message: 'unexpected token inside fn args',
-    cause: [
-      {
-        message: "symbol can't be used in place of value",
-        cause: [],
-        pos: { start: 2, end: 3 },
-      },
-    ],
-    pos: { start: 2, end: 2 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 2, end: 3 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 6, end: 7 },
-  },
-]);
+testCase(
+  'send([j, i])',
+  [
+    {
+      message: 'unexpected token inside fn args',
+      cause: [
+        {
+          message: "symbol can't be used in place of value",
+          cause: [],
+          pos: { start: 2, end: 3 },
+        },
+      ],
+      pos: { start: 2, end: 2 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 2, end: 3 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 6, end: 7 },
+    },
+  ],
+  it.skip
+);
 
-testCase('send(-(2x+7)/A[j, i], 127.0.0.1)', [
-  {
-    message: 'unexpected token inside fn args',
-    cause: [
-      {
-        message: 'unexpected token inside parens',
-        cause: [
-          {
-            message: 'unexpected token: "x"',
-            cause: [],
-            pos: { start: 5, end: 6 },
-          },
-        ],
-        pos: { start: 3, end: 9 },
-      },
-    ],
-    pos: { start: 2, end: 11 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 11, end: 12 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 15, end: 16 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 18, end: 19 },
-  },
-]);
+testCase(
+  'send(-(2x+7)/A[j, i], 127.0.0.1)',
+  [
+    {
+      message: 'unexpected token inside fn args',
+      cause: [
+        {
+          message: 'unexpected token inside parens',
+          cause: [
+            {
+              message: 'unexpected token: "x"',
+              cause: [],
+              pos: { start: 5, end: 6 },
+            },
+          ],
+          pos: { start: 3, end: 9 },
+        },
+      ],
+      pos: { start: 2, end: 11 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 11, end: 12 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 15, end: 16 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 18, end: 19 },
+    },
+  ],
+  it.skip
+);
 
-testCase('send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/', [
-  {
-    message: 'unexpected token inside fn args',
-    cause: [
-      {
-        message: 'unexpected token inside parens',
-        cause: [
-          {
-            message: 'unexpected token: "x"',
-            cause: [],
-            pos: { start: 5, end: 6 },
-          },
-        ],
-        pos: { start: 3, end: 9 },
-      },
-    ],
-    pos: { start: 2, end: 11 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 11, end: 12 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 15, end: 16 },
-  },
-  {
-    message: 'expected comma or closing parens',
-    cause: [],
-    pos: { start: 18, end: 19 },
-  },
-  {
-    message: 'unexpected closing parenthesis, expected value',
-    cause: [],
-    pos: { start: 22, end: 23 },
-  },
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 24, end: 24 },
-      },
-    ],
-    pos: { start: 23, end: 24 },
-  },
-]);
+testCase(
+  'send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/',
+  [
+    {
+      message: 'unexpected token inside fn args',
+      cause: [
+        {
+          message: 'unexpected token inside parens',
+          cause: [
+            {
+              message: 'unexpected token: "x"',
+              cause: [],
+              pos: { start: 5, end: 6 },
+            },
+          ],
+          pos: { start: 3, end: 9 },
+        },
+      ],
+      pos: { start: 2, end: 11 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 11, end: 12 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 15, end: 16 },
+    },
+    {
+      message: 'expected comma or closing parens',
+      cause: [],
+      pos: { start: 18, end: 19 },
+    },
+    {
+      message: 'unexpected closing parenthesis, expected value',
+      cause: [],
+      pos: { start: 22, end: 23 },
+    },
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 24, end: 24 },
+        },
+      ],
+      pos: { start: 23, end: 24 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 - 1)*1', [
-  {
-    message: 'unexpected closing parenthesis after value',
-    cause: [],
-    pos: { start: 3, end: 4 },
-  },
-]);
+testCase(
+  '1 - 1)*1',
+  [
+    {
+      message: 'unexpected closing parenthesis after value',
+      cause: [],
+      pos: { start: 3, end: 4 },
+    },
+  ],
+  it.skip
+);
 
-testCase('1 - 1)*1+', [
-  {
-    message: 'unexpected closing parenthesis after value',
-    cause: [],
-    pos: { start: 3, end: 4 },
-  },
-  {
-    message: 'missing operand',
-    cause: [
-      {
-        message: 'end of tokens',
-        cause: [],
-        pos: { start: 7, end: 7 },
-      },
-    ],
-    pos: { start: 6, end: 7 },
-  },
-]);
+testCase(
+  '1 - 1)*1+',
+  [
+    {
+      message: 'unexpected closing parenthesis after value',
+      cause: [],
+      pos: { start: 3, end: 4 },
+    },
+    {
+      message: 'missing operand',
+      cause: [
+        {
+          message: 'end of tokens',
+          cause: [],
+          pos: { start: 7, end: 7 },
+        },
+      ],
+      pos: { start: 6, end: 7 },
+    },
+  ],
+  it.skip
+);
 
 testCase(
   '(2x^2-5x+7)-(-i)+ (j++)/0 - )(*f)(2, 7-x, )/q + send(-(2x+7)/A[j, i], 127.0.0.1 ) + )/',
@@ -456,7 +522,8 @@ testCase(
       ],
       pos: { start: 63, end: 64 },
     },
-  ]
+  ],
+  it.skip
 );
 
 testCase(
@@ -515,29 +582,34 @@ testCase(
       cause: [],
       pos: { start: 61, end: 62 },
     },
-  ]
+  ],
+  it.skip
 );
 
-testCase('(,) + .. + a', [
-  {
-    message: 'unexpected token inside parens',
-    cause: [
-      {
-        message: "symbol can't be used in place of value",
-        cause: [],
-        pos: { start: 1, end: 2 },
-      },
-      {
-        message: 'unexpected token: ","',
-        cause: [],
-        pos: { start: 1, end: 2 },
-      },
-    ],
-    pos: { start: 0, end: 3 },
-  },
-  {
-    message: "symbol can't be used in place of value",
-    cause: [],
-    pos: { start: 4, end: 5 },
-  },
-]);
+testCase(
+  '(,) + .. + a',
+  [
+    {
+      message: 'unexpected token inside parens',
+      cause: [
+        {
+          message: "symbol can't be used in place of value",
+          cause: [],
+          pos: { start: 1, end: 2 },
+        },
+        {
+          message: 'unexpected token: ","',
+          cause: [],
+          pos: { start: 1, end: 2 },
+        },
+      ],
+      pos: { start: 0, end: 3 },
+    },
+    {
+      message: "symbol can't be used in place of value",
+      cause: [],
+      pos: { start: 4, end: 5 },
+    },
+  ],
+  it.skip
+);

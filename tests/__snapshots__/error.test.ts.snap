@@ -2610,6 +2610,94 @@ exports[`finds all errors in example ']' 2`] = `
 }
 `;
 
+exports[`finds all errors in example '{ (1 }' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 4,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 2,
+      },
+    ],
+    "message": "Missing token, expected one of: ")"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '{ (1 }' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 4,
+                      "start": 3,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 4,
+                  "start": 2,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 4,
+              "start": 2,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "block",
+        "position": {
+          "end": 6,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '{' 1`] = `
 [
   {
@@ -2655,94 +2743,6 @@ exports[`finds all errors in example '{' 2`] = `
         "operator": "block",
         "position": {
           "end": 1,
-          "start": 0,
-        },
-        "precedence": [
-          null,
-          null,
-        ],
-      },
-      "type": "operator",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`finds all errors in example '{( 1 }' 1`] = `
-[
-  {
-    "data": {},
-    "fileId": 0,
-    "labels": [
-      {
-        "end": 4,
-        "kind": "primary",
-        "message": "somewhere here",
-        "start": 1,
-      },
-    ],
-    "message": "Missing token, expected one of: ")"",
-    "notes": [],
-    "type": "MISSING_TOKEN",
-  },
-]
-`;
-
-exports[`finds all errors in example '{( 1 }' 2`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 4,
-                      "start": 3,
-                    },
-                    "value": 1,
-                  },
-                  "type": "number",
-                },
-              ],
-              "data": {
-                "operator": "parens",
-                "position": {
-                  "end": 4,
-                  "start": 1,
-                },
-                "precedence": [
-                  null,
-                  null,
-                ],
-              },
-              "type": "operator",
-            },
-          ],
-          "data": {
-            "operator": "sequence",
-            "position": {
-              "end": 4,
-              "start": 1,
-            },
-            "precedence": [
-              null,
-              null,
-            ],
-          },
-          "type": "operator",
-        },
-      ],
-      "data": {
-        "operator": "block",
-        "position": {
-          "end": 6,
           "start": 0,
         },
         "precedence": [
@@ -5258,14 +5258,14 @@ exports[`finds all errors in example 'send(-(2x+7)/A[j, i], 127.0.0.1)' 2`] = `
 }
 `;
 
-exports[`finds all errors in example 'x[( 1 ]' 1`] = `
+exports[`finds all errors in example 'x[(1]' 1`] = `
 [
   {
     "data": {},
     "fileId": 0,
     "labels": [
       {
-        "end": 5,
+        "end": 4,
         "kind": "primary",
         "message": "somewhere here",
         "start": 2,
@@ -5278,7 +5278,7 @@ exports[`finds all errors in example 'x[( 1 ]' 1`] = `
 ]
 `;
 
-exports[`finds all errors in example 'x[( 1 ]' 2`] = `
+exports[`finds all errors in example 'x[(1]' 2`] = `
 {
   "children": [
     {
@@ -5300,8 +5300,8 @@ exports[`finds all errors in example 'x[( 1 ]' 2`] = `
               "children": [],
               "data": {
                 "position": {
-                  "end": 5,
-                  "start": 4,
+                  "end": 4,
+                  "start": 3,
                 },
                 "value": 1,
               },
@@ -5311,7 +5311,7 @@ exports[`finds all errors in example 'x[( 1 ]' 2`] = `
           "data": {
             "operator": "parens",
             "position": {
-              "end": 5,
+              "end": 4,
               "start": 2,
             },
             "precedence": [
@@ -5325,7 +5325,7 @@ exports[`finds all errors in example 'x[( 1 ]' 2`] = `
       "data": {
         "operator": "index",
         "position": {
-          "end": 7,
+          "end": 5,
           "start": 0,
         },
         "precedence": [

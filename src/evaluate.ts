@@ -9,7 +9,7 @@ import {
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
+import { assert, getClosestName, omit, unreachable } from './utils.js';
 import {
   atom,
   closeChannel,
@@ -66,9 +66,18 @@ const omitHandlers = (
   names: (string | symbol)[]
 ) => {
   return new Proxy(handlers, {
+    has(target, prop) {
+      if (names.includes(prop)) return false;
+      return Reflect.has(target, prop);
+    },
+
     get(target, prop, receiver) {
       if (names.includes(prop)) return undefined;
       return Reflect.get(target, prop, receiver);
+    },
+
+    ownKeys(target) {
+      return Reflect.ownKeys(target).filter((key) => !names.includes(key));
     },
   });
 };
@@ -341,20 +350,22 @@ const bind = async (
         context.fileId
       )
     );
+
     const record = value.record;
     const patterns = patternAst.children;
     const consumedNames: string[] = [];
+
     for (const pattern of patterns) {
       if (pattern.type === NodeType.NAME) {
         const name = pattern.data.value;
-        context.env[name] = record[name];
+        context.env[name] = record[name] ?? null;
         consumedNames.push(name);
         continue;
       } else if (pattern.data.operator === OperatorType.COLON) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
-        context = await bind(valuePattern, record[name], context);
+        context = await bind(valuePattern, record[name] ?? null, context);
         continue;
       } else if (pattern.data.operator === OperatorType.SPREAD) {
         const rest = omit(record, consumedNames);
@@ -1091,8 +1102,12 @@ export const evaluateStatement = async (
           return mapped;
         }
         case OperatorType.LOOP: {
-          const [body] = ast.children;
+          let [body] = ast.children;
           const collected: EvalValue[] = [];
+
+          if (body.data.operator === OperatorType.BLOCK) {
+            body = body.children[0];
+          }
 
           while (true) {
             try {
@@ -1113,6 +1128,7 @@ export const evaluateStatement = async (
               throw e;
             }
           }
+
           return collected;
         }
         case OperatorType.INC_ASSIGN: {
