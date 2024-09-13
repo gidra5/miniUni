@@ -25,14 +25,18 @@ const LOCAL_DEPENDENCIES_PATH = 'dependencies';
 const DIRECTORY_INDEX_FILE_NAME = 'index' + SCRIPT_FILE_EXTENSION;
 
 type Module =
-  | { module: Record<string, EvalValue> }
+  | { module: Record<string, EvalValue>; default?: EvalValue }
   | { script: EvalValue }
   | { buffer: Buffer };
 
 type Dictionary = Record<string, Module>;
 
-const module = (entries: Record<string, EvalValue>): Module => ({
+const module = (
+  entries: Record<string, EvalValue>,
+  _default?: EvalValue
+): Module => ({
   module: entries,
+  default: _default,
 });
 const script = (value: EvalValue): Module => ({ script: value });
 const buffer = (value: Buffer): Module => ({ buffer: value });
@@ -370,6 +374,8 @@ export const listMethods = (() => {
   };
 })();
 
+export const ModuleDefault = Symbol('module default');
+
 export const getModule = async (
   name: string,
   from?: string,
@@ -412,7 +418,7 @@ export const getModule = async (
     if (isModule) {
       const _module = await evaluateModuleString(source, context);
       assert(isRecord(_module), 'expected module to be a record');
-      return module(_module.record);
+      return module(_module.record, _module[ModuleDefault]);
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);

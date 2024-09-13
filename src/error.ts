@@ -28,6 +28,7 @@ export enum ErrorType {
   IMPORT_FAILED,
   IMPORT_RESOLVE_FAILED,
   INVALID_INCREMENT_ASSIGN,
+  DUPLICATE_DEFAULT_EXPORT,
 }
 
 type Options = {
@@ -74,7 +75,7 @@ export class SystemError extends Error {
       const causeErrorType = ErrorType[this.cause.type];
       this.notes.push(`Caused by: [${causeErrorType}] ${causeMsg}`);
     }
-    
+
     return this;
   }
 
@@ -543,5 +544,19 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
+  }
+  static duplicateDefaultExport(pos: Position): SystemError {
+    const msg = `Cannot have multiple default exports in a module`;
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'unexpected default export',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.DUPLICATE_DEFAULT_EXPORT, msg, options);
   }
 }

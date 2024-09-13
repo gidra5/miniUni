@@ -13,7 +13,7 @@ export type EvalValue =
   | EvalValue[]
   | EvalFunction
   | { symbol: symbol }
-  | { record: Record<string, EvalValue> }
+  | { record: Record<string | symbol, EvalValue> }
   | { channel: symbol };
 
 type ChannelReceiver = {

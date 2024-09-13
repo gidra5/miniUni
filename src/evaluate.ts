@@ -1,6 +1,12 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from './error.js';
-import { getModule, listMethods, prelude, stringMethods } from './files.js';
+import {
+  getModule,
+  listMethods,
+  ModuleDefault,
+  prelude,
+  stringMethods,
+} from './files.js';
 import {
   NodeType,
   OperatorType,
@@ -1326,6 +1332,17 @@ export const evaluateModule = async (
   for (const child of ast.children) {
     if (child.data.operator === OperatorType.IMPORT) {
       await evaluateStatement(child, context);
+    } else if (child.data.operator === OperatorType.EXPORT) {
+      const value = await evaluateExpr(child, context);
+
+      assert(
+        ModuleDefault in exports,
+        SystemError.duplicateDefaultExport(child.data.position).withFileId(
+          context.fileId
+        )
+      );
+
+      exports[ModuleDefault] = value;
     } else {
       const [name, expr] = child.children;
       const value = await evaluateExpr(expr, context);

@@ -407,6 +407,7 @@ const idToPrefixExprOp = {
   not: OperatorType.NOT,
   async: OperatorType.ASYNC,
   loop: OperatorType.LOOP,
+  export: OperatorType.EXPORT,
 };
 
 const idToLhsPatternExprOp = {

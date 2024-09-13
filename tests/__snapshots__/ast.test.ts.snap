@@ -3470,6 +3470,46 @@ exports[`advent of code 1 single file > variable 1`] = `
 }
 `;
 
+exports[`comments > comment 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 14,
+          "start": 11,
+        },
+        "value": 123,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`comments > comment block 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 22,
+          "start": 19,
+        },
+        "value": 123,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`data constructors > record 1`] = `
 {
   "children": [
@@ -5433,6 +5473,289 @@ exports[`prefix parallel 1`] = `
         "position": {
           "end": 40,
           "start": 20,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`programs > import 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 15,
+              "start": 14,
+            },
+            "value": "b",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "name": "a",
+        "operator": "import",
+        "position": {
+          "end": 15,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`programs > module > export declaration 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 8,
+                  "start": 7,
+                },
+                "value": "x",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "export",
+            "position": {
+              "end": 8,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              1,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 15,
+              "start": 12,
+            },
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 15,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "module",
+}
+`;
+
+exports[`programs > module > export default 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 14,
+                  "start": 10,
+                },
+                "value": "args",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 19,
+                  "start": 18,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "func",
+            "position": {
+              "end": 19,
+              "start": 7,
+            },
+            "precedence": [
+              null,
+              2,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "export",
+        "position": {
+          "end": 19,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "module",
+}
+`;
+
+exports[`programs > script > dynamic async import 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "b",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "name": "a",
+                "operator": "import",
+                "position": {
+                  "end": 21,
+                  "start": 11,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "async",
+            "position": {
+              "end": 21,
+              "start": 5,
+            },
+            "precedence": [
+              null,
+              3,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 21,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          1,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`programs > script > dynamic import 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "b",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "name": "a",
+            "operator": "import",
+            "position": {
+              "end": 15,
+              "start": 5,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": ":=",
+        "position": {
+          "end": 15,
+          "start": 0,
         },
         "precedence": [
           null,
