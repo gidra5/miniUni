@@ -7,14 +7,13 @@ import {
   prelude,
   stringMethods,
 } from './files.js';
+import { parseModule, parseScript } from './parser.js';
 import {
   NodeType,
   OperatorType,
-  parseModule,
-  parseScript,
   tuple as tupleAST,
   type AbstractSyntaxTree,
-} from './parser.js';
+} from './ast.js';
 import { parseTokens } from './tokens.js';
 import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
@@ -31,7 +30,7 @@ import {
   send,
   tryReceive,
 } from './values.js';
-import { fn as fnAST } from './parser.js';
+import { fn as fnAST } from './ast.js';
 import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'path';

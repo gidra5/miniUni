@@ -3,7 +3,7 @@ import {
   implicitPlaceholder,
   NodeType,
   OperatorType,
-} from './parser.js';
+} from './ast.js';
 import { SystemError } from './error.js';
 import { assert } from './utils.js';
 
