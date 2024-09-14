@@ -190,7 +190,7 @@ enum Fixity {
 // first come lower precedence operators
 // const semicolonPrecedence = [
 const precedenceList: [OperatorType, Fixity, Associativity?][] = [
-  [OperatorType.SEQUENCE, Fixity.INFIX, Associativity.RIGHT],
+  // [OperatorType.SEQUENCE, Fixity.INFIX, Associativity.RIGHT],
   [OperatorType.FUNCTION, Fixity.PREFIX],
   [OperatorType.IF, Fixity.PREFIX],
   [OperatorType.IF_ELSE, Fixity.PREFIX],
@@ -202,8 +202,6 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.INJECT, Fixity.PREFIX],
   [OperatorType.MASK, Fixity.PREFIX],
   [OperatorType.WITHOUT, Fixity.PREFIX],
-  [OperatorType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.ASYNC, Fixity.PREFIX],
   // ] as const;
 
   // const assignmentPrecedence = [
@@ -213,6 +211,8 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   // ] as const;
 
   // const tuplePrecedence = [
+  [OperatorType.ASYNC, Fixity.PREFIX],
+  [OperatorType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.COLON, Fixity.INFIX, Associativity.RIGHT],
   [OperatorType.SPREAD, Fixity.PREFIX],
@@ -304,21 +304,7 @@ const precedences = (() => {
 })();
 
 export const getPrecedence = (operator: string | symbol): Precedence => {
-  const semicolonPrecedence = 1;
-  const assignmentPrecedence = semicolonPrecedence + 1;
-  const tuplePrecedence = assignmentPrecedence + 4;
-  const booleanPrecedence = tuplePrecedence + 2;
-  const arithmeticPrecedence = booleanPrecedence + 3;
   switch (operator) {
-    case OperatorType.INCREMENT:
-      return [null, 3];
-    case OperatorType.DECREMENT:
-      return [null, 3];
-    case OperatorType.POST_DECREMENT:
-      return [3, null];
-    case OperatorType.POST_INCREMENT:
-      return [3, null];
-
     case OperatorType.IMPORT:
       return [null, 1];
     case OperatorType.EXPORT:
@@ -326,23 +312,6 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
     case OperatorType.MUTABLE:
       return [null, 1];
 
-    case OperatorType.DECLARE:
-      return [null, 1];
-    case OperatorType.INC_ASSIGN:
-    case OperatorType.ASSIGN:
-      return [null, 1];
-    case OperatorType.PARENS:
-      return [null, null];
-    case OperatorType.SEQUENCE:
-      return [null, null];
-    // return rightAssociative(semicolonPrecedence);
-
-    case OperatorType.TUPLE:
-      return associative(tuplePrecedence);
-    case OperatorType.SPREAD:
-      return [null, tuplePrecedence + 1];
-    case OperatorType.COLON:
-      return rightAssociative(tuplePrecedence + 1);
     case OperatorType.FUNCTION:
       return [null, 2];
     case OperatorType.IF:
@@ -352,38 +321,33 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
     case OperatorType.LOOP:
       return [null, 2];
 
-    case OperatorType.OR:
-      return associative(booleanPrecedence);
-    case OperatorType.AND:
-      return associative(booleanPrecedence + 1);
-    case OperatorType.EQUAL:
-      return rightAssociative(booleanPrecedence + 2);
-    case OperatorType.NOT_EQUAL:
-      return rightAssociative(booleanPrecedence + 2);
-    case OperatorType.LESS:
-      return rightAssociative(booleanPrecedence + 4);
-    case OperatorType.LESS_EQUAL:
-      return rightAssociative(booleanPrecedence + 4);
-    case OperatorType.GREATER:
-      return rightAssociative(booleanPrecedence + 4);
-    case OperatorType.GREATER_EQUAL:
-      return rightAssociative(booleanPrecedence + 4);
-    case OperatorType.NOT:
-      return [null, booleanPrecedence + 5];
+    case OperatorType.DECLARE:
+      return [null, 1];
+    case OperatorType.INC_ASSIGN:
+    case OperatorType.ASSIGN:
+      return [null, 1];
 
+    // case OperatorType.PARENS:
+    // case OperatorType.SEQUENCE:
+    // return rightAssociative(semicolonPrecedence);
     case OperatorType.PARALLEL:
-      return associative(assignmentPrecedence + 1);
     case OperatorType.ASYNC:
-      return [null, assignmentPrecedence + 1];
+    case OperatorType.TUPLE:
+    case OperatorType.SPREAD:
+    case OperatorType.COLON:
     case OperatorType.SEND:
-      return rightAssociative(tuplePrecedence + 2);
     case OperatorType.RECEIVE:
-      return [null, tuplePrecedence + 2];
     case OperatorType.SEND_STATUS:
-      return rightAssociative(tuplePrecedence + 2);
     case OperatorType.RECEIVE_STATUS:
-      return [null, tuplePrecedence + 2];
-
+    case OperatorType.OR:
+    case OperatorType.AND:
+    case OperatorType.EQUAL:
+    case OperatorType.NOT_EQUAL:
+    case OperatorType.LESS:
+    case OperatorType.LESS_EQUAL:
+    case OperatorType.GREATER:
+    case OperatorType.GREATER_EQUAL:
+    case OperatorType.NOT:
     case OperatorType.ADD:
     case OperatorType.SUB:
     case OperatorType.MULT:
@@ -392,6 +356,10 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
     case OperatorType.POW:
     case OperatorType.MINUS:
     case OperatorType.PLUS:
+    case OperatorType.INCREMENT:
+    case OperatorType.DECREMENT:
+    case OperatorType.POST_DECREMENT:
+    case OperatorType.POST_INCREMENT:
     case OperatorType.ATOM:
     case OperatorType.APPLICATION:
     case OperatorType.INDEX:
