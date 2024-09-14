@@ -306,13 +306,13 @@ exports[`finds all errors in example '[' 2`] = `
         },
       ],
       "data": {
-        "operator": "index",
+        "operator": "square_brackets",
         "position": {
           "end": 1,
           "start": 0,
         },
         "precedence": [
-          9007199254740988,
+          null,
           null,
         ],
       },

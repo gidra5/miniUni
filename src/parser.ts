@@ -92,6 +92,7 @@ const idToExprOp = {
   '->': OperatorType.FUNCTION,
   ',': OperatorType.TUPLE,
   ':': OperatorType.COLON,
+  // ';': OperatorType.SEQUENCE,
   '<-': OperatorType.SEND,
   '?<-': OperatorType.SEND_STATUS,
   '|': OperatorType.PARALLEL,
@@ -885,7 +886,12 @@ const parseGroup =
       const [_index, expr] = parseExpr(0, [']'], ['\n'])(src, index);
       followSet.pop();
       index = _index;
-      const node = () => operator(OperatorType.INDEX, nodePosition(), expr);
+      const node = () =>
+        operator(
+          lhs ? OperatorType.INDEX : OperatorType.SQUARE_BRACKETS,
+          nodePosition(),
+          expr
+        );
 
       while (tokenIncludes(src[index], ['\n'])) index++;
 
@@ -1046,6 +1052,7 @@ const parseSequence = (
   i: number,
   banned: string[] = []
 ): [index: number, ast: AbstractSyntaxTree] => {
+  // return parseExpr(0, banned)(src, i);
   let index = i;
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
