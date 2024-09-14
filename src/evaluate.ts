@@ -397,6 +397,9 @@ const bind = async (
     if (value !== null) context.env[name] = value;
     return context;
   }
+  if (patternAst.data.operator === OperatorType.MUTABLE) {
+    return await bind(patternAst.children[0], value, context);
+  }
 
   unreachable(
     SystemError.invalidPattern(patternAst.data.position).withFileId(

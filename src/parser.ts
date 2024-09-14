@@ -128,6 +128,8 @@ export const operator = (
         return [null, 1];
       case OperatorType.EXPORT:
         return [null, 1];
+      case OperatorType.MUTABLE:
+        return [null, 1];
 
       case OperatorType.DECLARE:
         return [null, 1];
@@ -363,6 +365,7 @@ export enum OperatorType {
   WITHOUT = 'without',
   GREATER = '>',
   GREATER_EQUAL = '>=',
+  MUTABLE = 'mut',
 }
 
 // if two same operators are next to each other, which one will take precedence
@@ -440,6 +443,7 @@ const idToPrefixPatternOp = {
   '...': OperatorType.SPREAD,
   ':': OperatorType.ATOM,
   export: OperatorType.EXPORT,
+  mut: OperatorType.MUTABLE,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
