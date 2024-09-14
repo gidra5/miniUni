@@ -39,6 +39,38 @@ testCase('x[(1]');
 testCase('x[{ 1 ]');
 testCase('1 2');
 testCase('"1" 2');
+testCase(
+  `
+    quick_sort := xs -> {
+      if xs == ()
+        return ()
+      
+      (pivot, ...rest) := xs
+      smaller := for x in rest: if x < pivot: x
+      bigger := for x in rest: if x >= pivot: x
+      return (...self smaller, pivot, ...self bigger)
+    }
+
+    quick_sort (5,3,4,2,1,2)
+  `,
+  [],
+  it.todo
+);
+testCase(
+  `
+    bubble_sort := fn mut list -> {
+      for i in range 0 list.length
+      for j in range 0 (list.length - i - 1)
+      if list[j] > list[j+1]
+        list[j], list[j+1] = list[j+1], list[j]
+      return list
+    }
+
+    bubble_sort (5,3,4,2,1,2)
+  `,
+  [],
+  it.todo
+);
 
 testCase(
   '* 1',

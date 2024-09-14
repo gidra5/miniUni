@@ -1,9 +1,10 @@
 bubble_sort := fn mut list -> {
-  for i in range 0 list.length
-  for j in range 0 (list.length - i - 1)
-  if list[j] > list[j+1]
-    list[j], list[j+1] = list[j+1], list[j]
-  return list
+  for i in range 0 list.length:
+  for j in range 0 (list.length - i - 1):
+  if list[j] > list[j+1]:
+    list[j], list[j+1] = list[j+1], list[j];
+
+  list
 }
 
 bubble_sort (5,3,4,2,1,2)

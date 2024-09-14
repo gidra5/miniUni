@@ -332,18 +332,12 @@ it('loop scope', async () => {
   expect(ast).toMatchSnapshot();
 });
 
-it('effect handlers', async () => {
+it('switch', async () => {
   const input = `
-    inject a: 1, b: 2 {
-      { a, b } := handlers;
-      inject a: a+1, b: b+2 {
-        mask (:a,) {
-          without (:b,) {
-            { a } := handlers;
-            a + 1
-          }
-        }
-      }  
+    switch a {
+      1 -> 2,
+      2 -> 3,
+      _ -> 4,
     }
     `;
   const tokens = parseTokens(input);
@@ -352,13 +346,12 @@ it('effect handlers', async () => {
   expect(ast).toMatchSnapshot();
 });
 
-it('switch', async () => {
+it.todo('if else separate lines', async () => {
   const input = `
-    switch a {
-      1 -> 2,
-      2 -> 3,
-      _ -> 4,
-    }
+    if a
+      1
+    else
+      2
     `;
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
@@ -386,8 +379,8 @@ describe('comments', () => {
   });
 });
 
-describe.todo('expressions', () => {
-  describe('values', () => {
+describe('expressions', () => {
+  describe.todo('values', () => {
     it('integer', () => {
       const src = `123`;
       const tokens = parseTokens(src);
@@ -413,7 +406,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('arithmetics', () => {
+  describe.todo('arithmetics', () => {
     it('order of application', () => {
       const src = '1 + 2^3 * 4';
       const tokens = parseTokens(src);
@@ -440,7 +433,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('boolean expressions', () => {
+  describe.todo('boolean expressions', () => {
     it('not', () => {
       const src = `!123`;
       const tokens = parseTokens(src);
@@ -458,7 +451,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('function expressions', () => {
+  describe.todo('function expressions', () => {
     it('function with return type', () => {
       const src = `fn x, y -> type { x + y }`;
       const tokens = parseTokens(src);
@@ -590,7 +583,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('pattern matching', () => {
+  describe.todo('pattern matching', () => {
     it('switch', () => {
       const src = `switch x { 1 -> 2; 3 -> 4 }`;
       const tokens = parseTokens(src);
@@ -680,7 +673,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('structured programming', () => {
+  describe.todo('structured programming', () => {
     it('if-then 2', () => {
       const src = `y := (x := 25; loop if x < 0: break x else { y := x; x = x - 1; if y == 19: continue 69; y })`;
       const tokens = parseTokens(src);
@@ -697,14 +690,6 @@ describe.todo('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('if-then newline', () => {
-      const src = `if true\n 123`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
     it('if-then-else', () => {
       const src = `if true: 123 else 456`;
       const tokens = parseTokens(src);
@@ -715,22 +700,6 @@ describe.todo('expressions', () => {
 
     it('if-then-elseif-then-else', () => {
       const src = `if true: 123 else if false: 789 else 456`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('if-then newline-else', () => {
-      const src = `if true\n 123 else 456`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('if-then newline-else newline', () => {
-      const src = `if true\n 123 else\n 456`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -826,7 +795,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('concurrent programming', () => {
+  describe.todo('concurrent programming', () => {
     it('channel send', () => {
       const src = `c <- 123`;
       const tokens = parseTokens(src);
@@ -908,7 +877,7 @@ describe.todo('expressions', () => {
     });
   });
 
-  describe('data structures', () => {
+  describe.todo('data structures', () => {
     it('(-(2+7)/A,j, i, 127.0 )', () => {
       const src = `(-(2+7)/A,j, i, 127.0 )`;
       const tokens = parseTokens(src);
@@ -1021,6 +990,64 @@ describe.todo('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
   });
+
+  describe('effect handlers', () => {
+    it('inject', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          1
+        }
+      `;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('mask', async () => {
+      const input = `
+        mask "a", "b" {
+          1
+        }
+      `;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('without', async () => {
+      const input = `
+        without "a", "b" {
+          1
+        }
+      `;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('complex', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          { a, b } := handlers;
+          inject a: a+1, b: b+2 {
+            mask "a" {
+              without "b" {
+                { a } := handlers;
+                a + 1
+              }
+            }
+          }  
+        }
+      `;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+  });
 });
 
 describe('programs', () => {
@@ -1070,6 +1097,30 @@ describe('programs', () => {
 });
 
 describe.todo('newline handling', () => {
+  it('if-then newline', () => {
+    const src = `if true\n 123`;
+    const tokens = parseTokens(src);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('if-then newline-else', () => {
+    const src = `if true\n 123 else 456`;
+    const tokens = parseTokens(src);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('if-then newline-else newline', () => {
+    const src = `if true\n 123 else\n 456`;
+    const tokens = parseTokens(src);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
   it('block newline in the middle', () => {
     const src = `{ a := 1\n b := 2 }`;
     const tokens = parseTokens(src);

@@ -32,22 +32,22 @@ const examples = [
   {
     name: 'basic hello world via module',
     file: '/hello_world_module.unim',
-    expected: 113456,
+    expected: ['Hello, World!', []],
   },
   {
     name: 'bubble sort',
     file: '/bubble_sort.uni',
-    expected: [5, 4, 3, 2, 2, 1],
+    expected: [1, 2, 2, 3, 4, 5],
   },
   {
     name: 'quick sort',
     file: '/quick_sort.uni',
-    expected: [5, 4, 3, 2, 2, 1],
+    expected: [1, 2, 2, 3, 4, 5],
   },
   {
     name: 'fibonacci',
     file: '/fibonacci.uni',
-    expected: 113456,
+    expected: [1, 2, 3, 89],
   },
 ];
 

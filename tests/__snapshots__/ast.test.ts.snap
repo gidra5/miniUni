@@ -4510,6 +4510,884 @@ exports[`effect handlers 1`] = `
 }
 `;
 
+exports[`expressions > effect handlers > complex 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 17,
+                      "start": 16,
+                    },
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 20,
+                      "start": 19,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ":",
+                "position": {
+                  "end": 20,
+                  "start": 16,
+                },
+                "precedence": [
+                  8,
+                  7,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 23,
+                      "start": 22,
+                    },
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 26,
+                      "start": 25,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ":",
+                "position": {
+                  "end": 26,
+                  "start": 22,
+                },
+                "precedence": [
+                  8,
+                  7,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": ",",
+            "position": {
+              "end": 26,
+              "start": 16,
+            },
+            "precedence": [
+              6,
+              6,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 42,
+                          "start": 41,
+                        },
+                        "value": "a",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 45,
+                          "start": 44,
+                        },
+                        "value": "b",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "object",
+                    "position": {
+                      "end": 47,
+                      "start": 39,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 59,
+                      "start": 51,
+                    },
+                    "value": "handlers",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": ":=",
+                "position": {
+                  "end": 59,
+                  "start": 39,
+                },
+                "precedence": [
+                  null,
+                  1,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 79,
+                              "start": 78,
+                            },
+                            "value": "a",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 82,
+                                  "start": 81,
+                                },
+                                "value": "a",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 84,
+                                  "start": 83,
+                                },
+                                "value": 1,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "add",
+                            "position": {
+                              "end": 84,
+                              "start": 81,
+                            },
+                            "precedence": [
+                              11,
+                              11,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": ":",
+                        "position": {
+                          "end": 84,
+                          "start": 78,
+                        },
+                        "precedence": [
+                          8,
+                          7,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 87,
+                              "start": 86,
+                            },
+                            "value": "b",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 90,
+                                  "start": 89,
+                                },
+                                "value": "b",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 92,
+                                  "start": 91,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "add",
+                            "position": {
+                              "end": 92,
+                              "start": 89,
+                            },
+                            "precedence": [
+                              11,
+                              11,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": ":",
+                        "position": {
+                          "end": 92,
+                          "start": 86,
+                        },
+                        "precedence": [
+                          8,
+                          7,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 92,
+                      "start": 78,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 115,
+                              "start": 112,
+                            },
+                            "value": "a",
+                          },
+                          "type": "string",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 143,
+                                      "start": 140,
+                                    },
+                                    "value": "b",
+                                  },
+                                  "type": "string",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [
+                                            {
+                                              "children": [],
+                                              "data": {
+                                                "position": {
+                                                  "end": 165,
+                                                  "start": 164,
+                                                },
+                                                "value": "a",
+                                              },
+                                              "type": "name",
+                                            },
+                                          ],
+                                          "data": {
+                                            "operator": "object",
+                                            "position": {
+                                              "end": 167,
+                                              "start": 162,
+                                            },
+                                            "precedence": [
+                                              null,
+                                              null,
+                                            ],
+                                          },
+                                          "type": "operator",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 179,
+                                              "start": 171,
+                                            },
+                                            "value": "handlers",
+                                          },
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": ":=",
+                                        "position": {
+                                          "end": 179,
+                                          "start": 162,
+                                        },
+                                        "precedence": [
+                                          null,
+                                          1,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 198,
+                                              "start": 197,
+                                            },
+                                            "value": "a",
+                                          },
+                                          "type": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 202,
+                                              "start": 201,
+                                            },
+                                            "value": 1,
+                                          },
+                                          "type": "number",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "add",
+                                        "position": {
+                                          "end": 202,
+                                          "start": 197,
+                                        },
+                                        "precedence": [
+                                          11,
+                                          11,
+                                        ],
+                                      },
+                                      "type": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "sequence",
+                                    "position": {
+                                      "end": 217,
+                                      "start": 162,
+                                    },
+                                    "precedence": [
+                                      null,
+                                      null,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "without",
+                                "position": {
+                                  "end": 218,
+                                  "start": 132,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "sequence",
+                            "position": {
+                              "end": 231,
+                              "start": 132,
+                            },
+                            "precedence": [
+                              null,
+                              null,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "mask",
+                        "position": {
+                          "end": 232,
+                          "start": 107,
+                        },
+                        "precedence": [
+                          null,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "sequence",
+                    "position": {
+                      "end": 243,
+                      "start": 107,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "inject",
+                "position": {
+                  "end": 244,
+                  "start": 71,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 255,
+              "start": 39,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "inject",
+        "position": {
+          "end": 256,
+          "start": 9,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > effect handlers > inject 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 17,
+                      "start": 16,
+                    },
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 20,
+                      "start": 19,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ":",
+                "position": {
+                  "end": 20,
+                  "start": 16,
+                },
+                "precedence": [
+                  8,
+                  7,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 23,
+                      "start": 22,
+                    },
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 26,
+                      "start": 25,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ":",
+                "position": {
+                  "end": 26,
+                  "start": 22,
+                },
+                "precedence": [
+                  8,
+                  7,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": ",",
+            "position": {
+              "end": 26,
+              "start": 16,
+            },
+            "precedence": [
+              6,
+              6,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 40,
+                  "start": 39,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 49,
+              "start": 39,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "inject",
+        "position": {
+          "end": 50,
+          "start": 9,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > effect handlers > mask 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 17,
+                  "start": 14,
+                },
+                "value": "a",
+              },
+              "type": "string",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 22,
+                  "start": 19,
+                },
+                "value": "b",
+              },
+              "type": "string",
+            },
+          ],
+          "data": {
+            "operator": ",",
+            "position": {
+              "end": 22,
+              "start": 14,
+            },
+            "precedence": [
+              6,
+              6,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 36,
+                  "start": 35,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 45,
+              "start": 35,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "mask",
+        "position": {
+          "end": 46,
+          "start": 9,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > effect handlers > without 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 20,
+                  "start": 17,
+                },
+                "value": "a",
+              },
+              "type": "string",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 25,
+                  "start": 22,
+                },
+                "value": "b",
+              },
+              "type": "string",
+            },
+          ],
+          "data": {
+            "operator": ",",
+            "position": {
+              "end": 25,
+              "start": 17,
+            },
+            "precedence": [
+              6,
+              6,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 39,
+                  "start": 38,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "sequence",
+            "position": {
+              "end": 48,
+              "start": 38,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "without",
+        "position": {
+          "end": 49,
+          "start": 9,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`fn increment 1`] = `
 {
   "children": [

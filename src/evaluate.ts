@@ -12,10 +12,11 @@ import {
   OperatorType,
   parseModule,
   parseScript,
+  tuple as tupleAST,
   type AbstractSyntaxTree,
 } from './parser.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, omit, unreachable } from './utils.js';
+import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   atom,
   closeChannel,
@@ -30,6 +31,7 @@ import {
   send,
   tryReceive,
 } from './values.js';
+import { fn as fnAST } from './parser.js';
 import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'path';
@@ -1048,27 +1050,24 @@ export const evaluateStatement = async (
         }
         case OperatorType.WHILE: {
           const [condition, body] = ast.children;
-          let result: EvalValue = null;
           while (true) {
             const _context = { ...context, env: forkEnv(context.env) };
-            // const _context = context;
             try {
               const cond = await evaluateExpr(condition, _context);
-              if (!cond) break;
-              result = await evaluateStatement(body, _context);
+              if (!cond) return null;
+              await evaluateStatement(body, _context);
             } catch (e) {
               if (typeof e === 'object' && e !== null && 'break' in e) {
-                result = e.break as EvalValue;
-                break;
+                const value = e.break as EvalValue;
+                return value;
               }
               if (typeof e === 'object' && e !== null && 'continue' in e) {
-                result = e.continue as EvalValue;
+                const _value = e.continue as EvalValue;
                 continue;
               }
               throw e;
             }
           }
-          return result;
         }
         case OperatorType.FOR: {
           const [pattern, expr, body] = ast.children;
@@ -1110,7 +1109,6 @@ export const evaluateStatement = async (
         }
         case OperatorType.LOOP: {
           let [body] = ast.children;
-          const collected: EvalValue[] = [];
 
           if (body.data.operator === OperatorType.BLOCK) {
             body = body.children[0];
@@ -1118,25 +1116,20 @@ export const evaluateStatement = async (
 
           while (true) {
             try {
-              const value = await evaluateBlock(body, context);
-              if (value === null) continue;
-              collected.push(value);
+              await evaluateBlock(body, context);
+              continue;
             } catch (e) {
               if (typeof e === 'object' && e !== null && 'break' in e) {
                 const value = e.break as EvalValue;
-                if (value !== null) collected.push(value);
-                break;
+                return value;
               }
               if (typeof e === 'object' && e !== null && 'continue' in e) {
-                const value = e.continue as EvalValue;
-                if (value !== null) collected.push(value);
+                const _value = e.continue as EvalValue;
                 continue;
               }
               throw e;
             }
           }
-
-          return collected;
         }
         case OperatorType.INC_ASSIGN: {
           const [pattern, expr] = ast.children;
@@ -1175,55 +1168,38 @@ export const evaluateStatement = async (
         }
 
         case OperatorType.FUNCTION: {
-          const [patterns, body] = ast.children;
-          const _context = { ...context, env: forkEnv(context.env) };
+          const [_patterns, _body] = ast.children;
+          const isTopFunction = ast.data.isTopFunction ?? true;
+          const patterns =
+            _patterns.data.operator !== OperatorType.TUPLE
+              ? [_patterns]
+              : _patterns.children;
+          const pattern = patterns[0];
+          const rest = patterns.slice(1);
+          const body =
+            rest.length === 0
+              ? _body
+              : fnAST(tupleAST(rest, _patterns.data.position), _body, {
+                  isTopFunction: false,
+                });
 
-          if (patterns.data.operator !== OperatorType.TUPLE) {
-            return async (arg, [, , callerContext]) => {
-              const __context = {
-                ..._context,
-                env: forkEnv(_context.env),
-                handlers: callerContext.handlers,
-              };
-              const bound = await bind(patterns, arg, __context);
-              try {
-                return await evaluateStatement(body, bound);
-              } catch (e) {
-                if (typeof e === 'object' && e !== null && 'return' in e)
-                  return e.return as EvalValue;
-                else throw e;
-              }
-            };
-          }
-
-          const binder = (...args: EvalValue[]): EvalFunction => {
+          const self: EvalFunction = async (arg, [, , callerContext]) => {
             const _context = { ...context, env: forkEnv(context.env) };
-            return async (arg, [, , callerContext]) => {
-              if (args.length < patterns.children.length - 1) {
-                return binder(...args, arg);
-              }
-              args.push(arg);
-              const bound = await patterns.children.reduce(
-                async (acc, pattern, i) => {
-                  const value = args[i];
-                  return await bind(pattern, value, await acc);
-                },
-                Promise.resolve(_context)
-              );
-              bound.env['self'] = binder();
+            const bound = await bind(pattern, arg, _context);
+            if (isTopFunction) {
+              bound.env['self'] = self;
               bound.handlers = callerContext.handlers;
+            }
 
-              try {
-                const x = await evaluateStatement(body, bound);
-                return x;
-              } catch (e) {
-                if (typeof e === 'object' && e !== null && 'return' in e) {
-                  return e.return as EvalValue;
-                } else throw e;
-              }
-            };
+            try {
+              return await evaluateStatement(body, bound);
+            } catch (e) {
+              if (typeof e === 'object' && e !== null && 'return' in e) {
+                return e.return as EvalValue;
+              } else throw e;
+            }
           };
-          return binder();
+          return self;
         }
         case OperatorType.APPLICATION: {
           const [fnExpr, argStmt] = ast.children;
@@ -1253,6 +1229,7 @@ export const evaluateStatement = async (
       if (name === 'true') return true;
       if (name === 'false') return false;
       if (name === 'injected') return { record: context.handlers };
+      // inspect(context.env);
       assert(
         name in context.env,
         SystemError.undeclaredName(name, ast.data.position).withFileId(

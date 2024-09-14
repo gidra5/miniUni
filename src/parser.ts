@@ -288,12 +288,25 @@ const block = (
   position: Position = sequence.data.position
 ): AbstractSyntaxTree => operator(OperatorType.BLOCK, position, sequence);
 
-const fn = (
+export const fn = (
   pattern: AbstractSyntaxTree,
   body: AbstractSyntaxTree,
-  position: Position = mergePositions(pattern.data.position, body.data.position)
-): AbstractSyntaxTree =>
-  operator(OperatorType.FUNCTION, position, pattern, body);
+  {
+    position = mergePositions(pattern.data.position, body.data.position),
+    isTopFunction = true,
+  }: { position?: Position; isTopFunction?: boolean } = {}
+): AbstractSyntaxTree => {
+  const node = operator(OperatorType.FUNCTION, position, pattern, body);
+  if (!isTopFunction) node.data.isTopFunction = isTopFunction;
+  return node;
+};
+
+export const tuple = (
+  children: AbstractSyntaxTree[],
+  position: Position = mergePositions(
+    ...children.map((child) => child.data.position)
+  )
+): AbstractSyntaxTree => operator(OperatorType.TUPLE, position, ...children);
 
 export enum OperatorType {
   ADD = 'add',
@@ -678,7 +691,7 @@ const parseGroup =
         followSet.pop();
 
         const node = () => {
-          const node = fn(pattern, sequence, nodePosition());
+          const node = fn(pattern, sequence, { position: nodePosition() });
           node.data.precedence = [null, null];
           return node;
         };

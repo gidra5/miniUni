@@ -1,11 +1,11 @@
 quick_sort := xs -> {
-  if xs == ()
-    return ()
+  if length xs == 0: return ();
   
-  (pivot, ...rest) := xs
-  smaller := for x in rest: if x < pivot: x
-  bigger := for x in rest: if x >= pivot: x
-  return (...self smaller, pivot, ...self bigger)
-}
+  (pivot, ...rest) := xs;
+  smaller := for x in rest { if x < pivot: x };
+  bigger := for x in rest { if x >= pivot: x };
+
+  (...self smaller, pivot, ...self bigger)
+};
 
 quick_sort (5,3,4,2,1,2)
