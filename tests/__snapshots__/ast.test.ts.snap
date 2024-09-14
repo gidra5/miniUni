@@ -65,215 +65,38 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                         {
                           "children": [
                             {
-                              "children": [
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "position": {
-                                      "end": 55,
-                                      "start": 49,
-                                    },
-                                    "value": "reduce",
-                                  },
-                                  "id": "11",
-                                  "type": "name",
-                                },
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "position": {
-                                      "end": 60,
-                                      "start": 56,
-                                    },
-                                    "value": "list",
-                                  },
-                                  "id": "23",
-                                  "type": "name",
-                                },
-                              ],
+                              "children": [],
                               "data": {
-                                "operator": "application",
                                 "position": {
-                                  "end": 60,
+                                  "end": 55,
                                   "start": 49,
                                 },
+                                "value": "reduce",
                               },
-                              "id": "30",
-                              "type": "operator",
+                              "id": "11",
+                              "type": "name",
                             },
                             {
-                              "children": [
-                                {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 68,
-                                              "start": 65,
-                                            },
-                                            "value": "acc",
-                                          },
-                                          "id": "42",
-                                          "type": "name",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 74,
-                                              "start": 70,
-                                            },
-                                            "value": "item",
-                                          },
-                                          "id": "44",
-                                          "type": "name",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": ",",
-                                        "position": {
-                                          "end": 74,
-                                          "start": 65,
-                                        },
-                                      },
-                                      "id": "46",
-                                      "type": "operator",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "position": {
-                                                      "end": 85,
-                                                      "start": 82,
-                                                    },
-                                                    "value": "acc",
-                                                  },
-                                                  "id": "86",
-                                                  "type": "name",
-                                                },
-                                              ],
-                                              "data": {
-                                                "operator": "...",
-                                                "position": {
-                                                  "end": 85,
-                                                  "start": 79,
-                                                },
-                                              },
-                                              "id": "90",
-                                              "type": "operator",
-                                            },
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 96,
-                                                          "start": 90,
-                                                        },
-                                                        "value": "mapper",
-                                                      },
-                                                      "id": "102",
-                                                      "type": "name",
-                                                    },
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "position": {
-                                                          "end": 101,
-                                                          "start": 97,
-                                                        },
-                                                        "value": "item",
-                                                      },
-                                                      "id": "108",
-                                                      "type": "name",
-                                                    },
-                                                  ],
-                                                  "data": {
-                                                    "operator": "application",
-                                                    "position": {
-                                                      "end": 101,
-                                                      "start": 90,
-                                                    },
-                                                  },
-                                                  "id": "109",
-                                                  "type": "operator",
-                                                },
-                                              ],
-                                              "data": {
-                                                "operator": "...",
-                                                "position": {
-                                                  "end": 101,
-                                                  "start": 87,
-                                                },
-                                              },
-                                              "id": "110",
-                                              "type": "operator",
-                                            },
-                                          ],
-                                          "data": {
-                                            "operator": ",",
-                                            "position": {
-                                              "end": 101,
-                                              "start": 79,
-                                            },
-                                          },
-                                          "id": "111",
-                                          "type": "operator",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "parens",
-                                        "position": {
-                                          "end": 102,
-                                          "start": 78,
-                                        },
-                                      },
-                                      "id": "112",
-                                      "type": "operator",
-                                    },
-                                  ],
-                                  "data": {
-                                    "operator": "func",
-                                    "position": {
-                                      "end": 102,
-                                      "start": 62,
-                                    },
-                                  },
-                                  "id": "113",
-                                  "type": "operator",
-                                },
-                              ],
+                              "children": [],
                               "data": {
-                                "operator": "parens",
                                 "position": {
-                                  "end": 103,
-                                  "start": 61,
+                                  "end": 60,
+                                  "start": 56,
                                 },
+                                "value": "list",
                               },
-                              "id": "114",
-                              "type": "operator",
+                              "id": "23",
+                              "type": "name",
                             },
                           ],
                           "data": {
                             "operator": "application",
                             "position": {
-                              "end": 103,
+                              "end": 60,
                               "start": 49,
                             },
                           },
-                          "id": "121",
+                          "id": "30",
                           "type": "operator",
                         },
                         {
@@ -286,35 +109,35 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                       "children": [],
                                       "data": {
                                         "position": {
-                                          "end": 113,
-                                          "start": 108,
+                                          "end": 68,
+                                          "start": 65,
                                         },
-                                        "value": "first",
+                                        "value": "acc",
                                       },
-                                      "id": "133",
+                                      "id": "42",
                                       "type": "name",
                                     },
                                     {
                                       "children": [],
                                       "data": {
                                         "position": {
-                                          "end": 121,
-                                          "start": 115,
+                                          "end": 74,
+                                          "start": 70,
                                         },
-                                        "value": "second",
+                                        "value": "item",
                                       },
-                                      "id": "135",
+                                      "id": "44",
                                       "type": "name",
                                     },
                                   ],
                                   "data": {
                                     "operator": ",",
                                     "position": {
-                                      "end": 121,
-                                      "start": 108,
+                                      "end": 74,
+                                      "start": 65,
                                     },
                                   },
-                                  "id": "137",
+                                  "id": "46",
                                   "type": "operator",
                                 },
                                 {
@@ -327,149 +150,313 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                               "children": [],
                                               "data": {
                                                 "position": {
-                                                  "end": 134,
-                                                  "start": 129,
+                                                  "end": 85,
+                                                  "start": 82,
                                                 },
-                                                "value": "first",
+                                                "value": "acc",
                                               },
-                                              "id": "176",
+                                              "id": "86",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {
                                             "operator": "...",
                                             "position": {
-                                              "end": 134,
-                                              "start": 126,
+                                              "end": 85,
+                                              "start": 79,
                                             },
                                           },
-                                          "id": "180",
+                                          "id": "90",
                                           "type": "operator",
                                         },
                                         {
                                           "children": [
                                             {
-                                              "children": [],
-                                              "data": {
-                                                "position": {
-                                                  "end": 145,
-                                                  "start": 139,
+                                              "children": [
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "position": {
+                                                      "end": 96,
+                                                      "start": 90,
+                                                    },
+                                                    "value": "mapper",
+                                                  },
+                                                  "id": "102",
+                                                  "type": "name",
                                                 },
-                                                "value": "second",
+                                                {
+                                                  "children": [],
+                                                  "data": {
+                                                    "position": {
+                                                      "end": 101,
+                                                      "start": 97,
+                                                    },
+                                                    "value": "item",
+                                                  },
+                                                  "id": "108",
+                                                  "type": "name",
+                                                },
+                                              ],
+                                              "data": {
+                                                "operator": "application",
+                                                "position": {
+                                                  "end": 101,
+                                                  "start": 90,
+                                                },
                                               },
-                                              "id": "192",
-                                              "type": "name",
+                                              "id": "109",
+                                              "type": "operator",
                                             },
                                           ],
                                           "data": {
                                             "operator": "...",
                                             "position": {
-                                              "end": 145,
-                                              "start": 136,
+                                              "end": 101,
+                                              "start": 87,
                                             },
                                           },
-                                          "id": "193",
+                                          "id": "110",
                                           "type": "operator",
                                         },
                                       ],
                                       "data": {
                                         "operator": ",",
                                         "position": {
-                                          "end": 145,
-                                          "start": 126,
+                                          "end": 101,
+                                          "start": 79,
                                         },
                                       },
-                                      "id": "194",
+                                      "id": "111",
                                       "type": "operator",
                                     },
                                   ],
                                   "data": {
                                     "operator": "parens",
                                     "position": {
-                                      "end": 146,
-                                      "start": 125,
+                                      "end": 102,
+                                      "start": 78,
                                     },
                                   },
-                                  "id": "195",
+                                  "id": "112",
                                   "type": "operator",
                                 },
                               ],
                               "data": {
                                 "operator": "func",
                                 "position": {
-                                  "end": 146,
-                                  "start": 105,
+                                  "end": 102,
+                                  "start": 62,
                                 },
                               },
-                              "id": "196",
+                              "id": "113",
                               "type": "operator",
                             },
                           ],
                           "data": {
                             "operator": "parens",
                             "position": {
-                              "end": 147,
-                              "start": 104,
+                              "end": 103,
+                              "start": 61,
                             },
                           },
-                          "id": "197",
+                          "id": "114",
                           "type": "operator",
                         },
                       ],
                       "data": {
                         "operator": "application",
                         "position": {
-                          "end": 147,
+                          "end": 103,
                           "start": 49,
                         },
                       },
-                      "id": "202",
+                      "id": "121",
                       "type": "operator",
                     },
                     {
                       "children": [
                         {
-                          "children": [],
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 113,
+                                      "start": 108,
+                                    },
+                                    "value": "first",
+                                  },
+                                  "id": "133",
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 121,
+                                      "start": 115,
+                                    },
+                                    "value": "second",
+                                  },
+                                  "id": "135",
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {
+                                "operator": ",",
+                                "position": {
+                                  "end": 121,
+                                  "start": 108,
+                                },
+                              },
+                              "id": "137",
+                              "type": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 134,
+                                              "start": 129,
+                                            },
+                                            "value": "first",
+                                          },
+                                          "id": "176",
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "...",
+                                        "position": {
+                                          "end": 134,
+                                          "start": 126,
+                                        },
+                                      },
+                                      "id": "180",
+                                      "type": "operator",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "position": {
+                                              "end": 145,
+                                              "start": 139,
+                                            },
+                                            "value": "second",
+                                          },
+                                          "id": "192",
+                                          "type": "name",
+                                        },
+                                      ],
+                                      "data": {
+                                        "operator": "...",
+                                        "position": {
+                                          "end": 145,
+                                          "start": 136,
+                                        },
+                                      },
+                                      "id": "193",
+                                      "type": "operator",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": ",",
+                                    "position": {
+                                      "end": 145,
+                                      "start": 126,
+                                    },
+                                  },
+                                  "id": "194",
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                                "position": {
+                                  "end": 146,
+                                  "start": 125,
+                                },
+                              },
+                              "id": "195",
+                              "type": "operator",
+                            },
+                          ],
                           "data": {
+                            "operator": "func",
                             "position": {
-                              "end": 149,
-                              "start": 149,
+                              "end": 146,
+                              "start": 105,
                             },
                           },
-                          "id": "210",
-                          "type": "implicit_placeholder",
+                          "id": "196",
+                          "type": "operator",
                         },
                       ],
                       "data": {
                         "operator": "parens",
                         "position": {
-                          "end": 150,
-                          "start": 148,
+                          "end": 147,
+                          "start": 104,
                         },
                       },
-                      "id": "211",
+                      "id": "197",
                       "type": "operator",
                     },
                   ],
                   "data": {
                     "operator": "application",
                     "position": {
-                      "end": 150,
+                      "end": 147,
                       "start": 49,
                     },
                   },
-                  "id": "213",
+                  "id": "202",
+                  "type": "operator",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 149,
+                          "start": 149,
+                        },
+                      },
+                      "id": "210",
+                      "type": "implicit_placeholder",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 150,
+                      "start": 148,
+                    },
+                  },
+                  "id": "211",
                   "type": "operator",
                 },
               ],
               "data": {
-                "operator": "sequence",
+                "operator": "application",
                 "position": {
-                  "end": 159,
+                  "end": 150,
                   "start": 49,
                 },
               },
-              "id": "215",
+              "id": "213",
               "type": "operator",
             },
           ],
@@ -480,7 +467,7 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
               "start": 21,
             },
           },
-          "id": "216",
+          "id": "215",
           "type": "operator",
         },
       ],
@@ -491,12 +478,12 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
           "start": 9,
         },
       },
-      "id": "218",
+      "id": "217",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "221",
+  "id": "219",
   "type": "script",
 }
 `;
@@ -657,7 +644,7 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
     },
   ],
   "data": {},
-  "id": "75",
+  "id": "74",
   "type": "script",
 }
 `;
@@ -741,7 +728,7 @@ exports[`advent of code 1 single file > fn multiple args 1`] = `
     },
   ],
   "data": {},
-  "id": "16",
+  "id": "15",
   "type": "script",
 }
 `;
@@ -1638,7 +1625,7 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
     },
   ],
   "data": {},
-  "id": "320",
+  "id": "319",
   "type": "script",
 }
 `;
@@ -2710,7 +2697,7 @@ exports[`advent of code 1 single file > reduce list 1`] = `
     },
   ],
   "data": {},
-  "id": "945",
+  "id": "944",
   "type": "script",
 }
 `;
@@ -3146,7 +3133,7 @@ exports[`advent of code 1 single file > split lines 1`] = `
     },
   ],
   "data": {},
-  "id": "132",
+  "id": "131",
   "type": "script",
 }
 `;
@@ -3198,7 +3185,7 @@ exports[`advent of code 1 single file > variable 1`] = `
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "8",
   "type": "script",
 }
 `;
@@ -3220,7 +3207,7 @@ exports[`comments > comment 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -3242,7 +3229,7 @@ exports[`comments > comment block 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -3315,7 +3302,7 @@ exports[`expressions > arithmetics > -(a+b) 1`] = `
     },
   ],
   "data": {},
-  "id": "24",
+  "id": "23",
   "type": "script",
 }
 `;
@@ -3914,7 +3901,7 @@ exports[`expressions > arithmetics > complex 1`] = `
     },
   ],
   "data": {},
-  "id": "306",
+  "id": "305",
   "type": "script",
 }
 `;
@@ -4099,7 +4086,7 @@ exports[`expressions > arithmetics > order of application 1`] = `
     },
   ],
   "data": {},
-  "id": "58",
+  "id": "57",
   "type": "script",
 }
 `;
@@ -4282,7 +4269,7 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
     },
   ],
   "data": {},
-  "id": "89",
+  "id": "88",
   "type": "script",
 }
 `;
@@ -4317,7 +4304,7 @@ exports[`expressions > boolean expressions > not 1`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -4352,7 +4339,7 @@ exports[`expressions > concurrent programming > channel receive 1`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -4399,7 +4386,7 @@ exports[`expressions > concurrent programming > channel send 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -4434,7 +4421,7 @@ exports[`expressions > concurrent programming > channel try receive 1`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -4481,7 +4468,7 @@ exports[`expressions > concurrent programming > channel try send 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -4528,7 +4515,7 @@ exports[`expressions > concurrent programming > parallel value 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -4541,14 +4528,13 @@ exports[`expressions > concurrent programming > prefix parallel with code after 
         {
           "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
               "end": 15,
               "start": 15,
             },
           },
           "id": "8",
-          "type": "operator",
+          "type": "implicit_placeholder",
         },
       ],
       "data": {
@@ -4697,7 +4683,7 @@ exports[`expressions > concurrent programming > try receive with assignment 1`] 
     },
   ],
   "data": {},
-  "id": "11",
+  "id": "10",
   "type": "script",
 }
 `;
@@ -4857,7 +4843,7 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
     },
   ],
   "data": {},
-  "id": "95",
+  "id": "94",
   "type": "script",
 }
 `;
@@ -4892,7 +4878,7 @@ exports[`expressions > data structures > atom (global symbol) 1`] = `
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -4989,7 +4975,7 @@ exports[`expressions > data structures > field assignment 1`] = `
     },
   ],
   "data": {},
-  "id": "23",
+  "id": "22",
   "type": "script",
 }
 `;
@@ -5061,7 +5047,7 @@ exports[`expressions > data structures > field assignment dynamic 1`] = `
     },
   ],
   "data": {},
-  "id": "12",
+  "id": "11",
   "type": "script",
 }
 `;
@@ -5108,7 +5094,7 @@ exports[`expressions > data structures > index 1`] = `
     },
   ],
   "data": {},
-  "id": "15",
+  "id": "14",
   "type": "script",
 }
 `;
@@ -5255,7 +5241,7 @@ exports[`expressions > data structures > map without braces 1`] = `
     },
   ],
   "data": {},
-  "id": "77",
+  "id": "76",
   "type": "script",
 }
 `;
@@ -5403,7 +5389,7 @@ exports[`expressions > data structures > methods 1`] = `
     },
   ],
   "data": {},
-  "id": "44",
+  "id": "43",
   "type": "script",
 }
 `;
@@ -5450,7 +5436,7 @@ exports[`expressions > data structures > period operator 1`] = `
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "8",
   "type": "script",
 }
 `;
@@ -5547,7 +5533,7 @@ exports[`expressions > data structures > record 1`] = `
     },
   ],
   "data": {},
-  "id": "52",
+  "id": "51",
   "type": "script",
 }
 `;
@@ -5594,7 +5580,7 @@ exports[`expressions > data structures > record single 1`] = `
     },
   ],
   "data": {},
-  "id": "13",
+  "id": "12",
   "type": "script",
 }
 `;
@@ -5665,7 +5651,7 @@ exports[`expressions > data structures > tuple 1`] = `
     },
   ],
   "data": {},
-  "id": "43",
+  "id": "42",
   "type": "script",
 }
 `;
@@ -5737,7 +5723,7 @@ exports[`expressions > data structures > tuple with single item (atom) 1`] = `
     },
   ],
   "data": {},
-  "id": "38",
+  "id": "37",
   "type": "script",
 }
 `;
@@ -5771,7 +5757,7 @@ exports[`expressions > data structures > unit 1`] = `
     },
   ],
   "data": {},
-  "id": "6",
+  "id": "5",
   "type": "script",
 }
 `;
@@ -6074,17 +6060,29 @@ exports[`expressions > effect handlers > complex 1`] = `
                 {
                   "children": [
                     {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 115,
+                          "start": 112,
+                        },
+                        "value": "a",
+                      },
+                      "id": "146",
+                      "type": "string",
+                    },
+                    {
                       "children": [
                         {
                           "children": [],
                           "data": {
                             "position": {
-                              "end": 115,
-                              "start": 112,
+                              "end": 143,
+                              "start": 140,
                             },
-                            "value": "a",
+                            "value": "b",
                           },
-                          "id": "146",
+                          "id": "149",
                           "type": "string",
                         },
                         {
@@ -6092,159 +6090,121 @@ exports[`expressions > effect handlers > complex 1`] = `
                             {
                               "children": [
                                 {
-                                  "children": [],
-                                  "data": {
-                                    "position": {
-                                      "end": 143,
-                                      "start": 140,
-                                    },
-                                    "value": "b",
-                                  },
-                                  "id": "149",
-                                  "type": "string",
-                                },
-                                {
                                   "children": [
                                     {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "position": {
-                                                  "end": 165,
-                                                  "start": 164,
-                                                },
-                                                "value": "a",
-                                              },
-                                              "id": "150",
-                                              "type": "name",
-                                            },
-                                          ],
-                                          "data": {
-                                            "operator": "object",
-                                            "position": {
-                                              "end": 167,
-                                              "start": 162,
-                                            },
-                                          },
-                                          "id": "152",
-                                          "type": "operator",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 179,
-                                              "start": 171,
-                                            },
-                                            "value": "handlers",
-                                          },
-                                          "id": "157",
-                                          "type": "name",
-                                        },
-                                      ],
+                                      "children": [],
                                       "data": {
-                                        "operator": ":=",
                                         "position": {
-                                          "end": 179,
-                                          "start": 162,
+                                          "end": 165,
+                                          "start": 164,
                                         },
+                                        "value": "a",
                                       },
-                                      "id": "158",
-                                      "type": "operator",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 198,
-                                              "start": 197,
-                                            },
-                                            "value": "a",
-                                          },
-                                          "id": "161",
-                                          "type": "name",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "position": {
-                                              "end": 202,
-                                              "start": 201,
-                                            },
-                                            "value": 1,
-                                          },
-                                          "id": "166",
-                                          "type": "number",
-                                        },
-                                      ],
-                                      "data": {
-                                        "operator": "add",
-                                        "position": {
-                                          "end": 202,
-                                          "start": 197,
-                                        },
-                                      },
-                                      "id": "168",
-                                      "type": "operator",
+                                      "id": "150",
+                                      "type": "name",
                                     },
                                   ],
                                   "data": {
-                                    "operator": "sequence",
+                                    "operator": "object",
                                     "position": {
-                                      "end": 217,
+                                      "end": 167,
                                       "start": 162,
                                     },
                                   },
-                                  "id": "170",
+                                  "id": "152",
                                   "type": "operator",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 179,
+                                      "start": 171,
+                                    },
+                                    "value": "handlers",
+                                  },
+                                  "id": "157",
+                                  "type": "name",
                                 },
                               ],
                               "data": {
-                                "operator": "without",
+                                "operator": ":=",
                                 "position": {
-                                  "end": 218,
-                                  "start": 132,
+                                  "end": 179,
+                                  "start": 162,
                                 },
                               },
-                              "id": "171",
+                              "id": "158",
+                              "type": "operator",
+                            },
+                            {
+                              "children": [
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 198,
+                                      "start": 197,
+                                    },
+                                    "value": "a",
+                                  },
+                                  "id": "161",
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "position": {
+                                      "end": 202,
+                                      "start": 201,
+                                    },
+                                    "value": 1,
+                                  },
+                                  "id": "166",
+                                  "type": "number",
+                                },
+                              ],
+                              "data": {
+                                "operator": "add",
+                                "position": {
+                                  "end": 202,
+                                  "start": 197,
+                                },
+                              },
+                              "id": "168",
                               "type": "operator",
                             },
                           ],
                           "data": {
                             "operator": "sequence",
                             "position": {
-                              "end": 231,
-                              "start": 132,
+                              "end": 217,
+                              "start": 162,
                             },
                           },
-                          "id": "173",
+                          "id": "170",
                           "type": "operator",
                         },
                       ],
                       "data": {
-                        "operator": "mask",
+                        "operator": "without",
                         "position": {
-                          "end": 232,
-                          "start": 107,
+                          "end": 218,
+                          "start": 132,
                         },
                       },
-                      "id": "174",
+                      "id": "171",
                       "type": "operator",
                     },
                   ],
                   "data": {
-                    "operator": "sequence",
+                    "operator": "mask",
                     "position": {
-                      "end": 243,
+                      "end": 232,
                       "start": 107,
                     },
                   },
-                  "id": "176",
+                  "id": "173",
                   "type": "operator",
                 },
               ],
@@ -6255,7 +6215,7 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "start": 71,
                 },
               },
-              "id": "177",
+              "id": "175",
               "type": "operator",
             },
           ],
@@ -6266,7 +6226,7 @@ exports[`expressions > effect handlers > complex 1`] = `
               "start": 39,
             },
           },
-          "id": "179",
+          "id": "177",
           "type": "operator",
         },
       ],
@@ -6277,12 +6237,12 @@ exports[`expressions > effect handlers > complex 1`] = `
           "start": 9,
         },
       },
-      "id": "180",
+      "id": "178",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "183",
+  "id": "180",
   "type": "script",
 }
 `;
@@ -6380,29 +6340,16 @@ exports[`expressions > effect handlers > inject 1`] = `
           "type": "operator",
         },
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 40,
-                  "start": 39,
-                },
-                "value": 1,
-              },
-              "id": "66",
-              "type": "number",
-            },
-          ],
+          "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
-              "end": 49,
+              "end": 40,
               "start": 39,
             },
+            "value": 1,
           },
-          "id": "68",
-          "type": "operator",
+          "id": "66",
+          "type": "number",
         },
       ],
       "data": {
@@ -6412,12 +6359,12 @@ exports[`expressions > effect handlers > inject 1`] = `
           "start": 9,
         },
       },
-      "id": "69",
+      "id": "68",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "72",
+  "id": "70",
   "type": "script",
 }
 `;
@@ -6465,29 +6412,16 @@ exports[`expressions > effect handlers > mask 1`] = `
           "type": "operator",
         },
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 36,
-                  "start": 35,
-                },
-                "value": 1,
-              },
-              "id": "15",
-              "type": "number",
-            },
-          ],
+          "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
-              "end": 45,
+              "end": 36,
               "start": 35,
             },
+            "value": 1,
           },
-          "id": "17",
-          "type": "operator",
+          "id": "15",
+          "type": "number",
         },
       ],
       "data": {
@@ -6497,12 +6431,12 @@ exports[`expressions > effect handlers > mask 1`] = `
           "start": 9,
         },
       },
-      "id": "18",
+      "id": "17",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "21",
+  "id": "19",
   "type": "script",
 }
 `;
@@ -6550,29 +6484,16 @@ exports[`expressions > effect handlers > without 1`] = `
           "type": "operator",
         },
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 39,
-                  "start": 38,
-                },
-                "value": 1,
-              },
-              "id": "15",
-              "type": "number",
-            },
-          ],
+          "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
-              "end": 48,
+              "end": 39,
               "start": 38,
             },
+            "value": 1,
           },
-          "id": "17",
-          "type": "operator",
+          "id": "15",
+          "type": "number",
         },
       ],
       "data": {
@@ -6582,12 +6503,12 @@ exports[`expressions > effect handlers > without 1`] = `
           "start": 9,
         },
       },
-      "id": "18",
+      "id": "17",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "21",
+  "id": "19",
   "type": "script",
 }
 `;
@@ -6735,7 +6656,7 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
     },
   ],
   "data": {},
-  "id": "58",
+  "id": "57",
   "type": "script",
 }
 `;
@@ -6858,7 +6779,7 @@ exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] =
     },
   ],
   "data": {},
-  "id": "48",
+  "id": "47",
   "type": "script",
 }
 `;
@@ -6956,7 +6877,7 @@ exports[`expressions > function expressions > application > (send)(2, 3) 1`] = `
     },
   ],
   "data": {},
-  "id": "46",
+  "id": "45",
   "type": "script",
 }
 `;
@@ -7066,7 +6987,7 @@ exports[`expressions > function expressions > application > a + send (2, 3) 1`] 
     },
   ],
   "data": {},
-  "id": "48",
+  "id": "47",
   "type": "script",
 }
 `;
@@ -7150,7 +7071,7 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
     },
   ],
   "data": {},
-  "id": "29",
+  "id": "28",
   "type": "script",
 }
 `;
@@ -7197,7 +7118,7 @@ exports[`expressions > function expressions > application > function call 1`] = 
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "8",
   "type": "script",
 }
 `;
@@ -7269,7 +7190,7 @@ exports[`expressions > function expressions > application > function call multip
     },
   ],
   "data": {},
-  "id": "18",
+  "id": "17",
   "type": "script",
 }
 `;
@@ -7379,7 +7300,7 @@ exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = 
     },
   ],
   "data": {},
-  "id": "62",
+  "id": "61",
   "type": "script",
 }
 `;
@@ -7451,7 +7372,7 @@ exports[`expressions > function expressions > application > send 1 + 2 1`] = `
     },
   ],
   "data": {},
-  "id": "20",
+  "id": "19",
   "type": "script",
 }
 `;
@@ -7561,7 +7482,7 @@ exports[`expressions > function expressions > application > send a (2, 3) 1`] = 
     },
   ],
   "data": {},
-  "id": "62",
+  "id": "61",
   "type": "script",
 }
 `;
@@ -7684,7 +7605,7 @@ exports[`expressions > function expressions > application > send((1+2), 3) 1`] =
     },
   ],
   "data": {},
-  "id": "52",
+  "id": "51",
   "type": "script",
 }
 `;
@@ -7769,7 +7690,7 @@ exports[`expressions > function expressions > application > send(2, 3) 1`] = `
     },
   ],
   "data": {},
-  "id": "41",
+  "id": "40",
   "type": "script",
 }
 `;
@@ -7816,7 +7737,7 @@ exports[`expressions > function expressions > arrow function 1`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -7875,7 +7796,7 @@ exports[`expressions > function expressions > fn increment 1`] = `
     },
   ],
   "data": {},
-  "id": "11",
+  "id": "10",
   "type": "script",
 }
 `;
@@ -7921,7 +7842,7 @@ exports[`expressions > function expressions > fn no parameters 1`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -7943,29 +7864,16 @@ exports[`expressions > function expressions > fn no parameters block 1`] = `
           "type": "implicit_placeholder",
         },
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 8,
-                  "start": 5,
-                },
-                "value": 123,
-              },
-              "id": "4",
-              "type": "number",
-            },
-          ],
+          "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
               "end": 8,
               "start": 5,
             },
+            "value": 123,
           },
-          "id": "5",
-          "type": "operator",
+          "id": "4",
+          "type": "number",
         },
       ],
       "data": {
@@ -7975,12 +7883,12 @@ exports[`expressions > function expressions > fn no parameters block 1`] = `
           "start": 0,
         },
       },
-      "id": "6",
+      "id": "5",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -8030,51 +7938,38 @@ exports[`expressions > function expressions > function block body 1`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 11,
-                      "start": 10,
-                    },
-                    "value": "x",
-                  },
-                  "id": "8",
-                  "type": "name",
-                },
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 15,
-                      "start": 14,
-                    },
-                    "value": "y",
-                  },
-                  "id": "14",
-                  "type": "name",
-                },
-              ],
+              "children": [],
               "data": {
-                "operator": "add",
                 "position": {
-                  "end": 15,
+                  "end": 11,
                   "start": 10,
                 },
+                "value": "x",
               },
-              "id": "15",
-              "type": "operator",
+              "id": "8",
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 15,
+                  "start": 14,
+                },
+                "value": "y",
+              },
+              "id": "14",
+              "type": "name",
             },
           ],
           "data": {
-            "operator": "sequence",
+            "operator": "add",
             "position": {
               "end": 15,
               "start": 10,
             },
           },
-          "id": "16",
+          "id": "15",
           "type": "operator",
         },
       ],
@@ -8085,12 +7980,12 @@ exports[`expressions > function expressions > function block body 1`] = `
           "start": 0,
         },
       },
-      "id": "17",
+      "id": "16",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "19",
+  "id": "17",
   "type": "script",
 }
 `;
@@ -8187,7 +8082,7 @@ exports[`expressions > function expressions > function multiple params 1`] = `
     },
   ],
   "data": {},
-  "id": "18",
+  "id": "17",
   "type": "script",
 }
 `;
@@ -8259,7 +8154,7 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
     },
   ],
   "data": {},
-  "id": "13",
+  "id": "12",
   "type": "script",
 }
 `;
@@ -8369,7 +8264,7 @@ exports[`expressions > pattern matching > in function parameters 1`] = `
     },
   ],
   "data": {},
-  "id": "20",
+  "id": "19",
   "type": "script",
 }
 `;
@@ -8514,7 +8409,7 @@ exports[`expressions > pattern matching > switch 1`] = `
     },
   ],
   "data": {},
-  "id": "24",
+  "id": "23",
   "type": "script",
 }
 `;
@@ -8525,29 +8420,16 @@ exports[`expressions > structured programming > block 1`] = `
     {
       "children": [
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 5,
-                  "start": 2,
-                },
-                "value": 123,
-              },
-              "id": "5",
-              "type": "number",
-            },
-          ],
+          "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
               "end": 5,
               "start": 2,
             },
+            "value": 123,
           },
-          "id": "6",
-          "type": "operator",
+          "id": "5",
+          "type": "number",
         },
       ],
       "data": {
@@ -8557,12 +8439,12 @@ exports[`expressions > structured programming > block 1`] = `
           "start": 0,
         },
       },
-      "id": "7",
+      "id": "6",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -8573,6 +8455,18 @@ exports[`expressions > structured programming > for loop 1`] = `
     {
       "children": [
         {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 5,
+              "start": 4,
+            },
+            "value": "x",
+          },
+          "id": "0",
+          "type": "name",
+        },
+        {
           "children": [
             {
               "children": [
@@ -8580,150 +8474,86 @@ exports[`expressions > structured programming > for loop 1`] = `
                   "children": [],
                   "data": {
                     "position": {
-                      "end": 5,
-                      "start": 4,
+                      "end": 11,
+                      "start": 10,
                     },
-                    "value": "x",
+                    "value": 1,
                   },
-                  "id": "0",
-                  "type": "name",
-                },
-                {
-                  "children": [
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "position": {
-                                  "end": 11,
-                                  "start": 10,
-                                },
-                                "value": 1,
-                              },
-                              "id": "24",
-                              "type": "number",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "position": {
-                                  "end": 14,
-                                  "start": 13,
-                                },
-                                "value": 2,
-                              },
-                              "id": "34",
-                              "type": "number",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "position": {
-                                  "end": 17,
-                                  "start": 16,
-                                },
-                                "value": 3,
-                              },
-                              "id": "44",
-                              "type": "number",
-                            },
-                          ],
-                          "data": {
-                            "operator": ",",
-                            "position": {
-                              "end": 14,
-                              "start": 10,
-                            },
-                          },
-                          "id": "38",
-                          "type": "operator",
-                        },
-                      ],
-                      "data": {
-                        "operator": "parens",
-                        "position": {
-                          "end": 18,
-                          "start": 9,
-                        },
-                      },
-                      "id": "45",
-                      "type": "operator",
-                    },
-                    {
-                      "children": [],
-                      "data": {
-                        "position": {
-                          "end": 21,
-                          "start": 20,
-                        },
-                        "value": "x",
-                      },
-                      "id": "51",
-                      "type": "name",
-                    },
-                  ],
-                  "data": {
-                    "operator": ":",
-                    "position": {
-                      "end": 21,
-                      "start": 9,
-                    },
-                  },
-                  "id": "52",
-                  "type": "operator",
+                  "id": "22",
+                  "type": "number",
                 },
                 {
                   "children": [],
                   "data": {
-                    "operator": "sequence",
                     "position": {
-                      "end": 20,
-                      "start": 20,
+                      "end": 14,
+                      "start": 13,
                     },
+                    "value": 2,
                   },
-                  "id": "53",
-                  "type": "operator",
+                  "id": "32",
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 17,
+                      "start": 16,
+                    },
+                    "value": 3,
+                  },
+                  "id": "42",
+                  "type": "number",
                 },
               ],
               "data": {
-                "operator": "for",
+                "operator": ",",
                 "position": {
-                  "end": 21,
-                  "start": 0,
+                  "end": 14,
+                  "start": 10,
                 },
               },
-              "id": "54",
+              "id": "36",
               "type": "operator",
             },
           ],
           "data": {
-            "cause": [Error: Missing token, expected one of: "{" or ":" or "
-"],
+            "operator": "parens",
             "position": {
-              "end": 21,
-              "start": 0,
+              "end": 18,
+              "start": 9,
             },
           },
-          "id": "55",
-          "type": "error",
+          "id": "43",
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 22,
+              "start": 21,
+            },
+            "value": "x",
+          },
+          "id": "46",
+          "type": "name",
         },
       ],
       "data": {
-        "cause": [Error: Missing token, expected one of: "}"],
+        "operator": "for",
         "position": {
-          "end": 21,
+          "end": 24,
           "start": 0,
         },
       },
-      "id": "56",
-      "type": "error",
+      "id": "47",
+      "type": "operator",
     },
   ],
   "data": {},
-  "id": "58",
+  "id": "48",
   "type": "script",
 }
 `;
@@ -8770,7 +8600,7 @@ exports[`expressions > structured programming > if-then 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -8829,7 +8659,7 @@ exports[`expressions > structured programming > if-then-else 1`] = `
     },
   ],
   "data": {},
-  "id": "11",
+  "id": "10",
   "type": "script",
 }
 `;
@@ -8925,7 +8755,7 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
     },
   ],
   "data": {},
-  "id": "19",
+  "id": "18",
   "type": "script",
 }
 `;
@@ -8938,29 +8768,16 @@ exports[`expressions > structured programming > loop scope 1`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 8,
-                      "start": 7,
-                    },
-                    "value": "x",
-                  },
-                  "id": "10",
-                  "type": "name",
-                },
-              ],
+              "children": [],
               "data": {
-                "operator": "sequence",
                 "position": {
                   "end": 8,
                   "start": 7,
                 },
+                "value": "x",
               },
-              "id": "11",
-              "type": "operator",
+              "id": "10",
+              "type": "name",
             },
           ],
           "data": {
@@ -8970,7 +8787,7 @@ exports[`expressions > structured programming > loop scope 1`] = `
               "start": 5,
             },
           },
-          "id": "12",
+          "id": "11",
           "type": "operator",
         },
       ],
@@ -8981,12 +8798,12 @@ exports[`expressions > structured programming > loop scope 1`] = `
           "start": 0,
         },
       },
-      "id": "13",
+      "id": "12",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "15",
+  "id": "13",
   "type": "script",
 }
 `;
@@ -9046,7 +8863,7 @@ exports[`expressions > structured programming > while loop 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -9068,7 +8885,7 @@ exports[`expressions > values > float 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -9090,7 +8907,7 @@ exports[`expressions > values > integer 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -9112,7 +8929,7 @@ exports[`expressions > values > string 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -9222,7 +9039,7 @@ exports[`newline handling > block semicolon newline 1`] = `
     },
   ],
   "data": {},
-  "id": "22",
+  "id": "21",
   "type": "script",
 }
 `;
@@ -9332,7 +9149,7 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
     },
   ],
   "data": {},
-  "id": "22",
+  "id": "21",
   "type": "script",
 }
 `;
@@ -9379,7 +9196,7 @@ exports[`newline handling > chaining 1`] = `
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -9438,7 +9255,7 @@ exports[`newline handling > infix-infix 1`] = `
     },
   ],
   "data": {},
-  "id": "16",
+  "id": "15",
   "type": "script",
 }
 `;
@@ -9498,7 +9315,7 @@ exports[`newline handling > infix-prefix 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -9557,7 +9374,7 @@ exports[`newline handling > no parens 1`] = `
     },
   ],
   "data": {},
-  "id": "19",
+  "id": "18",
   "type": "script",
 }
 `;
@@ -9617,7 +9434,7 @@ exports[`newline handling > parallel parens 1`] = `
     },
   ],
   "data": {},
-  "id": "19",
+  "id": "18",
   "type": "script",
 }
 `;
@@ -9689,7 +9506,7 @@ exports[`newline handling > parens 1`] = `
     },
   ],
   "data": {},
-  "id": "25",
+  "id": "24",
   "type": "script",
 }
 `;
@@ -9724,7 +9541,7 @@ exports[`newline handling > prefix 1`] = `
     },
   ],
   "data": {},
-  "id": "6",
+  "id": "5",
   "type": "script",
 }
 `;
@@ -9760,7 +9577,7 @@ exports[`programs > import 1`] = `
     },
   ],
   "data": {},
-  "id": "3",
+  "id": "2",
   "type": "script",
 }
 `;
@@ -9941,7 +9758,7 @@ exports[`programs > script > dynamic async import 1`] = `
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "9",
   "type": "script",
 }
 `;
@@ -9989,7 +9806,7 @@ exports[`programs > script > dynamic import 1`] = `
     },
   ],
   "data": {},
-  "id": "6",
+  "id": "5",
   "type": "script",
 }
 `;

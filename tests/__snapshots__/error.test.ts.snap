@@ -33,7 +33,7 @@ exports[`finds all errors in example '"1" 2' 2`] = `
               "start": 0,
             },
           },
-          "id": "10",
+          "id": "9",
           "type": "implicit_placeholder",
         },
         {
@@ -61,7 +61,7 @@ exports[`finds all errors in example '"1" 2' 2`] = `
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "8",
   "type": "script",
 }
 `;
@@ -121,7 +121,7 @@ exports[`finds all errors in example '(' 2`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -154,29 +154,16 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 4,
-                      "start": 3,
-                    },
-                    "value": 1,
-                  },
-                  "id": "13",
-                  "type": "number",
-                },
-              ],
+              "children": [],
               "data": {
-                "operator": "sequence",
                 "position": {
                   "end": 4,
                   "start": 3,
                 },
+                "value": 1,
               },
-              "id": "15",
-              "type": "operator",
+              "id": "13",
+              "type": "number",
             },
           ],
           "data": {
@@ -186,7 +173,7 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
               "start": 1,
             },
           },
-          "id": "16",
+          "id": "15",
           "type": "operator",
         },
       ],
@@ -197,12 +184,12 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
           "start": 0,
         },
       },
-      "id": "18",
+      "id": "17",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "20",
+  "id": "18",
   "type": "script",
 }
 `;
@@ -238,12 +225,12 @@ exports[`finds all errors in example ')' 2`] = `
           "start": 0,
         },
       },
-      "id": "3",
+      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "2",
+  "id": "1",
   "type": "script",
 }
 `;
@@ -296,7 +283,7 @@ exports[`finds all errors in example '[' 2`] = `
               "start": 0,
             },
           },
-          "id": "6",
+          "id": "5",
           "type": "implicit_placeholder",
         },
       ],
@@ -312,7 +299,7 @@ exports[`finds all errors in example '[' 2`] = `
     },
   ],
   "data": {},
-  "id": "5",
+  "id": "4",
   "type": "script",
 }
 `;
@@ -348,12 +335,12 @@ exports[`finds all errors in example ']' 2`] = `
           "start": 0,
         },
       },
-      "id": "3",
+      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "2",
+  "id": "1",
   "type": "script",
 }
 `;
@@ -386,39 +373,26 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 4,
-                      "start": 3,
-                    },
-                    "value": 1,
-                  },
-                  "id": "13",
-                  "type": "number",
-                },
-              ],
+              "children": [],
               "data": {
-                "operator": "parens",
                 "position": {
                   "end": 4,
-                  "start": 2,
+                  "start": 3,
                 },
+                "value": 1,
               },
-              "id": "15",
-              "type": "operator",
+              "id": "13",
+              "type": "number",
             },
           ],
           "data": {
-            "operator": "sequence",
+            "operator": "parens",
             "position": {
               "end": 4,
               "start": 2,
             },
           },
-          "id": "17",
+          "id": "15",
           "type": "operator",
         },
       ],
@@ -429,12 +403,12 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
           "start": 0,
         },
       },
-      "id": "18",
+      "id": "17",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "20",
+  "id": "18",
   "type": "script",
 }
 `;
@@ -467,14 +441,13 @@ exports[`finds all errors in example '{' 2`] = `
         {
           "children": [],
           "data": {
-            "operator": "sequence",
             "position": {
               "end": 0,
               "start": 0,
             },
           },
           "id": "3",
-          "type": "operator",
+          "type": "implicit_placeholder",
         },
       ],
       "data": {
@@ -489,7 +462,7 @@ exports[`finds all errors in example '{' 2`] = `
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -525,12 +498,12 @@ exports[`finds all errors in example '}' 2`] = `
           "start": 0,
         },
       },
-      "id": "3",
+      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "2",
+  "id": "1",
   "type": "script",
 }
 `;
@@ -582,7 +555,7 @@ exports[`finds all errors in example '1 *' 2`] = `
               "start": 2,
             },
           },
-          "id": "9",
+          "id": "8",
           "type": "implicit_placeholder",
         },
       ],
@@ -598,7 +571,7 @@ exports[`finds all errors in example '1 *' 2`] = `
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -650,7 +623,7 @@ exports[`finds all errors in example '1 +' 2`] = `
               "start": 2,
             },
           },
-          "id": "9",
+          "id": "8",
           "type": "implicit_placeholder",
         },
       ],
@@ -666,7 +639,7 @@ exports[`finds all errors in example '1 +' 2`] = `
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -704,7 +677,7 @@ exports[`finds all errors in example '1 2' 2`] = `
               "start": 0,
             },
           },
-          "id": "10",
+          "id": "9",
           "type": "implicit_placeholder",
         },
         {
@@ -732,7 +705,7 @@ exports[`finds all errors in example '1 2' 2`] = `
     },
   ],
   "data": {},
-  "id": "9",
+  "id": "8",
   "type": "script",
 }
 `;
@@ -812,7 +785,7 @@ exports[`finds all errors in example 'x[(1]' 2`] = `
     },
   ],
   "data": {},
-  "id": "34",
+  "id": "33",
   "type": "script",
 }
 `;
@@ -851,35 +824,22 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
             },
             "value": "x",
           },
-          "id": "15",
+          "id": "14",
           "type": "name",
         },
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 5,
-                      "start": 4,
-                    },
-                    "value": 1,
-                  },
-                  "id": "28",
-                  "type": "number",
-                },
-              ],
+              "children": [],
               "data": {
-                "operator": "sequence",
                 "position": {
                   "end": 5,
                   "start": 4,
                 },
+                "value": 1,
               },
-              "id": "30",
-              "type": "operator",
+              "id": "27",
+              "type": "number",
             },
           ],
           "data": {
@@ -889,7 +849,7 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
               "start": 2,
             },
           },
-          "id": "31",
+          "id": "29",
           "type": "operator",
         },
       ],
@@ -900,12 +860,12 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
           "start": 0,
         },
       },
-      "id": "34",
+      "id": "32",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "36",
+  "id": "33",
   "type": "script",
 }
 `;

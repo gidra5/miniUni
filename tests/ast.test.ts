@@ -542,7 +542,7 @@ describe('expressions', () => {
     });
 
     it('for loop', () => {
-      const src = `for x in (1, 2, 3): x`;
+      const src = `for x in (1, 2, 3) { x }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 

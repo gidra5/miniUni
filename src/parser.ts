@@ -1078,6 +1078,10 @@ const parseSequence = (
     children.push(node);
   }
 
+  if (children.length === 1) return [index, children[0]];
+  if (children.length === 0)
+    return [index, implicitPlaceholder(nodePosition())];
+
   return [index, operator(OperatorType.SEQUENCE, nodePosition(), ...children)];
 };
 
@@ -1090,7 +1094,9 @@ const parseDeclaration = (
 
 export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
   const [_, sequence] = parseSequence(src, i);
-  return script(sequence.children);
+  if (sequence.data.operator === OperatorType.SEQUENCE)
+    return script(sequence.children);
+  return script([sequence]);
 };
 
 export const parseModule = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
