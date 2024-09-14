@@ -2,6 +2,7 @@ import { SystemError } from './error.js';
 import { inject, Injectable, register } from './injector.js';
 import { mergePositions, Position } from './position.js';
 import { Token } from './tokens.js';
+import { inspect } from './utils.js';
 
 export type AbstractSyntaxTree<T = any> = {
   type: string;
@@ -282,25 +283,21 @@ const precedences = (() => {
   const rightAssociative = (p: number): Precedence => [p + 1, p];
   const associative = (p: number): Precedence => [p, p];
   let precedenceCounter = 0;
-  let prevFixity: Fixity = Fixity.NONE;
-  for (const [operator, fixity, associativity] of precedenceList) {
-    if (fixity !== prevFixity) {
-      precedenceCounter++;
-      prevFixity = fixity;
-    }
 
-    precedences[operator] =
-      fixity === Fixity.PREFIX
-        ? [null, precedenceCounter]
-        : fixity === Fixity.POSTFIX
-        ? [precedenceCounter, null]
-        : fixity === Fixity.NONE
-        ? [null, null]
-        : associativity === Associativity.LEFT_AND_RIGHT
-        ? associative(precedenceCounter)
-        : associativity === Associativity.LEFT
-        ? leftAssociative(precedenceCounter++)
-        : rightAssociative(precedenceCounter++);
+  for (const [operator, fixity, associativity] of precedenceList) {
+    precedenceCounter++;
+
+    if (fixity === Fixity.PREFIX) {
+      precedences[operator] = [null, precedenceCounter];
+    } else if (fixity === Fixity.POSTFIX) {
+      precedences[operator] = [precedenceCounter, null];
+    } else if (fixity === Fixity.NONE) {
+      precedences[operator] = [null, null];
+    } else if (associativity === Associativity.LEFT_AND_RIGHT) {
+      precedences[operator] = associative(precedenceCounter);
+    } else if (associativity === Associativity.LEFT) {
+      precedences[operator] = leftAssociative(precedenceCounter++);
+    } else precedences[operator] = rightAssociative(precedenceCounter++);
   }
 
   return precedences as Record<OperatorType, Precedence>;
@@ -312,7 +309,6 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
   const tuplePrecedence = assignmentPrecedence + 4;
   const booleanPrecedence = tuplePrecedence + 2;
   const arithmeticPrecedence = booleanPrecedence + 3;
-  const maxPrecedence = Number.MAX_SAFE_INTEGER;
   switch (operator) {
     case OperatorType.INCREMENT:
       return [null, 3];
@@ -340,10 +336,6 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
     case OperatorType.SEQUENCE:
       return [null, null];
     // return rightAssociative(semicolonPrecedence);
-    case OperatorType.APPLICATION:
-      return leftAssociative(maxPrecedence - 2);
-    case OperatorType.INDEX:
-      return [maxPrecedence - 3, null];
 
     case OperatorType.TUPLE:
       return associative(tuplePrecedence);
@@ -393,23 +385,16 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
       return [null, tuplePrecedence + 2];
 
     case OperatorType.ADD:
-      return associative(arithmeticPrecedence);
     case OperatorType.SUB:
-      return leftAssociative(arithmeticPrecedence + 1);
     case OperatorType.MULT:
-      return associative(arithmeticPrecedence + 3);
     case OperatorType.DIV:
-      return leftAssociative(arithmeticPrecedence + 4);
     case OperatorType.MOD:
-      return leftAssociative(arithmeticPrecedence + 4);
     case OperatorType.POW:
-      return rightAssociative(arithmeticPrecedence + 6);
     case OperatorType.MINUS:
-      return [null, arithmeticPrecedence + 7];
     case OperatorType.PLUS:
-      return [null, arithmeticPrecedence + 7];
     case OperatorType.ATOM:
-      return [null, maxPrecedence - 3];
+    case OperatorType.APPLICATION:
+    case OperatorType.INDEX:
       return precedences[operator];
     default:
       return [null, null];

@@ -197,7 +197,7 @@ describe('expressions', () => {
 
   describe('arithmetics', () => {
     it('order of application', () => {
-      const src = '1 + 2^3 * 4';
+      const src = '1 + 2^-3 * 4 - 5 / 6 % 7';
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 

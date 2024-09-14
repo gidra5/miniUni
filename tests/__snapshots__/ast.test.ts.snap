@@ -3941,77 +3941,165 @@ exports[`expressions > arithmetics > order of application 1`] = `
             {
               "children": [
                 {
-                  "children": [],
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 5,
+                          "start": 4,
+                        },
+                        "value": 2,
+                      },
+                      "id": "8",
+                      "type": "number",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 8,
+                              "start": 7,
+                            },
+                            "value": 3,
+                          },
+                          "id": "17",
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "minus",
+                        "position": {
+                          "end": 8,
+                          "start": 6,
+                        },
+                      },
+                      "id": "21",
+                      "type": "operator",
+                    },
+                  ],
                   "data": {
+                    "operator": "^",
                     "position": {
-                      "end": 5,
+                      "end": 8,
                       "start": 4,
                     },
-                    "value": 2,
                   },
-                  "id": "8",
-                  "type": "number",
+                  "id": "25",
+                  "type": "operator",
                 },
                 {
                   "children": [],
                   "data": {
                     "position": {
-                      "end": 7,
-                      "start": 6,
+                      "end": 12,
+                      "start": 11,
                     },
-                    "value": 3,
+                    "value": 4,
                   },
-                  "id": "14",
+                  "id": "31",
                   "type": "number",
                 },
               ],
               "data": {
-                "operator": "^",
+                "operator": "*",
                 "position": {
-                  "end": 7,
+                  "end": 12,
                   "start": 4,
                 },
               },
-              "id": "18",
+              "id": "35",
               "type": "operator",
             },
             {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 11,
-                  "start": 10,
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 16,
+                      "start": 15,
+                    },
+                    "value": 5,
+                  },
+                  "id": "41",
+                  "type": "number",
                 },
-                "value": 4,
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 20,
+                          "start": 19,
+                        },
+                        "value": 6,
+                      },
+                      "id": "47",
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 24,
+                          "start": 23,
+                        },
+                        "value": 7,
+                      },
+                      "id": "52",
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "%",
+                    "position": {
+                      "end": 24,
+                      "start": 19,
+                    },
+                  },
+                  "id": "53",
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 24,
+                  "start": 15,
+                },
               },
-              "id": "23",
-              "type": "number",
+              "id": "54",
+              "type": "operator",
             },
           ],
           "data": {
-            "operator": "*",
+            "operator": "subtract",
             "position": {
-              "end": 11,
+              "end": 24,
               "start": 4,
             },
           },
-          "id": "24",
+          "id": "55",
           "type": "operator",
         },
       ],
       "data": {
         "operator": "add",
         "position": {
-          "end": 11,
+          "end": 24,
           "start": 0,
         },
       },
-      "id": "25",
+      "id": "56",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "27",
+  "id": "58",
   "type": "script",
 }
 `;
