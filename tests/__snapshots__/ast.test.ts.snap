@@ -4341,194 +4341,6 @@ exports[`expressions > arithmetics > order of application 1`] = `
 }
 `;
 
-exports[`expressions > boolean expressions > "and" and "or" associativity 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 1,
-                  "start": 0,
-                },
-                "value": "a",
-              },
-              "type": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 7,
-                  "start": 6,
-                },
-                "value": "b",
-              },
-              "type": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 13,
-                  "start": 12,
-                },
-                "value": "c",
-              },
-              "type": "name",
-            },
-          ],
-          "data": {
-            "operator": "and",
-            "position": {
-              "end": 7,
-              "start": 0,
-            },
-            "precedence": [
-              9,
-              9,
-            ],
-          },
-          "type": "operator",
-        },
-        {
-          "children": [],
-          "data": {
-            "position": {
-              "end": 18,
-              "start": 17,
-            },
-            "value": "d",
-          },
-          "type": "name",
-        },
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "position": {
-                      "end": 24,
-                      "start": 23,
-                    },
-                    "value": "e",
-                  },
-                  "type": "name",
-                },
-              ],
-              "data": {
-                "operator": "not",
-                "position": {
-                  "end": 24,
-                  "start": 22,
-                },
-                "precedence": [
-                  null,
-                  13,
-                ],
-              },
-              "type": "operator",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 30,
-                  "start": 29,
-                },
-                "value": "f",
-              },
-              "type": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 36,
-                  "start": 35,
-                },
-                "value": "g",
-              },
-              "type": "name",
-            },
-          ],
-          "data": {
-            "operator": "and",
-            "position": {
-              "end": 30,
-              "start": 22,
-            },
-            "precedence": [
-              9,
-              9,
-            ],
-          },
-          "type": "operator",
-        },
-        {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "position": {
-                  "end": 45,
-                  "start": 44,
-                },
-                "value": "h",
-              },
-              "type": "name",
-            },
-          ],
-          "data": {
-            "operator": "not",
-            "position": {
-              "end": 45,
-              "start": 40,
-            },
-            "precedence": [
-              null,
-              13,
-            ],
-          },
-          "type": "operator",
-        },
-        {
-          "children": [],
-          "data": {
-            "position": {
-              "end": 50,
-              "start": 49,
-            },
-            "value": "i",
-          },
-          "type": "name",
-        },
-      ],
-      "data": {
-        "operator": "or",
-        "position": {
-          "end": 18,
-          "start": 0,
-        },
-        "precedence": [
-          8,
-          8,
-        ],
-      },
-      "type": "operator",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
 exports[`expressions > boolean expressions > "and", "or" and "not" associativity 1`] = `
 {
   "children": [
@@ -6977,6 +6789,607 @@ exports[`expressions > effect handlers > without 1`] = `
 }
 `;
 
+exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 5,
+                          "start": 1,
+                        },
+                        "value": "send",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 7,
+                          "start": 6,
+                        },
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "application",
+                    "position": {
+                      "end": 7,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      9007199254740989,
+                      9007199254740990,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 9,
+                      "start": 8,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 9,
+                  "start": 1,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 10,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 12,
+                      "start": 11,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 15,
+                      "start": 14,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 15,
+                  "start": 11,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 16,
+              "start": 10,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 16,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 5,
+                      "start": 1,
+                    },
+                    "value": "send",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 7,
+                      "start": 6,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "application",
+                "position": {
+                  "end": 7,
+                  "start": 1,
+                },
+                "precedence": [
+                  9007199254740989,
+                  9007199254740990,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 8,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 10,
+                      "start": 9,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 13,
+                      "start": 12,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 13,
+                  "start": 9,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 14,
+              "start": 8,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 14,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > (send)(2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 5,
+                  "start": 1,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 6,
+              "start": 0,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 8,
+                      "start": 7,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 11,
+                      "start": 10,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 11,
+                  "start": 7,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 12,
+              "start": 6,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 12,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > a + send (2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 8,
+                  "start": 4,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 11,
+                          "start": 10,
+                        },
+                        "value": 2,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 14,
+                          "start": 13,
+                        },
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 14,
+                      "start": 10,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 15,
+                  "start": 9,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 15,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 15,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > a + send 1 + 2 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": "a",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 8,
+                  "start": 4,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 10,
+                  "start": 9,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 10,
+              "start": 4,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 14,
+              "start": 13,
+            },
+            "value": 2,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 10,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > function expressions > application > function call 1`] = `
 {
   "children": [
@@ -7083,6 +7496,537 @@ exports[`expressions > function expressions > application > function call multip
         "operator": "application",
         "position": {
           "end": 5,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 0,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 6,
+                  "start": 5,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 6,
+              "start": 0,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 9,
+                      "start": 8,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 12,
+                      "start": 11,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 12,
+                  "start": 8,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 13,
+              "start": 7,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 13,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > send 1 + 2 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 0,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 6,
+                  "start": 5,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 6,
+              "start": 0,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 10,
+              "start": 9,
+            },
+            "value": 2,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 10,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > send a (2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 4,
+                  "start": 0,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 6,
+                  "start": 5,
+                },
+                "value": "a",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 6,
+              "start": 0,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 9,
+                      "start": 8,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 12,
+                      "start": 11,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 12,
+                  "start": 8,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 13,
+              "start": 7,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 13,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > send((1+2), 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 7,
+                              "start": 6,
+                            },
+                            "value": 1,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 9,
+                              "start": 8,
+                            },
+                            "value": 2,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "add",
+                        "position": {
+                          "end": 9,
+                          "start": 6,
+                        },
+                        "precedence": [
+                          11,
+                          11,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 10,
+                      "start": 5,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 13,
+                      "start": 12,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 13,
+                  "start": 5,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 14,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 14,
+          "start": 0,
+        },
+        "precedence": [
+          9007199254740989,
+          9007199254740990,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > send(2, 3) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 4,
+              "start": 0,
+            },
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 6,
+                      "start": 5,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 9,
+                      "start": 8,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": ",",
+                "position": {
+                  "end": 9,
+                  "start": 5,
+                },
+                "precedence": [
+                  6,
+                  6,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 10,
+              "start": 4,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "application",
+        "position": {
+          "end": 10,
           "start": 0,
         },
         "precedence": [

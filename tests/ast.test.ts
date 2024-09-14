@@ -298,7 +298,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('send((1+2), 3)', () => {
+      it('send((1+2), 3)', () => {
         const src = `send((1+2), 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -306,7 +306,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('send(2, 3)', () => {
+      it('send(2, 3)', () => {
         const src = `send(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -314,7 +314,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('(send)(2, 3)', () => {
+      it('(send)(2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -322,7 +322,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('(send 1)(2, 3)', () => {
+      it('(send 1)(2, 3)', () => {
         const src = `(send 1)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -330,7 +330,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('(send 1 2)(2, 3)', () => {
+      it('(send 1 2)(2, 3)', () => {
         const src = `(send 1 2)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -338,7 +338,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('send 1 + 2', () => {
+      it('send 1 + 2', () => {
         const src = `send 1 + 2`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -346,7 +346,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('a + send (2, 3)', () => {
+      it('a + send (2, 3)', () => {
         const src = `a + send (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -354,7 +354,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('send a (2, 3)', () => {
+      it('send a (2, 3)', () => {
         const src = `send a (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -362,7 +362,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('send 1 (2, 3)', () => {
+      it('send 1 (2, 3)', () => {
         const src = `send 1 (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -370,7 +370,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it.todo('a + send 1 + 2', () => {
+      it('a + send 1 + 2', () => {
         const src = `a + send 1 + 2`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
