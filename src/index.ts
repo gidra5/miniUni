@@ -1,11 +1,12 @@
 import { program } from 'commander';
 import readline from 'readline';
 import { stdin as input, stdout as output } from 'process';
-import { evaluateScriptString, newContext } from './evaluate.js';
-import { addFile, getModule } from './files.js';
-import path from 'path';
-import fs from 'fs/promises';
-import { assert } from './utils.js';
+import {
+  evaluateEntryFile,
+  evaluateScriptString,
+  newContext,
+} from './evaluate.js';
+import { addFile } from './files.js';
 
 program
   .command('run <file>')
@@ -13,14 +14,8 @@ program
   .action(async (file) => {
     console.log('Starting interpreter...');
 
-    const resolved = path.resolve(file);
-    const stat = await fs.stat(resolved);
-    const _path = stat.isDirectory()
-      ? path.join(resolved, 'index.uni')
-      : resolved;
-    const module = await getModule(file, 'cli', _path);
-    assert('script' in module, 'expected script');
-    console.dir(module.script, { depth: null });
+    const result = await evaluateEntryFile(file);
+    console.dir(result, { depth: null });
 
     console.log('Exiting interpreter');
   });

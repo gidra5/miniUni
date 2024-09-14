@@ -31,7 +31,8 @@ import {
   tryReceive,
 } from './values.js';
 import { validate } from './validate.js';
-import { inject, Injectable } from './injector.js';
+import { inject, Injectable, register } from './injector.js';
+import path from 'path';
 
 export type Context = {
   file: string;
@@ -556,7 +557,7 @@ export const evaluateStatement = async (
       switch (ast.data.operator) {
         case OperatorType.IMPORT: {
           const name = ast.data.name;
-          const module = await getModule(name, context.file);
+          const module = await getModule({ name, from: context.file });
           assert(
             !Buffer.isBuffer(module),
             'binary file import is not supported'
@@ -1398,4 +1399,30 @@ export const evaluateModuleString = async (
 
     return { record: {} };
   }
+};
+
+export const evaluateEntryFile = async (file: string) => {
+  const resolved = path.resolve(file);
+  const root = path.dirname(resolved);
+  const name = '/' + path.basename(resolved);
+  register(Injectable.RootDir, root);
+  const module = await getModule({ name });
+
+  if ('script' in module) {
+    return module.script;
+  } else if ('module' in module) {
+    const main = module.default;
+    assert(
+      typeof main === 'function',
+      'default export from runnable module must be a function'
+    );
+    const fileId = inject(Injectable.FileMap).getFileId(file);
+    const value = await main(
+      [],
+      [{ start: 0, end: 0 }, 0, newContext(fileId, file)]
+    );
+    return value;
+  }
+
+  unreachable('file must be a script or a module');
 };

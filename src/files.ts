@@ -376,11 +376,15 @@ export const listMethods = (() => {
 
 export const ModuleDefault = Symbol('module default');
 
-export const getModule = async (
-  name: string,
-  from?: string,
-  resolvedPath?: string
-): Promise<Module> => {
+export const getModule = async ({
+  name,
+  from,
+  resolvedPath,
+}: {
+  name: string;
+  from?: string;
+  resolvedPath?: string;
+}): Promise<Module> => {
   if (name.startsWith('std') && name in modules) {
     return modules[name];
   }
