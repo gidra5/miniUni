@@ -1,8 +1,7 @@
 import { SystemError } from './error.js';
 import { inject, Injectable, register } from './injector.js';
-import { mergePositions, Position } from './position.js';
+import { isPosition, Position } from './position.js';
 import { Token } from './tokens.js';
-import { inspect } from './utils.js';
 
 export type AbstractSyntaxTree<T = any> = {
   type: string;
@@ -33,73 +32,96 @@ const nextId = () => {
 export const error = (
   cause: SystemError,
   node: AbstractSyntaxTree | Position
-): AbstractSyntaxTree => ({
-  type: NodeType.ERROR,
-  id: nextId(),
-  data: {
-    cause,
-    get position() {
-      return 'type' in node ? node?.data.position : node;
-    },
-  },
-  children: 'type' in node ? [node] : [],
-});
+): AbstractSyntaxTree => {
+  const id = nextId();
 
-export const implicitPlaceholder = (
-  position: Position
-): AbstractSyntaxTree => ({
-  type: NodeType.IMPLICIT_PLACEHOLDER,
-  id: nextId(),
-  data: { position },
-  children: [],
-});
+  if (isPosition(node)) inject(Injectable.ASTNodePositionMap).set(id, node);
 
-export const placeholder = (position: Position): AbstractSyntaxTree => ({
-  type: NodeType.PLACEHOLDER,
-  id: nextId(),
-  data: { position },
-  children: [],
-});
+  return {
+    type: NodeType.ERROR,
+    id,
+    data: { cause },
+    children: 'type' in node ? [node] : [],
+  };
+};
+
+export const implicitPlaceholder = (position: Position): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.IMPLICIT_PLACEHOLDER,
+    id,
+    data: {},
+    children: [],
+  };
+};
+
+export const placeholder = (position: Position): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.PLACEHOLDER,
+    id,
+    data: {},
+    children: [],
+  };
+};
 
 export const name = (
   value: string | symbol,
   position: Position
-): AbstractSyntaxTree => ({
-  type: NodeType.NAME,
-  id: nextId(),
-  data: { value, position },
-  children: [],
-});
+): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.NAME,
+    id,
+    data: { value },
+    children: [],
+  };
+};
 
 export const number = (
   value: number,
   position: Position
-): AbstractSyntaxTree => ({
-  type: NodeType.NUMBER,
-  id: nextId(),
-  data: { value, position },
-  children: [],
-});
+): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.NUMBER,
+    id,
+    data: { value },
+    children: [],
+  };
+};
 
 export const string = (
   value: string,
   position: Position
-): AbstractSyntaxTree => ({
-  type: NodeType.STRING,
-  id: nextId(),
-  data: { value, position },
-  children: [],
-});
+): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.STRING,
+    id,
+    data: { value },
+    children: [],
+  };
+};
 
 const tokenError = (
   token: Extract<Token, { type: 'error' }>,
   position: Position
-): AbstractSyntaxTree => ({
-  type: NodeType.ERROR,
-  id: nextId(),
-  data: { cause: token.cause, position },
-  children: [],
-});
+): AbstractSyntaxTree => {
+  const id = nextId();
+  inject(Injectable.ASTNodePositionMap).set(id, position);
+  return {
+    type: NodeType.ERROR,
+    id,
+    data: { cause: token.cause },
+    children: [],
+  };
+};
 
 export const token = (token: Token, position: Position): AbstractSyntaxTree =>
   token.type === 'number'
@@ -285,11 +307,14 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
 
 export const operator = (
   operator: string | symbol,
-  position: Position,
-  ...children: AbstractSyntaxTree[]
+  {
+    position,
+    children = [],
+  }: { position?: Position; children?: AbstractSyntaxTree[] } = {}
 ): AbstractSyntaxTree => {
   const id = nextId();
-  const data = { operator, position };
+  const data = { operator };
+  if (position) inject(Injectable.ASTNodePositionMap).set(id, position);
   return { type: NodeType.OPERATOR, id, data, children };
 };
 
@@ -308,26 +333,26 @@ export const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
 });
 
 export const block = (
-  sequence: AbstractSyntaxTree,
-  position: Position = sequence.data.position
-): AbstractSyntaxTree => operator(OperatorType.BLOCK, position, sequence);
+  expr: AbstractSyntaxTree,
+  position: Position
+): AbstractSyntaxTree =>
+  operator(OperatorType.BLOCK, { position, children: [expr] });
 
 export const fn = (
   pattern: AbstractSyntaxTree,
   body: AbstractSyntaxTree,
   {
-    position = mergePositions(pattern.data.position, body.data.position),
+    position,
     isTopFunction = true,
   }: { position?: Position; isTopFunction?: boolean } = {}
 ): AbstractSyntaxTree => {
-  const node = operator(OperatorType.FUNCTION, position, pattern, body);
+  const node = operator(OperatorType.FUNCTION, {
+    position,
+    children: [pattern, body],
+  });
   if (!isTopFunction) node.data.isTopFunction = isTopFunction;
   return node;
 };
 
-export const tuple = (
-  children: AbstractSyntaxTree[],
-  position: Position = mergePositions(
-    ...children.map((child) => child.data.position)
-  )
-): AbstractSyntaxTree => operator(OperatorType.TUPLE, position, ...children);
+export const tuple = (children: AbstractSyntaxTree[]): AbstractSyntaxTree =>
+  operator(OperatorType.TUPLE, { children });

@@ -27,22 +27,13 @@ exports[`finds all errors in example '"1" 2' 2`] = `
       "children": [
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 3,
-              "start": 0,
-            },
-          },
-          "id": "9",
+          "data": {},
+          "id": "8",
           "type": "implicit_placeholder",
         },
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 5,
-              "start": 4,
-            },
             "value": 2,
           },
           "id": "6",
@@ -51,17 +42,13 @@ exports[`finds all errors in example '"1" 2' 2`] = `
       ],
       "data": {
         "operator": "application",
-        "position": {
-          "end": 5,
-          "start": 0,
-        },
       },
-      "id": "7",
+      "id": "4",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -99,22 +86,13 @@ exports[`finds all errors in example '(' 2`] = `
       "children": [
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
-          },
+          "data": {},
           "id": "3",
           "type": "implicit_placeholder",
         },
       ],
       "data": {
         "operator": "parens",
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
       },
       "id": "4",
       "type": "operator",
@@ -156,10 +134,6 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
             {
               "children": [],
               "data": {
-                "position": {
-                  "end": 4,
-                  "start": 3,
-                },
                 "value": 1,
               },
               "id": "13",
@@ -168,10 +142,6 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
           ],
           "data": {
             "operator": "block",
-            "position": {
-              "end": 4,
-              "start": 1,
-            },
           },
           "id": "15",
           "type": "operator",
@@ -179,10 +149,6 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
       ],
       "data": {
         "operator": "parens",
-        "position": {
-          "end": 6,
-          "start": 0,
-        },
       },
       "id": "17",
       "type": "operator",
@@ -219,12 +185,7 @@ exports[`finds all errors in example ')' 2`] = `
   "children": [
     {
       "children": [],
-      "data": {
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
-      },
+      "data": {},
       "id": "2",
       "type": "implicit_placeholder",
     },
@@ -257,10 +218,10 @@ exports[`finds all errors in example '[' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 0,
+        "end": 1,
         "kind": "primary",
         "message": "here",
-        "start": 0,
+        "start": 1,
       },
     ],
     "message": "Unexpected end of source",
@@ -277,22 +238,13 @@ exports[`finds all errors in example '[' 2`] = `
       "children": [
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 0,
-              "start": 0,
-            },
-          },
+          "data": {},
           "id": "5",
           "type": "implicit_placeholder",
         },
       ],
       "data": {
         "operator": "square_brackets",
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
       },
       "id": "2",
       "type": "operator",
@@ -329,12 +281,7 @@ exports[`finds all errors in example ']' 2`] = `
   "children": [
     {
       "children": [],
-      "data": {
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
-      },
+      "data": {},
       "id": "2",
       "type": "implicit_placeholder",
     },
@@ -375,10 +322,6 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
             {
               "children": [],
               "data": {
-                "position": {
-                  "end": 4,
-                  "start": 3,
-                },
                 "value": 1,
               },
               "id": "13",
@@ -387,10 +330,6 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
           ],
           "data": {
             "operator": "parens",
-            "position": {
-              "end": 4,
-              "start": 2,
-            },
           },
           "id": "15",
           "type": "operator",
@@ -398,10 +337,6 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
       ],
       "data": {
         "operator": "block",
-        "position": {
-          "end": 6,
-          "start": 0,
-        },
       },
       "id": "17",
       "type": "operator",
@@ -440,22 +375,13 @@ exports[`finds all errors in example '{' 2`] = `
       "children": [
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 0,
-              "start": 0,
-            },
-          },
+          "data": {},
           "id": "3",
           "type": "implicit_placeholder",
         },
       ],
       "data": {
         "operator": "block",
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
       },
       "id": "4",
       "type": "operator",
@@ -492,12 +418,7 @@ exports[`finds all errors in example '}' 2`] = `
   "children": [
     {
       "children": [],
-      "data": {
-        "position": {
-          "end": 1,
-          "start": 0,
-        },
-      },
+      "data": {},
       "id": "2",
       "type": "implicit_placeholder",
     },
@@ -538,10 +459,6 @@ exports[`finds all errors in example '1 *' 2`] = `
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
             "value": 1,
           },
           "id": "2",
@@ -549,29 +466,20 @@ exports[`finds all errors in example '1 *' 2`] = `
         },
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 2,
-              "start": 2,
-            },
-          },
-          "id": "8",
+          "data": {},
+          "id": "7",
           "type": "implicit_placeholder",
         },
       ],
       "data": {
         "operator": "*",
-        "position": {
-          "end": 3,
-          "start": 0,
-        },
       },
-      "id": "6",
+      "id": "4",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -606,10 +514,6 @@ exports[`finds all errors in example '1 +' 2`] = `
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
             "value": 1,
           },
           "id": "2",
@@ -617,29 +521,20 @@ exports[`finds all errors in example '1 +' 2`] = `
         },
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 2,
-              "start": 2,
-            },
-          },
-          "id": "8",
+          "data": {},
+          "id": "7",
           "type": "implicit_placeholder",
         },
       ],
       "data": {
         "operator": "add",
-        "position": {
-          "end": 3,
-          "start": 0,
-        },
       },
-      "id": "6",
+      "id": "4",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "6",
   "type": "script",
 }
 `;
@@ -671,22 +566,13 @@ exports[`finds all errors in example '1 2' 2`] = `
       "children": [
         {
           "children": [],
-          "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
-          },
-          "id": "9",
+          "data": {},
+          "id": "8",
           "type": "implicit_placeholder",
         },
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 3,
-              "start": 2,
-            },
             "value": 2,
           },
           "id": "6",
@@ -695,17 +581,13 @@ exports[`finds all errors in example '1 2' 2`] = `
       ],
       "data": {
         "operator": "application",
-        "position": {
-          "end": 3,
-          "start": 0,
-        },
       },
-      "id": "7",
+      "id": "4",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "8",
+  "id": "7",
   "type": "script",
 }
 `;
@@ -738,13 +620,9 @@ exports[`finds all errors in example 'x[(1]' 2`] = `
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
             "value": "x",
           },
-          "id": "14",
+          "id": "13",
           "type": "name",
         },
         {
@@ -752,40 +630,28 @@ exports[`finds all errors in example 'x[(1]' 2`] = `
             {
               "children": [],
               "data": {
-                "position": {
-                  "end": 4,
-                  "start": 3,
-                },
                 "value": 1,
               },
-              "id": "27",
+              "id": "26",
               "type": "number",
             },
           ],
           "data": {
             "operator": "parens",
-            "position": {
-              "end": 4,
-              "start": 2,
-            },
           },
-          "id": "29",
+          "id": "28",
           "type": "operator",
         },
       ],
       "data": {
         "operator": "index",
-        "position": {
-          "end": 5,
-          "start": 0,
-        },
       },
-      "id": "32",
+      "id": "30",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "33",
+  "id": "31",
   "type": "script",
 }
 `;
@@ -818,13 +684,9 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
         {
           "children": [],
           "data": {
-            "position": {
-              "end": 1,
-              "start": 0,
-            },
             "value": "x",
           },
-          "id": "14",
+          "id": "13",
           "type": "name",
         },
         {
@@ -832,40 +694,28 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
             {
               "children": [],
               "data": {
-                "position": {
-                  "end": 5,
-                  "start": 4,
-                },
                 "value": 1,
               },
-              "id": "27",
+              "id": "26",
               "type": "number",
             },
           ],
           "data": {
             "operator": "block",
-            "position": {
-              "end": 5,
-              "start": 2,
-            },
           },
-          "id": "29",
+          "id": "28",
           "type": "operator",
         },
       ],
       "data": {
         "operator": "index",
-        "position": {
-          "end": 7,
-          "start": 0,
-        },
       },
-      "id": "32",
+      "id": "30",
       "type": "operator",
     },
   ],
   "data": {},
-  "id": "33",
+  "id": "31",
   "type": "script",
 }
 `;

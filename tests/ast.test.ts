@@ -13,6 +13,7 @@ beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
   register(Injectable.ASTNodeNextId, 0);
   register(Injectable.ASTNodePrecedenceMap, new Map());
+  register(Injectable.ASTNodePositionMap, new Map());
 });
 
 it.prop([anyStringArb])('module parsing never throws', (src) => {

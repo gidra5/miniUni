@@ -55,6 +55,7 @@ beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
   register(Injectable.ASTNodeNextId, 0);
   register(Injectable.ASTNodePrecedenceMap, new Map());
+  register(Injectable.ASTNodePositionMap, new Map());
 });
 
 for (const { name, file, expected } of examples) {

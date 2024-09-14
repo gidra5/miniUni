@@ -10,6 +10,7 @@ beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
   register(Injectable.ASTNodeNextId, 0);
   register(Injectable.ASTNodePrecedenceMap, new Map());
+  register(Injectable.ASTNodePositionMap, new Map());
 });
 
 const testCase = (input, _?, _it: any = it) =>
@@ -41,6 +42,8 @@ testCase('x[(1]');
 testCase('x[{ 1 ]');
 testCase('1 2');
 testCase('"1" 2');
+testCase('1 +');
+testCase('1 *');
 testCase(
   `
     quick_sort := xs -> {
@@ -186,10 +189,6 @@ testCase(
   ],
   it.todo
 );
-
-testCase('1 +');
-
-testCase('1 *');
 
 testCase(
   ' q + )/',

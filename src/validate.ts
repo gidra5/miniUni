@@ -5,8 +5,10 @@ import {
   OperatorType,
 } from './ast.js';
 import { SystemError } from './error.js';
-import { getPrecedence } from './parser.js';
-import { assert } from './utils.js';
+import { inject, Injectable } from './injector.js';
+import { getPosition, getPrecedence } from './parser.js';
+import { position } from './position.js';
+import { assert, inspect } from './utils.js';
 
 export const validate = (
   ast: AbstractSyntaxTree,
@@ -31,11 +33,11 @@ export const validate = (
           SystemError.evaluationError(
             'Cannot apply a number as a function',
             [],
-            lhs.data.position
+            getPosition(lhs)
           ).withFileId(fileId)
         );
         errored = true;
-        ast.children[0] = implicitPlaceholder(lhs.data.position);
+        ast.children[0] = implicitPlaceholder(getPosition(lhs));
       }
 
       if (lhs.type === NodeType.NUMBER) {
@@ -43,11 +45,11 @@ export const validate = (
           SystemError.evaluationError(
             'Cannot apply a number as a function',
             [],
-            lhs.data.position
+            getPosition(lhs)
           ).withFileId(fileId)
         );
         errored = true;
-        ast.children[0] = implicitPlaceholder(lhs.data.position);
+        ast.children[0] = implicitPlaceholder(getPosition(lhs));
       }
 
       if (lhs.type === NodeType.STRING) {
@@ -55,11 +57,11 @@ export const validate = (
           SystemError.evaluationError(
             'Cannot apply a number or string as a function',
             [],
-            lhs.data.position
+            getPosition(lhs)
           ).withFileId(fileId)
         );
         errored = true;
-        ast.children[0] = implicitPlaceholder(lhs.data.position);
+        ast.children[0] = implicitPlaceholder(getPosition(lhs));
       }
     } else if (precedence[0] !== null && precedence[1] !== null) {
       const [lhs, rhs] = ast.children;
@@ -69,7 +71,7 @@ export const validate = (
           SystemError.evaluationError(
             'Expected left hand side for operator',
             [],
-            ast.data.position
+            getPosition(ast)
           ).withFileId(fileId)
         );
         errored = true;
@@ -80,12 +82,12 @@ export const validate = (
           SystemError.evaluationError(
             'Expected left hand side for operator',
             [],
-            ast.data.position
+            getPosition(ast)
           )
             .withFileId(fileId)
             .withCause(lhs.data.cause)
         );
-        ast.children[0] = implicitPlaceholder(lhs.data.position);
+        ast.children[0] = implicitPlaceholder(getPosition(lhs));
         errored = true;
       }
 
@@ -94,7 +96,7 @@ export const validate = (
           SystemError.evaluationError(
             'Expected right hand side for operator',
             [],
-            ast.data.position
+            getPosition(ast)
           ).withFileId(fileId)
         );
         errored = true;
@@ -105,12 +107,12 @@ export const validate = (
           SystemError.evaluationError(
             'Expected right hand side for operator',
             [],
-            ast.data.position
+            getPosition(ast)
           )
             .withFileId(fileId)
             .withCause(rhs.data.cause)
         );
-        ast.children[1] = implicitPlaceholder(rhs.data.position);
+        ast.children[1] = implicitPlaceholder(getPosition(rhs));
         errored = true;
       }
     }
@@ -124,7 +126,7 @@ export const validate = (
       assert(ast.children.length === 1, 'expected one child in error node');
       ast = ast.children[0];
     } else {
-      return [errors, implicitPlaceholder(ast.data.position)];
+      return [errors, implicitPlaceholder(getPosition(ast))];
     }
   }
 

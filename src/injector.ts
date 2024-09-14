@@ -1,11 +1,13 @@
 import { FileMap } from 'codespan-napi';
 import { Precedence } from './ast';
+import { Position } from './position';
 
 enum Injectable {
   FileMap = 'FileMap',
   RootDir = 'RootDir',
   ASTNodeNextId = 'ASTNodeNextId',
   ASTNodePrecedenceMap = 'ASTNodePrecedenceMap',
+  ASTNodePositionMap = 'ASTNodePositionMap',
 }
 
 type InjectableType = {
@@ -13,6 +15,7 @@ type InjectableType = {
   [Injectable.RootDir]: string;
   [Injectable.ASTNodeNextId]: number;
   [Injectable.ASTNodePrecedenceMap]: Map<string, Precedence>;
+  [Injectable.ASTNodePositionMap]: Map<string, Position>;
 };
 
 const registry = new Map<string, any>();
@@ -37,5 +40,6 @@ register(Injectable.RootDir, process.cwd());
 register(Injectable.FileMap, new FileMap());
 register(Injectable.ASTNodeNextId, 0);
 register(Injectable.ASTNodePrecedenceMap, new Map());
+register(Injectable.ASTNodePositionMap, new Map());
 
 export { register, inject, Injectable };

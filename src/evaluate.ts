@@ -7,7 +7,7 @@ import {
   prelude,
   stringMethods,
 } from './files.js';
-import { parseModule, parseScript } from './parser.js';
+import { getPosition, parseModule, parseScript } from './parser.js';
 import {
   NodeType,
   OperatorType,
@@ -15,7 +15,7 @@ import {
   type AbstractSyntaxTree,
 } from './ast.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
+import { assert, getClosestName, omit, unreachable } from './utils.js';
 import {
   atom,
   closeChannel,
@@ -109,7 +109,7 @@ const incAssign = async (
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -122,14 +122,14 @@ const incAssign = async (
           SystemError.evaluationError(
             'you sick fuck, how would that work?',
             [],
-            pattern.data.position
+            getPosition(pattern)
           ).withFileId(context.fileId)
         );
       } else {
         const v = value[consumed++];
         assert(
           typeof v === 'number' || Array.isArray(v),
-          SystemError.invalidIncrementValue(pattern.data.position).withFileId(
+          SystemError.invalidIncrementValue(getPosition(pattern)).withFileId(
             context.fileId
           )
         );
@@ -147,7 +147,7 @@ const incAssign = async (
 
   assert(
     typeof value === 'number',
-    SystemError.invalidIncrementValue(patternAst.data.position).withFileId(
+    SystemError.invalidIncrementValue(getPosition(patternAst)).withFileId(
       context.fileId
     )
   );
@@ -158,13 +158,13 @@ const incAssign = async (
     );
     assert(
       Array.isArray(list),
-      SystemError.invalidIndexTarget(patternAst.data.position).withFileId(
+      SystemError.invalidIndexTarget(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
     assert(
       Number.isInteger(index),
-      SystemError.invalidIndex(patternAst.data.position).withFileId(
+      SystemError.invalidIndex(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -174,7 +174,7 @@ const incAssign = async (
       typeof v === 'number',
       SystemError.invalidIncrement(
         index.toString(),
-        patternAst.data.position
+        getPosition(patternAst)
       ).withFileId(context.fileId)
     );
     list[index] = value;
@@ -187,14 +187,14 @@ const incAssign = async (
       name in context.env,
       SystemError.invalidAssignment(
         name,
-        patternAst.data.position,
+        getPosition(patternAst),
         getClosestName(name, Object.keys(context.env))
       ).withFileId(context.fileId)
     );
     const v = context.env[name];
     assert(
       typeof v === 'number',
-      SystemError.invalidIncrement(name, patternAst.data.position).withFileId(
+      SystemError.invalidIncrement(name, getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -206,7 +206,7 @@ const incAssign = async (
   }
 
   unreachable(
-    SystemError.invalidPattern(patternAst.data.position).withFileId(
+    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
       context.fileId
     )
   );
@@ -227,7 +227,7 @@ const assign = async (
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -261,13 +261,13 @@ const assign = async (
     );
     assert(
       Array.isArray(list),
-      SystemError.invalidIndexTarget(patternAst.data.position).withFileId(
+      SystemError.invalidIndexTarget(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
     assert(
       Number.isInteger(index),
-      SystemError.invalidIndex(patternAst.data.position).withFileId(
+      SystemError.invalidIndex(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -283,7 +283,7 @@ const assign = async (
       name in context.env,
       SystemError.invalidAssignment(
         name,
-        patternAst.data.position,
+        getPosition(patternAst),
         getClosestName(name, Object.keys(context.env))
       ).withFileId(context.fileId)
     );
@@ -297,7 +297,7 @@ const assign = async (
   }
 
   unreachable(
-    SystemError.invalidPattern(patternAst.data.position).withFileId(
+    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
       context.fileId
     )
   );
@@ -322,7 +322,7 @@ const bind = async (
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -354,7 +354,7 @@ const bind = async (
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
-      SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
+      SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -382,7 +382,7 @@ const bind = async (
       }
 
       unreachable(
-        SystemError.invalidObjectPattern(pattern.data.position).withFileId(
+        SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
           context.fileId
         )
       );
@@ -401,7 +401,7 @@ const bind = async (
   }
 
   unreachable(
-    SystemError.invalidPattern(patternAst.data.position).withFileId(
+    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
       context.fileId
     )
   );
@@ -434,7 +434,7 @@ async function bindExport(
   if (patternAst.data.operator === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
-      SystemError.invalidTuplePattern(patternAst.data.position).withFileId(
+      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -478,7 +478,7 @@ async function bindExport(
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
-      SystemError.invalidObjectPattern(patternAst.data.position).withFileId(
+      SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
@@ -516,7 +516,7 @@ async function bindExport(
       }
 
       unreachable(
-        SystemError.invalidObjectPattern(pattern.data.position).withFileId(
+        SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
           context.fileId
         )
       );
@@ -532,7 +532,7 @@ async function bindExport(
   }
 
   unreachable(
-    SystemError.invalidPattern(patternAst.data.position).withFileId(
+    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
       context.fileId
     )
   );
@@ -748,12 +748,12 @@ export const evaluateStatement = async (
             if (!Number.isInteger(index)) {
               assert(
                 typeof index === 'string',
-                SystemError.invalidIndex(ast.data.position).withFileId(
+                SystemError.invalidIndex(getPosition(ast)).withFileId(
                   context.fileId
                 )
               );
               return await listMethods[index](target, [
-                ast.data.position,
+                getPosition(ast),
                 context.fileId,
               ]);
             }
@@ -762,7 +762,7 @@ export const evaluateStatement = async (
             const record = target.record;
             assert(
               typeof index === 'string',
-              SystemError.invalidIndex(ast.data.position).withFileId(
+              SystemError.invalidIndex(getPosition(ast)).withFileId(
                 context.fileId
               )
             );
@@ -772,18 +772,18 @@ export const evaluateStatement = async (
           if (typeof target === 'string') {
             assert(
               typeof index === 'string' && index in stringMethods,
-              SystemError.invalidIndex(ast.data.position).withFileId(
+              SystemError.invalidIndex(getPosition(ast)).withFileId(
                 context.fileId
               )
             );
             return await stringMethods[index](target, [
-              ast.data.position,
+              getPosition(ast),
               context.fileId,
             ]);
           }
 
           unreachable(
-            SystemError.invalidIndexTarget(ast.data.position).withFileId(
+            SystemError.invalidIndexTarget(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -800,7 +800,7 @@ export const evaluateStatement = async (
               else {
                 unreachable(
                   SystemError.invalidTuplePattern(
-                    child.data.position
+                    getPosition(child)
                   ).withFileId(context.fileId)
                 );
               }
@@ -835,7 +835,7 @@ export const evaluateStatement = async (
         }
         case OperatorType.SPREAD:
           unreachable(
-            SystemError.invalidUseOfSpread(ast.data.position).withFileId(
+            SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -894,7 +894,7 @@ export const evaluateStatement = async (
 
           assert(
             isChannel(channelValue),
-            SystemError.invalidSendChannel(ast.data.position).withFileId(
+            SystemError.invalidSendChannel(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -903,7 +903,7 @@ export const evaluateStatement = async (
 
           assert(
             channel,
-            SystemError.channelClosed(ast.data.position).withFileId(
+            SystemError.channelClosed(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -924,7 +924,7 @@ export const evaluateStatement = async (
 
           assert(
             isChannel(channelValue),
-            SystemError.invalidReceiveChannel(ast.data.position).withFileId(
+            SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -932,7 +932,7 @@ export const evaluateStatement = async (
           return receive(channelValue.channel).catch((e) => {
             assert(
               e !== 'channel closed',
-              SystemError.channelClosed(ast.data.position).withFileId(
+              SystemError.channelClosed(getPosition(ast)).withFileId(
                 context.fileId
               )
             );
@@ -946,7 +946,7 @@ export const evaluateStatement = async (
 
           assert(
             isChannel(channelValue),
-            SystemError.invalidSendChannel(ast.data.position).withFileId(
+            SystemError.invalidSendChannel(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -959,7 +959,7 @@ export const evaluateStatement = async (
 
           assert(
             isChannel(channelValue),
-            SystemError.invalidReceiveChannel(ast.data.position).withFileId(
+            SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -977,7 +977,7 @@ export const evaluateStatement = async (
 
         case OperatorType.TOKEN:
           unreachable(
-            SystemError.invalidTokenExpression(ast.data.position).withFileId(
+            SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
               context.fileId
             )
           );
@@ -1080,7 +1080,7 @@ export const evaluateStatement = async (
             SystemError.evaluationError(
               'for loop iterates over lists only.',
               [],
-              expr.data.position
+              getPosition(expr)
             )
           );
 
@@ -1138,7 +1138,7 @@ export const evaluateStatement = async (
           const value = await evaluateExpr(expr, context);
           assert(
             typeof value === 'number' || Array.isArray(value),
-            SystemError.invalidIncrementValue(expr.data.position).withFileId(
+            SystemError.invalidIncrementValue(getPosition(expr)).withFileId(
               context.fileId
             )
           );
@@ -1181,9 +1181,7 @@ export const evaluateStatement = async (
           const body =
             rest.length === 0
               ? _body
-              : fnAST(tupleAST(rest, _patterns.data.position), _body, {
-                  isTopFunction: false,
-                });
+              : fnAST(tupleAST(rest), _body, { isTopFunction: false });
 
           const self: EvalFunction = async (arg, [, , callerContext]) => {
             const _context = { ...context, env: forkEnv(context.env) };
@@ -1213,12 +1211,12 @@ export const evaluateStatement = async (
           assert(
             typeof fnValue === 'function',
             SystemError.invalidApplicationExpression(
-              fnExpr.data.position
+              getPosition(fnExpr)
             ).withFileId(context.fileId)
           );
 
           return await fnValue(argValue, [
-            ast.data.position,
+            getPosition(ast),
             context.fileId,
             context,
           ]);
@@ -1231,10 +1229,9 @@ export const evaluateStatement = async (
       if (name === 'true') return true;
       if (name === 'false') return false;
       if (name === 'injected') return { record: context.handlers };
-      // inspect(context.env);
       assert(
         name in context.env,
-        SystemError.undeclaredName(name, ast.data.position).withFileId(
+        SystemError.undeclaredName(name, getPosition(ast)).withFileId(
           context.fileId
         )
       );
@@ -1246,7 +1243,7 @@ export const evaluateStatement = async (
       return null;
     case NodeType.IMPLICIT_PLACEHOLDER:
       unreachable(
-        SystemError.invalidPlaceholderExpression(ast.data.position).withFileId(
+        SystemError.invalidPlaceholderExpression(getPosition(ast)).withFileId(
           context.fileId
         )
       );
@@ -1275,7 +1272,7 @@ export const evaluateExpr = async (
     SystemError.evaluationError(
       'expected a value',
       [],
-      ast.data.position
+      getPosition(ast)
     ).withFileId(context.fileId)
   );
   return result;
@@ -1318,7 +1315,7 @@ export const evaluateModule = async (
 
       assert(
         !(ModuleDefault in record),
-        SystemError.duplicateDefaultExport(expr.data.position).withFileId(
+        SystemError.duplicateDefaultExport(getPosition(expr)).withFileId(
           context.fileId
         )
       );
