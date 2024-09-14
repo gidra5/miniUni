@@ -422,7 +422,7 @@ export const getModule = async ({
     if (isModule) {
       const _module = await evaluateModuleString(source, context);
       assert(isRecord(_module), 'expected module to be a record');
-      return module(_module.record, _module[ModuleDefault]);
+      return module(_module.record, _module.record[ModuleDefault]);
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);

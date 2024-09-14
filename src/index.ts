@@ -9,12 +9,12 @@ import {
 import { addFile } from './files.js';
 
 program
-  .command('run <file>')
+  .command('run <file> [args...]')
   .description('Run script from a file')
-  .action(async (file) => {
+  .action(async (file, args) => {
     console.log('Starting interpreter...');
 
-    const result = await evaluateEntryFile(file);
+    const result = await evaluateEntryFile(file, args);
     console.dir(result, { depth: null });
 
     console.log('Exiting interpreter');

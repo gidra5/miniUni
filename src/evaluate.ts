@@ -1328,22 +1328,23 @@ export const evaluateModule = async (
   context: Context
 ): Promise<Extract<EvalValue, { record: unknown }>> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
-  const record: Record<string, EvalValue> = {};
+  const record: Record<string | symbol, EvalValue> = {};
 
   for (const child of ast.children) {
     if (child.data.operator === OperatorType.IMPORT) {
       await evaluateStatement(child, context);
     } else if (child.data.operator === OperatorType.EXPORT) {
-      const value = await evaluateExpr(child, context);
+      const expr = child.children[0];
+      const value = await evaluateExpr(expr, context);
 
       assert(
-        ModuleDefault in exports,
-        SystemError.duplicateDefaultExport(child.data.position).withFileId(
+        !(ModuleDefault in record),
+        SystemError.duplicateDefaultExport(expr.data.position).withFileId(
           context.fileId
         )
       );
 
-      exports[ModuleDefault] = value;
+      record[ModuleDefault] = value;
     } else {
       const [name, expr] = child.children;
       const value = await evaluateExpr(expr, context);
@@ -1401,7 +1402,7 @@ export const evaluateModuleString = async (
   }
 };
 
-export const evaluateEntryFile = async (file: string) => {
+export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
   const resolved = path.resolve(file);
   const root = path.dirname(resolved);
   const name = '/' + path.basename(resolved);
@@ -1417,10 +1418,11 @@ export const evaluateEntryFile = async (file: string) => {
       'default export from runnable module must be a function'
     );
     const fileId = inject(Injectable.FileMap).getFileId(file);
-    const value = await main(
-      [],
-      [{ start: 0, end: 0 }, 0, newContext(fileId, file)]
-    );
+    const value = await main(argv, [
+      { start: 0, end: 0 },
+      0,
+      newContext(fileId, file),
+    ]);
     return value;
   }
 
