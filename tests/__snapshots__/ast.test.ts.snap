@@ -5388,6 +5388,66 @@ exports[`expressions > effect handlers > without 1`] = `
 }
 `;
 
+exports[`expressions > values > float 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 7,
+          "start": 0,
+        },
+        "value": 123.456,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > values > integer 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 3,
+          "start": 0,
+        },
+        "value": 123,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > values > string 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "position": {
+          "end": 8,
+          "start": 0,
+        },
+        "value": "string",
+      },
+      "type": "string",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`fn increment 1`] = `
 {
   "children": [

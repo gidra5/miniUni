@@ -380,7 +380,7 @@ describe('comments', () => {
 });
 
 describe('expressions', () => {
-  describe.todo('values', () => {
+  describe('values', () => {
     it('integer', () => {
       const src = `123`;
       const tokens = parseTokens(src);
@@ -406,8 +406,8 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('arithmetics', () => {
-    it('order of application', () => {
+  describe('arithmetics', () => {
+    it.todo('order of application', () => {
       const src = '1 + 2^3 * 4';
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -415,7 +415,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('-(a+b)', () => {
+    it.todo('-(a+b)', () => {
       const src = '-(a+b)';
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -423,7 +423,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('complex', () => {
+    it.todo('complex', () => {
       const src =
         '(2^2-5+7)-(-i)+ (j)/0 - 1*(1*f)+(27-x )/q + send(-(2+7)/A,j, i, 127.0 ) + 1/1';
       const tokens = parseTokens(src);
