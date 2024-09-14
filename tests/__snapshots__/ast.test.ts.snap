@@ -4510,6 +4510,837 @@ exports[`effect handlers 1`] = `
 }
 `;
 
+exports[`expressions > arithmetics > -(a+b) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 3,
+                      "start": 2,
+                    },
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 5,
+                      "start": 4,
+                    },
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "add",
+                "position": {
+                  "end": 5,
+                  "start": 2,
+                },
+                "precedence": [
+                  11,
+                  11,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "parens",
+            "position": {
+              "end": 6,
+              "start": 1,
+            },
+            "precedence": [
+              null,
+              null,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "minus",
+        "position": {
+          "end": 6,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          18,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > arithmetics > complex 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 2,
+                                  "start": 1,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 4,
+                                  "start": 3,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "^",
+                            "position": {
+                              "end": 4,
+                              "start": 1,
+                            },
+                            "precedence": [
+                              18,
+                              17,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 6,
+                              "start": 5,
+                            },
+                            "value": 5,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {
+                        "operator": "subtract",
+                        "position": {
+                          "end": 6,
+                          "start": 1,
+                        },
+                        "precedence": [
+                          12,
+                          13,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 8,
+                          "start": 7,
+                        },
+                        "value": 7,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": "add",
+                    "position": {
+                      "end": 8,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      11,
+                      11,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 9,
+                  "start": 0,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 13,
+                          "start": 12,
+                        },
+                        "value": "i",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "minus",
+                    "position": {
+                      "end": 13,
+                      "start": 11,
+                    },
+                    "precedence": [
+                      null,
+                      18,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 14,
+                  "start": 10,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 14,
+              "start": 0,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 18,
+                          "start": 17,
+                        },
+                        "value": "j",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 19,
+                      "start": 16,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 21,
+                      "start": 20,
+                    },
+                    "value": 0,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 21,
+                  "start": 16,
+                },
+                "precedence": [
+                  15,
+                  16,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 25,
+                      "start": 24,
+                    },
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 28,
+                              "start": 27,
+                            },
+                            "value": 1,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 30,
+                              "start": 29,
+                            },
+                            "value": "f",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "*",
+                        "position": {
+                          "end": 30,
+                          "start": 27,
+                        },
+                        "precedence": [
+                          14,
+                          14,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "parens",
+                    "position": {
+                      "end": 31,
+                      "start": 26,
+                    },
+                    "precedence": [
+                      null,
+                      null,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "*",
+                "position": {
+                  "end": 31,
+                  "start": 24,
+                },
+                "precedence": [
+                  14,
+                  14,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "subtract",
+            "position": {
+              "end": 31,
+              "start": 16,
+            },
+            "precedence": [
+              12,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 35,
+                          "start": 33,
+                        },
+                        "value": 27,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 37,
+                          "start": 36,
+                        },
+                        "value": "x",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {
+                    "operator": "subtract",
+                    "position": {
+                      "end": 37,
+                      "start": 33,
+                    },
+                    "precedence": [
+                      12,
+                      13,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 39,
+                  "start": 32,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 41,
+                  "start": 40,
+                },
+                "value": "q",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 41,
+              "start": 32,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 48,
+                  "start": 44,
+                },
+                "value": "send",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 52,
+                                          "start": 51,
+                                        },
+                                        "value": 2,
+                                      },
+                                      "type": "number",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "position": {
+                                          "end": 54,
+                                          "start": 53,
+                                        },
+                                        "value": 7,
+                                      },
+                                      "type": "number",
+                                    },
+                                  ],
+                                  "data": {
+                                    "operator": "add",
+                                    "position": {
+                                      "end": 54,
+                                      "start": 51,
+                                    },
+                                    "precedence": [
+                                      11,
+                                      11,
+                                    ],
+                                  },
+                                  "type": "operator",
+                                },
+                              ],
+                              "data": {
+                                "operator": "parens",
+                                "position": {
+                                  "end": 55,
+                                  "start": 50,
+                                },
+                                "precedence": [
+                                  null,
+                                  null,
+                                ],
+                              },
+                              "type": "operator",
+                            },
+                          ],
+                          "data": {
+                            "operator": "minus",
+                            "position": {
+                              "end": 55,
+                              "start": 49,
+                            },
+                            "precedence": [
+                              null,
+                              18,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "position": {
+                              "end": 57,
+                              "start": 56,
+                            },
+                            "value": "A",
+                          },
+                          "type": "name",
+                        },
+                      ],
+                      "data": {
+                        "operator": "/",
+                        "position": {
+                          "end": 57,
+                          "start": 49,
+                        },
+                        "precedence": [
+                          15,
+                          16,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 59,
+                          "start": 58,
+                        },
+                        "value": "j",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 62,
+                          "start": 61,
+                        },
+                        "value": "i",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "position": {
+                          "end": 69,
+                          "start": 64,
+                        },
+                        "value": 127,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {
+                    "operator": ",",
+                    "position": {
+                      "end": 59,
+                      "start": 49,
+                    },
+                    "precedence": [
+                      6,
+                      6,
+                    ],
+                  },
+                  "type": "operator",
+                },
+              ],
+              "data": {
+                "operator": "parens",
+                "position": {
+                  "end": 71,
+                  "start": 48,
+                },
+                "precedence": [
+                  null,
+                  null,
+                ],
+              },
+              "type": "operator",
+            },
+          ],
+          "data": {
+            "operator": "application",
+            "position": {
+              "end": 71,
+              "start": 44,
+            },
+            "precedence": [
+              9007199254740989,
+              9007199254740990,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 75,
+                  "start": 74,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 77,
+                  "start": 76,
+                },
+                "value": 1,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "/",
+            "position": {
+              "end": 77,
+              "start": 74,
+            },
+            "precedence": [
+              15,
+              16,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 31,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > arithmetics > order of application 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 1,
+              "start": 0,
+            },
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 5,
+                      "start": 4,
+                    },
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 7,
+                      "start": 6,
+                    },
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {
+                "operator": "^",
+                "position": {
+                  "end": 7,
+                  "start": 4,
+                },
+                "precedence": [
+                  18,
+                  17,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 11,
+                  "start": 10,
+                },
+                "value": 4,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "*",
+            "position": {
+              "end": 11,
+              "start": 4,
+            },
+            "precedence": [
+              14,
+              14,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "add",
+        "position": {
+          "end": 11,
+          "start": 0,
+        },
+        "precedence": [
+          11,
+          11,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > effect handlers > complex 1`] = `
 {
   "children": [

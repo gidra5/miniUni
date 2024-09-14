@@ -407,7 +407,7 @@ describe('expressions', () => {
   });
 
   describe('arithmetics', () => {
-    it.todo('order of application', () => {
+    it('order of application', () => {
       const src = '1 + 2^3 * 4';
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -415,7 +415,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('-(a+b)', () => {
+    it('-(a+b)', () => {
       const src = '-(a+b)';
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -423,7 +423,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('complex', () => {
+    it('complex', () => {
       const src =
         '(2^2-5+7)-(-i)+ (j)/0 - 1*(1*f)+(27-x )/q + send(-(2+7)/A,j, i, 127.0 ) + 1/1';
       const tokens = parseTokens(src);
