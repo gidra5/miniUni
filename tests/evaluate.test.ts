@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  Context,
-  evaluateScript,
-  newContext,
-} from '../src/evaluate.ts';
+import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
 import { assert } from '../src/utils.ts';
 import { EvalValue, fn, isChannel, isSymbol } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
@@ -463,10 +459,16 @@ describe('expressions', () => {
       expect(result).toBe(true);
     });
 
-    it.todo('in', async () => {
+    it.todo('in finds existing key', async () => {
       const input = `:key in (key: 1, key2: 2)`;
       const result = await evaluate(input);
       expect(result).toBe(true);
+    });
+
+    it.todo('in not finds not existing key', async () => {
+      const input = `:key3 in (key: 1, key2: 2)`;
+      const result = await evaluate(input);
+      expect(result).toBe(false);
     });
 
     it('eq', async () => {
@@ -899,7 +901,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it.todo('symbol', async () => {
+    it('symbol', async () => {
       const input = `symbol "name"`;
       const result = await evaluate(input);
       expect(isSymbol(result)).toBe(true);

@@ -4409,22 +4409,38 @@ exports[`expressions > boolean expressions > "and" and "or" associativity 1`] = 
         {
           "children": [
             {
-              "children": [],
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 24,
+                      "start": 23,
+                    },
+                    "value": "e",
+                  },
+                  "type": "name",
+                },
+              ],
               "data": {
+                "operator": "not",
                 "position": {
-                  "end": 23,
+                  "end": 24,
                   "start": 22,
                 },
-                "value": "e",
+                "precedence": [
+                  null,
+                  13,
+                ],
               },
-              "type": "name",
+              "type": "operator",
             },
             {
               "children": [],
               "data": {
                 "position": {
-                  "end": 29,
-                  "start": 28,
+                  "end": 30,
+                  "start": 29,
                 },
                 "value": "f",
               },
@@ -4434,8 +4450,8 @@ exports[`expressions > boolean expressions > "and" and "or" associativity 1`] = 
               "children": [],
               "data": {
                 "position": {
-                  "end": 35,
-                  "start": 34,
+                  "end": 36,
+                  "start": 35,
                 },
                 "value": "g",
               },
@@ -4445,8 +4461,120 @@ exports[`expressions > boolean expressions > "and" and "or" associativity 1`] = 
           "data": {
             "operator": "and",
             "position": {
-              "end": 29,
+              "end": 30,
               "start": 22,
+            },
+            "precedence": [
+              9,
+              9,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 45,
+                  "start": 44,
+                },
+                "value": "h",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "not",
+            "position": {
+              "end": 45,
+              "start": 40,
+            },
+            "precedence": [
+              null,
+              13,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 50,
+              "start": 49,
+            },
+            "value": "i",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "operator": "or",
+        "position": {
+          "end": 18,
+          "start": 0,
+        },
+        "precedence": [
+          8,
+          8,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > boolean expressions > "and", "or" and "not" associativity 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 1,
+                  "start": 0,
+                },
+                "value": "a",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 7,
+                  "start": 6,
+                },
+                "value": "b",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 13,
+                  "start": 12,
+                },
+                "value": "c",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "and",
+            "position": {
+              "end": 7,
+              "start": 0,
             },
             "precedence": [
               9,
@@ -4459,19 +4587,111 @@ exports[`expressions > boolean expressions > "and" and "or" associativity 1`] = 
           "children": [],
           "data": {
             "position": {
-              "end": 40,
-              "start": 39,
+              "end": 18,
+              "start": 17,
             },
-            "value": "h",
+            "value": "d",
           },
           "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 24,
+                      "start": 23,
+                    },
+                    "value": "e",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "not",
+                "position": {
+                  "end": 24,
+                  "start": 22,
+                },
+                "precedence": [
+                  null,
+                  13,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 30,
+                  "start": 29,
+                },
+                "value": "f",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 36,
+                  "start": 35,
+                },
+                "value": "g",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "and",
+            "position": {
+              "end": 30,
+              "start": 22,
+            },
+            "precedence": [
+              9,
+              9,
+            ],
+          },
+          "type": "operator",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 45,
+                  "start": 44,
+                },
+                "value": "h",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {
+            "operator": "not",
+            "position": {
+              "end": 45,
+              "start": 40,
+            },
+            "precedence": [
+              null,
+              13,
+            ],
+          },
+          "type": "operator",
         },
         {
           "children": [],
           "data": {
             "position": {
-              "end": 45,
-              "start": 44,
+              "end": 50,
+              "start": 49,
             },
             "value": "i",
           },
@@ -7866,6 +8086,207 @@ exports[`expressions > structured programming > for loop 1`] = `
         },
       },
       "type": "error",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > if-then 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 7,
+              "start": 3,
+            },
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 12,
+              "start": 9,
+            },
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "if",
+        "position": {
+          "end": 12,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > if-then-else 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 7,
+              "start": 3,
+            },
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 12,
+              "start": 9,
+            },
+            "value": 123,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 21,
+              "start": 18,
+            },
+            "value": 456,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "operator": "if_else",
+        "position": {
+          "end": 21,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 7,
+              "start": 3,
+            },
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "position": {
+              "end": 12,
+              "start": 9,
+            },
+            "value": 123,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 26,
+                  "start": 21,
+                },
+                "value": "false",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 31,
+                  "start": 28,
+                },
+                "value": 789,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 40,
+                  "start": 37,
+                },
+                "value": 456,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": "if_else",
+            "position": {
+              "end": 40,
+              "start": 18,
+            },
+            "precedence": [
+              null,
+              2,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "if_else",
+        "position": {
+          "end": 40,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          2,
+        ],
+      },
+      "type": "operator",
     },
   ],
   "data": {},

@@ -61,6 +61,10 @@ export const prelude: Record<string, EvalValue> = {
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
   }),
+  symbol: fn(1, (_, name) => {
+    if (typeof name === 'string') return { symbol: Symbol(name) };
+    else return { symbol: Symbol() };
+  }),
   length: fn(1, ([position, fileId], list) => {
     const lengthErrorFactory = SystemError.invalidArgumentType(
       'length',

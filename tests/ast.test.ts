@@ -7,7 +7,7 @@ import { parseModule, parseScript } from '../src/parser.ts';
 const anyStringArb = fc.fullUnicodeString({ size: 'large' });
 // const anyStringArb = fc.string();
 
-it.prop([anyStringArb])('module never throws', (src) => {
+it.prop([anyStringArb])('module parsing never throws', (src) => {
   const tokens = parseTokens(src);
   try {
     parseModule(tokens);
@@ -17,7 +17,7 @@ it.prop([anyStringArb])('module never throws', (src) => {
   }
 });
 
-it.prop([anyStringArb])('script never throws', (src) => {
+it.prop([anyStringArb])('script parsing never throws', (src) => {
   const tokens = parseTokens(src);
   try {
     parseScript(tokens);
@@ -223,8 +223,8 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('"and" and "or" associativity', () => {
-      const src = `a and b and c or d or e and f and g or h or i`;
+    it('"and", "or" and "not" associativity', () => {
+      const src = `a and b and c or d or !e and f and g or not h or i`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -323,7 +323,7 @@ describe('expressions', () => {
       });
 
       it.todo('(send 1)(2, 3)', () => {
-        const src = `(send)(2, 3)`;
+        const src = `(send 1)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -331,7 +331,7 @@ describe('expressions', () => {
       });
 
       it.todo('(send 1 2)(2, 3)', () => {
-        const src = `(send)(2, 3)`;
+        const src = `(send 1 2)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -339,7 +339,7 @@ describe('expressions', () => {
       });
 
       it.todo('send 1 + 2', () => {
-        const src = `(send)(2, 3)`;
+        const src = `send 1 + 2`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -347,7 +347,7 @@ describe('expressions', () => {
       });
 
       it.todo('a + send (2, 3)', () => {
-        const src = `(send)(2, 3)`;
+        const src = `a + send (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -355,7 +355,7 @@ describe('expressions', () => {
       });
 
       it.todo('send a (2, 3)', () => {
-        const src = `(send)(2, 3)`;
+        const src = `send a (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -363,7 +363,7 @@ describe('expressions', () => {
       });
 
       it.todo('send 1 (2, 3)', () => {
-        const src = `(send)(2, 3)`;
+        const src = `send 1 (2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -371,7 +371,7 @@ describe('expressions', () => {
       });
 
       it.todo('a + send 1 + 2', () => {
-        const src = `(send)(2, 3)`;
+        const src = `a + send 1 + 2`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
 
@@ -493,7 +493,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('if-then', () => {
+    it('if-then', () => {
       const src = `if true: 123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -501,7 +501,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('if-then-else', () => {
+    it('if-then-else', () => {
       const src = `if true: 123 else 456`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -509,7 +509,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('if-then-elseif-then-else', () => {
+    it('if-then-elseif-then-else', () => {
       const src = `if true: 123 else if false: 789 else 456`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -527,14 +527,6 @@ describe('expressions', () => {
 
     it('for loop', () => {
       const src = `for x in (1, 2, 3): x`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it.todo('for loop newline', () => {
-      const src = `for x in [1, 2, 3]\n x`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -887,6 +879,14 @@ describe('programs', () => {
 });
 
 describe('newline handling', () => {
+  it.todo('for loop newline', () => {
+    const src = `for x in [1, 2, 3]\n x`;
+    const tokens = parseTokens(src);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
   it('parallel parens', async () => {
     const input = `(
         | 1
