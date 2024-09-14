@@ -195,22 +195,17 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.IF, Fixity.PREFIX],
   [OperatorType.IF_ELSE, Fixity.PREFIX],
   [OperatorType.LOOP, Fixity.PREFIX],
-  [OperatorType.WHILE, Fixity.PREFIX],
-  [OperatorType.FOR, Fixity.PREFIX],
-  [OperatorType.MATCH, Fixity.PREFIX],
-  [OperatorType.MATCH_CASE, Fixity.PREFIX],
-  [OperatorType.INJECT, Fixity.PREFIX],
-  [OperatorType.MASK, Fixity.PREFIX],
-  [OperatorType.WITHOUT, Fixity.PREFIX],
-  // ] as const;
+  // [OperatorType.WHILE, Fixity.PREFIX],
+  // [OperatorType.FOR, Fixity.PREFIX],
+  // [OperatorType.MATCH, Fixity.PREFIX],
+  // [OperatorType.INJECT, Fixity.PREFIX],
+  // [OperatorType.MASK, Fixity.PREFIX],
+  // [OperatorType.WITHOUT, Fixity.PREFIX],
 
-  // const assignmentPrecedence = [
-  [OperatorType.DECLARE, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.ASSIGN, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.INC_ASSIGN, Fixity.INFIX, Associativity.RIGHT],
-  // ] as const;
+  [OperatorType.DECLARE, Fixity.PREFIX],
+  [OperatorType.ASSIGN, Fixity.PREFIX],
+  [OperatorType.INC_ASSIGN, Fixity.PREFIX],
 
-  // const tuplePrecedence = [
   [OperatorType.ASYNC, Fixity.PREFIX],
   [OperatorType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
@@ -221,9 +216,7 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.RECEIVE, Fixity.PREFIX],
   [OperatorType.SEND_STATUS, Fixity.INFIX, Associativity.RIGHT],
   [OperatorType.RECEIVE_STATUS, Fixity.PREFIX],
-  // ] as const;
 
-  // const booleanPrecedence = [
   [OperatorType.OR, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.AND, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.EQUAL, Fixity.INFIX, Associativity.RIGHT],
@@ -233,9 +226,7 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.GREATER, Fixity.INFIX, Associativity.RIGHT],
   [OperatorType.GREATER_EQUAL, Fixity.INFIX, Associativity.RIGHT],
   [OperatorType.NOT, Fixity.PREFIX],
-  // ] as const;
 
-  // const arithmeticPrecedence = [
   [OperatorType.ADD, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.SUB, Fixity.INFIX, Associativity.LEFT],
   [OperatorType.MULT, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
@@ -248,9 +239,7 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.DECREMENT, Fixity.PREFIX],
   [OperatorType.POST_INCREMENT, Fixity.POSTFIX],
   [OperatorType.POST_DECREMENT, Fixity.POSTFIX],
-  // ] as const;
 
-  // const topPrecedence = [
   [OperatorType.IMPORT, Fixity.PREFIX],
   [OperatorType.EXPORT, Fixity.PREFIX],
   [OperatorType.MUTABLE, Fixity.PREFIX],
@@ -259,26 +248,13 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.ATOM, Fixity.PREFIX],
 ] as const;
 
-// if two same operators are next to each other, which one will take precedence
-// left associative - left one will take precedence
-// right associative - right one will take precedence
-// associative - does not matter, can be grouped in any order
-const leftAssociative = (precedence: number): Precedence => [
-  precedence,
-  precedence + 1,
-];
-const rightAssociative = (precedence: number): Precedence => [
-  precedence + 1,
-  precedence,
-];
-const associative = (precedence: number): Precedence => [
-  precedence,
-  precedence,
-];
-
 const precedences = (() => {
   const precedences = {};
 
+  // if two same operators are next to each other, which one will take precedence
+  // left associative - left one will take precedence
+  // right associative - right one will take precedence
+  // associative - does not matter, can be grouped in any order
   const leftAssociative = (p: number): Precedence => [p, p + 1];
   const rightAssociative = (p: number): Precedence => [p + 1, p];
   const associative = (p: number): Precedence => [p, p];
@@ -304,69 +280,7 @@ const precedences = (() => {
 })();
 
 export const getPrecedence = (operator: string | symbol): Precedence => {
-  switch (operator) {
-    case OperatorType.IMPORT:
-      return [null, 1];
-    case OperatorType.EXPORT:
-      return [null, 1];
-    case OperatorType.MUTABLE:
-      return [null, 1];
-
-    case OperatorType.FUNCTION:
-      return [null, 2];
-    case OperatorType.IF:
-      return [null, 2];
-    case OperatorType.IF_ELSE:
-      return [null, 2];
-    case OperatorType.LOOP:
-      return [null, 2];
-
-    case OperatorType.DECLARE:
-      return [null, 1];
-    case OperatorType.INC_ASSIGN:
-    case OperatorType.ASSIGN:
-      return [null, 1];
-
-    // case OperatorType.PARENS:
-    // case OperatorType.SEQUENCE:
-    // return rightAssociative(semicolonPrecedence);
-    case OperatorType.PARALLEL:
-    case OperatorType.ASYNC:
-    case OperatorType.TUPLE:
-    case OperatorType.SPREAD:
-    case OperatorType.COLON:
-    case OperatorType.SEND:
-    case OperatorType.RECEIVE:
-    case OperatorType.SEND_STATUS:
-    case OperatorType.RECEIVE_STATUS:
-    case OperatorType.OR:
-    case OperatorType.AND:
-    case OperatorType.EQUAL:
-    case OperatorType.NOT_EQUAL:
-    case OperatorType.LESS:
-    case OperatorType.LESS_EQUAL:
-    case OperatorType.GREATER:
-    case OperatorType.GREATER_EQUAL:
-    case OperatorType.NOT:
-    case OperatorType.ADD:
-    case OperatorType.SUB:
-    case OperatorType.MULT:
-    case OperatorType.DIV:
-    case OperatorType.MOD:
-    case OperatorType.POW:
-    case OperatorType.MINUS:
-    case OperatorType.PLUS:
-    case OperatorType.INCREMENT:
-    case OperatorType.DECREMENT:
-    case OperatorType.POST_DECREMENT:
-    case OperatorType.POST_INCREMENT:
-    case OperatorType.ATOM:
-    case OperatorType.APPLICATION:
-    case OperatorType.INDEX:
-      return precedences[operator];
-    default:
-      return [null, null];
-  }
+  return precedences[operator] ?? [null, null];
 };
 
 export const operator = (
