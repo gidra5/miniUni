@@ -4961,6 +4961,177 @@ exports[`expressions > concurrent programming > try receive with assignment 1`] 
 }
 `;
 
+exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 4,
+                                  "start": 3,
+                                },
+                                "value": 2,
+                              },
+                              "type": "number",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "position": {
+                                  "end": 6,
+                                  "start": 5,
+                                },
+                                "value": 7,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {
+                            "operator": "add",
+                            "position": {
+                              "end": 6,
+                              "start": 3,
+                            },
+                            "precedence": [
+                              11,
+                              11,
+                            ],
+                          },
+                          "type": "operator",
+                        },
+                      ],
+                      "data": {
+                        "operator": "parens",
+                        "position": {
+                          "end": 7,
+                          "start": 2,
+                        },
+                        "precedence": [
+                          null,
+                          null,
+                        ],
+                      },
+                      "type": "operator",
+                    },
+                  ],
+                  "data": {
+                    "operator": "minus",
+                    "position": {
+                      "end": 7,
+                      "start": 1,
+                    },
+                    "precedence": [
+                      null,
+                      18,
+                    ],
+                  },
+                  "type": "operator",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "position": {
+                      "end": 9,
+                      "start": 8,
+                    },
+                    "value": "A",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {
+                "operator": "/",
+                "position": {
+                  "end": 9,
+                  "start": 1,
+                },
+                "precedence": [
+                  15,
+                  16,
+                ],
+              },
+              "type": "operator",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 11,
+                  "start": 10,
+                },
+                "value": "j",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 14,
+                  "start": 13,
+                },
+                "value": "i",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "position": {
+                  "end": 21,
+                  "start": 16,
+                },
+                "value": 127,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {
+            "operator": ",",
+            "position": {
+              "end": 11,
+              "start": 1,
+            },
+            "precedence": [
+              6,
+              6,
+            ],
+          },
+          "type": "operator",
+        },
+      ],
+      "data": {
+        "operator": "parens",
+        "position": {
+          "end": 23,
+          "start": 0,
+        },
+        "precedence": [
+          null,
+          null,
+        ],
+      },
+      "type": "operator",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > data structures > atom (global symbol) 1`] = `
 {
   "children": [

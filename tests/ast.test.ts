@@ -486,7 +486,15 @@ describe('expressions', () => {
 
   describe('structured programming', () => {
     it.todo('if-then 2', () => {
-      const src = `y := (x := 25; loop if x < 0: break x else { y := x; x = x - 1; if y == 19: continue 69; y })`;
+      const src = `y := (
+        x := 25;
+        loop if x < 0: break x else {
+          y := x;
+          x = x - 1;
+          if y == 19: continue 69;
+          y
+        }
+      )`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -700,7 +708,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('(-(2+7)/A,j, i, 127.0 )', () => {
+    it('(-(2+7)/A,j, i, 127.0 )', () => {
       const src = `(-(2+7)/A,j, i, 127.0 )`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
