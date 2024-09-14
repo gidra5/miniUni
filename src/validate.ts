@@ -5,6 +5,7 @@ import {
   OperatorType,
 } from './ast.js';
 import { SystemError } from './error.js';
+import { getPrecedence } from './parser.js';
 import { assert } from './utils.js';
 
 export const validate = (
@@ -15,6 +16,7 @@ export const validate = (
   const errors: SystemError[] = [];
 
   if (ast.type === NodeType.OPERATOR) {
+    const precedence = getPrecedence(ast);
     if (ast.data.operator === OperatorType.APPLICATION) {
       const [lhs, rhs] = ast.children;
 
@@ -59,10 +61,7 @@ export const validate = (
         errored = true;
         ast.children[0] = implicitPlaceholder(lhs.data.position);
       }
-    } else if (
-      ast.data.precedence[0] !== null &&
-      ast.data.precedence[1] !== null
-    ) {
+    } else if (precedence[0] !== null && precedence[1] !== null) {
       const [lhs, rhs] = ast.children;
 
       if (!lhs) {

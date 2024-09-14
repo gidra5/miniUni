@@ -1,9 +1,11 @@
-import { SystemError } from './error';
-import { mergePositions, Position } from './position';
-import { Token } from './tokens';
+import { SystemError } from './error.js';
+import { inject, Injectable, register } from './injector.js';
+import { mergePositions, Position } from './position.js';
+import { Token } from './tokens.js';
 
 export type AbstractSyntaxTree<T = any> = {
   type: string;
+  id: string;
   data: T;
   children: AbstractSyntaxTree<T>[];
 };
@@ -21,11 +23,18 @@ export enum NodeType {
   MODULE = 'module',
 }
 
+const nextId = () => {
+  const id = inject(Injectable.ASTNodeNextId);
+  register(Injectable.ASTNodeNextId, id + 1);
+  return String(id);
+};
+
 export const error = (
   cause: SystemError,
   node: AbstractSyntaxTree | Position
 ): AbstractSyntaxTree => ({
   type: NodeType.ERROR,
+  id: nextId(),
   data: {
     cause,
     get position() {
@@ -39,12 +48,14 @@ export const implicitPlaceholder = (
   position: Position
 ): AbstractSyntaxTree => ({
   type: NodeType.IMPLICIT_PLACEHOLDER,
+  id: nextId(),
   data: { position },
   children: [],
 });
 
 export const placeholder = (position: Position): AbstractSyntaxTree => ({
   type: NodeType.PLACEHOLDER,
+  id: nextId(),
   data: { position },
   children: [],
 });
@@ -54,6 +65,7 @@ export const name = (
   position: Position
 ): AbstractSyntaxTree => ({
   type: NodeType.NAME,
+  id: nextId(),
   data: { value, position },
   children: [],
 });
@@ -63,6 +75,7 @@ export const number = (
   position: Position
 ): AbstractSyntaxTree => ({
   type: NodeType.NUMBER,
+  id: nextId(),
   data: { value, position },
   children: [],
 });
@@ -72,6 +85,7 @@ export const string = (
   position: Position
 ): AbstractSyntaxTree => ({
   type: NodeType.STRING,
+  id: nextId(),
   data: { value, position },
   children: [],
 });
@@ -81,6 +95,7 @@ const tokenError = (
   position: Position
 ): AbstractSyntaxTree => ({
   type: NodeType.ERROR,
+  id: nextId(),
   data: { cause: token.cause, position },
   children: [],
 });
@@ -291,135 +306,136 @@ const precedences = (() => {
   return precedences as Record<OperatorType, Precedence>;
 })();
 
+export const getPrecedence = (operator: string | symbol): Precedence => {
+  const semicolonPrecedence = 1;
+  const assignmentPrecedence = semicolonPrecedence + 1;
+  const tuplePrecedence = assignmentPrecedence + 4;
+  const booleanPrecedence = tuplePrecedence + 2;
+  const arithmeticPrecedence = booleanPrecedence + 3;
+  const maxPrecedence = Number.MAX_SAFE_INTEGER;
+  switch (operator) {
+    case OperatorType.INCREMENT:
+      return [null, 3];
+    case OperatorType.DECREMENT:
+      return [null, 3];
+    case OperatorType.POST_DECREMENT:
+      return [3, null];
+    case OperatorType.POST_INCREMENT:
+      return [3, null];
+
+    case OperatorType.IMPORT:
+      return [null, 1];
+    case OperatorType.EXPORT:
+      return [null, 1];
+    case OperatorType.MUTABLE:
+      return [null, 1];
+
+    case OperatorType.DECLARE:
+      return [null, 1];
+    case OperatorType.INC_ASSIGN:
+    case OperatorType.ASSIGN:
+      return [null, 1];
+    case OperatorType.PARENS:
+      return [null, null];
+    case OperatorType.SEQUENCE:
+      return [null, null];
+    // return rightAssociative(semicolonPrecedence);
+    case OperatorType.APPLICATION:
+      return leftAssociative(maxPrecedence - 2);
+    case OperatorType.INDEX:
+      return [maxPrecedence - 3, null];
+
+    case OperatorType.TUPLE:
+      return associative(tuplePrecedence);
+    case OperatorType.SPREAD:
+      return [null, tuplePrecedence + 1];
+    case OperatorType.COLON:
+      return rightAssociative(tuplePrecedence + 1);
+    case OperatorType.FUNCTION:
+      return [null, 2];
+    case OperatorType.IF:
+      return [null, 2];
+    case OperatorType.IF_ELSE:
+      return [null, 2];
+    case OperatorType.LOOP:
+      return [null, 2];
+
+    case OperatorType.OR:
+      return associative(booleanPrecedence);
+    case OperatorType.AND:
+      return associative(booleanPrecedence + 1);
+    case OperatorType.EQUAL:
+      return rightAssociative(booleanPrecedence + 2);
+    case OperatorType.NOT_EQUAL:
+      return rightAssociative(booleanPrecedence + 2);
+    case OperatorType.LESS:
+      return rightAssociative(booleanPrecedence + 4);
+    case OperatorType.LESS_EQUAL:
+      return rightAssociative(booleanPrecedence + 4);
+    case OperatorType.GREATER:
+      return rightAssociative(booleanPrecedence + 4);
+    case OperatorType.GREATER_EQUAL:
+      return rightAssociative(booleanPrecedence + 4);
+    case OperatorType.NOT:
+      return [null, booleanPrecedence + 5];
+
+    case OperatorType.PARALLEL:
+      return associative(assignmentPrecedence + 1);
+    case OperatorType.ASYNC:
+      return [null, assignmentPrecedence + 1];
+    case OperatorType.SEND:
+      return rightAssociative(tuplePrecedence + 2);
+    case OperatorType.RECEIVE:
+      return [null, tuplePrecedence + 2];
+    case OperatorType.SEND_STATUS:
+      return rightAssociative(tuplePrecedence + 2);
+    case OperatorType.RECEIVE_STATUS:
+      return [null, tuplePrecedence + 2];
+
+    case OperatorType.ADD:
+      return associative(arithmeticPrecedence);
+    case OperatorType.SUB:
+      return leftAssociative(arithmeticPrecedence + 1);
+    case OperatorType.MULT:
+      return associative(arithmeticPrecedence + 3);
+    case OperatorType.DIV:
+      return leftAssociative(arithmeticPrecedence + 4);
+    case OperatorType.MOD:
+      return leftAssociative(arithmeticPrecedence + 4);
+    case OperatorType.POW:
+      return rightAssociative(arithmeticPrecedence + 6);
+    case OperatorType.MINUS:
+      return [null, arithmeticPrecedence + 7];
+    case OperatorType.PLUS:
+      return [null, arithmeticPrecedence + 7];
+    case OperatorType.ATOM:
+      return [null, maxPrecedence - 3];
+      return precedences[operator];
+    default:
+      return [null, null];
+  }
+};
+
 export const operator = (
   operator: string | symbol,
   position: Position,
   ...children: AbstractSyntaxTree[]
 ): AbstractSyntaxTree => {
-  const getPrecedence = (): Precedence => {
-    const semicolonPrecedence = 1;
-    const assignmentPrecedence = semicolonPrecedence + 1;
-    const tuplePrecedence = assignmentPrecedence + 4;
-    const booleanPrecedence = tuplePrecedence + 2;
-    const arithmeticPrecedence = booleanPrecedence + 3;
-    const maxPrecedence = Number.MAX_SAFE_INTEGER;
-    switch (operator) {
-      case OperatorType.INCREMENT:
-        return [null, 3];
-      case OperatorType.DECREMENT:
-        return [null, 3];
-      case OperatorType.POST_DECREMENT:
-        return [3, null];
-      case OperatorType.POST_INCREMENT:
-        return [3, null];
-
-      case OperatorType.IMPORT:
-        return [null, 1];
-      case OperatorType.EXPORT:
-        return [null, 1];
-      case OperatorType.MUTABLE:
-        return [null, 1];
-
-      case OperatorType.DECLARE:
-        return [null, 1];
-      case OperatorType.INC_ASSIGN:
-      case OperatorType.ASSIGN:
-        return [null, 1];
-      case OperatorType.PARENS:
-        return [null, null];
-      case OperatorType.SEQUENCE:
-        return [null, null];
-      // return rightAssociative(semicolonPrecedence);
-      case OperatorType.APPLICATION:
-        return leftAssociative(maxPrecedence - 2);
-      case OperatorType.INDEX:
-        return [maxPrecedence - 3, null];
-
-      case OperatorType.TUPLE:
-        return associative(tuplePrecedence);
-      case OperatorType.SPREAD:
-        return [null, tuplePrecedence + 1];
-      case OperatorType.COLON:
-        return rightAssociative(tuplePrecedence + 1);
-      case OperatorType.FUNCTION:
-        return [null, 2];
-      case OperatorType.IF:
-        return [null, 2];
-      case OperatorType.IF_ELSE:
-        return [null, 2];
-      case OperatorType.LOOP:
-        return [null, 2];
-
-      case OperatorType.OR:
-        return associative(booleanPrecedence);
-      case OperatorType.AND:
-        return associative(booleanPrecedence + 1);
-      case OperatorType.EQUAL:
-        return rightAssociative(booleanPrecedence + 2);
-      case OperatorType.NOT_EQUAL:
-        return rightAssociative(booleanPrecedence + 2);
-      case OperatorType.LESS:
-        return rightAssociative(booleanPrecedence + 4);
-      case OperatorType.LESS_EQUAL:
-        return rightAssociative(booleanPrecedence + 4);
-      case OperatorType.GREATER:
-        return rightAssociative(booleanPrecedence + 4);
-      case OperatorType.GREATER_EQUAL:
-        return rightAssociative(booleanPrecedence + 4);
-      case OperatorType.NOT:
-        return [null, booleanPrecedence + 5];
-
-      case OperatorType.PARALLEL:
-        return associative(assignmentPrecedence + 1);
-      case OperatorType.ASYNC:
-        return [null, assignmentPrecedence + 1];
-      case OperatorType.SEND:
-        return rightAssociative(tuplePrecedence + 2);
-      case OperatorType.RECEIVE:
-        return [null, tuplePrecedence + 2];
-      case OperatorType.SEND_STATUS:
-        return rightAssociative(tuplePrecedence + 2);
-      case OperatorType.RECEIVE_STATUS:
-        return [null, tuplePrecedence + 2];
-
-      case OperatorType.ADD:
-        return associative(arithmeticPrecedence);
-      case OperatorType.SUB:
-        return leftAssociative(arithmeticPrecedence + 1);
-      case OperatorType.MULT:
-        return associative(arithmeticPrecedence + 3);
-      case OperatorType.DIV:
-        return leftAssociative(arithmeticPrecedence + 4);
-      case OperatorType.MOD:
-        return leftAssociative(arithmeticPrecedence + 4);
-      case OperatorType.POW:
-        return rightAssociative(arithmeticPrecedence + 6);
-      case OperatorType.MINUS:
-        return [null, arithmeticPrecedence + 7];
-      case OperatorType.PLUS:
-        return [null, arithmeticPrecedence + 7];
-      case OperatorType.ATOM:
-        return [null, maxPrecedence - 3];
-        return precedences[operator];
-      default:
-        return [null, null];
-    }
-  };
-  return {
-    type: NodeType.OPERATOR,
-    data: { operator, precedence: getPrecedence(), position },
-    children,
-  };
+  const id = nextId();
+  const data = { operator, position };
+  return { type: NodeType.OPERATOR, id, data, children };
 };
 
 export const module = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
   type: NodeType.MODULE,
+  id: nextId(),
   data: {},
   children,
 });
 
 export const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
   type: NodeType.SCRIPT,
+  id: nextId(),
   data: {},
   children,
 });

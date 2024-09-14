@@ -8,6 +8,8 @@ import { FileMap } from 'codespan-napi';
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
+  register(Injectable.ASTNodeNextId, 0);
+  register(Injectable.ASTNodePrecedenceMap, new Map());
 });
 
 const testCase = (input, _?, _it: any = it) =>

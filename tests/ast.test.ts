@@ -1,11 +1,19 @@
-import { describe, expect } from 'vitest';
+import { beforeEach, describe, expect } from 'vitest';
 import { it, fc } from '@fast-check/vitest';
 import { parseTokens } from '../src/tokens.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
+import { Injectable, register } from '../src/injector.ts';
+import { FileMap } from 'codespan-napi';
 
 // const anyStringArb = fc.string({ size: 'large', unit: 'binary' });
 const anyStringArb = fc.fullUnicodeString({ size: 'large' });
 // const anyStringArb = fc.string();
+
+beforeEach(() => {
+  register(Injectable.FileMap, new FileMap());
+  register(Injectable.ASTNodeNextId, 0);
+  register(Injectable.ASTNodePrecedenceMap, new Map());
+});
 
 it.prop([anyStringArb])('module parsing never throws', (src) => {
   const tokens = parseTokens(src);

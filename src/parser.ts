@@ -19,8 +19,14 @@ import {
   module,
   string,
   token,
+  Precedence,
+  getPrecedence as getOperatorPrecedence,
 } from './ast.js';
+import { inject, Injectable } from './injector.js';
 
+export const getPrecedence = (node: AbstractSyntaxTree): Precedence =>
+  inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
+  getOperatorPrecedence(node.data.operator);
 const infix = (
   group: AbstractSyntaxTree,
   lhs: AbstractSyntaxTree,
@@ -268,7 +274,7 @@ const parsePatternPrefix =
     let index = i;
     let group: AbstractSyntaxTree;
     [index, group] = parsePatternGroup(banned, skip)(src, index);
-    const [, right] = group.data.precedence ?? [null, null];
+    const [, right] = getPrecedence(group) ?? [null, null];
 
     if (right !== null) {
       let rhs: AbstractSyntaxTree;
@@ -292,7 +298,7 @@ const parsePattern =
         skip,
         true
       )(src, index);
-      const [left, right] = group.data.precedence ?? [null, null];
+      const [left, right] = getPrecedence(group) ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -386,7 +392,7 @@ const parseGroup =
 
         const node = () => {
           const node = fn(pattern, sequence, { position: nodePosition() });
-          node.data.precedence = [null, null];
+          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
           return node;
         };
 
@@ -442,7 +448,7 @@ const parseGroup =
             condition,
             sequence
           );
-          node.data.precedence = [null, null];
+          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
           return node;
         };
         if (src[index]?.type === 'newline') index++;
@@ -512,7 +518,7 @@ const parseGroup =
             condition,
             sequence
           );
-          node.data.precedence = [null, null];
+          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
           return node;
         };
         if (src[index]?.type === 'newline') index++;
@@ -555,7 +561,7 @@ const parseGroup =
         const node = operator(OperatorType.IMPORT, nodePosition());
         node.data.name = name;
         if (pattern) node.children.push(pattern);
-        node.data.precedence = [null, null];
+        inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
         return node;
       };
 
@@ -597,7 +603,7 @@ const parseGroup =
           expr,
           sequence
         );
-        node.data.precedence = [null, null];
+        inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
 
         if (!hasInKeyword)
           node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
@@ -991,7 +997,7 @@ const parsePrefix =
 
     let [nextIndex, group] = parseGroup(banned, skip)(src, index);
     index = nextIndex;
-    const [, right] = group.data.precedence ?? [null, null];
+    const [, right] = getPrecedence(group) ?? [null, null];
 
     if (right !== null) {
       let rhs: AbstractSyntaxTree;
@@ -1018,7 +1024,7 @@ const parseExpr =
         [...skip, '\n'],
         true
       )(src, index);
-      const [left, right] = opGroup.data.precedence ?? [null, null];
+      const [left, right] = getPrecedence(opGroup) ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;

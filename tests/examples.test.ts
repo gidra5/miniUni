@@ -53,6 +53,8 @@ const examples = [
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
+  register(Injectable.ASTNodeNextId, 0);
+  register(Injectable.ASTNodePrecedenceMap, new Map());
 });
 
 for (const { name, file, expected } of examples) {
