@@ -140,225 +140,6 @@ describe('advent of code 1 single file', () => {
   });
 });
 
-describe('data constructors', () => {
-  it('unit', () => {
-    const input = `()`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('tuple', () => {
-    const input = `
-        list, reducer, merge, initial
-      `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('record single', async () => {
-    const input = `a: 1`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('record', async () => {
-    const input = `a: 1, b: 2`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('tuple with single item (atom)', async () => {
-    const input = `(:a,)`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-});
-
-describe('patterns', () => {
-  it('declare record pattern', async () => {
-    const input = `{ a, b } := handlers`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-});
-
-describe('multiline', () => {
-  it('parallel parens', async () => {
-    const input = `(
-        | 1
-        | 2
-      )`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('chaining', async () => {
-    const input = `a
-        .b`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('parens', async () => {
-    const input = `(
-        1 +
-        2
-        + 3
-      )`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('no parens', async () => {
-    const input = `
-        1 +
-        2
-        + 3
-      `;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('prefix', async () => {
-    const input = `!
-        a`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('infix-prefix', async () => {
-    const input = `b :=
-        !
-        a`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-
-  it('infix-infix', async () => {
-    const input = `b +
-        c +
-        d`;
-    const tokens = parseTokens(input);
-    const ast = parseScript(tokens);
-
-    expect(ast).toMatchSnapshot();
-  });
-});
-
-it('period operator', () => {
-  const input = `math.floor`;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('methods', () => {
-  const input = `math.floor(1).multiply(2)`;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('prefix parallel', () => {
-  const input = `
-      | { };
-      numbers := channel()
-    `;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('receive', () => {
-  const input = `
-      status := <-?numbers
-    `;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('index', () => {
-  const input = `x[0]`;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('fn increment', () => {
-  const input = `fn -> line_handled_count++`;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('loop scope', async () => {
-  const input = `
-    loop { x }
-  `;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it('switch', async () => {
-  const input = `
-    switch a {
-      1 -> 2,
-      2 -> 3,
-      _ -> 4,
-    }
-    `;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
-it.todo('if else separate lines', async () => {
-  const input = `
-    if a
-      1
-    else
-      2
-    `;
-  const tokens = parseTokens(input);
-  const ast = parseScript(tokens);
-
-  expect(ast).toMatchSnapshot();
-});
-
 /* one test per example of a language construct  */
 
 describe('comments', () => {
@@ -433,7 +214,7 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('boolean expressions', () => {
+  describe('boolean expressions', () => {
     it('not', () => {
       const src = `!123`;
       const tokens = parseTokens(src);
@@ -451,15 +232,7 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('function expressions', () => {
-    it('function with return type', () => {
-      const src = `fn x, y -> type { x + y }`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
+  describe('function expressions', () => {
     it('function block body', () => {
       const src = `fn x, y { x + y }`;
       const tokens = parseTokens(src);
@@ -476,9 +249,33 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('function', () => {
+    it('fn no parameters', () => {
+      const input = `fn -> 123`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('fn no parameters block', () => {
+      const input = `fn { 123 }`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('arrow function', () => {
       const src = `x -> x`;
       const tokens = parseTokens(src);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('fn increment', () => {
+      const input = `fn -> line_handled_count++`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
@@ -501,7 +298,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('send((1+2), 3)', () => {
+      it.todo('send((1+2), 3)', () => {
         const src = `send((1+2), 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -509,7 +306,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('send(2, 3)', () => {
+      it.todo('send(2, 3)', () => {
         const src = `send(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -517,7 +314,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('(send)(2, 3)', () => {
+      it.todo('(send)(2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -525,7 +322,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('(send 1)(2, 3)', () => {
+      it.todo('(send 1)(2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -533,7 +330,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('(send 1 2)(2, 3)', () => {
+      it.todo('(send 1 2)(2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -541,7 +338,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('send 1 + 2', () => {
+      it.todo('send 1 + 2', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -549,7 +346,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('a + send (2, 3)', () => {
+      it.todo('a + send (2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -557,7 +354,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('send a (2, 3)', () => {
+      it.todo('send a (2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -565,7 +362,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('send 1 (2, 3)', () => {
+      it.todo('send 1 (2, 3)', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -573,7 +370,7 @@ describe('expressions', () => {
         expect(ast).toMatchSnapshot();
       });
 
-      it('a + send 1 + 2', () => {
+      it.todo('a + send 1 + 2', () => {
         const src = `(send)(2, 3)`;
         const tokens = parseTokens(src);
         const ast = parseScript(tokens);
@@ -583,10 +380,16 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('pattern matching', () => {
-    it('switch', () => {
-      const src = `switch x { 1 -> 2; 3 -> 4 }`;
-      const tokens = parseTokens(src);
+  describe('pattern matching', () => {
+    it('switch', async () => {
+      const input = `
+        switch a {
+          1 -> 2,
+          2 -> 3,
+          _ -> 4,
+        }
+        `;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
@@ -600,7 +403,15 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it("with 'is' operator", () => {
+    it('declare record pattern', async () => {
+      const input = `{ a, b } := handlers`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo("with 'is' operator", () => {
       const src = `x is (a, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -608,7 +419,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with placeholder', () => {
+    it.todo('with placeholder', () => {
       const src = `x is (_, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -616,7 +427,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with variable value', () => {
+    it.todo('with variable value', () => {
       const src = `x is (^a, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -624,7 +435,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with rest value', () => {
+    it.todo('with rest value', () => {
       const src = `x is (a, ...b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -632,7 +443,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with rest value first', () => {
+    it.todo('with rest value first', () => {
       const src = `x is (...b, a)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -640,7 +451,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with default value', () => {
+    it.todo('with default value', () => {
       const src = `x is ((b = 4), a)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -648,7 +459,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with rename', () => {
+    it.todo('with rename', () => {
       const src = `x is (a @ b, c)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -656,7 +467,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('with name for match', () => {
+    it.todo('with name for match', () => {
       const src = `x is ((a, b) @ c)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -664,7 +475,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('binding visible in scope where it is true', () => {
+    it.todo('binding visible in scope where it is true', () => {
       const src = `x is (a, b) and a == b + 1`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -673,8 +484,8 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('structured programming', () => {
-    it('if-then 2', () => {
+  describe('structured programming', () => {
+    it.todo('if-then 2', () => {
       const src = `y := (x := 25; loop if x < 0: break x else { y := x; x = x - 1; if y == 19: continue 69; y })`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -682,7 +493,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('if-then', () => {
+    it.todo('if-then', () => {
       const src = `if true: 123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -690,7 +501,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('if-then-else', () => {
+    it.todo('if-then-else', () => {
       const src = `if true: 123 else 456`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -698,7 +509,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('if-then-elseif-then-else', () => {
+    it.todo('if-then-elseif-then-else', () => {
       const src = `if true: 123 else if false: 789 else 456`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -715,14 +526,14 @@ describe('expressions', () => {
     });
 
     it('for loop', () => {
-      const src = `for x in [1, 2, 3]: x`;
+      const src = `for x in (1, 2, 3): x`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it('for loop newline', () => {
+    it.todo('for loop newline', () => {
       const src = `for x in [1, 2, 3]\n x`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -738,39 +549,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('while loop break', () => {
-      const src = `while true: break _`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('while loop break value', () => {
-      const src = `while true: break 1`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('while loop continue', () => {
-      const src = `while true: continue _`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('while loop continue value', () => {
-      const src = `while true: continue 1`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('loop', () => {
+    it.todo('loop', () => {
       const src = `loop 123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -778,16 +557,16 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('labeled expression', () => {
-      const src = `label:: 123`;
-      const tokens = parseTokens(src);
+    it('loop scope', async () => {
+      const input = `loop { x }`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it('return', () => {
-      const src = `() -> { return 123 }`;
+    it.todo('labeled expression', () => {
+      const src = `label::123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -795,7 +574,7 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('concurrent programming', () => {
+  describe('concurrent programming', () => {
     it('channel send', () => {
       const src = `c <- 123`;
       const tokens = parseTokens(src);
@@ -828,6 +607,14 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
+    it('try receive with assignment', () => {
+      const input = `status := <-?numbers`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
     it('parallel value', () => {
       const src = `123 | 456`;
       const tokens = parseTokens(src);
@@ -836,7 +623,18 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('parallel with channels', () => {
+    it('prefix parallel with code after', () => {
+      const input = `
+          | { };
+          numbers := channel()
+        `;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo('parallel with channels', () => {
       const src = `c <- 123 | <- c`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -844,7 +642,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('async', () => {
+    it.todo('async', () => {
       const src = `async f x`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -852,7 +650,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('await async', () => {
+    it.todo('await async', () => {
       const src = `await async f x`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -860,16 +658,8 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('await', () => {
+    it.todo('await', () => {
       const src = `await x + 1`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('yield', () => {
-      const src = `yield 123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -877,33 +667,49 @@ describe('expressions', () => {
     });
   });
 
-  describe.todo('data structures', () => {
-    it('(-(2+7)/A,j, i, 127.0 )', () => {
-      const src = `(-(2+7)/A,j, i, 127.0 )`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
+  describe('data structures', () => {
     it('unit', () => {
-      const src = `()`;
-      const tokens = parseTokens(src);
+      const input = `()`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it('symbol', () => {
-      const src = `symbol`;
-      const tokens = parseTokens(src);
+    it('tuple', () => {
+      const input = `list, reducer, merge, initial`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it('channel', () => {
-      const src = `channel`;
+    it('record single', async () => {
+      const input = `a: 1`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('record', async () => {
+      const input = `a: 1, b: 2`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('tuple with single item (atom)', async () => {
+      const input = `(:a,)`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo('(-(2+7)/A,j, i, 127.0 )', () => {
+      const src = `(-(2+7)/A,j, i, 127.0 )`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -918,31 +724,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('tuple', () => {
-      const src = `1, 2`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('record', () => {
-      const src = `a: 1, b: 2`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('set', () => {
-      const src = `set (1, 2)`;
-      const tokens = parseTokens(src);
-      const ast = parseScript(tokens);
-
-      expect(ast).toMatchSnapshot();
-    });
-
-    it('map', () => {
+    it.todo('map', () => {
       const src = `[1]: 2, [3]: 4`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -958,17 +740,25 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('field access static', () => {
-      const src = `x.y`;
-      const tokens = parseTokens(src);
+    it('period operator', () => {
+      const input = `math.floor`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it('field access dynamic', () => {
-      const src = `x[y]`;
-      const tokens = parseTokens(src);
+    it('index', () => {
+      const input = `x[0]`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('methods', () => {
+      const input = `math.floor(1).multiply(2)`;
+      const tokens = parseTokens(input);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
@@ -1096,8 +886,89 @@ describe('programs', () => {
   });
 });
 
-describe.todo('newline handling', () => {
-  it('if-then newline', () => {
+describe('newline handling', () => {
+  it('parallel parens', async () => {
+    const input = `(
+        | 1
+        | 2
+      )`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('chaining', async () => {
+    const input = `a
+        .b`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('parens', async () => {
+    const input = `(
+        1 +
+        2
+        + 3
+      )`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('no parens', async () => {
+    const input = `
+        1 +
+        2
+        + 3
+      `;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('prefix', async () => {
+    const input = `!
+        a`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('infix-prefix', async () => {
+    const input = `b :=
+        !
+        a`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it('infix-infix', async () => {
+    const input = `b +
+        c +
+        d`;
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it.todo('if else separate lines', async () => {
+    const input = 'if a\n 1\n else\n 2';
+    const tokens = parseTokens(input);
+    const ast = parseScript(tokens);
+
+    expect(ast).toMatchSnapshot();
+  });
+
+  it.todo('if-then newline', () => {
     const src = `if true\n 123`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
@@ -1105,7 +976,7 @@ describe.todo('newline handling', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('if-then newline-else', () => {
+  it.todo('if-then newline-else', () => {
     const src = `if true\n 123 else 456`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
@@ -1113,7 +984,7 @@ describe.todo('newline handling', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('if-then newline-else newline', () => {
+  it.todo('if-then newline-else newline', () => {
     const src = `if true\n 123 else\n 456`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
@@ -1121,7 +992,7 @@ describe.todo('newline handling', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('block newline in the middle', () => {
+  it.todo('block newline in the middle', () => {
     const src = `{ a := 1\n b := 2 }`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
@@ -1129,7 +1000,7 @@ describe.todo('newline handling', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('block newline at the end', () => {
+  it.todo('block newline at the end', () => {
     const src = `{ a := 1\n b := 2\n }`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
@@ -1137,7 +1008,7 @@ describe.todo('newline handling', () => {
     expect(ast).toMatchSnapshot();
   });
 
-  it('block newline at the beginning', () => {
+  it.todo('block newline at the beginning', () => {
     const src = `{\n a := 1\n b := 2 }`;
     const tokens = parseTokens(src);
     const ast = parseScript(tokens);
