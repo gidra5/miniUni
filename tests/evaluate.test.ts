@@ -254,7 +254,7 @@ describe('scope', () => {
     expect(result).toEqual(6);
   });
 
-  it('effect handlers scoping', async () => {
+  it('effect handlers inject scoping', async () => {
     const input = `
       x := 1;
       inject a: 1, b: 2 {
@@ -264,108 +264,6 @@ describe('scope', () => {
     `;
     const result = await evaluate(input);
     expect(result).toEqual(1);
-  });
-});
-
-describe('effect handlers', () => {
-  it('all in one', async () => {
-    const input = `
-      inject a: 1, b: 2 {
-        { a, b } := injected;
-        inject a: a+1, b: b+2 {
-          mask "a" {
-            without "b" {
-              { a } := injected;
-              a + 1
-            }
-          }
-        }  
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual(2);
-  });
-
-  it('inject', async () => {
-    const input = `
-      inject a: 1, b: 2 {
-        injected
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual({ record: { a: 1, b: 2 } });
-  });
-
-  it('inject twice', async () => {
-    const input = `
-      inject a: 1, b: 2 {
-        { a, b } := injected;
-        
-        inject a: a+1, b: b+2 {
-          injected
-        }  
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual({ record: { a: 2, b: 4 } });
-  });
-
-  it('mask', async () => {
-    const input = `
-      inject a: 1, b: 2 {
-        { a, b } := injected;
-        
-        inject a: a+1, b: b+2 {
-          mask "a" {
-            injected
-          }
-        }  
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual({ record: { a: 1, b: 4 } });
-  });
-
-  it('without', async () => {
-    const input = `
-      inject a: 1, b: 2 {
-        { a, b } := injected;
-        
-        inject a: a+1, b: b+2 {
-          without "a" {
-            injected
-          }
-        }  
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual({ record: { b: 4 } });
-  });
-
-  it('parallel', async () => {
-    const input = `
-      f := fn {
-        { a, b } := injected;
-        a + b
-      };
-      
-      inject a: 1, b: 2 {
-        x1 := f();
-        x2 := async {
-          inject a: 3 {
-            f()
-          }
-        };
-        x3 := async {
-          inject a: 5, b: 4 {
-            f()
-          }
-        };
-        x1, await x2, await x3
-      }
-    `;
-    const result = await evaluate(input);
-    expect(result).toEqual([3, 5, 9]);
   });
 });
 
@@ -795,6 +693,24 @@ describe('expressions', () => {
         expect(result).toBe(null);
       });
     });
+
+    describe('resource handling', () => {
+      it.todo('with resource', async () => {
+        const input = `
+          import "std/io" as { open };
+          import "std/concurrency" as concurrency;
+
+          {
+            with open "file.txt" as file:
+            file.write("hello")
+          }
+
+          123
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe('hello');
+      });
+    });
   });
 
   describe('concurrent programming', () => {
@@ -1038,6 +954,167 @@ describe('expressions', () => {
         const result = await evaluate(input);
         expect(result).toStrictEqual([1, 2]);
       });
+    });
+  });
+
+  describe('effect handlers', () => {
+    it('all in one', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          { a, b } := injected;
+          inject a: a+1, b: b+2 {
+            mask "a" {
+              without "b" {
+                { a } := injected;
+                a + 1
+              }
+            }
+          }  
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual(2);
+    });
+
+    it('inject', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          injected
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual({ record: { a: 1, b: 2 } });
+    });
+
+    it('inject twice', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          { a, b } := injected;
+          
+          inject a: a+1, b: b+2 {
+            injected
+          }  
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual({ record: { a: 2, b: 4 } });
+    });
+
+    it('mask', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          { a, b } := injected;
+          
+          inject a: a+1, b: b+2 {
+            mask "a" {
+              injected
+            }
+          }  
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual({ record: { a: 1, b: 4 } });
+    });
+
+    it('without', async () => {
+      const input = `
+        inject a: 1, b: 2 {
+          { a, b } := injected;
+          
+          inject a: a+1, b: b+2 {
+            without "a" {
+              injected
+            }
+          }  
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual({ record: { b: 4 } });
+    });
+
+    it('parallel', async () => {
+      const input = `
+        f := fn {
+          { a, b } := injected;
+          a + b
+        };
+        
+        inject a: 1, b: 2 {
+          x1 := f();
+          x2 := async {
+            inject a: 3 {
+              f()
+            }
+          };
+          x3 := async {
+            inject a: 5, b: 4 {
+              f()
+            }
+          };
+          x1, await x2, await x3
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual([3, 5, 9]);
+    });
+
+    it.todo('pythagorean triple example', async () => {
+      const input = `
+        choose_int := fn m, n {
+          { decide, fail } := injected;
+
+          if m > n: fail();
+          if decide(): m else self m+1, n
+        };
+
+        pythagorean_triple := fn m, n {
+          { fail } := injected;
+
+          a := chooseInt(m, n);
+          b := chooseInt(a + 1, n + 1);
+          c := sqrt (a^2 + b^2);
+          if floor c != c: fail()
+
+          (a, b, c)
+        };
+        
+        false_branch_first :=
+          decide: fn x, continuation {
+            fail_handler := fail: fn -> continuation false
+            inject fail_handler { continuation true }
+          };
+        true_branch_first :=
+          decide: fn x, continuation {
+            fail_handler := fail: fn -> continuation true
+            inject fail_handler { continuation false }
+          };
+
+        inject false_branch_first { pythagorean_triple 4 15 },
+        inject true_branch_first { pythagorean_triple 4 15 }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([1, 2]);
+    });
+
+    it.todo('logger example', async () => {
+      const input = `
+        import "std/effects" as { return_handler };
+        logger :=
+          log: fn msg, continuation {
+            result, logs := continuation()
+            result, (msg, ...logs)
+          },
+          [return_handler]: fn x, continuation -> x, ()
+
+        inject logger {
+          { log } := injected;
+          log 123;
+          log 456;
+          123
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([123, [123, 456]]);
     });
   });
 
