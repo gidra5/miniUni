@@ -3,23 +3,29 @@ import { describe, expect } from 'vitest';
 import { it, fc, test } from '@fast-check/vitest';
 import { array, integer } from 'fast-check';
 
-// Test case: Parsing a string token
-test.prop([fc.string().filter((s) => !s.includes('\\') && !s.includes('"'))])(
-  'parseToken - string token',
-  (value) => {
-    const src = `"${value}"`;
-    const startIndex = 0;
-    const expectedToken = { type: 'string', src, value };
-    const expectedIndex = value.length + 2;
-
-    const [index, { start, end, ...token }] = parseToken(src, startIndex);
-
-    expect(index).toBe(expectedIndex);
-    expect(token).toEqual(expectedToken);
-  }
+// const anyStringArb = fc.string({ size: 'large', unit: 'binary' });
+const anyStringArb = fc.fullUnicodeString({ size: 'large' });
+// const anyStringArb = fc.string();
+const commentArb = anyStringArb.filter((s) => s.includes('\n'));
+const blockCommentArb = anyStringArb.filter(
+  (s) => s.includes('*/') || s.includes('/*')
+);
+const stringInsidesArb = anyStringArb.filter(
+  (s) => !s.includes('\\') && !s.includes('"')
 );
 
-// Test case: Parsing a number token
+test.prop([stringInsidesArb])('parseToken - string token', (value) => {
+  const src = `"${value}"`;
+  const startIndex = 0;
+  const expectedToken = { type: 'string', src, value };
+  const expectedIndex = value.length + 2;
+
+  const [index, { start, end, ...token }] = parseToken(src, startIndex);
+
+  expect(index).toBe(expectedIndex);
+  expect(token).toEqual(expectedToken);
+});
+
 describe('parseToken - number token', () => {
   it.prop([fc.stringMatching(/^\d+\.\d+$/)])('float literals', (src) => {
     const startIndex = 0;
@@ -156,7 +162,6 @@ describe('parseToken - number token', () => {
   );
 });
 
-// Test case: Parsing an identifier token
 describe('parseToken - identifier token', () => {
   it.prop([fc.stringMatching(/^[a-zA-Z]\w*$/)])('regular idents', (src) => {
     const startIndex = 0;
@@ -249,7 +254,6 @@ describe('parseTokens - comments', () => {
   });
 });
 
-// Test case: Parsing tokens from a source string
 test('parseTokens', () => {
   const src = '42 "Hello" variable ((expr))';
 
@@ -258,6 +262,53 @@ test('parseTokens', () => {
   expect(tokens).toMatchSnapshot();
 });
 
-it.prop([fc.string()])('parseTokens never throws', (src) => {
+it.prop([anyStringArb])('parseTokens never throws', (src) => {
   expect(() => parseTokens(src)).not.toThrow();
 });
+
+it.todo.prop([anyStringArb, commentArb])(
+  'adding line comments instead of newlines never changes the result',
+  (src, comment) => {
+    const tokens = parseTokens(src);
+    const withComments = parseTokens(withLineComments());
+    expect(tokens).toStrictEqual(withComments);
+
+    function withLineComments(): string {
+      let result = src;
+      for (const token of [...tokens].reverse()) {
+        if (token.type === 'newline') {
+          const startString = result.slice(0, token.start);
+          const endString = result.slice(token.end);
+          result = `${startString}//${comment}\n${endString}`;
+        }
+      }
+      return result;
+    }
+  }
+);
+
+it.todo.prop([anyStringArb, blockCommentArb])(
+  'adding block comments between tokens never changes the result',
+  (src, comment) => {
+    const tokens = parseTokens(src);
+    const withComments = parseTokens(withBlockComments());
+    expect(tokens).toStrictEqual(withComments);
+
+    function withBlockComments(): string {
+      let result = src;
+      for (const [i, token] of [...tokens].reverse().entries()) {
+        if (i === tokens.length - 1) {
+          result = `${result}/*${comment}*/`;
+          continue;
+        }
+
+        // insert block comment between tokens
+        const prevToken = tokens[i + 1];
+        const startString = result.slice(0, token.end);
+        const endString = result.slice(prevToken.start);
+        result = `${startString}/*${comment}*/${endString}`;
+      }
+      return result;
+    }
+  }
+);

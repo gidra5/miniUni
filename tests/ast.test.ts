@@ -534,6 +534,14 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
+    it.todo('sequencing', async () => {
+      const input = `123; 234; 345; 456`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
     it('block', () => {
       const src = `{ 123 }`;
       const tokens = parseTokens(src);
