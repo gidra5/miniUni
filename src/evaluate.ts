@@ -538,6 +538,110 @@ async function bindExport(
   );
 }
 
+const operators = {
+  [OperatorType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
+    let sum = head;
+    assert(
+      typeof sum === 'number' || typeof sum === 'string',
+      'expected number or string on lhs'
+    );
+    for (const v of rest) {
+      assert(
+        typeof v === typeof sum,
+        'expected number or string on both lhs and rhs'
+      );
+      sum += v as string;
+    }
+    return sum;
+  },
+  [OperatorType.SUB]: (head: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof head === 'number', 'expected number');
+    let sum = head;
+    for (const v of rest) {
+      assert(typeof v === 'number', 'expected number');
+      sum -= v;
+    }
+    return sum;
+  },
+  [OperatorType.MULT]: (head: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof head === 'number', 'expected number');
+    let sum = head;
+    for (const v of rest) {
+      assert(typeof v === 'number', 'expected number');
+      sum *= v;
+    }
+    return sum;
+  },
+  [OperatorType.DIV]: (head: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof head === 'number', 'expected number');
+    let sum = head;
+    for (const v of rest) {
+      assert(typeof v === 'number', 'expected number');
+      sum /= v;
+    }
+    return sum;
+  },
+  [OperatorType.MOD]: (head: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof head === 'number', 'expected number');
+    let sum = head;
+    for (const v of rest) {
+      assert(typeof v === 'number', 'expected number');
+      sum %= v;
+    }
+    return sum;
+  },
+  [OperatorType.POW]: (head: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof head === 'number', 'expected number');
+    let sum = head;
+    for (const v of rest) {
+      assert(typeof v === 'number', 'expected number');
+      sum **= v;
+    }
+    return sum;
+  },
+  [OperatorType.PLUS]: (arg: EvalValue) => {
+    assert(typeof arg === 'number', 'expected number');
+    return +arg;
+  },
+  [OperatorType.MINUS]: (arg: EvalValue) => {
+    assert(typeof arg === 'number', 'expected number');
+    return -arg;
+  },
+
+  [OperatorType.EQUAL]: (left: EvalValue, right: EvalValue) => {
+    if (isSymbol(left) && isSymbol(right)) {
+      return left.symbol === right.symbol;
+    } else if (isChannel(left) && isChannel(right)) {
+      return left.channel === right.channel;
+    } else if (isRecord(left) && isRecord(right)) {
+      return left.record === right.record;
+    } else return left === right;
+  },
+  [OperatorType.NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return !operators[OperatorType.EQUAL](left, right);
+  },
+  [OperatorType.LESS]: (left: EvalValue, right: EvalValue) => {
+    assert(typeof left === 'number', 'expected number');
+    assert(typeof right === 'number', 'expected number');
+    return left < right;
+  },
+  [OperatorType.LESS_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    assert(typeof left === 'number', 'expected number');
+    assert(typeof right === 'number', 'expected number');
+    return left <= right;
+  },
+  [OperatorType.GREATER]: (left: EvalValue, right: EvalValue) => {
+    return !operators[OperatorType.LESS_EQUAL](left, right);
+  },
+  [OperatorType.GREATER_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return !operators[OperatorType.LESS](left, right);
+  },
+  [OperatorType.NOT]: (arg: EvalValue) => {
+    // assert(typeof arg === 'boolean', 'expected boolean');
+    return !arg;
+  },
+};
+
 export const evaluateStatement = async (
   ast: AbstractSyntaxTree,
   context: Context
@@ -580,50 +684,28 @@ export const evaluateStatement = async (
           return value;
         }
 
+        case OperatorType.EQUAL:
+        case OperatorType.NOT_EQUAL:
+        case OperatorType.LESS:
+        case OperatorType.LESS_EQUAL:
+        case OperatorType.GREATER:
+        case OperatorType.GREATER_EQUAL:
+        case OperatorType.NOT:
+        case OperatorType.MOD:
+        case OperatorType.POW:
+        case OperatorType.MINUS:
+        case OperatorType.PLUS:
+        case OperatorType.DIV:
+        case OperatorType.MULT:
+        case OperatorType.SUB:
         case OperatorType.ADD: {
-          const args = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return args.reduce((acc, arg) => acc + arg);
+          const args: EvalValue[] = [];
+          for (const child of ast.children) {
+            args.push(await evaluateExpr(child, context));
+          }
+          return operators[ast.data.operator](...args);
         }
-        case OperatorType.SUB: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left - right;
-        }
-        case OperatorType.MULT: {
-          const args = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return args.reduce((acc, arg) => acc * arg);
-        }
-        case OperatorType.DIV: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left / right;
-        }
-        case OperatorType.MOD: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left % right;
-        }
-        case OperatorType.POW: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left ** right;
-        }
-        case OperatorType.MINUS: {
-          const arg = await evaluateExpr(ast.children[0], context);
-          return -arg;
-        }
-        case OperatorType.PLUS: {
-          const arg = await evaluateExpr(ast.children[0], context);
-          return +arg;
-        }
+
         case OperatorType.INCREMENT: {
           const arg = ast.children[0];
           assert(arg.type === NodeType.NAME, 'expected name');
@@ -681,68 +763,16 @@ export const evaluateStatement = async (
           }
           return false;
         }
-        case OperatorType.EQUAL: {
-          const [left, right] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
-
-          if (isSymbol(left) && isSymbol(right)) {
-            return left.symbol === right.symbol;
-          } else if (isChannel(left) && isChannel(right)) {
-            return left.channel === right.channel;
-          } else if (isRecord(left) && isRecord(right)) {
-            return left.record === right.record;
-          } else return left === right;
-        }
-        case OperatorType.NOT_EQUAL: {
-          const [left, right] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
-
-          if (isSymbol(left) && isSymbol(right)) {
-            return left.symbol !== right.symbol;
-          } else if (isChannel(left) && isChannel(right)) {
-            return left.channel !== right.channel;
-          } else if (isRecord(left) && isRecord(right)) {
-            return left.record !== right.record;
-          } else return left !== right;
-        }
-        case OperatorType.LESS: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left < right;
-        }
-        case OperatorType.LESS_EQUAL: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left <= right;
-        }
-        case OperatorType.GREATER: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left > right;
-        }
-        case OperatorType.GREATER_EQUAL: {
-          const [left, right] = (await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          )) as number[];
-          return left >= right;
-        }
-        case OperatorType.NOT: {
-          const arg = await evaluateExpr(ast.children[0], context);
-          return !arg;
-        }
-        case OperatorType.PARENS:
+        case OperatorType.PARENS: {
           if (ast.children[0].type === NodeType.IMPLICIT_PLACEHOLDER) return [];
           return await evaluateStatement(ast.children[0], context);
+        }
 
         case OperatorType.INDEX: {
-          const [target, index] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
+          const [target, index] = [
+            await evaluateExpr(ast.children[0], context),
+            await evaluateExpr(ast.children[1], context),
+          ];
 
           if (Array.isArray(target)) {
             if (!Number.isInteger(index)) {
@@ -833,12 +863,13 @@ export const evaluateStatement = async (
 
           return { record: { [key]: value } };
         }
-        case OperatorType.SPREAD:
+        case OperatorType.SPREAD: {
           unreachable(
             SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
               context.fileId
             )
           );
+        }
 
         case OperatorType.ASYNC: {
           const channel = createChannel('async');
@@ -888,9 +919,10 @@ export const evaluateStatement = async (
         }
 
         case OperatorType.SEND: {
-          const [channelValue, value] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
+          const [channelValue, value] = [
+            await evaluateExpr(ast.children[0], context),
+            await evaluateExpr(ast.children[1], context),
+          ];
 
           assert(
             isChannel(channelValue),
@@ -940,9 +972,10 @@ export const evaluateStatement = async (
           });
         }
         case OperatorType.SEND_STATUS: {
-          const [channelValue, value] = await Promise.all(
-            ast.children.map((child) => evaluateExpr(child, context))
-          );
+          const [channelValue, value] = [
+            await evaluateExpr(ast.children[0], context),
+            await evaluateExpr(ast.children[1], context),
+          ];
 
           assert(
             isChannel(channelValue),
@@ -971,16 +1004,18 @@ export const evaluateStatement = async (
           return [value ?? [], atom(status)];
         }
 
-        case OperatorType.ATOM:
+        case OperatorType.ATOM: {
           assert(ast.children[0].type === NodeType.NAME, 'expected name');
           return atom(ast.children[0].data.value);
+        }
 
-        case OperatorType.TOKEN:
+        case OperatorType.TOKEN: {
           unreachable(
             SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
               context.fileId
             )
           );
+        }
 
         case OperatorType.INJECT: {
           const [expr, body] = ast.children;
@@ -1157,8 +1192,9 @@ export const evaluateStatement = async (
           await bind(pattern, value, context);
           return value;
         }
-        case OperatorType.SEQUENCE:
+        case OperatorType.SEQUENCE: {
           return await evaluateSequence(ast, context);
+        }
         case OperatorType.BLOCK: {
           try {
             return await evaluateBlock(ast.children[0], context);
@@ -1203,10 +1239,10 @@ export const evaluateStatement = async (
         }
         case OperatorType.APPLICATION: {
           const [fnExpr, argStmt] = ast.children;
-          const [fnValue, argValue] = await Promise.all([
-            evaluateExpr(fnExpr, context),
-            evaluateStatement(argStmt, context),
-          ]);
+          const [fnValue, argValue] = [
+            await evaluateExpr(fnExpr, context),
+            await evaluateStatement(argStmt, context),
+          ];
 
           assert(
             typeof fnValue === 'function',
