@@ -21,13 +21,14 @@ import {
   string,
   token,
   Precedence,
-  getPrecedence as getOperatorPrecedence,
+  getExprPrecedence as getExprPrecedence,
+  PatternNodeType,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 
 export const getPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
-  getOperatorPrecedence(node.type);
+  getExprPrecedence(node.type);
 
 export const getPosition = (node: Tree): Position => {
   const map = inject(Injectable.ASTNodePositionMap);
@@ -110,7 +111,7 @@ const idToPrefixPatternOp = {
   '...': OperatorNodeType.SPREAD,
   ':': OperatorNodeType.ATOM,
   export: OperatorNodeType.EXPORT,
-  mut: OperatorNodeType.MUTABLE,
+  mut: PatternNodeType.MUTABLE,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
@@ -165,7 +166,7 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () => {
-        const node = _node(OperatorNodeType.OBJECT, {
+        const node = _node(PatternNodeType.OBJECT, {
           position: nodePosition(),
         });
         if (pattern.type === OperatorNodeType.TUPLE) {

@@ -26,7 +26,27 @@ const RootNodeType = {
 } as const;
 type RootNodeType = (typeof RootNodeType)[keyof typeof RootNodeType];
 
-export const OperatorNodeType = {
+export const PatternNodeType = {
+  ...LeafNodeType,
+  TUPLE: 'tuple',
+  SPREAD: '...',
+  MUTABLE: 'mut',
+  COLON: ':',
+  ATOM: 'atom',
+  OBJECT: 'object',
+  PARENS: 'parens',
+  SQUARE_BRACKETS: 'square_brackets',
+} as const;
+export type PatternNodeType =
+  (typeof PatternNodeType)[keyof typeof PatternNodeType];
+
+export const TupleNodeType = {
+  SPREAD: '...',
+  COLON: ':',
+} as const;
+
+export const ExpressionNodeType = {
+  ...LeafNodeType,
   ADD: 'add',
   PLUS: 'plus',
   SUB: 'subtract',
@@ -43,7 +63,6 @@ export const OperatorNodeType = {
   ATOM: 'atom',
   COLON: ':',
   TUPLE: ',',
-  SPREAD: '...',
   NOT: 'not',
   NOT_EQUAL: '!=',
   EQUAL: '==',
@@ -55,7 +74,6 @@ export const OperatorNodeType = {
   LESS_EQUAL: '<=',
   APPLICATION: 'application',
   PARENS: 'parens',
-  OBJECT: 'object',
   INDEX: 'index',
   SQUARE_BRACKETS: 'square_brackets',
   SEQUENCE: 'sequence',
@@ -84,6 +102,11 @@ export const OperatorNodeType = {
   WITHOUT: 'without',
   GREATER: '>',
   GREATER_EQUAL: '>=',
+} as const;
+
+export const OperatorNodeType = {
+  ...ExpressionNodeType,
+  SPREAD: '...',
   MUTABLE: 'mut',
 } as const;
 export type OperatorNodeType =
@@ -209,10 +232,42 @@ enum Fixity {
   NONE = 'none',
 }
 
+const generatePrecedences = <T extends string>(
+  precedenceList: [T, Fixity, Associativity?][]
+) => {
+  const precedences = {} as Record<T, Precedence>;
+
+  // if two same operators are next to each other, which one will take precedence
+  // left associative - left one will take precedence
+  // right associative - right one will take precedence
+  // associative - does not matter, can be grouped in any order
+  const leftAssociative = (p: number): Precedence => [p, p + 1];
+  const rightAssociative = (p: number): Precedence => [p + 1, p];
+  const associative = (p: number): Precedence => [p, p];
+  let precedenceCounter = 0;
+
+  for (const [operator, fixity, associativity] of precedenceList) {
+    precedenceCounter++;
+
+    if (fixity === Fixity.PREFIX) {
+      precedences[operator] = [null, precedenceCounter];
+    } else if (fixity === Fixity.POSTFIX) {
+      precedences[operator] = [precedenceCounter, null];
+    } else if (fixity === Fixity.NONE) {
+      precedences[operator] = [null, null];
+    } else if (associativity === Associativity.LEFT_AND_RIGHT) {
+      precedences[operator] = associative(precedenceCounter);
+    } else if (associativity === Associativity.LEFT) {
+      precedences[operator] = leftAssociative(precedenceCounter++);
+    } else precedences[operator] = rightAssociative(precedenceCounter++);
+  }
+
+  return precedences;
+};
+
 // if two same operators are next to each other, which one will take precedence
 // first come lower precedence operators
-// const semicolonPrecedence = [
-const precedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
+const exprPrecedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
   // [OperatorType.SEQUENCE, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.FUNCTION, Fixity.PREFIX],
   [OperatorNodeType.IF, Fixity.PREFIX],
@@ -271,39 +326,23 @@ const precedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
   [OperatorNodeType.ATOM, Fixity.PREFIX],
 ] as const;
 
-const precedences = (() => {
-  const precedences = {};
+const patternPrecedenceList: [PatternNodeType, Fixity, Associativity?][] = [
+  [PatternNodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [PatternNodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
+  [PatternNodeType.SPREAD, Fixity.PREFIX],
+  [PatternNodeType.ATOM, Fixity.PREFIX],
+] as const;
 
-  // if two same operators are next to each other, which one will take precedence
-  // left associative - left one will take precedence
-  // right associative - right one will take precedence
-  // associative - does not matter, can be grouped in any order
-  const leftAssociative = (p: number): Precedence => [p, p + 1];
-  const rightAssociative = (p: number): Precedence => [p + 1, p];
-  const associative = (p: number): Precedence => [p, p];
-  let precedenceCounter = 0;
+const exprPrecedences = generatePrecedences(exprPrecedenceList);
 
-  for (const [operator, fixity, associativity] of precedenceList) {
-    precedenceCounter++;
+const patternPrecedences = generatePrecedences(patternPrecedenceList);
 
-    if (fixity === Fixity.PREFIX) {
-      precedences[operator] = [null, precedenceCounter];
-    } else if (fixity === Fixity.POSTFIX) {
-      precedences[operator] = [precedenceCounter, null];
-    } else if (fixity === Fixity.NONE) {
-      precedences[operator] = [null, null];
-    } else if (associativity === Associativity.LEFT_AND_RIGHT) {
-      precedences[operator] = associative(precedenceCounter);
-    } else if (associativity === Associativity.LEFT) {
-      precedences[operator] = leftAssociative(precedenceCounter++);
-    } else precedences[operator] = rightAssociative(precedenceCounter++);
-  }
+export const getExprPrecedence = (operator: string): Precedence => {
+  return exprPrecedences[operator] ?? [null, null];
+};
 
-  return precedences as Record<OperatorNodeType, Precedence>;
-})();
-
-export const getPrecedence = (operator: string): Precedence => {
-  return precedences[operator] ?? [null, null];
+export const getPatternPrecedence = (operator: string): Precedence => {
+  return patternPrecedences[operator] ?? [null, null];
 };
 
 export const node = (
