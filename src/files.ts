@@ -7,12 +7,15 @@ import {
 import { SystemError } from './error.js';
 import { assert, inspect, unreachable } from './utils.js';
 import {
+  awaitTask,
+  cancelTask,
   closeChannel,
   createChannel,
   EvalValue,
   fn,
   isChannel,
   isRecord,
+  isTask,
   receive,
 } from './values.js';
 import path from 'path';
@@ -51,15 +54,35 @@ export const prelude: Record<string, EvalValue> = {
   await: fn(1, async ([position, fileId], value) => {
     const awaitErrorFactory = SystemError.invalidArgumentType(
       'await',
-      { args: [['target', 'channel a']], returns: 'a' },
+      { args: [['target', 'task a']], returns: 'a' },
       position
     );
-    assert(isChannel(value), awaitErrorFactory(0).withFileId(fileId));
-    return await receive(value.channel);
+    assert(isTask(value), awaitErrorFactory(0).withFileId(fileId));
+    return await awaitTask(value);
+  }),
+  cancel: fn(1, ([position, fileId], value) => {
+    const cancelErrorFactory = SystemError.invalidArgumentType(
+      'cancel',
+      { args: [['target', 'task _']], returns: 'void' },
+      position
+    );
+    assert(isTask(value), cancelErrorFactory(0).withFileId(fileId));
+    return cancelTask(value);
   }),
   channel: fn(1, (_, name) => {
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
+  }),
+  close: fn(1, ([position, fileId], value) => {
+    const closeErrorFactory = SystemError.invalidArgumentType(
+      'cancel',
+      { args: [['target', 'channel _']], returns: 'void' },
+      position
+    );
+    assert(value !== null, closeErrorFactory(0).withFileId(fileId));
+    assert(isChannel(value), closeErrorFactory(0).withFileId(fileId));
+    closeChannel(value.channel);
+    return null;
   }),
   symbol: fn(1, (_, name) => {
     if (typeof name === 'string') return { symbol: Symbol(name) };
@@ -95,12 +118,6 @@ export const prelude: Record<string, EvalValue> = {
   }),
   continue: fn(1, (_, value) => {
     throw { continue: value };
-  }),
-  close: fn(1, (_, value) => {
-    assert(value !== null, 'expected value');
-    assert(isChannel(value), 'expected channel');
-    closeChannel(value.channel);
-    return null;
   }),
 };
 
@@ -284,17 +301,46 @@ export const modules: Dictionary = {
       const allErrorFactory = SystemError.invalidArgumentType(
         'all',
         {
-          args: [['target', 'list (channel a)']],
+          args: [['target', 'list (task a)']],
           returns: 'list a',
         },
         position
       );
       assert(Array.isArray(list), allErrorFactory(0).withFileId(fileId));
-      const x = list.map(async (channel) => {
-        assert(isChannel(channel), allErrorFactory(0).withFileId(fileId));
-        return await receive(channel.channel);
+      const x = list.map(async (task) => {
+        assert(isTask(task), allErrorFactory(0).withFileId(fileId));
+        return await awaitTask(task);
       });
       return (await Promise.all(x)).filter((x) => x !== null);
+    }),
+    some: fn(1, async ([position, fileId], list) => {
+      const someErrorFactory = SystemError.invalidArgumentType(
+        'some',
+        {
+          args: [['target', 'list a']],
+          returns: 'boolean',
+        },
+        position
+      );
+      assert(Array.isArray(list), someErrorFactory(0).withFileId(fileId));
+      const x = list.map(async (channel) => {
+        assert(isChannel(channel), someErrorFactory(0).withFileId(fileId));
+        return await receive(channel.channel);
+      });
+      return await Promise.race(x);
+    }),
+    wait: fn(1, async ([position, fileId], time) => {
+      const waitErrorFactory = SystemError.invalidArgumentType(
+        'wait',
+        {
+          args: [['time', 'number']],
+          returns: 'void',
+        },
+        position
+      );
+      assert(typeof time === 'number', waitErrorFactory(0).withFileId(fileId));
+      await new Promise((resolve) => setTimeout(resolve, time));
+      return null;
     }),
   }),
 };

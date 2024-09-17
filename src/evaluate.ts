@@ -20,6 +20,7 @@ import {
   atom,
   closeChannel,
   createChannel,
+  createTask,
   EvalFunction,
   EvalValue,
   getChannel,
@@ -872,50 +873,29 @@ export const evaluateStatement = async (
         }
 
         case OperatorType.ASYNC: {
-          const channel = createChannel('async');
           const expr = ast.children[0];
-
-          // any async expression should be evaluated in a new scope
-          evaluateBlock(expr, context)
-            .then(
-              (value) => send(channel.channel, value),
-              (e) => {
-                send(channel.channel, e);
-                console.error(e);
-
-                if (e instanceof SystemError) e.print();
-                else showNode(e.message, expr);
-              }
-            )
-            .finally(() => {
-              closeChannel(channel.channel);
-            });
-
-          return channel;
+          return createTask(
+            async () => await evaluateBlock(expr, context),
+            (e) => {
+              console.error(e);
+              if (e instanceof SystemError) e.print();
+              else showNode(e.message, expr);
+            }
+          );
         }
 
         case OperatorType.PARALLEL: {
-          const _channels = ast.children.map((child, i) => {
-            const channel = createChannel('parallel ' + i);
-
-            // any async expression should be evaluated in a new scope
-            evaluateBlock(child, context)
-              .then(
-                (value) => send(channel.channel, value),
-                (e) => {
-                  console.error(e);
-                  send(channel.channel, e);
-                  if (e instanceof SystemError) e.print();
-                  else showNode(e.message, child);
-                }
-              )
-              .finally(() => {
-                closeChannel(channel.channel);
-              });
-
-            return channel;
+          const tasks = ast.children.map((child) => {
+            return createTask(
+              async () => await evaluateBlock(child, context),
+              (e) => {
+                console.error(e);
+                if (e instanceof SystemError) e.print();
+                else showNode(e.message, child);
+              }
+            );
           });
-          return _channels;
+          return tasks;
         }
 
         case OperatorType.SEND: {
