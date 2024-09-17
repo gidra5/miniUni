@@ -14,8 +14,8 @@ import {
   fn,
   implicitPlaceholder,
   NodeType,
-  operator,
-  OperatorType,
+  node as _node,
+  OperatorNodeType,
   script,
   module,
   string,
@@ -52,65 +52,65 @@ const prefix = (group: Tree, rhs: Tree): Tree => {
 };
 
 const idToExprOp = {
-  '+': OperatorType.ADD,
-  '-': OperatorType.SUB,
-  '*': OperatorType.MULT,
-  '/': OperatorType.DIV,
-  '%': OperatorType.MOD,
-  '^': OperatorType.POW,
-  '==': OperatorType.EQUAL,
-  '!=': OperatorType.NOT_EQUAL,
-  '<': OperatorType.LESS,
-  '<=': OperatorType.LESS_EQUAL,
-  '>': OperatorType.GREATER,
-  '>=': OperatorType.GREATER_EQUAL,
-  '++': OperatorType.POST_INCREMENT,
-  '--': OperatorType.POST_DECREMENT,
-  '->': OperatorType.FUNCTION,
-  ',': OperatorType.TUPLE,
-  ':': OperatorType.COLON,
+  '+': OperatorNodeType.ADD,
+  '-': OperatorNodeType.SUB,
+  '*': OperatorNodeType.MULT,
+  '/': OperatorNodeType.DIV,
+  '%': OperatorNodeType.MOD,
+  '^': OperatorNodeType.POW,
+  '==': OperatorNodeType.EQUAL,
+  '!=': OperatorNodeType.NOT_EQUAL,
+  '<': OperatorNodeType.LESS,
+  '<=': OperatorNodeType.LESS_EQUAL,
+  '>': OperatorNodeType.GREATER,
+  '>=': OperatorNodeType.GREATER_EQUAL,
+  '++': OperatorNodeType.POST_INCREMENT,
+  '--': OperatorNodeType.POST_DECREMENT,
+  '->': OperatorNodeType.FUNCTION,
+  ',': OperatorNodeType.TUPLE,
+  ':': OperatorNodeType.COLON,
   // ';': OperatorType.SEQUENCE,
-  '<-': OperatorType.SEND,
-  '?<-': OperatorType.SEND_STATUS,
-  '|': OperatorType.PARALLEL,
-  and: OperatorType.AND,
-  or: OperatorType.OR,
+  '<-': OperatorNodeType.SEND,
+  '?<-': OperatorNodeType.SEND_STATUS,
+  '|': OperatorNodeType.PARALLEL,
+  and: OperatorNodeType.AND,
+  or: OperatorNodeType.OR,
 };
 
 const idToPrefixExprOp = {
-  '!': OperatorType.NOT,
-  '-': OperatorType.MINUS,
-  '+': OperatorType.PLUS,
-  '++': OperatorType.INCREMENT,
-  '--': OperatorType.DECREMENT,
-  '...': OperatorType.SPREAD,
-  ':': OperatorType.ATOM,
-  '<-': OperatorType.RECEIVE,
-  '<-?': OperatorType.RECEIVE_STATUS,
-  not: OperatorType.NOT,
-  async: OperatorType.FORK,
-  loop: OperatorType.LOOP,
-  export: OperatorType.EXPORT,
+  '!': OperatorNodeType.NOT,
+  '-': OperatorNodeType.MINUS,
+  '+': OperatorNodeType.PLUS,
+  '++': OperatorNodeType.INCREMENT,
+  '--': OperatorNodeType.DECREMENT,
+  '...': OperatorNodeType.SPREAD,
+  ':': OperatorNodeType.ATOM,
+  '<-': OperatorNodeType.RECEIVE,
+  '<-?': OperatorNodeType.RECEIVE_STATUS,
+  not: OperatorNodeType.NOT,
+  async: OperatorNodeType.FORK,
+  loop: OperatorNodeType.LOOP,
+  export: OperatorNodeType.EXPORT,
 };
 
 const idToLhsPatternExprOp = {
-  '->': OperatorType.FUNCTION,
-  ':=': OperatorType.DECLARE,
-  '=': OperatorType.ASSIGN,
-  '+=': OperatorType.INC_ASSIGN,
+  '->': OperatorNodeType.FUNCTION,
+  ':=': OperatorNodeType.DECLARE,
+  '=': OperatorNodeType.ASSIGN,
+  '+=': OperatorNodeType.INC_ASSIGN,
 };
 
 const idToPatternOp = {
-  ',': OperatorType.TUPLE,
-  '=': OperatorType.ASSIGN,
-  ':': OperatorType.COLON,
+  ',': OperatorNodeType.TUPLE,
+  '=': OperatorNodeType.ASSIGN,
+  ':': OperatorNodeType.COLON,
 };
 
 const idToPrefixPatternOp = {
-  '...': OperatorType.SPREAD,
-  ':': OperatorType.ATOM,
-  export: OperatorType.EXPORT,
-  mut: OperatorType.MUTABLE,
+  '...': OperatorNodeType.SPREAD,
+  ':': OperatorNodeType.ATOM,
+  export: OperatorNodeType.EXPORT,
+  mut: OperatorNodeType.MUTABLE,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
@@ -146,13 +146,13 @@ const parsePatternGroup =
     if (!lhs && src[index].src in idToPrefixPatternOp) {
       const op = idToPrefixPatternOp[src[index].src];
       index++;
-      return [index, operator(op, { position: nodePosition() })];
+      return [index, _node(op, { position: nodePosition() })];
     }
 
     if (lhs && src[index].src in idToPatternOp) {
       const op = idToPatternOp[src[index].src];
       index++;
-      return [index, operator(op)];
+      return [index, _node(op)];
     }
 
     if (src[index].src === '{') {
@@ -165,10 +165,10 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () => {
-        const node = operator(OperatorType.OBJECT, {
+        const node = _node(OperatorNodeType.OBJECT, {
           position: nodePosition(),
         });
-        if (pattern.type === OperatorType.TUPLE) {
+        if (pattern.type === OperatorNodeType.TUPLE) {
           node.children = pattern.children;
         } else {
           node.children.push(pattern);
@@ -199,7 +199,7 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () =>
-        operator(OperatorType.PARENS, {
+        _node(OperatorNodeType.PARENS, {
           position: nodePosition(),
           children: [pattern],
         });
@@ -227,7 +227,7 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () =>
-        operator(OperatorType.INDEX, {
+        _node(OperatorNodeType.INDEX, {
           position: nodePosition(),
           children: [pattern],
         });
@@ -394,7 +394,7 @@ const parseGroup =
         index++;
         return [
           index,
-          operator(OperatorType.FUNCTION, {
+          _node(OperatorNodeType.FUNCTION, {
             position: nodePosition(),
             children: [pattern],
           }),
@@ -405,7 +405,7 @@ const parseGroup =
         index,
         error(
           SystemError.missingToken(nodePosition(), '->', '{'),
-          operator(OperatorType.FUNCTION, {
+          _node(OperatorNodeType.FUNCTION, {
             position: nodePosition(),
             children: [pattern],
           })
@@ -429,7 +429,7 @@ const parseGroup =
         followSet.pop();
 
         const node = () => {
-          const node = operator(OperatorType.IF, {
+          const node = _node(OperatorNodeType.IF, {
             position: nodePosition(),
             children: [condition, sequence],
           });
@@ -450,7 +450,7 @@ const parseGroup =
           index++;
           return [
             index,
-            operator(OperatorType.IF_ELSE, {
+            _node(OperatorNodeType.IF_ELSE, {
               position: nodePosition(),
               children: [condition, sequence],
             }),
@@ -467,7 +467,7 @@ const parseGroup =
         if (src[_index]?.src !== 'else') {
           return [
             index,
-            operator(OperatorType.IF, {
+            _node(OperatorNodeType.IF, {
               position: nodePosition(),
               children: [condition],
             }),
@@ -477,7 +477,7 @@ const parseGroup =
         index = _index + 1;
         return [
           index,
-          operator(OperatorType.IF_ELSE, {
+          _node(OperatorNodeType.IF_ELSE, {
             position: nodePosition(),
             children: [condition, body],
           }),
@@ -488,7 +488,7 @@ const parseGroup =
         index,
         error(
           SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          operator(OperatorType.IF, {
+          _node(OperatorNodeType.IF, {
             position: nodePosition(),
             children: [condition],
           })
@@ -512,7 +512,7 @@ const parseGroup =
         [index, sequence] = parseSequence(src, index, ['}']);
         followSet.pop();
         const node = () => {
-          const node = operator(OperatorType.WHILE, {
+          const node = _node(OperatorNodeType.WHILE, {
             position: nodePosition(),
             children: [condition, sequence],
           });
@@ -536,7 +536,7 @@ const parseGroup =
         index++;
         return [
           index,
-          operator(OperatorType.WHILE, {
+          _node(OperatorNodeType.WHILE, {
             position: nodePosition(),
             children: [condition],
           }),
@@ -547,7 +547,7 @@ const parseGroup =
         index,
         error(
           SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          operator(OperatorType.WHILE, {
+          _node(OperatorNodeType.WHILE, {
             position: nodePosition(),
             children: [condition],
           })
@@ -561,14 +561,14 @@ const parseGroup =
       if (nameToken?.type !== 'string') {
         return [
           index,
-          operator(OperatorType.IMPORT, { position: nodePosition() }),
+          _node(OperatorNodeType.IMPORT, { position: nodePosition() }),
         ];
       }
       index++;
       const name = nameToken.value;
       let pattern: Tree | null = null;
       const node = () => {
-        const node = operator(OperatorType.IMPORT, {
+        const node = _node(OperatorNodeType.IMPORT, {
           position: nodePosition(),
         });
         node.data.name = name;
@@ -608,7 +608,7 @@ const parseGroup =
       followSet.pop();
 
       const node = () => {
-        let node = operator(OperatorType.FOR, {
+        let node = _node(OperatorNodeType.FOR, {
           position: nodePosition(),
           children: [pattern, expr, sequence],
         });
@@ -645,7 +645,7 @@ const parseGroup =
       [index, value] = parseExpr(0, ['{'])(src, index);
       const cases: Tree[] = [];
       const node = () =>
-        operator(OperatorType.MATCH, {
+        _node(OperatorNodeType.MATCH, {
           position: nodePosition(),
           children: [value, ...cases],
         });
@@ -676,7 +676,7 @@ const parseGroup =
         if (src[index]?.type === 'newline') index++;
 
         const options = { children: [pattern, body] };
-        const node = operator(OperatorType.MATCH_CASE, options);
+        const node = _node(OperatorNodeType.MATCH_CASE, options);
         cases.push(node);
       }
       followSet.pop();
@@ -703,7 +703,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '{'),
-            operator(OperatorType.INJECT, {
+            _node(OperatorNodeType.INJECT, {
               position: nodePosition(),
               children: [value, implicitPlaceholder(nodePosition())],
             })
@@ -725,7 +725,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '}'),
-            operator(OperatorType.INJECT, {
+            _node(OperatorNodeType.INJECT, {
               position: nodePosition(),
               children: [value, sequence],
             })
@@ -737,7 +737,7 @@ const parseGroup =
       index++;
       return [
         index,
-        operator(OperatorType.INJECT, {
+        _node(OperatorNodeType.INJECT, {
           position: nodePosition(),
           children: [value, sequence],
         }),
@@ -754,7 +754,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '{'),
-            operator(OperatorType.WITHOUT, {
+            _node(OperatorNodeType.WITHOUT, {
               position: nodePosition(),
               children: [value, implicitPlaceholder(nodePosition())],
             })
@@ -776,7 +776,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '}'),
-            operator(OperatorType.WITHOUT, {
+            _node(OperatorNodeType.WITHOUT, {
               position: nodePosition(),
               children: [value, sequence],
             })
@@ -788,7 +788,7 @@ const parseGroup =
       index++;
       return [
         index,
-        operator(OperatorType.WITHOUT, {
+        _node(OperatorNodeType.WITHOUT, {
           position: nodePosition(),
           children: [value, sequence],
         }),
@@ -805,7 +805,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '{'),
-            operator(OperatorType.MASK, {
+            _node(OperatorNodeType.MASK, {
               position: nodePosition(),
               children: [value, implicitPlaceholder(nodePosition())],
             })
@@ -827,7 +827,7 @@ const parseGroup =
           index,
           error(
             SystemError.missingToken(nodePosition(), '}'),
-            operator(OperatorType.MASK, {
+            _node(OperatorNodeType.MASK, {
               position: nodePosition(),
               children: [value, sequence],
             })
@@ -839,7 +839,7 @@ const parseGroup =
       index++;
       return [
         index,
-        operator(OperatorType.MASK, {
+        _node(OperatorNodeType.MASK, {
           position: nodePosition(),
           children: [value, sequence],
         }),
@@ -860,7 +860,7 @@ const parseGroup =
         index++;
         return [
           index,
-          operator(op, { position: nodePosition(), children: [pattern] }),
+          _node(op, { position: nodePosition(), children: [pattern] }),
         ];
       }
     }
@@ -868,13 +868,13 @@ const parseGroup =
     if (!lhs && src[index].src in idToPrefixExprOp) {
       const op = idToPrefixExprOp[src[index].src];
       index++;
-      return [index, operator(op, { position: nodePosition() })];
+      return [index, _node(op, { position: nodePosition() })];
     }
 
     if (lhs && src[index].src in idToExprOp) {
       const op = idToExprOp[src[index].src];
       index++;
-      return [index, operator(op)];
+      return [index, _node(op)];
     }
 
     if (!lhs && src[index].src === '|') {
@@ -914,7 +914,7 @@ const parseGroup =
       followSet.pop();
       index = _index;
       const node = () =>
-        operator(lhs ? OperatorType.INDEX : OperatorType.SQUARE_BRACKETS, {
+        _node(lhs ? OperatorNodeType.INDEX : OperatorNodeType.SQUARE_BRACKETS, {
           position: nodePosition(),
           children: [expr],
         });
@@ -947,7 +947,7 @@ const parseGroup =
               nodePosition(),
               indexPosition(index)
             ),
-            operator(OperatorType.PARENS, {
+            _node(OperatorNodeType.PARENS, {
               position: nodePosition(),
               children: [implicitPlaceholder(nodePosition())],
             })
@@ -960,7 +960,7 @@ const parseGroup =
       [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
       followSet.pop();
       const node = () =>
-        operator(OperatorType.PARENS, {
+        _node(OperatorNodeType.PARENS, {
           position: nodePosition(),
           children: [expr],
         });
@@ -987,7 +987,7 @@ const parseGroup =
         const key = string(next.src, { start: next.start, end: next.end });
         return [
           index,
-          operator(OperatorType.INDEX, {
+          _node(OperatorNodeType.INDEX, {
             position: nodePosition(),
             children: [key],
           }),
@@ -1003,7 +1003,7 @@ const parseGroup =
     //   return [index, implicitPlaceholder(nodePosition())];
     // }
 
-    if (lhs) return [index, operator(OperatorType.APPLICATION)];
+    if (lhs) return [index, _node(OperatorNodeType.APPLICATION)];
 
     index++;
     return [index, token(src[index - 1], nodePosition())];
@@ -1111,7 +1111,7 @@ const parseSequence = (
   if (children.length === 0)
     return [index, implicitPlaceholder(nodePosition())];
 
-  return [index, operator(OperatorType.SEQUENCE, { children })];
+  return [index, _node(OperatorNodeType.SEQUENCE, { children })];
 };
 
 const parseDeclaration = (
@@ -1123,7 +1123,8 @@ const parseDeclaration = (
 
 export const parseScript = (src: TokenPos[], i = 0): Tree => {
   const [_, sequence] = parseSequence(src, i);
-  if (sequence.type === OperatorType.SEQUENCE) return script(sequence.children);
+  if (sequence.type === OperatorNodeType.SEQUENCE)
+    return script(sequence.children);
   return script([sequence]);
 };
 

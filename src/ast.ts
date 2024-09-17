@@ -26,7 +26,7 @@ const RootNodeType = {
 } as const;
 type RootNodeType = (typeof RootNodeType)[keyof typeof RootNodeType];
 
-export const OperatorType = {
+export const OperatorNodeType = {
   ADD: 'add',
   PLUS: 'plus',
   SUB: 'subtract',
@@ -86,13 +86,14 @@ export const OperatorType = {
   GREATER_EQUAL: '>=',
   MUTABLE: 'mut',
 } as const;
-export type OperatorType = (typeof OperatorType)[keyof typeof OperatorType];
+export type OperatorNodeType =
+  (typeof OperatorNodeType)[keyof typeof OperatorNodeType];
 
 export const NodeType = {
   ERROR: 'error',
   ...LeafNodeType,
   ...RootNodeType,
-  ...OperatorType,
+  ...OperatorNodeType,
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 
@@ -211,12 +212,12 @@ enum Fixity {
 // if two same operators are next to each other, which one will take precedence
 // first come lower precedence operators
 // const semicolonPrecedence = [
-const precedenceList: [OperatorType, Fixity, Associativity?][] = [
+const precedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
   // [OperatorType.SEQUENCE, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.FUNCTION, Fixity.PREFIX],
-  [OperatorType.IF, Fixity.PREFIX],
-  [OperatorType.IF_ELSE, Fixity.PREFIX],
-  [OperatorType.LOOP, Fixity.PREFIX],
+  [OperatorNodeType.FUNCTION, Fixity.PREFIX],
+  [OperatorNodeType.IF, Fixity.PREFIX],
+  [OperatorNodeType.IF_ELSE, Fixity.PREFIX],
+  [OperatorNodeType.LOOP, Fixity.PREFIX],
   // [OperatorType.WHILE, Fixity.PREFIX],
   // [OperatorType.FOR, Fixity.PREFIX],
   // [OperatorType.MATCH, Fixity.PREFIX],
@@ -224,50 +225,50 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   // [OperatorType.MASK, Fixity.PREFIX],
   // [OperatorType.WITHOUT, Fixity.PREFIX],
 
-  [OperatorType.DECLARE, Fixity.PREFIX],
-  [OperatorType.ASSIGN, Fixity.PREFIX],
-  [OperatorType.INC_ASSIGN, Fixity.PREFIX],
+  [OperatorNodeType.DECLARE, Fixity.PREFIX],
+  [OperatorNodeType.ASSIGN, Fixity.PREFIX],
+  [OperatorNodeType.INC_ASSIGN, Fixity.PREFIX],
 
-  [OperatorType.FORK, Fixity.PREFIX],
-  [OperatorType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.COLON, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.SPREAD, Fixity.PREFIX],
+  [OperatorNodeType.FORK, Fixity.PREFIX],
+  [OperatorNodeType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.SPREAD, Fixity.PREFIX],
 
-  [OperatorType.SEND, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.RECEIVE, Fixity.PREFIX],
-  [OperatorType.SEND_STATUS, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.RECEIVE_STATUS, Fixity.PREFIX],
+  [OperatorNodeType.SEND, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.RECEIVE, Fixity.PREFIX],
+  [OperatorNodeType.SEND_STATUS, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.RECEIVE_STATUS, Fixity.PREFIX],
 
-  [OperatorType.OR, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.AND, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.EQUAL, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.NOT_EQUAL, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.LESS, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.LESS_EQUAL, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.GREATER, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.GREATER_EQUAL, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.NOT, Fixity.PREFIX],
+  [OperatorNodeType.OR, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.AND, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.NOT_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.LESS, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.LESS_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.GREATER, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.GREATER_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.NOT, Fixity.PREFIX],
 
-  [OperatorType.ADD, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.SUB, Fixity.INFIX, Associativity.LEFT],
-  [OperatorType.MULT, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [OperatorType.DIV, Fixity.INFIX, Associativity.LEFT],
-  [OperatorType.MOD, Fixity.INFIX, Associativity.LEFT],
-  [OperatorType.POW, Fixity.INFIX, Associativity.RIGHT],
-  [OperatorType.MINUS, Fixity.PREFIX],
-  [OperatorType.PLUS, Fixity.PREFIX],
-  [OperatorType.INCREMENT, Fixity.PREFIX],
-  [OperatorType.DECREMENT, Fixity.PREFIX],
-  [OperatorType.POST_INCREMENT, Fixity.POSTFIX],
-  [OperatorType.POST_DECREMENT, Fixity.POSTFIX],
+  [OperatorNodeType.ADD, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.SUB, Fixity.INFIX, Associativity.LEFT],
+  [OperatorNodeType.MULT, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.DIV, Fixity.INFIX, Associativity.LEFT],
+  [OperatorNodeType.MOD, Fixity.INFIX, Associativity.LEFT],
+  [OperatorNodeType.POW, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.MINUS, Fixity.PREFIX],
+  [OperatorNodeType.PLUS, Fixity.PREFIX],
+  [OperatorNodeType.INCREMENT, Fixity.PREFIX],
+  [OperatorNodeType.DECREMENT, Fixity.PREFIX],
+  [OperatorNodeType.POST_INCREMENT, Fixity.POSTFIX],
+  [OperatorNodeType.POST_DECREMENT, Fixity.POSTFIX],
 
-  [OperatorType.IMPORT, Fixity.PREFIX],
-  [OperatorType.EXPORT, Fixity.PREFIX],
-  [OperatorType.MUTABLE, Fixity.PREFIX],
-  [OperatorType.INDEX, Fixity.POSTFIX],
-  [OperatorType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
-  [OperatorType.ATOM, Fixity.PREFIX],
+  [OperatorNodeType.IMPORT, Fixity.PREFIX],
+  [OperatorNodeType.EXPORT, Fixity.PREFIX],
+  [OperatorNodeType.MUTABLE, Fixity.PREFIX],
+  [OperatorNodeType.INDEX, Fixity.POSTFIX],
+  [OperatorNodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
+  [OperatorNodeType.ATOM, Fixity.PREFIX],
 ] as const;
 
 const precedences = (() => {
@@ -298,14 +299,14 @@ const precedences = (() => {
     } else precedences[operator] = rightAssociative(precedenceCounter++);
   }
 
-  return precedences as Record<OperatorType, Precedence>;
+  return precedences as Record<OperatorNodeType, Precedence>;
 })();
 
 export const getPrecedence = (operator: string): Precedence => {
   return precedences[operator] ?? [null, null];
 };
 
-export const operator = (
+export const node = (
   type: string,
   { position, children = [] }: { position?: Position; children?: Tree[] } = {}
 ): Tree => {
@@ -315,13 +316,13 @@ export const operator = (
 };
 
 export const module = (children: Tree[]): Tree =>
-  operator(NodeType.MODULE, { children });
+  node(NodeType.MODULE, { children });
 
 export const script = (children: Tree[]): Tree =>
-  operator(NodeType.SCRIPT, { children });
+  node(NodeType.SCRIPT, { children });
 
 export const block = (expr: Tree, position: Position): Tree =>
-  operator(OperatorType.BLOCK, { position, children: [expr] });
+  node(OperatorNodeType.BLOCK, { position, children: [expr] });
 
 export const fn = (
   pattern: Tree,
@@ -332,10 +333,10 @@ export const fn = (
   }: { position?: Position; isTopFunction?: boolean } = {}
 ): Tree => {
   const children = [pattern, body];
-  const _node = operator(OperatorType.FUNCTION, { position, children });
+  const _node = node(OperatorNodeType.FUNCTION, { position, children });
   if (!isTopFunction) _node.data.isTopFunction = isTopFunction;
   return _node;
 };
 
 export const tuple = (children: Tree[]): Tree =>
-  operator(OperatorType.TUPLE, { children });
+  node(OperatorNodeType.TUPLE, { children });

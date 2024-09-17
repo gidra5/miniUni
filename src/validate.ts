@@ -1,4 +1,9 @@
-import { Tree, implicitPlaceholder, NodeType, OperatorType } from './ast.js';
+import {
+  Tree,
+  implicitPlaceholder,
+  NodeType,
+  OperatorNodeType,
+} from './ast.js';
 import { SystemError } from './error.js';
 import { getPosition, getPrecedence } from './parser.js';
 import { assert } from './utils.js';
@@ -10,9 +15,9 @@ export const validate = (
 ): [errors: SystemError[], ast: Tree] => {
   const errors: SystemError[] = [];
 
-  if (Object.values(OperatorType).includes(ast.type as any)) {
+  if (Object.values(OperatorNodeType).includes(ast.type as any)) {
     const precedence = getPrecedence(ast);
-    if (ast.type === OperatorType.APPLICATION) {
+    if (ast.type === OperatorNodeType.APPLICATION) {
       const [lhs, rhs] = ast.children;
 
       assert(lhs !== undefined, 'expected lhs in application node');
