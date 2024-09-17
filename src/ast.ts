@@ -44,9 +44,9 @@ export const TupleNodeType = {
   SPREAD: '...',
   COLON: ':',
 } as const;
+export type TupleNodeType = (typeof TupleNodeType)[keyof typeof TupleNodeType];
 
-export const ExpressionNodeType = {
-  ...LeafNodeType,
+export const InfixNodeType = {
   ADD: 'add',
   PLUS: 'plus',
   SUB: 'subtract',
@@ -56,14 +56,9 @@ export const ExpressionNodeType = {
   MOD: '%',
   POW: '^',
   PARALLEL: 'parallel',
-  RECEIVE: 'receive',
   SEND: 'send',
-  DECLARE: ':=',
-  ASSIGN: '=',
-  ATOM: 'atom',
   COLON: ':',
   TUPLE: ',',
-  NOT: 'not',
   NOT_EQUAL: '!=',
   EQUAL: '==',
   DEEP_EQUAL: '===',
@@ -73,24 +68,28 @@ export const ExpressionNodeType = {
   LESS: '<',
   LESS_EQUAL: '<=',
   APPLICATION: 'application',
-  PARENS: 'parens',
-  INDEX: 'index',
-  SQUARE_BRACKETS: 'square_brackets',
   SEQUENCE: 'sequence',
-  BLOCK: 'block',
+  SEND_STATUS: '?<-',
+  GREATER: '>',
+  GREATER_EQUAL: '>=',
+} as const;
+export type InfixNodeType = (typeof InfixNodeType)[keyof typeof InfixNodeType];
+
+export const PrefixNodeType = {
+  RECEIVE: 'receive',
+  DECLARE: ':=',
+  ASSIGN: '=',
+  ATOM: 'atom',
+  NOT: 'not',
   FUNCTION: 'func',
   IF: 'if',
   IF_ELSE: 'if_else',
   WHILE: 'while',
-  TOKEN: 'token',
   IMPORT: 'import',
-  POST_INCREMENT: 'post_increment',
-  POST_DECREMENT: 'post_decrement',
   DECREMENT: '--',
   INCREMENT: '++',
   EXPORT: 'export',
   RECEIVE_STATUS: '<-?',
-  SEND_STATUS: '?<-',
   INC_ASSIGN: '+=',
   LOOP: 'loop',
   FOR: 'for',
@@ -100,9 +99,45 @@ export const ExpressionNodeType = {
   INJECT: 'inject',
   MASK: 'mask',
   WITHOUT: 'without',
-  GREATER: '>',
-  GREATER_EQUAL: '>=',
 } as const;
+export type PrefixNodeType =
+  (typeof PrefixNodeType)[keyof typeof PrefixNodeType];
+
+export const ExpressionNodeType = {
+  ...LeafNodeType,
+  ...InfixNodeType,
+  RECEIVE: 'receive',
+  DECLARE: ':=',
+  ASSIGN: '=',
+  ATOM: 'atom',
+  NOT: 'not',
+  PARENS: 'parens',
+  INDEX: 'index',
+  SQUARE_BRACKETS: 'square_brackets',
+  BLOCK: 'block',
+  FUNCTION: 'func',
+  IF: 'if',
+  IF_ELSE: 'if_else',
+  WHILE: 'while',
+  IMPORT: 'import',
+  POST_INCREMENT: 'post_increment',
+  POST_DECREMENT: 'post_decrement',
+  DECREMENT: '--',
+  INCREMENT: '++',
+  EXPORT: 'export',
+  RECEIVE_STATUS: '<-?',
+  INC_ASSIGN: '+=',
+  LOOP: 'loop',
+  FOR: 'for',
+  FORK: 'async',
+  MATCH: 'match',
+  MATCH_CASE: 'match_case',
+  INJECT: 'inject',
+  MASK: 'mask',
+  WITHOUT: 'without',
+} as const;
+export type ExpressionNodeType =
+  (typeof ExpressionNodeType)[keyof typeof ExpressionNodeType];
 
 export const OperatorNodeType = {
   ...ExpressionNodeType,
@@ -120,104 +155,30 @@ export const NodeType = {
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 
+type ScriptNode = {
+  id: string;
+  data: {};
+  type: typeof RootNodeType.SCRIPT;
+  children: ExpressionNode[];
+};
+type ModuleNode = {
+  id: string;
+  data: {};
+  type: typeof RootNodeType.MODULE;
+  children: ExpressionNode[];
+};
+type ExpressionNode = {
+  id: string;
+  data: {};
+  type: typeof RootNodeType.MODULE;
+  children: ExpressionNode[];
+};
+
 const nextId = () => {
   const id = inject(Injectable.ASTNodeNextId);
   register(Injectable.ASTNodeNextId, id + 1);
   return String(id);
 };
-
-export const error = (cause: SystemError, node: Tree | Position): Tree => {
-  const id = nextId();
-
-  if (isPosition(node)) inject(Injectable.ASTNodePositionMap).set(id, node);
-
-  return {
-    type: NodeType.ERROR,
-    id,
-    data: { cause },
-    children: 'type' in node ? [node] : [],
-  };
-};
-
-export const implicitPlaceholder = (position: Position): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.IMPLICIT_PLACEHOLDER,
-    id,
-    data: {},
-    children: [],
-  };
-};
-
-export const placeholder = (position: Position): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.PLACEHOLDER,
-    id,
-    data: {},
-    children: [],
-  };
-};
-
-export const name = (value: string | symbol, position: Position): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.NAME,
-    id,
-    data: { value },
-    children: [],
-  };
-};
-
-export const number = (value: number, position: Position): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.NUMBER,
-    id,
-    data: { value },
-    children: [],
-  };
-};
-
-export const string = (value: string, position: Position): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.STRING,
-    id,
-    data: { value },
-    children: [],
-  };
-};
-
-const tokenError = (
-  token: Extract<Token, { type: 'error' }>,
-  position: Position
-): Tree => {
-  const id = nextId();
-  inject(Injectable.ASTNodePositionMap).set(id, position);
-  return {
-    type: NodeType.ERROR,
-    id,
-    data: { cause: token.cause },
-    children: [],
-  };
-};
-
-export const token = (token: Token, position: Position): Tree =>
-  token.type === 'number'
-    ? number(token.value, position)
-    : token.type === 'string'
-    ? string(token.value, position)
-    : token.type === 'placeholder'
-    ? placeholder(position)
-    : token.type === 'error'
-    ? tokenError(token, position)
-    : name(token.src, position);
 
 enum Associativity {
   LEFT = 'left',
@@ -347,12 +308,54 @@ export const getPatternPrecedence = (operator: string): Precedence => {
 
 export const node = (
   type: string,
-  { position, children = [] }: { position?: Position; children?: Tree[] } = {}
+  {
+    data = {},
+    position,
+    children = [],
+  }: { data?: any; position?: Position; children?: Tree[] } = {}
 ): Tree => {
   const id = nextId();
   if (position) inject(Injectable.ASTNodePositionMap).set(id, position);
-  return { type, id, data: {}, children };
+  return { type, id, data, children };
 };
+
+export const error = (cause: SystemError, _node: Tree | Position): Tree =>
+  node(NodeType.ERROR, {
+    data: { cause },
+    children: 'type' in _node ? [_node] : [],
+    position: isPosition(_node) ? _node : undefined,
+  });
+
+export const implicitPlaceholder = (position: Position): Tree =>
+  node(NodeType.IMPLICIT_PLACEHOLDER, { position });
+
+export const placeholder = (position: Position): Tree =>
+  node(NodeType.PLACEHOLDER, { position });
+
+export const name = (value: string | symbol, position: Position): Tree =>
+  node(NodeType.NAME, { data: { value }, position });
+
+export const number = (value: number, position: Position): Tree =>
+  node(NodeType.NUMBER, { data: { value }, position });
+
+export const string = (value: string, position: Position): Tree =>
+  node(NodeType.STRING, { data: { value }, position });
+
+const tokenError = (
+  token: Extract<Token, { type: 'error' }>,
+  position: Position
+): Tree => node(NodeType.ERROR, { data: { cause: token.cause }, position });
+
+export const token = (token: Token, position: Position): Tree =>
+  token.type === 'number'
+    ? number(token.value, position)
+    : token.type === 'string'
+    ? string(token.value, position)
+    : token.type === 'placeholder'
+    ? placeholder(position)
+    : token.type === 'error'
+    ? tokenError(token, position)
+    : name(token.src, position);
 
 export const module = (children: Tree[]): Tree =>
   node(NodeType.MODULE, { children });

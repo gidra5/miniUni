@@ -21,14 +21,19 @@ import {
   string,
   token,
   Precedence,
-  getExprPrecedence as getExprPrecedence,
+  getExprPrecedence as _getExprPrecedence,
+  getPatternPrecedence as _getPatternPrecedence,
   PatternNodeType,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 
-export const getPrecedence = (node: Tree): Precedence =>
+export const getExprPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
-  getExprPrecedence(node.type);
+  _getExprPrecedence(node.type);
+
+export const getPatternPrecedence = (node: Tree): Precedence =>
+  inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
+  _getPatternPrecedence(node.type);
 
 export const getPosition = (node: Tree): Position => {
   const map = inject(Injectable.ASTNodePositionMap);
@@ -256,7 +261,7 @@ const parsePatternPrefix =
     let index = i;
     let group: Tree;
     [index, group] = parsePatternGroup(banned, skip)(src, index);
-    const [, right] = getPrecedence(group) ?? [null, null];
+    const [, right] = getExprPrecedence(group) ?? [null, null];
 
     if (right !== null) {
       let rhs: Tree;
@@ -280,7 +285,7 @@ const parsePattern =
         skip,
         true
       )(src, index);
-      const [left, right] = getPrecedence(group) ?? [null, null];
+      const [left, right] = getExprPrecedence(group) ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -1027,7 +1032,7 @@ const parsePrefix =
 
     let [nextIndex, group] = parseGroup(banned, skip)(src, index);
     index = nextIndex;
-    const [, right] = getPrecedence(group) ?? [null, null];
+    const [, right] = getExprPrecedence(group) ?? [null, null];
 
     if (right !== null) {
       let rhs: Tree;
@@ -1054,7 +1059,7 @@ const parseExpr =
         [...skip, '\n'],
         true
       )(src, index);
-      const [left, right] = getPrecedence(opGroup) ?? [null, null];
+      const [left, right] = getExprPrecedence(opGroup) ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;

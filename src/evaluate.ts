@@ -1222,13 +1222,6 @@ export const evaluateStatement = async (
         )
       );
     }
-    case OperatorNodeType.TOKEN: {
-      unreachable(
-        SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
-          context.fileId
-        )
-      );
-    }
 
     case NodeType.NAME:
       const name = ast.data.value;

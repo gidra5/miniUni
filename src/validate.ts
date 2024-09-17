@@ -5,7 +5,7 @@ import {
   OperatorNodeType,
 } from './ast.js';
 import { SystemError } from './error.js';
-import { getPosition, getPrecedence } from './parser.js';
+import { getPosition, getExprPrecedence } from './parser.js';
 import { assert } from './utils.js';
 
 export const validate = (
@@ -16,7 +16,7 @@ export const validate = (
   const errors: SystemError[] = [];
 
   if (Object.values(OperatorNodeType).includes(ast.type as any)) {
-    const precedence = getPrecedence(ast);
+    const precedence = getExprPrecedence(ast);
     if (ast.type === OperatorNodeType.APPLICATION) {
       const [lhs, rhs] = ast.children;
 
