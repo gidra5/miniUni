@@ -27,7 +27,7 @@ import { inject, Injectable } from './injector.js';
 
 export const getPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
-  getOperatorPrecedence(node.data.operator);
+  getOperatorPrecedence(node.type);
 
 export const getPosition = (node: Tree): Position => {
   const map = inject(Injectable.ASTNodePositionMap);
@@ -168,7 +168,7 @@ const parsePatternGroup =
         const node = operator(OperatorType.OBJECT, {
           position: nodePosition(),
         });
-        if (pattern.data.operator === OperatorType.TUPLE) {
+        if (pattern.type === OperatorType.TUPLE) {
           node.children = pattern.children;
         } else {
           node.children.push(pattern);
@@ -294,7 +294,7 @@ const parsePattern =
 
       // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
       // which means we can put all arguments into one group
-      if (left === right && group.data.operator === lhs.data.operator) {
+      if (left === right && group.type === lhs.type) {
         lhs.children.push(rhs);
       } else {
         lhs = infix(group, lhs, rhs);
@@ -1070,7 +1070,7 @@ const parseExpr =
       // so it is both left and right associative
       // which means we can put all arguments into one group
       const associative = left === right;
-      const hasSameOperator = opGroup.data.operator === lhs.data.operator;
+      const hasSameOperator = opGroup.type === lhs.type;
       const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
       if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
@@ -1123,8 +1123,7 @@ const parseDeclaration = (
 
 export const parseScript = (src: TokenPos[], i = 0): Tree => {
   const [_, sequence] = parseSequence(src, i);
-  if (sequence.data.operator === OperatorType.SEQUENCE)
-    return script(sequence.children);
+  if (sequence.type === OperatorType.SEQUENCE) return script(sequence.children);
   return script([sequence]);
 };
 

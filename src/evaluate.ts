@@ -108,7 +108,7 @@ const incAssign = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.TUPLE) {
+  if (patternAst.type === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -119,7 +119,7 @@ const incAssign = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.data.operator === OperatorType.SPREAD) {
+      if (pattern.type === OperatorType.SPREAD) {
         unreachable(
           SystemError.evaluationError(
             'you sick fuck, how would that work?',
@@ -143,7 +143,7 @@ const incAssign = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.PARENS) {
+  if (patternAst.type === OperatorType.PARENS) {
     return await incAssign(patternAst.children[0], value, context);
   }
 
@@ -154,7 +154,7 @@ const incAssign = async (
     )
   );
 
-  if (patternAst.data.operator === OperatorType.INDEX) {
+  if (patternAst.type === OperatorType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
     );
@@ -226,7 +226,7 @@ const assign = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.TUPLE) {
+  if (patternAst.type === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -237,7 +237,7 @@ const assign = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.data.operator === OperatorType.SPREAD) {
+      if (pattern.type === OperatorType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -253,11 +253,11 @@ const assign = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.PARENS) {
+  if (patternAst.type === OperatorType.PARENS) {
     return await assign(patternAst.children[0], value, context);
   }
 
-  if (patternAst.data.operator === OperatorType.INDEX) {
+  if (patternAst.type === OperatorType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
     );
@@ -317,11 +317,11 @@ const bind = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.EXPORT) {
+  if (patternAst.type === OperatorType.EXPORT) {
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.data.operator === OperatorType.TUPLE) {
+  if (patternAst.type === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -332,7 +332,7 @@ const bind = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.data.operator === OperatorType.SPREAD) {
+      if (pattern.type === OperatorType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -348,11 +348,11 @@ const bind = async (
     return context;
   }
 
-  if (patternAst.data.operator === OperatorType.PARENS) {
+  if (patternAst.type === OperatorType.PARENS) {
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.data.operator === OperatorType.OBJECT) {
+  if (patternAst.type === OperatorType.OBJECT) {
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
@@ -371,13 +371,13 @@ const bind = async (
         context.env[name] = record[name] ?? null;
         consumedNames.push(name);
         continue;
-      } else if (pattern.data.operator === OperatorType.COLON) {
+      } else if (pattern.type === OperatorType.COLON) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
         context = await bind(valuePattern, record[name] ?? null, context);
         continue;
-      } else if (pattern.data.operator === OperatorType.SPREAD) {
+      } else if (pattern.type === OperatorType.SPREAD) {
         const rest = omit(record, consumedNames);
         context = await bind(pattern.children[0], { record: rest }, context);
         continue;
@@ -398,7 +398,7 @@ const bind = async (
     if (value !== null) context.env[name] = value;
     return context;
   }
-  if (patternAst.data.operator === OperatorType.MUTABLE) {
+  if (patternAst.type === OperatorType.MUTABLE) {
     return await bind(patternAst.children[0], value, context);
   }
 
@@ -423,7 +423,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.data.operator === OperatorType.EXPORT) {
+  if (patternAst.type === OperatorType.EXPORT) {
     return await bindExport(
       patternAst.children[0],
       value,
@@ -433,7 +433,7 @@ async function bindExport(
     );
   }
 
-  if (patternAst.data.operator === OperatorType.TUPLE) {
+  if (patternAst.type === OperatorType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -444,7 +444,7 @@ async function bindExport(
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.data.operator === OperatorType.SPREAD) {
+      if (pattern.type === OperatorType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -466,7 +466,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.data.operator === OperatorType.PARENS) {
+  if (patternAst.type === OperatorType.PARENS) {
     return await bindExport(
       patternAst.children[0],
       value,
@@ -476,7 +476,7 @@ async function bindExport(
     );
   }
 
-  if (patternAst.data.operator === OperatorType.OBJECT) {
+  if (patternAst.type === OperatorType.OBJECT) {
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
@@ -493,7 +493,7 @@ async function bindExport(
         if (exporting) exports[name] = record[name];
         consumedNames.push(name);
         continue;
-      } else if (pattern.data.operator === OperatorType.COLON) {
+      } else if (pattern.type === OperatorType.COLON) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
@@ -505,7 +505,7 @@ async function bindExport(
           exporting
         );
         continue;
-      } else if (pattern.data.operator === OperatorType.SPREAD) {
+      } else if (pattern.type === OperatorType.SPREAD) {
         const rest = omit(record, consumedNames);
         exports = await bindExport(
           pattern.children[0],
@@ -835,7 +835,7 @@ const lazyOperators = {
     return mapped;
   },
   [OperatorType.LOOP]: async ([body]: Tree[], context: Context) => {
-    if (body.data.operator === OperatorType.BLOCK) {
+    if (body.type === OperatorType.BLOCK) {
       body = body.children[0];
     }
 
@@ -938,7 +938,7 @@ const lazyOperators = {
     const record = {};
 
     for (const child of children) {
-      if (child.data.operator === OperatorType.SPREAD) {
+      if (child.type === OperatorType.SPREAD) {
         const rest = await evaluateExpr(child.children[0], context);
         if (Array.isArray(rest)) list.push(...rest);
         else if (isRecord(rest)) Object.assign(record, rest.record);
@@ -949,7 +949,7 @@ const lazyOperators = {
             )
           );
         }
-      } else if (child.data.operator === OperatorType.COLON) {
+      } else if (child.type === OperatorType.COLON) {
         const _key = child.children[0];
         const key =
           _key.type === NodeType.NAME
@@ -1018,196 +1018,185 @@ export const evaluateStatement = async (
   ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
+  if (ast.type in lazyOperators) {
+    return await lazyOperators[ast.type](ast.children, context);
+  }
+
+  if (ast.type in operators) {
+    const args: EvalValue[] = [];
+    for (const child of ast.children) {
+      args.push(await evaluateExpr(child, context));
+    }
+    return operators[ast.type](...args);
+  }
+
   switch (ast.type) {
-    case NodeType.OPERATOR: {
-      if (ast.data.operator in lazyOperators) {
-        return await lazyOperators[ast.data.operator](ast.children, context);
+    case OperatorType.IMPORT: {
+      const name = ast.data.name;
+      const module = await getModule({ name, from: context.file });
+      assert(!Buffer.isBuffer(module), 'binary file import is not supported');
+      const value =
+        'script' in module
+          ? module.script
+          : 'module' in module
+          ? { record: module.module }
+          : (module.buffer as unknown as EvalValue);
+      const pattern = ast.children[0];
+      if (pattern) {
+        await bind(pattern, value, context);
       }
 
-      if (ast.data.operator in operators) {
-        const args: EvalValue[] = [];
-        for (const child of ast.children) {
-          args.push(await evaluateExpr(child, context));
-        }
-        return operators[ast.data.operator](...args);
+      return value;
+    }
+
+    case OperatorType.SEND: {
+      const [channelValue, value] = [
+        await evaluateExpr(ast.children[0], context),
+        await evaluateExpr(ast.children[1], context),
+      ];
+
+      assert(
+        isChannel(channelValue),
+        SystemError.invalidSendChannel(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+
+      const channel = getChannel(channelValue.channel);
+
+      assert(
+        channel,
+        SystemError.channelClosed(getPosition(ast)).withFileId(context.fileId)
+      );
+
+      const promise = channel.onReceive.shift();
+      if (!promise) {
+        channel.queue.push(value);
+        return null;
       }
+      const { resolve, reject } = promise;
+      if (value instanceof Error) reject(value);
+      else resolve(value);
 
-      switch (ast.data.operator) {
-        case OperatorType.IMPORT: {
-          const name = ast.data.name;
-          const module = await getModule({ name, from: context.file });
-          assert(
-            !Buffer.isBuffer(module),
-            'binary file import is not supported'
-          );
-          const value =
-            'script' in module
-              ? module.script
-              : 'module' in module
-              ? { record: module.module }
-              : (module.buffer as unknown as EvalValue);
-          const pattern = ast.children[0];
-          if (pattern) {
-            await bind(pattern, value, context);
-          }
+      return null;
+    }
+    case OperatorType.RECEIVE: {
+      const channelValue = await evaluateExpr(ast.children[0], context);
 
-          return value;
+      assert(
+        isChannel(channelValue),
+        SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+
+      return receive(channelValue.channel).catch((e) => {
+        assert(
+          e !== 'channel closed',
+          SystemError.channelClosed(getPosition(ast)).withFileId(context.fileId)
+        );
+        throw e;
+      });
+    }
+    case OperatorType.SEND_STATUS: {
+      const [channelValue, value] = [
+        await evaluateExpr(ast.children[0], context),
+        await evaluateExpr(ast.children[1], context),
+      ];
+
+      assert(
+        isChannel(channelValue),
+        SystemError.invalidSendChannel(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+
+      const status = send(channelValue.channel, value);
+      return atom(status);
+    }
+    case OperatorType.RECEIVE_STATUS: {
+      const channelValue = await evaluateExpr(ast.children[0], context);
+
+      assert(
+        isChannel(channelValue),
+        SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+
+      const [value, status] = tryReceive(channelValue.channel);
+
+      if (value instanceof Error) throw value;
+
+      return [value ?? [], atom(status)];
+    }
+
+    case OperatorType.FUNCTION: {
+      const [_patterns, _body] = ast.children;
+      const isTopFunction = ast.data.isTopFunction ?? true;
+      const patterns =
+        _patterns.type !== OperatorType.TUPLE
+          ? [_patterns]
+          : _patterns.children;
+      const pattern = patterns[0];
+      const rest = patterns.slice(1);
+      const body =
+        rest.length === 0
+          ? _body
+          : fnAST(tupleAST(rest), _body, { isTopFunction: false });
+
+      const self: EvalFunction = async (arg, [, , callerContext]) => {
+        const _context = { ...context, env: forkEnv(context.env) };
+        const bound = await bind(pattern, arg, _context);
+        if (isTopFunction) {
+          bound.env['self'] = self;
+          bound.handlers = callerContext.handlers;
         }
 
-        case OperatorType.SEND: {
-          const [channelValue, value] = [
-            await evaluateExpr(ast.children[0], context),
-            await evaluateExpr(ast.children[1], context),
-          ];
-
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidSendChannel(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-
-          const channel = getChannel(channelValue.channel);
-
-          assert(
-            channel,
-            SystemError.channelClosed(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-
-          const promise = channel.onReceive.shift();
-          if (!promise) {
-            channel.queue.push(value);
-            return null;
-          }
-          const { resolve, reject } = promise;
-          if (value instanceof Error) reject(value);
-          else resolve(value);
-
-          return null;
+        try {
+          return await evaluateStatement(body, bound);
+        } catch (e) {
+          if (typeof e === 'object' && e !== null && 'return' in e) {
+            return e.return as EvalValue;
+          } else throw e;
         }
-        case OperatorType.RECEIVE: {
-          const channelValue = await evaluateExpr(ast.children[0], context);
+      };
+      return self;
+    }
+    case OperatorType.APPLICATION: {
+      const [fnExpr, argStmt] = ast.children;
+      const [fnValue, argValue] = [
+        await evaluateExpr(fnExpr, context),
+        await evaluateStatement(argStmt, context),
+      ];
 
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
+      assert(
+        typeof fnValue === 'function',
+        SystemError.invalidApplicationExpression(
+          getPosition(fnExpr)
+        ).withFileId(context.fileId)
+      );
 
-          return receive(channelValue.channel).catch((e) => {
-            assert(
-              e !== 'channel closed',
-              SystemError.channelClosed(getPosition(ast)).withFileId(
-                context.fileId
-              )
-            );
-            throw e;
-          });
-        }
-        case OperatorType.SEND_STATUS: {
-          const [channelValue, value] = [
-            await evaluateExpr(ast.children[0], context),
-            await evaluateExpr(ast.children[1], context),
-          ];
+      return await fnValue(argValue, [
+        getPosition(ast),
+        context.fileId,
+        context,
+      ]);
+    }
 
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidSendChannel(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-
-          const status = send(channelValue.channel, value);
-          return atom(status);
-        }
-        case OperatorType.RECEIVE_STATUS: {
-          const channelValue = await evaluateExpr(ast.children[0], context);
-
-          assert(
-            isChannel(channelValue),
-            SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-
-          const [value, status] = tryReceive(channelValue.channel);
-
-          if (value instanceof Error) throw value;
-
-          return [value ?? [], atom(status)];
-        }
-
-        case OperatorType.FUNCTION: {
-          const [_patterns, _body] = ast.children;
-          const isTopFunction = ast.data.isTopFunction ?? true;
-          const patterns =
-            _patterns.data.operator !== OperatorType.TUPLE
-              ? [_patterns]
-              : _patterns.children;
-          const pattern = patterns[0];
-          const rest = patterns.slice(1);
-          const body =
-            rest.length === 0
-              ? _body
-              : fnAST(tupleAST(rest), _body, { isTopFunction: false });
-
-          const self: EvalFunction = async (arg, [, , callerContext]) => {
-            const _context = { ...context, env: forkEnv(context.env) };
-            const bound = await bind(pattern, arg, _context);
-            if (isTopFunction) {
-              bound.env['self'] = self;
-              bound.handlers = callerContext.handlers;
-            }
-
-            try {
-              return await evaluateStatement(body, bound);
-            } catch (e) {
-              if (typeof e === 'object' && e !== null && 'return' in e) {
-                return e.return as EvalValue;
-              } else throw e;
-            }
-          };
-          return self;
-        }
-        case OperatorType.APPLICATION: {
-          const [fnExpr, argStmt] = ast.children;
-          const [fnValue, argValue] = [
-            await evaluateExpr(fnExpr, context),
-            await evaluateStatement(argStmt, context),
-          ];
-
-          assert(
-            typeof fnValue === 'function',
-            SystemError.invalidApplicationExpression(
-              getPosition(fnExpr)
-            ).withFileId(context.fileId)
-          );
-
-          return await fnValue(argValue, [
-            getPosition(ast),
-            context.fileId,
-            context,
-          ]);
-        }
-
-        case OperatorType.SPREAD: {
-          unreachable(
-            SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-        }
-        case OperatorType.TOKEN: {
-          unreachable(
-            SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-        }
-      }
+    case OperatorType.SPREAD: {
+      unreachable(
+        SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+    }
+    case OperatorType.TOKEN: {
+      unreachable(
+        SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
     }
 
     case NodeType.NAME:
@@ -1280,9 +1269,9 @@ export const evaluateModule = async (
   const record: Record<string | symbol, EvalValue> = {};
 
   for (const child of ast.children) {
-    if (child.data.operator === OperatorType.IMPORT) {
+    if (child.type === OperatorType.IMPORT) {
       await evaluateStatement(child, context);
-    } else if (child.data.operator === OperatorType.EXPORT) {
+    } else if (child.type === OperatorType.EXPORT) {
       const expr = child.children[0];
       const value = await evaluateExpr(expr, context);
 

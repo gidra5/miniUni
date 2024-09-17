@@ -11,17 +11,90 @@ export type Tree = {
 };
 export type Precedence = [prefix: number | null, postfix: number | null];
 
-export enum NodeType {
-  ERROR = 'error',
-  IMPLICIT_PLACEHOLDER = 'implicit_placeholder',
-  PLACEHOLDER = 'placeholder',
-  NAME = 'name',
-  NUMBER = 'number',
-  STRING = 'string',
-  OPERATOR = 'operator',
-  SCRIPT = 'script',
-  MODULE = 'module',
-}
+const LeafNodeType = {
+  IMPLICIT_PLACEHOLDER: 'implicit_placeholder',
+  PLACEHOLDER: 'placeholder',
+  NAME: 'name',
+  NUMBER: 'number',
+  STRING: 'string',
+} as const;
+type LeafNodeType = (typeof LeafNodeType)[keyof typeof LeafNodeType];
+
+const RootNodeType = {
+  SCRIPT: 'script',
+  MODULE: 'module',
+} as const;
+type RootNodeType = (typeof RootNodeType)[keyof typeof RootNodeType];
+
+export const OperatorType = {
+  ADD: 'add',
+  PLUS: 'plus',
+  SUB: 'subtract',
+  MINUS: 'minus',
+  DIV: '/',
+  MULT: '*',
+  MOD: '%',
+  POW: '^',
+  PARALLEL: 'parallel',
+  RECEIVE: 'receive',
+  SEND: 'send',
+  DECLARE: ':=',
+  ASSIGN: '=',
+  ATOM: 'atom',
+  COLON: ':',
+  TUPLE: ',',
+  SPREAD: '...',
+  NOT: 'not',
+  NOT_EQUAL: '!=',
+  EQUAL: '==',
+  DEEP_EQUAL: '===',
+  DEEP_NOT_EQUAL: '!==',
+  AND: 'and',
+  OR: 'or',
+  LESS: '<',
+  LESS_EQUAL: '<=',
+  APPLICATION: 'application',
+  PARENS: 'parens',
+  OBJECT: 'object',
+  INDEX: 'index',
+  SQUARE_BRACKETS: 'square_brackets',
+  SEQUENCE: 'sequence',
+  BLOCK: 'block',
+  FUNCTION: 'func',
+  IF: 'if',
+  IF_ELSE: 'if_else',
+  WHILE: 'while',
+  TOKEN: 'token',
+  IMPORT: 'import',
+  POST_INCREMENT: 'post_increment',
+  POST_DECREMENT: 'post_decrement',
+  DECREMENT: '--',
+  INCREMENT: '++',
+  EXPORT: 'export',
+  RECEIVE_STATUS: '<-?',
+  SEND_STATUS: '?<-',
+  INC_ASSIGN: '+=',
+  LOOP: 'loop',
+  FOR: 'for',
+  FORK: 'async',
+  MATCH: 'match',
+  MATCH_CASE: 'match_case',
+  INJECT: 'inject',
+  MASK: 'mask',
+  WITHOUT: 'without',
+  GREATER: '>',
+  GREATER_EQUAL: '>=',
+  MUTABLE: 'mut',
+} as const;
+export type OperatorType = (typeof OperatorType)[keyof typeof OperatorType];
+
+export const NodeType = {
+  ERROR: 'error',
+  ...LeafNodeType,
+  ...RootNodeType,
+  ...OperatorType,
+} as const;
+export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 
 const nextId = () => {
   const id = inject(Injectable.ASTNodeNextId);
@@ -121,67 +194,6 @@ export const token = (token: Token, position: Position): Tree =>
     : token.type === 'error'
     ? tokenError(token, position)
     : name(token.src, position);
-
-export enum OperatorType {
-  ADD = 'add',
-  PLUS = 'plus',
-  SUB = 'subtract',
-  MINUS = 'minus',
-  DIV = '/',
-  MULT = '*',
-  MOD = '%',
-  POW = '^',
-  PARALLEL = 'parallel',
-  RECEIVE = 'receive',
-  SEND = 'send',
-  DECLARE = ':=',
-  ASSIGN = '=',
-  ATOM = 'atom',
-  COLON = ':',
-  TUPLE = ',',
-  SPREAD = '...',
-  NOT = 'not',
-  NOT_EQUAL = '!=',
-  EQUAL = '==',
-  DEEP_EQUAL = '===',
-  DEEP_NOT_EQUAL = '!==',
-  AND = 'and',
-  OR = 'or',
-  LESS = '<',
-  LESS_EQUAL = '<=',
-  APPLICATION = 'application',
-  PARENS = 'parens',
-  OBJECT = 'object',
-  INDEX = 'index',
-  SQUARE_BRACKETS = 'square_brackets',
-  SEQUENCE = 'sequence',
-  BLOCK = 'block',
-  FUNCTION = 'func',
-  IF = 'if',
-  IF_ELSE = 'if_else',
-  WHILE = 'while',
-  TOKEN = 'token',
-  IMPORT = 'import',
-  POST_INCREMENT = 'post_increment',
-  POST_DECREMENT = 'post_decrement',
-  DECREMENT = '--',
-  INCREMENT = '++',
-  EXPORT = 'export',
-  RECEIVE_STATUS = '<-?',
-  SEND_STATUS = '?<-',
-  INC_ASSIGN = '+=',
-  LOOP = 'loop',
-  FOR = 'for',
-  FORK = 'async',
-  MATCH = 'match',
-  MATCH_CASE = 'match_case',
-  INJECT = 'inject',
-  MASK = 'mask',
-  WITHOUT = 'without',
-  GREATER = '>',
-  GREATER_EQUAL = '>=',
-  MUTABLE = 'mut',
-}
 
 enum Associativity {
   LEFT = 'left',
@@ -289,33 +301,24 @@ const precedences = (() => {
   return precedences as Record<OperatorType, Precedence>;
 })();
 
-export const getPrecedence = (operator: string | symbol): Precedence => {
+export const getPrecedence = (operator: string): Precedence => {
   return precedences[operator] ?? [null, null];
 };
 
 export const operator = (
-  operator: string | symbol,
+  type: string,
   { position, children = [] }: { position?: Position; children?: Tree[] } = {}
 ): Tree => {
   const id = nextId();
-  const data = { operator };
   if (position) inject(Injectable.ASTNodePositionMap).set(id, position);
-  return { type: NodeType.OPERATOR, id, data, children };
+  return { type, id, data: {}, children };
 };
 
-export const module = (children: Tree[]): Tree => ({
-  type: NodeType.MODULE,
-  id: nextId(),
-  data: {},
-  children,
-});
+export const module = (children: Tree[]): Tree =>
+  operator(NodeType.MODULE, { children });
 
-export const script = (children: Tree[]): Tree => ({
-  type: NodeType.SCRIPT,
-  id: nextId(),
-  data: {},
-  children,
-});
+export const script = (children: Tree[]): Tree =>
+  operator(NodeType.SCRIPT, { children });
 
 export const block = (expr: Tree, position: Position): Tree =>
   operator(OperatorType.BLOCK, { position, children: [expr] });
@@ -328,12 +331,10 @@ export const fn = (
     isTopFunction = true,
   }: { position?: Position; isTopFunction?: boolean } = {}
 ): Tree => {
-  const node = operator(OperatorType.FUNCTION, {
-    position,
-    children: [pattern, body],
-  });
-  if (!isTopFunction) node.data.isTopFunction = isTopFunction;
-  return node;
+  const children = [pattern, body];
+  const _node = operator(OperatorType.FUNCTION, { position, children });
+  if (!isTopFunction) _node.data.isTopFunction = isTopFunction;
+  return _node;
 };
 
 export const tuple = (children: Tree[]): Tree =>

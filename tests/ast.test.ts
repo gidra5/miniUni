@@ -5,7 +5,7 @@ import { tokenArbitrary } from '../src/testing.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { NodeType, OperatorType } from '../src/ast.ts';
+import { NodeType } from '../src/ast.ts';
 
 const zeroPos = { start: 0, end: 0 };
 
@@ -43,10 +43,7 @@ it.todo.prop([
     identifier('}', zeroPos),
   ];
   let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({
-    type: NodeType.OPERATOR,
-    data: { operator: OperatorType.BLOCK },
-  });
+  expect(ast.children[0]).toMatchObject({ type: NodeType.BLOCK });
 });
 
 it.todo.prop([
@@ -58,10 +55,7 @@ it.todo.prop([
     identifier(')', zeroPos),
   ];
   let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({
-    type: NodeType.OPERATOR,
-    data: { operator: OperatorType.PARENS },
-  });
+  expect(ast.children[0]).toMatchObject({ type: NodeType.PARENS });
 });
 
 it.todo.prop([
@@ -73,10 +67,7 @@ it.todo.prop([
     identifier(']', zeroPos),
   ] as TokenPos[];
   let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({
-    type: NodeType.OPERATOR,
-    data: { operator: OperatorType.SQUARE_BRACKETS },
-  });
+  expect(ast.children[0]).toMatchObject({ type: NodeType.PARENS });
 });
 
 describe('advent of code 1 single file', () => {
