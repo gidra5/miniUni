@@ -15,6 +15,7 @@ export enum ErrorType {
   INVALID_BINARY_LITERAL,
   INVALID_OCTAL_LITERAL,
   INVALID_HEX_LITERAL,
+
   MISSING_TOKEN,
   INVALID_PATTERN,
   INVALID_TUPLE_PATTERN,
@@ -558,5 +559,10 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.DUPLICATE_DEFAULT_EXPORT, msg, options);
+  }
+
+  static testError(type: ErrorType) {
+    const msg = 'test error';
+    return new SystemError(type, msg);
   }
 }

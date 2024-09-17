@@ -5,6 +5,12 @@ export type EvalFunction = (
   arg: EvalValue,
   callSite: [Position, number, Context]
 ) => Promise<EvalValue>;
+type EvalSymbol = { symbol: symbol };
+
+type EvalRecord = { record: Record<string | symbol, EvalValue> };
+
+type EvalChannel = { channel: symbol };
+
 export type EvalValue =
   | number
   | string
@@ -12,9 +18,9 @@ export type EvalValue =
   | null
   | EvalValue[]
   | EvalFunction
-  | { symbol: symbol }
-  | { record: Record<string | symbol, EvalValue> }
-  | { channel: symbol };
+  | EvalSymbol
+  | EvalRecord
+  | EvalChannel;
 
 type ChannelReceiver = {
   resolve: (v: EvalValue | null) => void;
@@ -177,4 +183,37 @@ export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   }
 
   return [null, status];
+};
+
+type EvalTask = [taskAwait: EvalChannel, taskCancel: EvalChannel];
+
+export const isTask = (task: EvalValue): task is EvalTask => {
+  return (
+    !!task &&
+    Array.isArray(task) &&
+    task.length === 2 &&
+    isChannel(task[0]) &&
+    isChannel(task[1])
+  );
+};
+
+export const createTask = (f: EvalFunction): EvalTask => {
+  const awaitChannel = createChannel('task await');
+  const cancelChannel = createChannel('task cancel');
+
+  return [awaitChannel, cancelChannel];
+};
+
+export const cancelTask = (task: EvalTask) => {
+  send(task[0].channel, null);
+  send(task[1].channel, null);
+  closeChannel(task[0].channel);
+  closeChannel(task[1].channel);
+
+  return null;
+};
+
+export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
+  const taskAwait = task[0];
+  return await receive(taskAwait.channel);
 };

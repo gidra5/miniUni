@@ -2167,11 +2167,11 @@ exports[`advent of code 1 single file > variable 1`] = `
           "children": [],
           "data": {
             "value": "
-          1abc2
-          pqr3stu8vwx
-          a1b2c3d4e5f
-          treb7uchet
-        ",
+        1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet
+      ",
           },
           "id": "4",
           "type": "string",

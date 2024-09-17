@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect } from 'vitest';
 import { it, fc } from '@fast-check/vitest';
-import { parseTokens } from '../src/tokens.ts';
+import { identifier, parseTokens, TokenPos } from '../src/tokens.ts';
+import { tokenArbitrary } from '../src/testing.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
+import { NodeType, OperatorType } from '../src/ast.ts';
 
-// const anyStringArb = fc.string({ size: 'large', unit: 'binary' });
-const anyStringArb = fc.fullUnicodeString({ size: 'large' });
-// const anyStringArb = fc.string();
+const zeroPos = { start: 0, end: 0 };
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
@@ -16,41 +16,84 @@ beforeEach(() => {
   register(Injectable.ASTNodePositionMap, new Map());
 });
 
-it.prop([anyStringArb])('module parsing never throws', (src) => {
-  const tokens = parseTokens(src);
+it.prop([fc.array(tokenArbitrary)])('module parsing never throws', (tokens) => {
   try {
-    parseModule(tokens);
+    parseModule(tokens.map((t) => ({ ...t, ...zeroPos })));
   } catch (e) {
     const msg = e instanceof Error ? e.stack : e;
     expect.unreachable(msg);
   }
 });
 
-it.prop([anyStringArb])('script parsing never throws', (src) => {
-  const tokens = parseTokens(src);
+it.prop([fc.array(tokenArbitrary)])('script parsing never throws', (tokens) => {
   try {
-    parseScript(tokens);
+    parseScript(tokens.map((t) => ({ ...t, ...zeroPos })));
   } catch (e) {
     const msg = e instanceof Error ? e.stack : e;
     expect.unreachable(msg);
   }
+});
+
+it.todo.prop([
+  fc.array(tokenArbitrary.filter((s) => s.src !== '{' && s.src !== '}')),
+])('block parsing always bound by braces', (_tokens) => {
+  const tokens = [
+    identifier('{', zeroPos),
+    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
+    identifier('}', zeroPos),
+  ];
+  let ast = parseScript(tokens);
+  expect(ast.children[0]).toMatchObject({
+    type: NodeType.OPERATOR,
+    data: { operator: OperatorType.BLOCK },
+  });
+});
+
+it.todo.prop([
+  fc.array(tokenArbitrary.filter((s) => s.src !== '(' && s.src !== ')')),
+])('parens parsing always bound by parens', (_tokens) => {
+  const tokens = [
+    identifier('(', zeroPos),
+    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
+    identifier(')', zeroPos),
+  ];
+  let ast = parseScript(tokens);
+  expect(ast.children[0]).toMatchObject({
+    type: NodeType.OPERATOR,
+    data: { operator: OperatorType.PARENS },
+  });
+});
+
+it.todo.prop([
+  fc.array(tokenArbitrary.filter((s) => s.src !== '[' && s.src !== ']')),
+])('square brackets parsing always bound by square brackets', (_tokens) => {
+  const tokens = [
+    identifier('[', zeroPos),
+    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
+    identifier(']', zeroPos),
+  ] as TokenPos[];
+  let ast = parseScript(tokens);
+  expect(ast.children[0]).toMatchObject({
+    type: NodeType.OPERATOR,
+    data: { operator: OperatorType.SQUARE_BRACKETS },
+  });
 });
 
 describe('advent of code 1 single file', () => {
   it('variable', () => {
     const input = `
-        // https://adventofcode.com/2023/day/1
-  
-        /* take first and last digit on line, concat into two-digit number
-         * and sum all numbers in document
-         */
-        document := "
-          1abc2
-          pqr3stu8vwx
-          a1b2c3d4e5f
-          treb7uchet
-        "
-      `;
+      // https://adventofcode.com/2023/day/1
+
+      /* take first and last digit on line, concat into two-digit number
+        * and sum all numbers in document
+        */
+      document := "
+        1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet
+      "
+    `;
     const tokens = parseTokens(input);
     const ast = parseScript(tokens);
 
