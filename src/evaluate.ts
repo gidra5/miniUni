@@ -16,7 +16,7 @@ import {
   placeholder,
   fn as fnAST,
   tuple as tupleAST,
-  type AbstractSyntaxTree,
+  type Tree,
 } from './ast.js';
 import { parseTokens } from './tokens.js';
 import { assert, getClosestName, omit, unreachable } from './utils.js';
@@ -97,7 +97,7 @@ export const newContext = (fileId: number, file: string): Context => {
 };
 
 const incAssign = async (
-  patternAst: AbstractSyntaxTree,
+  patternAst: Tree,
   value: number | EvalValue[],
   context: Context
 ): Promise<Context> => {
@@ -215,7 +215,7 @@ const incAssign = async (
 };
 
 const assign = async (
-  patternAst: AbstractSyntaxTree,
+  patternAst: Tree,
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
@@ -306,7 +306,7 @@ const assign = async (
 };
 
 const bind = async (
-  patternAst: AbstractSyntaxTree,
+  patternAst: Tree,
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
@@ -410,7 +410,7 @@ const bind = async (
 };
 
 async function bindExport(
-  patternAst: AbstractSyntaxTree<any>,
+  patternAst: Tree,
   value: EvalValue,
   exports: Record<string, EvalValue>,
   context: Context,
@@ -540,11 +540,7 @@ async function bindExport(
   );
 }
 
-const showNode = (
-  node: AbstractSyntaxTree,
-  context: Context,
-  msg: string = ''
-) => {
+const showNode = (node: Tree, context: Context, msg: string = '') => {
   const position = getPosition(node);
   const diag = Diagnostic.note();
 
@@ -665,10 +661,7 @@ const operators = {
 };
 
 const lazyOperators = {
-  [OperatorType.FORK]: async (
-    [expr]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.FORK]: async ([expr]: Tree[], context: Context) => {
     return createTask(
       async () => await evaluateBlock(expr, context),
       (e) => {
@@ -678,16 +671,13 @@ const lazyOperators = {
       }
     );
   },
-  [OperatorType.PARALLEL]: (args: AbstractSyntaxTree[], context: Context) => {
+  [OperatorType.PARALLEL]: (args: Tree[], context: Context) => {
     const tasks = args.map((arg) =>
       lazyOperators[OperatorType.FORK]([arg], context)
     );
     return Promise.all(tasks);
   },
-  [OperatorType.AND]: async (
-    [head, ...rest]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.AND]: async ([head, ...rest]: Tree[], context: Context) => {
     const restAst =
       rest.length > 1
         ? operator(OperatorType.AND, { children: rest })
@@ -697,10 +687,7 @@ const lazyOperators = {
       context
     );
   },
-  [OperatorType.OR]: async (
-    [head, ...rest]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.OR]: async ([head, ...rest]: Tree[], context: Context) => {
     const restAst =
       rest.length > 1 ? operator(OperatorType.OR, { children: rest }) : rest[0];
     return await lazyOperators[OperatorType.IF_ELSE](
@@ -709,30 +696,21 @@ const lazyOperators = {
     );
   },
 
-  [OperatorType.PARENS]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.PARENS]: async ([arg]: Tree[], context: Context) => {
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
   },
-  [OperatorType.SQUARE_BRACKETS]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.SQUARE_BRACKETS]: async ([arg]: Tree[], context: Context) => {
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
   },
 
-  [OperatorType.ATOM]: async ([name]: AbstractSyntaxTree[]) => {
+  [OperatorType.ATOM]: async ([name]: Tree[]) => {
     assert(name.type === NodeType.NAME, 'expected name');
     return atom(name.data.value);
   },
 
-  [OperatorType.INJECT]: async (
-    [expr, body]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.INJECT]: async ([expr, body]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     assert(isRecord(value), 'expected record');
 
@@ -740,10 +718,7 @@ const lazyOperators = {
     Object.setPrototypeOf(handlers, context.handlers);
     return await evaluateBlock(body, { ...context, handlers });
   },
-  [OperatorType.WITHOUT]: async (
-    [expr, body]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.WITHOUT]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
     assert(
@@ -755,10 +730,7 @@ const lazyOperators = {
     const handlers = omitHandlers(context.handlers, handlerNames);
     return await evaluateBlock(body, { ...context, handlers });
   },
-  [OperatorType.MASK]: async (
-    [expr, body]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.MASK]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
     assert(
@@ -772,7 +744,7 @@ const lazyOperators = {
   },
 
   [OperatorType.MATCH]: async (
-    [expr, ...branches]: AbstractSyntaxTree[],
+    [expr, ...branches]: Tree[],
     context: Context
   ) => {
     const value = await evaluateExpr(expr, context);
@@ -787,10 +759,7 @@ const lazyOperators = {
 
     return null;
   },
-  [OperatorType.IF]: async (
-    [condition, branch]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.IF]: async ([condition, branch]: Tree[], context: Context) => {
     const falseBranch = placeholder(getPosition(branch));
     return await lazyOperators[OperatorType.IF_ELSE](
       [condition, branch, falseBranch],
@@ -798,17 +767,14 @@ const lazyOperators = {
     );
   },
   [OperatorType.IF_ELSE]: async (
-    [condition, trueBranch, falseBranch]: AbstractSyntaxTree[],
+    [condition, trueBranch, falseBranch]: Tree[],
     context: Context
   ) => {
     const result = await evaluateExpr(condition, context);
     if (result) return await evaluateBlock(trueBranch, context);
     else return await evaluateBlock(falseBranch, context);
   },
-  [OperatorType.WHILE]: async (
-    [condition, body]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.WHILE]: async ([condition, body]: Tree[], context: Context) => {
     while (true) {
       const _context = { ...context, env: forkEnv(context.env) };
       try {
@@ -829,7 +795,7 @@ const lazyOperators = {
     }
   },
   [OperatorType.FOR]: async (
-    [pattern, expr, body]: AbstractSyntaxTree[],
+    [pattern, expr, body]: Tree[],
     context: Context
   ) => {
     const list = await evaluateExpr(expr, context);
@@ -868,10 +834,7 @@ const lazyOperators = {
 
     return mapped;
   },
-  [OperatorType.LOOP]: async (
-    [body]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.LOOP]: async ([body]: Tree[], context: Context) => {
     if (body.data.operator === OperatorType.BLOCK) {
       body = body.children[0];
     }
@@ -894,10 +857,7 @@ const lazyOperators = {
     }
   },
 
-  [OperatorType.BLOCK]: async (
-    [expr]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.BLOCK]: async ([expr]: Tree[], context: Context) => {
     try {
       return await evaluateBlock(expr, context);
     } catch (e) {
@@ -907,7 +867,7 @@ const lazyOperators = {
     }
   },
   [OperatorType.SEQUENCE]: async (
-    [expr, ...rest]: AbstractSyntaxTree[],
+    [expr, ...rest]: Tree[],
     context: Context
   ) => {
     if (rest.length === 0) return await evaluateStatement(expr, context);
@@ -915,40 +875,28 @@ const lazyOperators = {
     return await lazyOperators[OperatorType.SEQUENCE](rest, context);
   },
 
-  [OperatorType.INCREMENT]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.INCREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value + 1, context);
     return value + 1;
   },
-  [OperatorType.DECREMENT]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.DECREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value - 1, context);
     return value - 1;
   },
-  [OperatorType.POST_DECREMENT]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.POST_DECREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value - 1, context);
     return value;
   },
-  [OperatorType.POST_INCREMENT]: async (
-    [arg]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.POST_INCREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
@@ -956,24 +904,18 @@ const lazyOperators = {
     return value;
   },
 
-  [OperatorType.DECLARE]: async (
-    [pattern, expr]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.DECLARE]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
     await bind(pattern, value, context);
     return value;
   },
-  [OperatorType.ASSIGN]: async (
-    [pattern, expr]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.ASSIGN]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
     await assign(pattern, value, context);
     return value;
   },
   [OperatorType.INC_ASSIGN]: async (
-    [pattern, expr]: AbstractSyntaxTree[],
+    [pattern, expr]: Tree[],
     context: Context
   ) => {
     const value = await evaluateExpr(expr, context);
@@ -982,10 +924,7 @@ const lazyOperators = {
     return value;
   },
 
-  [OperatorType.COLON]: async (
-    [_key, expr]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.COLON]: async ([_key, expr]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     const key =
       _key.type === NodeType.NAME
@@ -994,10 +933,7 @@ const lazyOperators = {
 
     return { record: { [key]: value } };
   },
-  [OperatorType.TUPLE]: async (
-    children: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.TUPLE]: async (children: Tree[], context: Context) => {
     const list: EvalValue[] = [];
     const record = {};
 
@@ -1032,10 +968,7 @@ const lazyOperators = {
 
     return list;
   },
-  [OperatorType.INDEX]: async (
-    [_target, _index]: AbstractSyntaxTree[],
-    context: Context
-  ) => {
+  [OperatorType.INDEX]: async ([_target, _index]: Tree[], context: Context) => {
     const target = await evaluateExpr(_target, context);
     const index = await evaluateExpr(_index, context);
 
@@ -1082,7 +1015,7 @@ const lazyOperators = {
 };
 
 export const evaluateStatement = async (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
   switch (ast.type) {
@@ -1308,7 +1241,7 @@ export const evaluateStatement = async (
 };
 
 export const evaluateBlock = async (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
   const _context = { ...context, env: forkEnv(context.env) };
@@ -1316,7 +1249,7 @@ export const evaluateBlock = async (
 };
 
 export const evaluateExpr = async (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   context: Context
 ): Promise<Exclude<EvalValue, null>> => {
   const result = await evaluateStatement(ast, context);
@@ -1332,7 +1265,7 @@ export const evaluateExpr = async (
 };
 
 export const evaluateScript = async (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
@@ -1340,7 +1273,7 @@ export const evaluateScript = async (
 };
 
 export const evaluateModule = async (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   context: Context
 ): Promise<Extract<EvalValue, { record: unknown }>> => {
   assert(ast.type === NodeType.MODULE, 'expected module');

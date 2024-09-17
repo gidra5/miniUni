@@ -8,7 +8,7 @@ import {
   Position,
 } from './position.js';
 import {
-  AbstractSyntaxTree,
+  Tree,
   block,
   error,
   fn,
@@ -25,38 +25,28 @@ import {
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 
-export const getPrecedence = (node: AbstractSyntaxTree): Precedence =>
+export const getPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
   getOperatorPrecedence(node.data.operator);
 
-export const getPosition = (node: AbstractSyntaxTree): Position => {
+export const getPosition = (node: Tree): Position => {
   const map = inject(Injectable.ASTNodePositionMap);
   if (map.has(node.id)) return map.get(node.id)!;
   const childrenPosition = node.children.map(getPosition);
   return mergePositions(...childrenPosition);
 };
 
-const infix = (
-  group: AbstractSyntaxTree,
-  lhs: AbstractSyntaxTree,
-  rhs: AbstractSyntaxTree
-): AbstractSyntaxTree => {
+const infix = (group: Tree, lhs: Tree, rhs: Tree): Tree => {
   const { children } = group;
   return { ...group, children: [lhs, ...children, rhs] };
 };
 
-const postfix = (
-  group: AbstractSyntaxTree,
-  lhs: AbstractSyntaxTree
-): AbstractSyntaxTree => {
+const postfix = (group: Tree, lhs: Tree): Tree => {
   const { children } = group;
   return { ...group, children: [lhs, ...children] };
 };
 
-const prefix = (
-  group: AbstractSyntaxTree,
-  rhs: AbstractSyntaxTree
-): AbstractSyntaxTree => {
+const prefix = (group: Tree, rhs: Tree): Tree => {
   const { children } = group;
   return { ...group, children: [...children, rhs] };
 };
@@ -135,7 +125,7 @@ const followSet: string[] = [];
 
 const parsePatternGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
     const start = index;
     const nodePosition = () => mapListPosToPos(position(start, index), src);
@@ -261,14 +251,14 @@ const parsePatternGroup =
 
 const parsePatternPrefix =
   (banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
-    let group: AbstractSyntaxTree;
+    let group: Tree;
     [index, group] = parsePatternGroup(banned, skip)(src, index);
     const [, right] = getPrecedence(group) ?? [null, null];
 
     if (right !== null) {
-      let rhs: AbstractSyntaxTree;
+      let rhs: Tree;
       [index, rhs] = parsePattern(right, banned, skip)(src, index);
       return [index, prefix(group, rhs)];
     }
@@ -278,9 +268,9 @@ const parsePatternPrefix =
 
 const parsePattern =
   (precedence = 0, banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
-    let lhs: AbstractSyntaxTree;
+    let lhs: Tree;
     [index, lhs] = parsePatternPrefix(banned, skip)(src, index);
 
     while (src[index] && !tokenIncludes(src[index], ['\n'])) {
@@ -299,7 +289,7 @@ const parsePattern =
         continue;
       }
 
-      let rhs: AbstractSyntaxTree;
+      let rhs: Tree;
       [index, rhs] = parsePattern(right, banned, skip)(src, index);
 
       // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
@@ -316,7 +306,7 @@ const parsePattern =
 
 const parseGroup =
   (banned: string[] = [], skip: string[] = [], lhs = false) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
     const start = index;
     const nodePosition = () => mapListPosToPos(position(start, index), src);
@@ -368,7 +358,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'fn') {
       index++;
-      let pattern: AbstractSyntaxTree;
+      let pattern: Tree;
       [index, pattern] = parsePattern(0, ['{', '->'], ['\n'])(src, index);
       const token = src[index]?.src;
 
@@ -376,7 +366,7 @@ const parseGroup =
         index++;
         brackets++;
         if (src[index]?.type === 'newline') index++;
-        let sequence: AbstractSyntaxTree;
+        let sequence: Tree;
         followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
         followSet.pop();
@@ -425,7 +415,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'if') {
       index++;
-      let condition: AbstractSyntaxTree;
+      let condition: Tree;
       [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
       const token = src[index]?.src;
 
@@ -433,7 +423,7 @@ const parseGroup =
         index++;
         brackets++;
         if (src[index]?.type === 'newline') index++;
-        let sequence: AbstractSyntaxTree;
+        let sequence: Tree;
         followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
         followSet.pop();
@@ -508,7 +498,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'while') {
       index++;
-      let condition: AbstractSyntaxTree;
+      let condition: Tree;
       [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
       const token = src[index]?.src;
 
@@ -517,7 +507,7 @@ const parseGroup =
         brackets++;
         if (src[index]?.type === 'newline') index++;
 
-        let sequence: AbstractSyntaxTree;
+        let sequence: Tree;
         followSet.push('}');
         [index, sequence] = parseSequence(src, index, ['}']);
         followSet.pop();
@@ -576,7 +566,7 @@ const parseGroup =
       }
       index++;
       const name = nameToken.value;
-      let pattern: AbstractSyntaxTree | null = null;
+      let pattern: Tree | null = null;
       const node = () => {
         const node = operator(OperatorType.IMPORT, {
           position: nodePosition(),
@@ -598,13 +588,13 @@ const parseGroup =
     if (!lhs && src[index].src === 'for') {
       index++;
       if (src[index]?.type === 'newline') index++;
-      let pattern: AbstractSyntaxTree;
+      let pattern: Tree;
       [index, pattern] = parsePattern(0, ['in'])(src, index);
 
       const hasInKeyword = src[index]?.src === 'in';
       const inKeywordPosition = mapListPosToPos(indexPosition(index), src);
       if (hasInKeyword) index++;
-      let expr: AbstractSyntaxTree;
+      let expr: Tree;
       [index, expr] = parseExpr(0, ['{'])(src, index);
 
       const hasOpeningBracket = ['{', ':', '\n'].includes(src[index]?.src);
@@ -612,7 +602,7 @@ const parseGroup =
       if (hasOpeningBracket) index++;
       brackets++;
 
-      let sequence: AbstractSyntaxTree;
+      let sequence: Tree;
       followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
@@ -651,9 +641,9 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'switch') {
       index++;
-      let value: AbstractSyntaxTree;
+      let value: Tree;
       [index, value] = parseExpr(0, ['{'])(src, index);
-      const cases: AbstractSyntaxTree[] = [];
+      const cases: Tree[] = [];
       const node = () =>
         operator(OperatorType.MATCH, {
           position: nodePosition(),
@@ -675,12 +665,12 @@ const parseGroup =
 
       while (src[index] && src[index].src !== '}') {
         if (src[index]?.type === 'newline') index++;
-        let pattern: AbstractSyntaxTree;
+        let pattern: Tree;
         [index, pattern] = parsePattern(0, ['->'])(src, index);
         if (src[index]?.src === '->') index++;
         // else error missing ->
         if (src[index]?.type === 'newline') index++;
-        let body: AbstractSyntaxTree;
+        let body: Tree;
         [index, body] = parseExpr(0, ['}', ','])(src, index);
         if (src[index]?.src === ',') index++;
         if (src[index]?.type === 'newline') index++;
@@ -705,7 +695,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'inject') {
       index++;
-      let value: AbstractSyntaxTree;
+      let value: Tree;
       [index, value] = parseExpr(0, ['{'])(src, index);
 
       if (src[index]?.src !== '{') {
@@ -726,7 +716,7 @@ const parseGroup =
       if (src[index]?.type === 'newline') index++;
 
       followSet.push('}');
-      let sequence: AbstractSyntaxTree;
+      let sequence: Tree;
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
 
@@ -756,7 +746,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'without') {
       index++;
-      let value: AbstractSyntaxTree;
+      let value: Tree;
       [index, value] = parseExpr(0, ['{'])(src, index);
 
       if (src[index]?.src !== '{') {
@@ -777,7 +767,7 @@ const parseGroup =
       if (src[index]?.type === 'newline') index++;
 
       followSet.push('}');
-      let sequence: AbstractSyntaxTree;
+      let sequence: Tree;
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
 
@@ -807,7 +797,7 @@ const parseGroup =
 
     if (!lhs && src[index].src === 'mask') {
       index++;
-      let value: AbstractSyntaxTree;
+      let value: Tree;
       [index, value] = parseExpr(0, ['{'])(src, index);
 
       if (src[index]?.src !== '{') {
@@ -828,7 +818,7 @@ const parseGroup =
       if (src[index]?.type === 'newline') index++;
 
       followSet.push('}');
-      let sequence: AbstractSyntaxTree;
+      let sequence: Tree;
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
 
@@ -896,7 +886,7 @@ const parseGroup =
       index++;
       brackets++;
       if (src[index]?.type === 'newline') index++;
-      let sequence: AbstractSyntaxTree;
+      let sequence: Tree;
       followSet.push('}');
       [index, sequence] = parseSequence(src, index, ['}']);
       followSet.pop();
@@ -965,7 +955,7 @@ const parseGroup =
         ];
       }
 
-      let expr: AbstractSyntaxTree;
+      let expr: Tree;
       followSet.push(')');
       [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
       followSet.pop();
@@ -1021,7 +1011,7 @@ const parseGroup =
 
 const parsePrefix =
   (banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
@@ -1039,7 +1029,7 @@ const parsePrefix =
     const [, right] = getPrecedence(group) ?? [null, null];
 
     if (right !== null) {
-      let rhs: AbstractSyntaxTree;
+      let rhs: Tree;
       [index, rhs] = parseExpr(right, banned, skip)(src, index);
       return [index, prefix(group, rhs)];
     }
@@ -1049,9 +1039,9 @@ const parsePrefix =
 
 const parseExpr =
   (precedence = 0, banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: AbstractSyntaxTree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
     let index = i;
-    let lhs: AbstractSyntaxTree;
+    let lhs: Tree;
     [index, lhs] = parsePrefix(banned, skip)(src, index);
     const until = () => {
       return banned.length === 0 || !tokenIncludes(src[index], banned);
@@ -1073,7 +1063,7 @@ const parseExpr =
         continue;
       }
 
-      let rhs: AbstractSyntaxTree;
+      let rhs: Tree;
       [index, rhs] = parseExpr(right, banned, skip)(src, index);
 
       // if two same operators are next to each other, and their precedence is the same on both sides
@@ -1096,12 +1086,12 @@ const parseSequence = (
   src: TokenPos[],
   i: number,
   banned: string[] = []
-): [index: number, ast: AbstractSyntaxTree] => {
+): [index: number, ast: Tree] => {
   // return parseExpr(0, banned)(src, i);
   let index = i;
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
-  const children: AbstractSyntaxTree[] = [];
+  const children: Tree[] = [];
 
   while (
     src[index] &&
@@ -1112,7 +1102,7 @@ const parseSequence = (
       index++;
       continue;
     }
-    let node: AbstractSyntaxTree;
+    let node: Tree;
     [index, node] = parseExpr(0, [';', ...banned])(src, index);
     children.push(node);
   }
@@ -1127,19 +1117,19 @@ const parseSequence = (
 const parseDeclaration = (
   src: TokenPos[],
   i = 0
-): [index: number, ast: AbstractSyntaxTree] => {
+): [index: number, ast: Tree] => {
   return parseExpr(0, [';'])(src, i);
 };
 
-export const parseScript = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
+export const parseScript = (src: TokenPos[], i = 0): Tree => {
   const [_, sequence] = parseSequence(src, i);
   if (sequence.data.operator === OperatorType.SEQUENCE)
     return script(sequence.children);
   return script([sequence]);
 };
 
-export const parseModule = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
-  const children: AbstractSyntaxTree[] = [];
+export const parseModule = (src: TokenPos[], i = 0): Tree => {
+  const children: Tree[] = [];
   let index = i;
 
   while (src[index]) {
@@ -1147,7 +1137,7 @@ export const parseModule = (src: TokenPos[], i = 0): AbstractSyntaxTree => {
       index++;
       continue;
     }
-    let node: AbstractSyntaxTree;
+    let node: Tree;
     [index, node] = parseDeclaration(src, index);
     children.push(node);
   }

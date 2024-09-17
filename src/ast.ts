@@ -3,11 +3,11 @@ import { inject, Injectable, register } from './injector.js';
 import { isPosition, Position } from './position.js';
 import { Token } from './tokens.js';
 
-export type AbstractSyntaxTree<T = any> = {
+export type Tree = {
   type: string;
   id: string;
-  data: T;
-  children: AbstractSyntaxTree<T>[];
+  data: any;
+  children: Tree[];
 };
 export type Precedence = [prefix: number | null, postfix: number | null];
 
@@ -29,10 +29,7 @@ const nextId = () => {
   return String(id);
 };
 
-export const error = (
-  cause: SystemError,
-  node: AbstractSyntaxTree | Position
-): AbstractSyntaxTree => {
+export const error = (cause: SystemError, node: Tree | Position): Tree => {
   const id = nextId();
 
   if (isPosition(node)) inject(Injectable.ASTNodePositionMap).set(id, node);
@@ -45,7 +42,7 @@ export const error = (
   };
 };
 
-export const implicitPlaceholder = (position: Position): AbstractSyntaxTree => {
+export const implicitPlaceholder = (position: Position): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -56,7 +53,7 @@ export const implicitPlaceholder = (position: Position): AbstractSyntaxTree => {
   };
 };
 
-export const placeholder = (position: Position): AbstractSyntaxTree => {
+export const placeholder = (position: Position): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -67,10 +64,7 @@ export const placeholder = (position: Position): AbstractSyntaxTree => {
   };
 };
 
-export const name = (
-  value: string | symbol,
-  position: Position
-): AbstractSyntaxTree => {
+export const name = (value: string | symbol, position: Position): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -81,10 +75,7 @@ export const name = (
   };
 };
 
-export const number = (
-  value: number,
-  position: Position
-): AbstractSyntaxTree => {
+export const number = (value: number, position: Position): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -95,10 +86,7 @@ export const number = (
   };
 };
 
-export const string = (
-  value: string,
-  position: Position
-): AbstractSyntaxTree => {
+export const string = (value: string, position: Position): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -112,7 +100,7 @@ export const string = (
 const tokenError = (
   token: Extract<Token, { type: 'error' }>,
   position: Position
-): AbstractSyntaxTree => {
+): Tree => {
   const id = nextId();
   inject(Injectable.ASTNodePositionMap).set(id, position);
   return {
@@ -123,7 +111,7 @@ const tokenError = (
   };
 };
 
-export const token = (token: Token, position: Position): AbstractSyntaxTree =>
+export const token = (token: Token, position: Position): Tree =>
   token.type === 'number'
     ? number(token.value, position)
     : token.type === 'string'
@@ -307,45 +295,39 @@ export const getPrecedence = (operator: string | symbol): Precedence => {
 
 export const operator = (
   operator: string | symbol,
-  {
-    position,
-    children = [],
-  }: { position?: Position; children?: AbstractSyntaxTree[] } = {}
-): AbstractSyntaxTree => {
+  { position, children = [] }: { position?: Position; children?: Tree[] } = {}
+): Tree => {
   const id = nextId();
   const data = { operator };
   if (position) inject(Injectable.ASTNodePositionMap).set(id, position);
   return { type: NodeType.OPERATOR, id, data, children };
 };
 
-export const module = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
+export const module = (children: Tree[]): Tree => ({
   type: NodeType.MODULE,
   id: nextId(),
   data: {},
   children,
 });
 
-export const script = (children: AbstractSyntaxTree[]): AbstractSyntaxTree => ({
+export const script = (children: Tree[]): Tree => ({
   type: NodeType.SCRIPT,
   id: nextId(),
   data: {},
   children,
 });
 
-export const block = (
-  expr: AbstractSyntaxTree,
-  position: Position
-): AbstractSyntaxTree =>
+export const block = (expr: Tree, position: Position): Tree =>
   operator(OperatorType.BLOCK, { position, children: [expr] });
 
 export const fn = (
-  pattern: AbstractSyntaxTree,
-  body: AbstractSyntaxTree,
+  pattern: Tree,
+  body: Tree,
   {
     position,
     isTopFunction = true,
   }: { position?: Position; isTopFunction?: boolean } = {}
-): AbstractSyntaxTree => {
+): Tree => {
   const node = operator(OperatorType.FUNCTION, {
     position,
     children: [pattern, body],
@@ -354,5 +336,5 @@ export const fn = (
   return node;
 };
 
-export const tuple = (children: AbstractSyntaxTree[]): AbstractSyntaxTree =>
+export const tuple = (children: Tree[]): Tree =>
   operator(OperatorType.TUPLE, { children });

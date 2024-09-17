@@ -1,9 +1,4 @@
-import {
-  AbstractSyntaxTree,
-  implicitPlaceholder,
-  NodeType,
-  OperatorType,
-} from './ast.js';
+import { Tree, implicitPlaceholder, NodeType, OperatorType } from './ast.js';
 import { SystemError } from './error.js';
 import { inject, Injectable } from './injector.js';
 import { getPosition, getPrecedence } from './parser.js';
@@ -11,10 +6,10 @@ import { position } from './position.js';
 import { assert, inspect } from './utils.js';
 
 export const validate = (
-  ast: AbstractSyntaxTree,
+  ast: Tree,
   fileId: number,
   errored = false
-): [errors: SystemError[], ast: AbstractSyntaxTree] => {
+): [errors: SystemError[], ast: Tree] => {
   const errors: SystemError[] = [];
 
   if (ast.type === NodeType.OPERATOR) {
