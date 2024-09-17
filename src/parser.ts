@@ -23,7 +23,12 @@ import {
   Precedence,
   getExprPrecedence as _getExprPrecedence,
   getPatternPrecedence as _getPatternPrecedence,
-  PatternNodeType,
+  ExpressionNode,
+  sequence,
+  ExportNode,
+  ImportNode,
+  DeclarationPatternNode,
+  ErrorNode,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 
@@ -116,7 +121,7 @@ const idToPrefixPatternOp = {
   '...': OperatorNodeType.SPREAD,
   ':': OperatorNodeType.ATOM,
   export: OperatorNodeType.EXPORT,
-  mut: PatternNodeType.MUTABLE,
+  mut: NodeType.MUTABLE,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
@@ -171,7 +176,7 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () => {
-        const node = _node(PatternNodeType.OBJECT, {
+        const node = _node(NodeType.RECORD, {
           position: nodePosition(),
         });
         if (pattern.type === OperatorNodeType.TUPLE) {
@@ -614,7 +619,7 @@ const parseGroup =
       followSet.pop();
 
       const node = () => {
-        let node = _node(OperatorNodeType.FOR, {
+        let node: Tree = _node(OperatorNodeType.FOR, {
           position: nodePosition(),
           children: [pattern, expr, sequence],
         });
@@ -1045,7 +1050,7 @@ const parsePrefix =
 
 const parseExpr =
   (precedence = 0, banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
+  (src: TokenPos[], i = 0): [index: number, ast: ExpressionNode] => {
     let index = i;
     let lhs: Tree;
     [index, lhs] = parsePrefix(banned, skip)(src, index);
@@ -1069,7 +1074,7 @@ const parseExpr =
         continue;
       }
 
-      let rhs: Tree;
+      let rhs: ExpressionNode;
       [index, rhs] = parseExpr(right, banned, skip)(src, index);
 
       // if two same operators are next to each other, and their precedence is the same on both sides
@@ -1085,19 +1090,19 @@ const parseExpr =
       }
     }
 
-    return [index, lhs];
+    return [index, lhs as ExpressionNode];
   };
 
 const parseSequence = (
   src: TokenPos[],
   i: number,
   banned: string[] = []
-): [index: number, ast: Tree] => {
+): [index: number, ast: ExpressionNode] => {
   // return parseExpr(0, banned)(src, i);
   let index = i;
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
-  const children: Tree[] = [];
+  const children: ExpressionNode[] = [];
 
   while (
     src[index] &&
@@ -1108,7 +1113,7 @@ const parseSequence = (
       index++;
       continue;
     }
-    let node: Tree;
+    let node: ExpressionNode;
     [index, node] = parseExpr(0, [';', ...banned])(src, index);
     children.push(node);
   }
@@ -1117,25 +1122,29 @@ const parseSequence = (
   if (children.length === 0)
     return [index, implicitPlaceholder(nodePosition())];
 
-  return [index, _node(OperatorNodeType.SEQUENCE, { children })];
+  return [index, sequence(children)];
 };
 
 const parseDeclaration = (
   src: TokenPos[],
   i = 0
-): [index: number, ast: Tree] => {
-  return parseExpr(0, [';'])(src, i);
+): [index: number, ast: ImportNode | DeclarationPatternNode | ExportNode] => {
+  return parseExpr(0, [';'])(src, i) as unknown as [
+    index: number,
+    ast: ImportNode | DeclarationPatternNode | ExportNode
+  ];
 };
 
-export const parseScript = (src: TokenPos[], i = 0): Tree => {
+export const parseScript = (src: TokenPos[], i = 0) => {
   const [_, sequence] = parseSequence(src, i);
   if (sequence.type === OperatorNodeType.SEQUENCE)
     return script(sequence.children);
   return script([sequence]);
 };
 
-export const parseModule = (src: TokenPos[], i = 0): Tree => {
-  const children: Tree[] = [];
+export const parseModule = (src: TokenPos[], i = 0) => {
+  const children: (ImportNode | DeclarationPatternNode | ErrorNode)[] = [];
+  let lastExport: ExportNode | null = null;
   let index = i;
 
   while (src[index]) {
@@ -1143,10 +1152,20 @@ export const parseModule = (src: TokenPos[], i = 0): Tree => {
       index++;
       continue;
     }
-    let node: Tree;
+    let node: ImportNode | DeclarationPatternNode | ExportNode;
     [index, node] = parseDeclaration(src, index);
-    children.push(node);
+    if (node.type === NodeType.EXPORT) {
+      if (lastExport) {
+        const errorNode = error(
+          SystemError.duplicateDefaultExport(getPosition(lastExport)),
+          lastExport
+        );
+        children.push(errorNode);
+      }
+      lastExport = node as ExportNode;
+    } else children.push(node);
   }
 
+  if (lastExport) return module([...children, lastExport]);
   return module(children);
 };

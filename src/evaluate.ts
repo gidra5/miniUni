@@ -17,10 +17,9 @@ import {
   fn as fnAST,
   tuple as tupleAST,
   type Tree,
-  PatternNodeType,
 } from './ast.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, omit, unreachable } from './utils.js';
+import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
 import {
   atom,
   createTask,
@@ -353,7 +352,7 @@ const bind = async (
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.type === PatternNodeType.OBJECT) {
+  if (patternAst.type === NodeType.RECORD) {
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
@@ -399,9 +398,11 @@ const bind = async (
     if (value !== null) context.env[name] = value;
     return context;
   }
-  if (patternAst.type === PatternNodeType.MUTABLE) {
+  if (patternAst.type === NodeType.MUTABLE) {
     return await bind(patternAst.children[0], value, context);
   }
+
+  inspect(patternAst);
 
   unreachable(
     SystemError.invalidPattern(getPosition(patternAst)).withFileId(
@@ -418,8 +419,8 @@ async function bindExport(
   exporting = false
 ): Promise<Record<string, EvalValue>> {
   if (
-    patternAst.type === PatternNodeType.PLACEHOLDER ||
-    patternAst.type === PatternNodeType.IMPLICIT_PLACEHOLDER
+    patternAst.type === NodeType.PLACEHOLDER ||
+    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
   ) {
     return exports;
   }
@@ -434,7 +435,7 @@ async function bindExport(
     );
   }
 
-  if (patternAst.type === PatternNodeType.TUPLE) {
+  if (patternAst.type === NodeType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -445,7 +446,7 @@ async function bindExport(
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.type === PatternNodeType.SPREAD) {
+      if (pattern.type === NodeType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -467,7 +468,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.type === PatternNodeType.PARENS) {
+  if (patternAst.type === NodeType.PARENS) {
     return await bindExport(
       patternAst.children[0],
       value,
@@ -477,7 +478,7 @@ async function bindExport(
     );
   }
 
-  if (patternAst.type === PatternNodeType.OBJECT) {
+  if (patternAst.type === NodeType.RECORD) {
     assert(value !== null, 'expected value');
     assert(
       isRecord(value),
@@ -494,7 +495,7 @@ async function bindExport(
         if (exporting) exports[name] = record[name];
         consumedNames.push(name);
         continue;
-      } else if (pattern.type === PatternNodeType.COLON) {
+      } else if (pattern.type === NodeType.COLON) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
@@ -506,7 +507,7 @@ async function bindExport(
           exporting
         );
         continue;
-      } else if (pattern.type === PatternNodeType.SPREAD) {
+      } else if (pattern.type === NodeType.SPREAD) {
         const rest = omit(record, consumedNames);
         exports = await bindExport(
           pattern.children[0],
@@ -528,7 +529,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.type === PatternNodeType.NAME) {
+  if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
     if (exporting && value !== null) exports[name] = value;
     return exports;

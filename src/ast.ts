@@ -11,42 +11,14 @@ export type Tree = {
 };
 export type Precedence = [prefix: number | null, postfix: number | null];
 
-const LeafNodeType = {
+export const OperatorNodeType = {
   IMPLICIT_PLACEHOLDER: 'implicit_placeholder',
   PLACEHOLDER: 'placeholder',
   NAME: 'name',
   NUMBER: 'number',
   STRING: 'string',
-} as const;
-type LeafNodeType = (typeof LeafNodeType)[keyof typeof LeafNodeType];
-
-const RootNodeType = {
-  SCRIPT: 'script',
-  MODULE: 'module',
-} as const;
-type RootNodeType = (typeof RootNodeType)[keyof typeof RootNodeType];
-
-export const PatternNodeType = {
-  ...LeafNodeType,
-  TUPLE: 'tuple',
-  SPREAD: '...',
-  MUTABLE: 'mut',
-  COLON: ':',
   ATOM: 'atom',
-  OBJECT: 'object',
-  PARENS: 'parens',
-  SQUARE_BRACKETS: 'square_brackets',
-} as const;
-export type PatternNodeType =
-  (typeof PatternNodeType)[keyof typeof PatternNodeType];
 
-export const TupleNodeType = {
-  SPREAD: '...',
-  COLON: ':',
-} as const;
-export type TupleNodeType = (typeof TupleNodeType)[keyof typeof TupleNodeType];
-
-export const InfixNodeType = {
   ADD: 'add',
   PLUS: 'plus',
   SUB: 'subtract',
@@ -72,44 +44,10 @@ export const InfixNodeType = {
   SEND_STATUS: '?<-',
   GREATER: '>',
   GREATER_EQUAL: '>=',
-} as const;
-export type InfixNodeType = (typeof InfixNodeType)[keyof typeof InfixNodeType];
 
-export const PrefixNodeType = {
   RECEIVE: 'receive',
   DECLARE: ':=',
   ASSIGN: '=',
-  ATOM: 'atom',
-  NOT: 'not',
-  FUNCTION: 'func',
-  IF: 'if',
-  IF_ELSE: 'if_else',
-  WHILE: 'while',
-  IMPORT: 'import',
-  DECREMENT: '--',
-  INCREMENT: '++',
-  EXPORT: 'export',
-  RECEIVE_STATUS: '<-?',
-  INC_ASSIGN: '+=',
-  LOOP: 'loop',
-  FOR: 'for',
-  FORK: 'async',
-  MATCH: 'match',
-  MATCH_CASE: 'match_case',
-  INJECT: 'inject',
-  MASK: 'mask',
-  WITHOUT: 'without',
-} as const;
-export type PrefixNodeType =
-  (typeof PrefixNodeType)[keyof typeof PrefixNodeType];
-
-export const ExpressionNodeType = {
-  ...LeafNodeType,
-  ...InfixNodeType,
-  RECEIVE: 'receive',
-  DECLARE: ':=',
-  ASSIGN: '=',
-  ATOM: 'atom',
   NOT: 'not',
   PARENS: 'parens',
   INDEX: 'index',
@@ -135,12 +73,7 @@ export const ExpressionNodeType = {
   INJECT: 'inject',
   MASK: 'mask',
   WITHOUT: 'without',
-} as const;
-export type ExpressionNodeType =
-  (typeof ExpressionNodeType)[keyof typeof ExpressionNodeType];
 
-export const OperatorNodeType = {
-  ...ExpressionNodeType,
   SPREAD: '...',
   MUTABLE: 'mut',
 } as const;
@@ -149,29 +82,211 @@ export type OperatorNodeType =
 
 export const NodeType = {
   ERROR: 'error',
-  ...LeafNodeType,
-  ...RootNodeType,
+
   ...OperatorNodeType,
+
+  SCRIPT: 'script',
+  MODULE: 'module',
+
+  RECORD: 'object',
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 
 type ScriptNode = {
   id: string;
   data: {};
-  type: typeof RootNodeType.SCRIPT;
+  type: typeof NodeType.SCRIPT;
   children: ExpressionNode[];
 };
-type ModuleNode = {
+export type ModuleNode = {
   id: string;
   data: {};
-  type: typeof RootNodeType.MODULE;
+  type: typeof NodeType.MODULE;
+  children: [
+    ...(ImportNode | ErrorNode | DeclarationPatternNode)[],
+    ...([ExportNode] | [])
+  ];
+};
+export type DeclarationPatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.DECLARE;
+  children: [ExportPatternNode, ExpressionNode];
+};
+export type ImportNode = {
+  id: string;
+  data: { name: string };
+  type: typeof NodeType.IMPORT;
+  children: [PatternNode];
+};
+export type ExportNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.EXPORT;
+  children: [ExpressionNode];
+};
+type ExportPatternNode = PatternNode;
+
+export type ExpressionNode =
+  | ErrorNode
+  | ImplicitPlaceholderNode
+  | PlaceholderNode
+  | NameNode
+  | NumberNode
+  | StringNode
+  | AtomNode
+  | BlockNode
+  | SequenceNode
+  | VariableNode
+  | MatchNode
+  | FunctionNode
+  | TupleNode;
+export type ErrorNode = {
+  id: string;
+  data: { cause: SystemError };
+  type: typeof NodeType.ERROR;
+  children: [Tree] | [];
+};
+type ImplicitPlaceholderNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.IMPLICIT_PLACEHOLDER;
+  children: [];
+};
+type PlaceholderNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.PLACEHOLDER;
+  children: [];
+};
+type NameNode = {
+  id: string;
+  data: { value: string | symbol };
+  type: typeof NodeType.NAME;
+  children: [];
+};
+type NumberNode = {
+  id: string;
+  data: { value: number };
+  type: typeof NodeType.NUMBER;
+  children: [];
+};
+type StringNode = {
+  id: string;
+  data: { value: string };
+  type: typeof NodeType.STRING;
+  children: [];
+};
+type AtomNode = {
+  id: string;
+  data: { name: string };
+  type: typeof NodeType.ATOM;
+  children: [];
+};
+
+type BlockNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.BLOCK;
+  children: [ExpressionNode];
+};
+type SequenceNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.SEQUENCE;
   children: ExpressionNode[];
 };
-type ExpressionNode = {
+type VariableNode = {
+  id: string;
+  data: { assert: boolean };
+  type: typeof NodeType.DECLARE;
+  children: [MatchPatternNode, ExpressionNode];
+};
+type TupleNode = {
   id: string;
   data: {};
-  type: typeof RootNodeType.MODULE;
+  type: typeof NodeType.TUPLE;
   children: ExpressionNode[];
+};
+type MatchNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.MATCH;
+  children: [ExpressionNode, ...MatchCaseNode[]];
+};
+type MatchCaseNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.MATCH_CASE;
+  children: [MatchPatternNode, ExpressionNode];
+};
+type FunctionNode = {
+  id: string;
+  data: { isTopFunction?: false };
+  type: typeof NodeType.FUNCTION;
+  children: [MatchPatternNode, ExpressionNode];
+};
+
+type PatternNode =
+  | ExpressionNode
+  | RecordPatternNode
+  | TuplePatternNode
+  | PlaceholderNode
+  | NameNode
+  | StringNode
+  | NumberNode
+  | AtomNode;
+type PatternWithDefaultNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.EQUAL;
+  children: [MatchPatternNode, ExpressionNode];
+};
+type MatchPatternNode = MutablePatternNode | PatternNode;
+
+type MutablePatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.MUTABLE;
+  children: [PatternWithDefaultNode];
+};
+
+type TuplePatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.TUPLE;
+  children: [
+    ...([SpreadPatternNode] | []),
+    ...PatternWithDefaultNode[],
+    ...([SpreadPatternNode] | [])
+  ];
+};
+type RecordPatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.RECORD;
+  children: [
+    ...(RecordNameWithDefaultNode | NameNode | RecordRenamePatternNode)[],
+    ...([SpreadPatternNode] | [])
+  ];
+};
+type RecordNameWithDefaultNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.COLON;
+  children: [NameNode, ExpressionNode];
+};
+type SpreadPatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.SPREAD;
+  children: [MatchPatternNode];
+};
+type RecordRenamePatternNode = {
+  id: string;
+  data: {};
+  type: typeof NodeType.COLON;
+  children: [NameNode | ExpressionNode, PatternWithDefaultNode];
 };
 
 const nextId = () => {
@@ -287,11 +402,11 @@ const exprPrecedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
   [OperatorNodeType.ATOM, Fixity.PREFIX],
 ] as const;
 
-const patternPrecedenceList: [PatternNodeType, Fixity, Associativity?][] = [
-  [PatternNodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [PatternNodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
-  [PatternNodeType.SPREAD, Fixity.PREFIX],
-  [PatternNodeType.ATOM, Fixity.PREFIX],
+const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [
+  [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [NodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
+  [NodeType.SPREAD, Fixity.PREFIX],
+  [NodeType.ATOM, Fixity.PREFIX],
 ] as const;
 
 const exprPrecedences = generatePrecedences(exprPrecedenceList);
@@ -319,34 +434,31 @@ export const node = (
   return { type, id, data, children };
 };
 
-export const error = (cause: SystemError, _node: Tree | Position): Tree =>
+export const error = (cause: SystemError, _node: Tree | Position): ErrorNode =>
   node(NodeType.ERROR, {
     data: { cause },
     children: 'type' in _node ? [_node] : [],
     position: isPosition(_node) ? _node : undefined,
-  });
+  }) as ErrorNode;
 
-export const implicitPlaceholder = (position: Position): Tree =>
-  node(NodeType.IMPLICIT_PLACEHOLDER, { position });
-
-export const placeholder = (position: Position): Tree =>
-  node(NodeType.PLACEHOLDER, { position });
-
-export const name = (value: string | symbol, position: Position): Tree =>
-  node(NodeType.NAME, { data: { value }, position });
-
-export const number = (value: number, position: Position): Tree =>
-  node(NodeType.NUMBER, { data: { value }, position });
-
-export const string = (value: string, position: Position): Tree =>
-  node(NodeType.STRING, { data: { value }, position });
-
-const tokenError = (
-  token: Extract<Token, { type: 'error' }>,
+export const implicitPlaceholder = (
   position: Position
-): Tree => node(NodeType.ERROR, { data: { cause: token.cause }, position });
+): ImplicitPlaceholderNode =>
+  node(NodeType.IMPLICIT_PLACEHOLDER, { position }) as ImplicitPlaceholderNode;
 
-export const token = (token: Token, position: Position): Tree =>
+export const placeholder = (position: Position): PlaceholderNode =>
+  node(NodeType.PLACEHOLDER, { position }) as PlaceholderNode;
+
+export const name = (value: string | symbol, position: Position): NameNode =>
+  node(NodeType.NAME, { data: { value }, position }) as NameNode;
+
+export const number = (value: number, position: Position): NumberNode =>
+  node(NodeType.NUMBER, { data: { value }, position }) as NumberNode;
+
+export const string = (value: string, position: Position): StringNode =>
+  node(NodeType.STRING, { data: { value }, position }) as StringNode;
+
+export const token = (token: Token, position: Position) =>
   token.type === 'number'
     ? number(token.value, position)
     : token.type === 'string'
@@ -354,17 +466,23 @@ export const token = (token: Token, position: Position): Tree =>
     : token.type === 'placeholder'
     ? placeholder(position)
     : token.type === 'error'
-    ? tokenError(token, position)
+    ? error(token.cause, position)
     : name(token.src, position);
 
-export const module = (children: Tree[]): Tree =>
-  node(NodeType.MODULE, { children });
+export const atom = (name: string): AtomNode =>
+  node(NodeType.ATOM, { data: { name } }) as AtomNode;
 
-export const script = (children: Tree[]): Tree =>
-  node(NodeType.SCRIPT, { children });
+export const module = (children: ModuleNode['children']): ModuleNode =>
+  node(NodeType.MODULE, { children }) as ModuleNode;
 
-export const block = (expr: Tree, position: Position): Tree =>
-  node(OperatorNodeType.BLOCK, { position, children: [expr] });
+export const script = (children: ScriptNode['children']): ScriptNode =>
+  node(NodeType.SCRIPT, { children }) as ScriptNode;
+
+export const block = (expr: Tree, position: Position): BlockNode =>
+  node(NodeType.BLOCK, { position, children: [expr] }) as BlockNode;
+
+export const sequence = (children: ExpressionNode[]): SequenceNode =>
+  node(NodeType.SEQUENCE, { children }) as SequenceNode;
 
 export const fn = (
   pattern: Tree,
@@ -373,12 +491,12 @@ export const fn = (
     position,
     isTopFunction = true,
   }: { position?: Position; isTopFunction?: boolean } = {}
-): Tree => {
+): FunctionNode => {
   const children = [pattern, body];
-  const _node = node(OperatorNodeType.FUNCTION, { position, children });
+  const _node = node(NodeType.FUNCTION, { position, children }) as FunctionNode;
   if (!isTopFunction) _node.data.isTopFunction = isTopFunction;
   return _node;
 };
 
-export const tuple = (children: Tree[]): Tree =>
-  node(OperatorNodeType.TUPLE, { children });
+export const tuple = (children: Tree[]): TupleNode =>
+  node(NodeType.TUPLE, { children }) as TupleNode;
