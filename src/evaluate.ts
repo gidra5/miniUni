@@ -11,6 +11,7 @@ import { getPosition, parseModule, parseScript } from './parser.js';
 import {
   NodeType,
   OperatorType,
+  placeholder,
   tuple as tupleAST,
   type AbstractSyntaxTree,
 } from './ast.js';
@@ -18,8 +19,6 @@ import { parseTokens } from './tokens.js';
 import { assert, getClosestName, omit, unreachable } from './utils.js';
 import {
   atom,
-  closeChannel,
-  createChannel,
   createTask,
   EvalFunction,
   EvalValue,
@@ -539,6 +538,25 @@ async function bindExport(
   );
 }
 
+const showNode = (
+  node: AbstractSyntaxTree,
+  context: Context,
+  msg: string = ''
+) => {
+  const position = getPosition(node);
+  const diag = Diagnostic.note();
+
+  diag.withLabels([
+    primaryDiagnosticLabel(context.fileId, {
+      message: msg,
+      start: position.start,
+      end: position.end,
+    }),
+  ]);
+  const fileMap = inject(Injectable.FileMap);
+  diag.emitStd(fileMap);
+};
+
 const operators = {
   [OperatorType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
     let sum = head;
@@ -627,9 +645,10 @@ const operators = {
     return left < right;
   },
   [OperatorType.LESS_EQUAL]: (left: EvalValue, right: EvalValue) => {
-    assert(typeof left === 'number', 'expected number');
-    assert(typeof right === 'number', 'expected number');
-    return left <= right;
+    return (
+      operators[OperatorType.LESS](left, right) ||
+      operators[OperatorType.EQUAL](left, right)
+    );
   },
   [OperatorType.GREATER]: (left: EvalValue, right: EvalValue) => {
     return !operators[OperatorType.LESS_EQUAL](left, right);
@@ -643,26 +662,434 @@ const operators = {
   },
 };
 
+const lazyOperators = {
+  [OperatorType.FORK]: async (
+    [expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    return createTask(
+      async () => await evaluateBlock(expr, context),
+      (e) => {
+        console.error(e);
+        if (e instanceof SystemError) e.print();
+        else showNode(expr, context, e.message);
+      }
+    );
+  },
+  [OperatorType.PARALLEL]: (args: AbstractSyntaxTree[], context: Context) => {
+    const tasks = args.map((arg) =>
+      lazyOperators[OperatorType.FORK]([arg], context)
+    );
+    return Promise.all(tasks);
+  },
+  [OperatorType.AND]: async (
+    [head, ...rest]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const result = await evaluateExpr(head, context);
+    if (rest.length === 0) return result;
+    return result && (await lazyOperators[OperatorType.AND](rest, context));
+  },
+  [OperatorType.OR]: async (
+    [head, ...rest]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const result = await evaluateExpr(head, context);
+    if (rest.length === 0) return result;
+
+    return result || (await lazyOperators[OperatorType.OR](rest, context));
+  },
+
+  [OperatorType.PARENS]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+    return await evaluateStatement(arg, context);
+  },
+  [OperatorType.SQUARE_BRACKETS]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+    return await evaluateStatement(arg, context);
+  },
+
+  [OperatorType.ATOM]: async ([name]: AbstractSyntaxTree[]) => {
+    assert(name.type === NodeType.NAME, 'expected name');
+    return atom(name.data.value);
+  },
+
+  [OperatorType.INJECT]: async (
+    [expr, body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateExpr(expr, context);
+    assert(isRecord(value), 'expected record');
+
+    const handlers = { ...context.handlers, ...value.record };
+    Object.setPrototypeOf(handlers, context.handlers);
+    return await evaluateBlock(body, { ...context, handlers });
+  },
+  [OperatorType.WITHOUT]: async (
+    [expr, body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    let value = await evaluateExpr(expr, context);
+    if (!Array.isArray(value)) value = [value];
+    assert(
+      value.every((v) => typeof v === 'string' || isSymbol(v)),
+      'expected strings or symbols'
+    );
+
+    const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+    const handlers = omitHandlers(context.handlers, handlerNames);
+    return await evaluateBlock(body, { ...context, handlers });
+  },
+  [OperatorType.MASK]: async (
+    [expr, body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    let value = await evaluateExpr(expr, context);
+    if (!Array.isArray(value)) value = [value];
+    assert(
+      value.every((v) => typeof v === 'string' || isSymbol(v)),
+      'expected strings or symbols'
+    );
+
+    const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+    const handlers = maskHandlers(context.handlers, handlerNames);
+    return await evaluateBlock(body, { ...context, handlers });
+  },
+
+  [OperatorType.MATCH]: async (
+    [expr, ...branches]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateExpr(expr, context);
+
+    for (const branch of branches) {
+      assert(branch.type === OperatorType.MATCH_CASE, 'expected match case');
+      const [pattern, body] = branch.children;
+
+      const bound = await bind(pattern, value, context).catch();
+      if (bound) return await evaluateBlock(body, bound);
+    }
+
+    return null;
+  },
+  [OperatorType.IF]: async (
+    [condition, branch]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const falseBranch = placeholder(getPosition(branch));
+    return await lazyOperators[OperatorType.IF_ELSE](
+      [condition, branch, falseBranch],
+      context
+    );
+  },
+  [OperatorType.IF_ELSE]: async (
+    [condition, trueBranch, falseBranch]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const result = await evaluateExpr(condition, context);
+    if (result) return await evaluateBlock(trueBranch, context);
+    else return await evaluateBlock(falseBranch, context);
+  },
+  [OperatorType.WHILE]: async (
+    [condition, body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    while (true) {
+      const _context = { ...context, env: forkEnv(context.env) };
+      try {
+        const cond = await evaluateExpr(condition, _context);
+        if (!cond) return null;
+        await evaluateStatement(body, _context);
+      } catch (e) {
+        if (typeof e === 'object' && e !== null && 'break' in e) {
+          const value = e.break as EvalValue;
+          return value;
+        }
+        if (typeof e === 'object' && e !== null && 'continue' in e) {
+          const _value = e.continue as EvalValue;
+          continue;
+        }
+        throw e;
+      }
+    }
+  },
+  [OperatorType.FOR]: async (
+    [pattern, expr, body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const list = await evaluateExpr(expr, context);
+
+    assert(
+      Array.isArray(list),
+      SystemError.evaluationError(
+        'for loop iterates over lists only.',
+        [],
+        getPosition(expr)
+      )
+    );
+
+    const mapped: EvalValue[] = [];
+    for (const item of list) {
+      const _context = { ...context, env: forkEnv(context.env) };
+      try {
+        const bound = await bind(pattern, item, _context);
+        const value = await evaluateStatement(body, bound);
+        if (value === null) continue;
+        mapped.push(value);
+      } catch (e) {
+        if (typeof e === 'object' && e !== null && 'break' in e) {
+          const value = e.break as EvalValue;
+          if (value !== null) mapped.push(value);
+          break;
+        }
+        if (typeof e === 'object' && e !== null && 'continue' in e) {
+          const value = e.continue as EvalValue;
+          if (value !== null) mapped.push(value);
+          continue;
+        }
+        throw e;
+      }
+    }
+
+    return mapped;
+  },
+  [OperatorType.LOOP]: async (
+    [body]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    if (body.data.operator === OperatorType.BLOCK) {
+      body = body.children[0];
+    }
+
+    while (true) {
+      try {
+        await evaluateBlock(body, context);
+        continue;
+      } catch (e) {
+        if (typeof e === 'object' && e !== null && 'break' in e) {
+          const value = e.break as EvalValue;
+          return value;
+        }
+        if (typeof e === 'object' && e !== null && 'continue' in e) {
+          const _value = e.continue as EvalValue;
+          continue;
+        }
+        throw e;
+      }
+    }
+  },
+
+  [OperatorType.BLOCK]: async (
+    [expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    try {
+      return await evaluateBlock(expr, context);
+    } catch (e) {
+      if (typeof e === 'object' && e !== null && 'break' in e)
+        return e.break as EvalValue;
+      else throw e;
+    }
+  },
+  [OperatorType.SEQUENCE]: async (
+    [expr, ...rest]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    if (rest.length === 0) return await evaluateStatement(expr, context);
+    await evaluateStatement(expr, context);
+    return await lazyOperators[OperatorType.SEQUENCE](rest, context);
+  },
+
+  [OperatorType.INCREMENT]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const value = await evaluateExpr(arg, context);
+    assert(typeof value === 'number', 'expected number');
+    await assign(arg, value + 1, context);
+    return value + 1;
+  },
+  [OperatorType.DECREMENT]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const value = await evaluateExpr(arg, context);
+    assert(typeof value === 'number', 'expected number');
+    await assign(arg, value - 1, context);
+    return value - 1;
+  },
+  [OperatorType.POST_DECREMENT]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const value = await evaluateExpr(arg, context);
+    assert(typeof value === 'number', 'expected number');
+    await assign(arg, value - 1, context);
+    return value;
+  },
+  [OperatorType.POST_INCREMENT]: async (
+    [arg]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const value = await evaluateExpr(arg, context);
+    assert(typeof value === 'number', 'expected number');
+    await assign(arg, value + 1, context);
+    return value;
+  },
+
+  [OperatorType.DECLARE]: async (
+    [pattern, expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateStatement(expr, context);
+    await bind(pattern, value, context);
+    return value;
+  },
+  [OperatorType.ASSIGN]: async (
+    [pattern, expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateStatement(expr, context);
+    await assign(pattern, value, context);
+    return value;
+  },
+  [OperatorType.INC_ASSIGN]: async (
+    [pattern, expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateExpr(expr, context);
+    assert(typeof value === 'number' || Array.isArray(value));
+    await incAssign(pattern, value, context);
+    return value;
+  },
+
+  [OperatorType.COLON]: async (
+    [_key, expr]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const value = await evaluateExpr(expr, context);
+    const key =
+      _key.type === NodeType.NAME
+        ? _key.data.value
+        : await evaluateExpr(_key, context);
+
+    return { record: { [key]: value } };
+  },
+  [OperatorType.TUPLE]: async (
+    children: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const list: EvalValue[] = [];
+    const record = {};
+
+    for (const child of children) {
+      if (child.data.operator === OperatorType.SPREAD) {
+        const rest = await evaluateExpr(child.children[0], context);
+        if (Array.isArray(rest)) list.push(...rest);
+        else if (isRecord(rest)) Object.assign(record, rest.record);
+        else {
+          unreachable(
+            SystemError.invalidTuplePattern(getPosition(child)).withFileId(
+              context.fileId
+            )
+          );
+        }
+      } else if (child.data.operator === OperatorType.COLON) {
+        const _key = child.children[0];
+        const key =
+          _key.type === NodeType.NAME
+            ? _key.data.value
+            : await evaluateExpr(_key, context);
+        const value = await evaluateExpr(child.children[1], context);
+        record[key] = value;
+      } else if (child.type === NodeType.IMPLICIT_PLACEHOLDER) continue;
+      else list.push(await evaluateExpr(child, context));
+    }
+
+    if (Object.keys(record).length > 0) {
+      Object.assign(record, list);
+      return { record };
+    }
+
+    return list;
+  },
+  [OperatorType.INDEX]: async (
+    [_target, _index]: AbstractSyntaxTree[],
+    context: Context
+  ) => {
+    const target = await evaluateExpr(_target, context);
+    const index = await evaluateExpr(_index, context);
+
+    if (Array.isArray(target)) {
+      if (!Number.isInteger(index)) {
+        assert(
+          typeof index === 'string',
+          SystemError.invalidIndex(getPosition(_index)).withFileId(
+            context.fileId
+          )
+        );
+        return await listMethods[index](target, [
+          getPosition(_index),
+          context.fileId,
+        ]);
+      }
+      return target[index as number];
+    } else if (isRecord(target)) {
+      const record = target.record;
+      assert(
+        typeof index === 'string',
+        SystemError.invalidIndex(getPosition(_index)).withFileId(context.fileId)
+      );
+      return record[index];
+    }
+
+    if (typeof target === 'string') {
+      assert(
+        typeof index === 'string' && index in stringMethods,
+        SystemError.invalidIndex(getPosition(_index)).withFileId(context.fileId)
+      );
+      return await stringMethods[index](target, [
+        getPosition(_index),
+        context.fileId,
+      ]);
+    }
+
+    unreachable(
+      SystemError.invalidIndexTarget(getPosition(_index)).withFileId(
+        context.fileId
+      )
+    );
+  },
+};
+
 export const evaluateStatement = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
-  const showNode = (msg: string = '', node = ast) => {
-    const { position } = node.data;
-    const diag = Diagnostic.note();
-
-    diag.withLabels([
-      primaryDiagnosticLabel(context.fileId, {
-        message: msg,
-        start: position.start,
-        end: position.end,
-      }),
-    ]);
-    const fileMap = inject(Injectable.FileMap);
-    diag.emitStd(fileMap);
-  };
   switch (ast.type) {
     case NodeType.OPERATOR: {
+      if (ast.data.operator in lazyOperators) {
+        return await lazyOperators[ast.data.operator](ast.children, context);
+      }
+
+      if (ast.data.operator in operators) {
+        const args: EvalValue[] = [];
+        for (const child of ast.children) {
+          args.push(await evaluateExpr(child, context));
+        }
+        return operators[ast.data.operator](...args);
+      }
+
       switch (ast.data.operator) {
         case OperatorType.IMPORT: {
           const name = ast.data.name;
@@ -683,219 +1110,6 @@ export const evaluateStatement = async (
           }
 
           return value;
-        }
-
-        case OperatorType.EQUAL:
-        case OperatorType.NOT_EQUAL:
-        case OperatorType.LESS:
-        case OperatorType.LESS_EQUAL:
-        case OperatorType.GREATER:
-        case OperatorType.GREATER_EQUAL:
-        case OperatorType.NOT:
-        case OperatorType.MOD:
-        case OperatorType.POW:
-        case OperatorType.MINUS:
-        case OperatorType.PLUS:
-        case OperatorType.DIV:
-        case OperatorType.MULT:
-        case OperatorType.SUB:
-        case OperatorType.ADD: {
-          const args: EvalValue[] = [];
-          for (const child of ast.children) {
-            args.push(await evaluateExpr(child, context));
-          }
-          return operators[ast.data.operator](...args);
-        }
-
-        case OperatorType.INCREMENT: {
-          const arg = ast.children[0];
-          assert(arg.type === NodeType.NAME, 'expected name');
-          const value = await evaluateExpr(arg, context);
-          assert(typeof value === 'number', 'expected number');
-          await assign(arg, value + 1, context);
-          return value + 1;
-        }
-        case OperatorType.DECREMENT: {
-          const arg = ast.children[0];
-          assert(arg.type === NodeType.NAME, 'expected name');
-          const value = await evaluateExpr(arg, context);
-          assert(typeof value === 'number', 'expected number');
-          await assign(arg, value - 1, context);
-          return value - 1;
-        }
-        case OperatorType.POST_DECREMENT: {
-          const arg = ast.children[0];
-          assert(arg.type === NodeType.NAME, 'expected name');
-          const value = await evaluateExpr(arg, context);
-          assert(typeof value === 'number', 'expected number');
-          await assign(arg, value - 1, context);
-          return value;
-        }
-        case OperatorType.POST_INCREMENT: {
-          const arg = ast.children[0];
-          assert(arg.type === NodeType.NAME, 'expected name');
-          const value = await evaluateExpr(arg, context);
-          assert(typeof value === 'number', 'expected number');
-          await assign(arg, value + 1, context);
-          return value;
-        }
-
-        case OperatorType.AND: {
-          const [head, ...rest] = ast.children;
-          const result = await evaluateExpr(head, context);
-          if (!result) return false;
-          while (rest.length > 0) {
-            const next = rest.shift();
-            assert(next, 'missing expression in and operator');
-            const result = await evaluateExpr(next, context);
-            if (!result) return false;
-          }
-          return true;
-        }
-        case OperatorType.OR: {
-          const [head, ...rest] = ast.children;
-          const result = await evaluateExpr(head, context);
-          if (result) return true;
-          while (rest.length > 0) {
-            const next = rest.shift();
-            assert(next, 'missing expression in or operator');
-            const result = await evaluateExpr(next, context);
-            if (result) return true;
-          }
-          return false;
-        }
-        case OperatorType.PARENS: {
-          if (ast.children[0].type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-          return await evaluateStatement(ast.children[0], context);
-        }
-
-        case OperatorType.INDEX: {
-          const [target, index] = [
-            await evaluateExpr(ast.children[0], context),
-            await evaluateExpr(ast.children[1], context),
-          ];
-
-          if (Array.isArray(target)) {
-            if (!Number.isInteger(index)) {
-              assert(
-                typeof index === 'string',
-                SystemError.invalidIndex(getPosition(ast)).withFileId(
-                  context.fileId
-                )
-              );
-              return await listMethods[index](target, [
-                getPosition(ast),
-                context.fileId,
-              ]);
-            }
-            return target[index as number];
-          } else if (isRecord(target)) {
-            const record = target.record;
-            assert(
-              typeof index === 'string',
-              SystemError.invalidIndex(getPosition(ast)).withFileId(
-                context.fileId
-              )
-            );
-            return record[index];
-          }
-
-          if (typeof target === 'string') {
-            assert(
-              typeof index === 'string' && index in stringMethods,
-              SystemError.invalidIndex(getPosition(ast)).withFileId(
-                context.fileId
-              )
-            );
-            return await stringMethods[index](target, [
-              getPosition(ast),
-              context.fileId,
-            ]);
-          }
-
-          unreachable(
-            SystemError.invalidIndexTarget(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-        }
-        case OperatorType.TUPLE: {
-          const list: EvalValue[] = [];
-          const record = {};
-
-          for (const child of ast.children) {
-            if (child.data.operator === OperatorType.SPREAD) {
-              const rest = await evaluateExpr(child.children[0], context);
-              if (Array.isArray(rest)) list.push(...rest);
-              else if (isRecord(rest)) Object.assign(record, rest.record);
-              else {
-                unreachable(
-                  SystemError.invalidTuplePattern(
-                    getPosition(child)
-                  ).withFileId(context.fileId)
-                );
-              }
-            } else if (child.data.operator === OperatorType.COLON) {
-              const _key = child.children[0];
-              const key =
-                _key.type === NodeType.NAME
-                  ? _key.data.value
-                  : await evaluateExpr(_key, context);
-              const value = await evaluateExpr(child.children[1], context);
-              record[key] = value;
-            } else if (child.type === NodeType.IMPLICIT_PLACEHOLDER) continue;
-            else list.push(await evaluateExpr(child, context));
-          }
-
-          if (Object.keys(record).length > 0) {
-            Object.assign(record, list);
-            return { record };
-          }
-
-          return list;
-        }
-        case OperatorType.COLON: {
-          const _key = ast.children[0];
-          const key =
-            _key.type === NodeType.NAME
-              ? _key.data.value
-              : await evaluateExpr(_key, context);
-          const value = await evaluateExpr(ast.children[1], context);
-
-          return { record: { [key]: value } };
-        }
-        case OperatorType.SPREAD: {
-          unreachable(
-            SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-        }
-
-        case OperatorType.ASYNC: {
-          const expr = ast.children[0];
-          return createTask(
-            async () => await evaluateBlock(expr, context),
-            (e) => {
-              console.error(e);
-              if (e instanceof SystemError) e.print();
-              else showNode(e.message, expr);
-            }
-          );
-        }
-
-        case OperatorType.PARALLEL: {
-          const tasks = ast.children.map((child) => {
-            return createTask(
-              async () => await evaluateBlock(child, context),
-              (e) => {
-                console.error(e);
-                if (e instanceof SystemError) e.print();
-                else showNode(e.message, child);
-              }
-            );
-          });
-          return tasks;
         }
 
         case OperatorType.SEND: {
@@ -984,207 +1198,6 @@ export const evaluateStatement = async (
           return [value ?? [], atom(status)];
         }
 
-        case OperatorType.ATOM: {
-          assert(ast.children[0].type === NodeType.NAME, 'expected name');
-          return atom(ast.children[0].data.value);
-        }
-
-        case OperatorType.TOKEN: {
-          unreachable(
-            SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-        }
-
-        case OperatorType.INJECT: {
-          const [expr, body] = ast.children;
-          const value = await evaluateExpr(expr, context);
-          assert(isRecord(value), 'expected record');
-
-          const handlers = { ...context.handlers, ...value.record };
-          Object.setPrototypeOf(handlers, context.handlers);
-          return await evaluateBlock(body, { ...context, handlers });
-        }
-        case OperatorType.WITHOUT: {
-          const [expr, body] = ast.children;
-          let value = await evaluateExpr(expr, context);
-          if (!Array.isArray(value)) value = [value];
-          assert(
-            value.every((v) => typeof v === 'string' || isSymbol(v)),
-            'expected strings or symbols'
-          );
-
-          const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
-          const handlers = omitHandlers(context.handlers, handlerNames);
-          return await evaluateBlock(body, { ...context, handlers });
-        }
-        case OperatorType.MASK: {
-          const [expr, body] = ast.children;
-          let value = await evaluateExpr(expr, context);
-          if (!Array.isArray(value)) value = [value];
-          assert(
-            value.every((v) => typeof v === 'string' || isSymbol(v)),
-            'expected strings or symbols'
-          );
-
-          const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
-          const handlers = maskHandlers(context.handlers, handlerNames);
-          return await evaluateBlock(body, { ...context, handlers });
-        }
-
-        case OperatorType.MATCH: {
-          const [expr, ...branches] = ast.children;
-          const value = await evaluateExpr(expr, context);
-
-          for (const branch of branches) {
-            assert(
-              branch.type === OperatorType.MATCH_CASE,
-              'expected match case'
-            );
-            const [pattern, body] = branch.children;
-
-            const bound = await bind(pattern, value, context).catch();
-            if (bound) return await evaluateBlock(body, bound);
-          }
-
-          return null;
-        }
-        case OperatorType.IF: {
-          const [condition, branch] = ast.children;
-          const result = await evaluateExpr(condition, context);
-          if (result) {
-            return await evaluateBlock(branch, context);
-          }
-          return null;
-        }
-        case OperatorType.IF_ELSE: {
-          const [condition, trueBranch, falseBranch] = ast.children;
-
-          const result = await evaluateExpr(condition, context);
-          if (result) return await evaluateBlock(trueBranch, context);
-          else return await evaluateBlock(falseBranch, context);
-        }
-        case OperatorType.WHILE: {
-          const [condition, body] = ast.children;
-          while (true) {
-            const _context = { ...context, env: forkEnv(context.env) };
-            try {
-              const cond = await evaluateExpr(condition, _context);
-              if (!cond) return null;
-              await evaluateStatement(body, _context);
-            } catch (e) {
-              if (typeof e === 'object' && e !== null && 'break' in e) {
-                const value = e.break as EvalValue;
-                return value;
-              }
-              if (typeof e === 'object' && e !== null && 'continue' in e) {
-                const _value = e.continue as EvalValue;
-                continue;
-              }
-              throw e;
-            }
-          }
-        }
-        case OperatorType.FOR: {
-          const [pattern, expr, body] = ast.children;
-          const list = await evaluateExpr(expr, context);
-
-          assert(
-            Array.isArray(list),
-            SystemError.evaluationError(
-              'for loop iterates over lists only.',
-              [],
-              getPosition(expr)
-            )
-          );
-
-          const mapped: EvalValue[] = [];
-          for (const item of list) {
-            const _context = { ...context, env: forkEnv(context.env) };
-            try {
-              const bound = await bind(pattern, item, _context);
-              const value = await evaluateStatement(body, bound);
-              if (value === null) continue;
-              mapped.push(value);
-            } catch (e) {
-              if (typeof e === 'object' && e !== null && 'break' in e) {
-                const value = e.break as EvalValue;
-                if (value !== null) mapped.push(value);
-                break;
-              }
-              if (typeof e === 'object' && e !== null && 'continue' in e) {
-                const value = e.continue as EvalValue;
-                if (value !== null) mapped.push(value);
-                continue;
-              }
-              throw e;
-            }
-          }
-
-          return mapped;
-        }
-        case OperatorType.LOOP: {
-          let [body] = ast.children;
-
-          if (body.data.operator === OperatorType.BLOCK) {
-            body = body.children[0];
-          }
-
-          while (true) {
-            try {
-              await evaluateBlock(body, context);
-              continue;
-            } catch (e) {
-              if (typeof e === 'object' && e !== null && 'break' in e) {
-                const value = e.break as EvalValue;
-                return value;
-              }
-              if (typeof e === 'object' && e !== null && 'continue' in e) {
-                const _value = e.continue as EvalValue;
-                continue;
-              }
-              throw e;
-            }
-          }
-        }
-        case OperatorType.INC_ASSIGN: {
-          const [pattern, expr] = ast.children;
-          const value = await evaluateExpr(expr, context);
-          assert(
-            typeof value === 'number' || Array.isArray(value),
-            SystemError.invalidIncrementValue(getPosition(expr)).withFileId(
-              context.fileId
-            )
-          );
-          await incAssign(pattern, value, context);
-          return value;
-        }
-        case OperatorType.ASSIGN: {
-          const [pattern, expr] = ast.children;
-          const value = await evaluateStatement(expr, context);
-          await assign(pattern, value, context);
-          return value;
-        }
-        case OperatorType.DECLARE: {
-          const [pattern, expr] = ast.children;
-          const value = await evaluateStatement(expr, context);
-          await bind(pattern, value, context);
-          return value;
-        }
-        case OperatorType.SEQUENCE: {
-          return await evaluateSequence(ast, context);
-        }
-        case OperatorType.BLOCK: {
-          try {
-            return await evaluateBlock(ast.children[0], context);
-          } catch (e) {
-            if (typeof e === 'object' && e !== null && 'break' in e)
-              return e.break as EvalValue;
-            else throw e;
-          }
-        }
-
         case OperatorType.FUNCTION: {
           const [_patterns, _body] = ast.children;
           const isTopFunction = ast.data.isTopFunction ?? true;
@@ -1236,6 +1249,21 @@ export const evaluateStatement = async (
             context.fileId,
             context,
           ]);
+        }
+
+        case OperatorType.SPREAD: {
+          unreachable(
+            SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
+              context.fileId
+            )
+          );
+        }
+        case OperatorType.TOKEN: {
+          unreachable(
+            SystemError.invalidTokenExpression(getPosition(ast)).withFileId(
+              context.fileId
+            )
+          );
         }
       }
     }
@@ -1294,25 +1322,12 @@ export const evaluateExpr = async (
   return result;
 };
 
-export const evaluateSequence = async (
-  ast: AbstractSyntaxTree,
-  context: Context
-): Promise<EvalValue> => {
-  let result: EvalValue = null;
-
-  for (const child of ast.children) {
-    result = await evaluateStatement(child, context);
-  }
-
-  return result;
-};
-
 export const evaluateScript = async (
   ast: AbstractSyntaxTree,
   context: Context
 ): Promise<EvalValue> => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
-  return await evaluateSequence(ast, context);
+  return await lazyOperators[OperatorType.SEQUENCE](ast.children, context);
 };
 
 export const evaluateModule = async (

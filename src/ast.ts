@@ -184,7 +184,7 @@ export enum OperatorType {
   INC_ASSIGN = '+=',
   LOOP = 'loop',
   FOR = 'for',
-  ASYNC = 'async',
+  FORK = 'async',
   MATCH = 'match',
   MATCH_CASE = 'match_case',
   INJECT = 'inject',
@@ -228,7 +228,7 @@ const precedenceList: [OperatorType, Fixity, Associativity?][] = [
   [OperatorType.ASSIGN, Fixity.PREFIX],
   [OperatorType.INC_ASSIGN, Fixity.PREFIX],
 
-  [OperatorType.ASYNC, Fixity.PREFIX],
+  [OperatorType.FORK, Fixity.PREFIX],
   [OperatorType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorType.COLON, Fixity.INFIX, Associativity.RIGHT],

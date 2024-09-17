@@ -31,8 +31,8 @@ export const getPrecedence = (node: AbstractSyntaxTree): Precedence =>
   getOperatorPrecedence(node.data.operator);
 
 export const getPosition = (node: AbstractSyntaxTree): Position => {
-  const nodePosition = inject(Injectable.ASTNodePositionMap).get(node.id);
-  if (nodePosition) return nodePosition;
+  const map = inject(Injectable.ASTNodePositionMap);
+  if (map.has(node.id)) return map.get(node.id)!;
   const childrenPosition = node.children.map(getPosition);
   return mergePositions(...childrenPosition);
 };
@@ -99,7 +99,7 @@ const idToPrefixExprOp = {
   '<-': OperatorType.RECEIVE,
   '<-?': OperatorType.RECEIVE_STATUS,
   not: OperatorType.NOT,
-  async: OperatorType.ASYNC,
+  async: OperatorType.FORK,
   loop: OperatorType.LOOP,
   export: OperatorType.EXPORT,
 };
