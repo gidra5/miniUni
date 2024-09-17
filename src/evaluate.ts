@@ -10,8 +10,11 @@ import {
 import { getPosition, parseModule, parseScript } from './parser.js';
 import {
   NodeType,
+  operator,
   OperatorType,
+  name as nameAST,
   placeholder,
+  fn as fnAST,
   tuple as tupleAST,
   type AbstractSyntaxTree,
 } from './ast.js';
@@ -30,7 +33,6 @@ import {
   send,
   tryReceive,
 } from './values.js';
-import { fn as fnAST } from './ast.js';
 import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'path';
@@ -686,18 +688,25 @@ const lazyOperators = {
     [head, ...rest]: AbstractSyntaxTree[],
     context: Context
   ) => {
-    const result = await evaluateExpr(head, context);
-    if (rest.length === 0) return result;
-    return result && (await lazyOperators[OperatorType.AND](rest, context));
+    const restAst =
+      rest.length > 1
+        ? operator(OperatorType.AND, { children: rest })
+        : rest[0];
+    return await lazyOperators[OperatorType.IF_ELSE](
+      [head, restAst, nameAST('false', getPosition(head))],
+      context
+    );
   },
   [OperatorType.OR]: async (
     [head, ...rest]: AbstractSyntaxTree[],
     context: Context
   ) => {
-    const result = await evaluateExpr(head, context);
-    if (rest.length === 0) return result;
-
-    return result || (await lazyOperators[OperatorType.OR](rest, context));
+    const restAst =
+      rest.length > 1 ? operator(OperatorType.OR, { children: rest }) : rest[0];
+    return await lazyOperators[OperatorType.IF_ELSE](
+      [head, nameAST('true', getPosition(head)), restAst],
+      context
+    );
   },
 
   [OperatorType.PARENS]: async (

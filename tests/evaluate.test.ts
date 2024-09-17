@@ -398,6 +398,26 @@ describe('expressions', () => {
       const result = await evaluate(input);
       expect(result).toBe(true);
     });
+
+    it('and lhs creates scope', async () => {
+      const input = `
+        x := 2;
+        true and (x := 1);
+        x
+      `;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
+    it('or lhs creates scope', async () => {
+      const input = `
+        x := 2;
+        false or (x := 1);
+        x
+      `;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
   });
 
   describe('function expressions', () => {

@@ -24,7 +24,6 @@ import {
   getPrecedence as getOperatorPrecedence,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
-import { inspect } from './utils.js';
 
 export const getPrecedence = (node: AbstractSyntaxTree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
