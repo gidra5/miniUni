@@ -10,7 +10,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
           "data": {
             "value": "flat_map",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -22,7 +21,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                   "data": {
                     "value": "list",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -30,12 +28,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                   "data": {
                     "value": "mapper",
                   },
-                  "id": "5",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
             {
@@ -51,7 +47,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                               "data": {
                                 "value": "reduce",
                               },
-                              "id": "10",
                               "type": "name",
                             },
                             {
@@ -59,12 +54,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                               "data": {
                                 "value": "list",
                               },
-                              "id": "22",
                               "type": "name",
                             },
                           ],
                           "data": {},
-                          "id": "16",
                           "type": "application",
                         },
                         {
@@ -78,7 +71,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                       "data": {
                                         "value": "acc",
                                       },
-                                      "id": "40",
                                       "type": "name",
                                     },
                                     {
@@ -86,12 +78,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                       "data": {
                                         "value": "item",
                                       },
-                                      "id": "42",
                                       "type": "name",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "41",
                                   "type": ",",
                                 },
                                 {
@@ -105,12 +95,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                               "data": {
                                                 "value": "acc",
                                               },
-                                              "id": "75",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "67",
                                           "type": "...",
                                         },
                                         {
@@ -122,7 +110,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                                   "data": {
                                                     "value": "mapper",
                                                   },
-                                                  "id": "89",
                                                   "type": "name",
                                                 },
                                                 {
@@ -130,42 +117,34 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                                   "data": {
                                                     "value": "item",
                                                   },
-                                                  "id": "95",
                                                   "type": "name",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "92",
                                               "type": "application",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "86",
                                           "type": "...",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "81",
                                       "type": ",",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "96",
                                   "type": "parens",
                                 },
                               ],
                               "data": {},
-                              "id": "45",
                               "type": "func",
                             },
                           ],
                           "data": {},
-                          "id": "97",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "34",
                       "type": "application",
                     },
                     {
@@ -179,7 +158,6 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                   "data": {
                                     "value": "first",
                                   },
-                                  "id": "115",
                                   "type": "name",
                                 },
                                 {
@@ -187,12 +165,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                   "data": {
                                     "value": "second",
                                   },
-                                  "id": "117",
                                   "type": "name",
                                 },
                               ],
                               "data": {},
-                              "id": "116",
                               "type": ",",
                             },
                             {
@@ -206,12 +182,10 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                           "data": {
                                             "value": "first",
                                           },
-                                          "id": "149",
                                           "type": "name",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "141",
                                       "type": "...",
                                     },
                                     {
@@ -221,37 +195,30 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                           "data": {
                                             "value": "second",
                                           },
-                                          "id": "163",
                                           "type": "name",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "160",
                                       "type": "...",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "155",
                                   "type": ",",
                                 },
                               ],
                               "data": {},
-                              "id": "164",
                               "type": "parens",
                             },
                           ],
                           "data": {},
-                          "id": "120",
                           "type": "func",
                         },
                       ],
                       "data": {},
-                      "id": "165",
                       "type": "parens",
                     },
                   ],
                   "data": {},
-                  "id": "109",
                   "type": "application",
                 },
                 {
@@ -259,32 +226,26 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                     {
                       "children": [],
                       "data": {},
-                      "id": "177",
                       "type": "implicit_placeholder",
                     },
                   ],
                   "data": {},
-                  "id": "178",
                   "type": "parens",
                 },
               ],
               "data": {},
-              "id": "173",
               "type": "application",
             },
           ],
           "data": {},
-          "id": "181",
           "type": "func",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "184",
   "type": "script",
 }
 `;
@@ -301,7 +262,6 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
               "data": {
                 "value": "acc",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -309,12 +269,10 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
               "data": {
                 "value": "item",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "1",
           "type": ",",
         },
         {
@@ -328,12 +286,10 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
                       "data": {
                         "value": "acc",
                       },
-                      "id": "35",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "27",
                   "type": "...",
                 },
                 {
@@ -345,7 +301,6 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
                           "data": {
                             "value": "mapper",
                           },
-                          "id": "49",
                           "type": "name",
                         },
                         {
@@ -353,37 +308,30 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
                           "data": {
                             "value": "item",
                           },
-                          "id": "55",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "52",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "46",
                   "type": "...",
                 },
               ],
               "data": {},
-              "id": "41",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "56",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "59",
   "type": "script",
 }
 `;
@@ -400,7 +348,6 @@ exports[`advent of code 1 single file > fn multiple args 1`] = `
               "data": {
                 "value": "acc",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -408,12 +355,10 @@ exports[`advent of code 1 single file > fn multiple args 1`] = `
               "data": {
                 "value": "item",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "1",
           "type": ",",
         },
         {
@@ -421,22 +366,18 @@ exports[`advent of code 1 single file > fn multiple args 1`] = `
             {
               "children": [],
               "data": {},
-              "id": "9",
               "type": "implicit_placeholder",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "13",
   "type": "script",
 }
 `;
@@ -451,7 +392,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
           "data": {
             "value": "numbers",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -463,7 +403,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                   "data": {
                     "value": "flat_map",
                   },
-                  "id": "5",
                   "type": "name",
                 },
                 {
@@ -471,12 +410,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                   "data": {
                     "value": "lines",
                   },
-                  "id": "11",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "8",
               "type": "application",
             },
             {
@@ -486,7 +423,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                   "data": {
                     "value": "line",
                   },
-                  "id": "18",
                   "type": "name",
                 },
                 {
@@ -498,7 +434,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                           "data": {
                             "value": "digits",
                           },
-                          "id": "20",
                           "type": "name",
                         },
                         {
@@ -506,17 +441,14 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                             {
                               "children": [],
                               "data": {},
-                              "id": "27",
                               "type": "implicit_placeholder",
                             },
                           ],
                           "data": {},
-                          "id": "28",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "22",
                       "type": ":=",
                     },
                     {
@@ -528,7 +460,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                               "data": {
                                 "value": "line",
                               },
-                              "id": "31",
                               "type": "name",
                             },
                             {
@@ -536,12 +467,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                               "data": {
                                 "value": "",
                               },
-                              "id": "37",
                               "type": "string",
                             },
                           ],
                           "data": {},
-                          "id": "34",
                           "type": "!=",
                         },
                         {
@@ -557,7 +486,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                           "data": {
                                             "value": "match",
                                           },
-                                          "id": "40",
                                           "type": "name",
                                         },
                                         {
@@ -565,12 +493,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                           "data": {
                                             "value": "d",
                                           },
-                                          "id": "52",
                                           "type": "string",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "46",
                                       "type": "application",
                                     },
                                     {
@@ -584,7 +510,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": "char_at",
                                                   },
-                                                  "id": "72",
                                                   "type": "name",
                                                 },
                                                 {
@@ -592,12 +517,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": "line",
                                                   },
-                                                  "id": "78",
                                                   "type": "name",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "75",
                                               "type": "application",
                                             },
                                             {
@@ -605,22 +528,18 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": 0,
                                               },
-                                              "id": "87",
                                               "type": "number",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "84",
                                           "type": "application",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "88",
                                       "type": "parens",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "64",
                                   "type": "application",
                                 },
                                 {
@@ -632,7 +551,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                           "data": {
                                             "value": "digit",
                                           },
-                                          "id": "89",
                                           "type": "name",
                                         },
                                         {
@@ -642,7 +560,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": "number",
                                               },
-                                              "id": "97",
                                               "type": "name",
                                             },
                                             {
@@ -656,7 +573,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                           "data": {
                                                             "value": "char_at",
                                                           },
-                                                          "id": "111",
                                                           "type": "name",
                                                         },
                                                         {
@@ -664,12 +580,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                           "data": {
                                                             "value": "line",
                                                           },
-                                                          "id": "117",
                                                           "type": "name",
                                                         },
                                                       ],
                                                       "data": {},
-                                                      "id": "114",
                                                       "type": "application",
                                                     },
                                                     {
@@ -677,27 +591,22 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                       "data": {
                                                         "value": 0,
                                                       },
-                                                      "id": "126",
                                                       "type": "number",
                                                     },
                                                   ],
                                                   "data": {},
-                                                  "id": "123",
                                                   "type": "application",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "127",
                                               "type": "parens",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "103",
                                           "type": "application",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "91",
                                       "type": ":=",
                                     },
                                     {
@@ -711,7 +620,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": "digits",
                                                   },
-                                                  "id": "137",
                                                   "type": "name",
                                                 },
                                                 {
@@ -719,17 +627,14 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": 0,
                                                   },
-                                                  "id": "145",
                                                   "type": "number",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "146",
                                               "type": "index",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "130",
                                           "type": "not",
                                         },
                                         {
@@ -741,7 +646,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": "digits",
                                                   },
-                                                  "id": "195",
                                                   "type": "name",
                                                 },
                                                 {
@@ -749,12 +653,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                                   "data": {
                                                     "value": 0,
                                                   },
-                                                  "id": "198",
                                                   "type": "number",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "199",
                                               "type": "index",
                                             },
                                             {
@@ -762,17 +664,14 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": "digit",
                                               },
-                                              "id": "204",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "201",
                                           "type": "=",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "194",
                                       "type": "if",
                                     },
                                     {
@@ -784,7 +683,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": "digits",
                                               },
-                                              "id": "205",
                                               "type": "name",
                                             },
                                             {
@@ -792,12 +690,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": 1,
                                               },
-                                              "id": "208",
                                               "type": "number",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "209",
                                           "type": "index",
                                         },
                                         {
@@ -805,22 +701,18 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                           "data": {
                                             "value": "digit",
                                           },
-                                          "id": "214",
                                           "type": "name",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "211",
                                       "type": "=",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "215",
                                   "type": "sequence",
                                 },
                               ],
                               "data": {},
-                              "id": "216",
                               "type": "if",
                             },
                             {
@@ -832,7 +724,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                         {
                                           "children": [],
                                           "data": {},
-                                          "id": "217",
                                           "type": "placeholder",
                                         },
                                         {
@@ -842,22 +733,18 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                               "data": {
                                                 "value": "line",
                                               },
-                                              "id": "220",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "219",
                                           "type": "...",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "218",
                                       "type": ",",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "224",
                                   "type": "parens",
                                 },
                                 {
@@ -865,22 +752,18 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                   "data": {
                                     "value": "line",
                                   },
-                                  "id": "229",
                                   "type": "name",
                                 },
                               ],
                               "data": {},
-                              "id": "226",
                               "type": "=",
                             },
                           ],
                           "data": {},
-                          "id": "230",
                           "type": "sequence",
                         },
                       ],
                       "data": {},
-                      "id": "231",
                       "type": "while",
                     },
                     {
@@ -892,7 +775,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                               "data": {
                                 "value": "digits",
                               },
-                              "id": "245",
                               "type": "name",
                             },
                             {
@@ -900,12 +782,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                               "data": {
                                 "value": 0,
                               },
-                              "id": "260",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "261",
                           "type": "index",
                         },
                         {
@@ -917,7 +797,6 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                   "data": {
                                     "value": "digits",
                                   },
-                                  "id": "271",
                                   "type": "name",
                                 },
                                 {
@@ -925,12 +804,10 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                                   "data": {
                                     "value": 1,
                                   },
-                                  "id": "279",
                                   "type": "number",
                                 },
                               ],
                               "data": {},
-                              "id": "280",
                               "type": "index",
                             },
                             {
@@ -938,42 +815,34 @@ exports[`advent of code 1 single file > parse numbers 1`] = `
                               "data": {
                                 "value": 10,
                               },
-                              "id": "285",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "283",
                           "type": "*",
                         },
                       ],
                       "data": {},
-                      "id": "264",
                       "type": ",",
                     },
                   ],
                   "data": {},
-                  "id": "289",
                   "type": "sequence",
                 },
               ],
               "data": {},
-              "id": "290",
               "type": "func",
             },
           ],
           "data": {},
-          "id": "17",
           "type": "application",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "294",
   "type": "script",
 }
 `;
@@ -988,7 +857,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
           "data": {
             "value": "reduce",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -1000,7 +868,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                   "data": {
                     "value": "list",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -1008,7 +875,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                   "data": {
                     "value": "reducer",
                   },
-                  "id": "5",
                   "type": "name",
                 },
                 {
@@ -1016,7 +882,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                   "data": {
                     "value": "merge",
                   },
-                  "id": "8",
                   "type": "name",
                 },
                 {
@@ -1024,12 +889,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                   "data": {
                     "value": "initial",
                   },
-                  "id": "11",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
             {
@@ -1041,7 +904,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                       "data": {
                         "value": "len",
                       },
-                      "id": "14",
                       "type": "name",
                     },
                     {
@@ -1051,7 +913,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "length",
                           },
-                          "id": "19",
                           "type": "name",
                         },
                         {
@@ -1059,17 +920,14 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "list",
                           },
-                          "id": "25",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "22",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "16",
                   "type": ":=",
                 },
                 {
@@ -1081,7 +939,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "len",
                           },
-                          "id": "28",
                           "type": "name",
                         },
                         {
@@ -1089,12 +946,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": 0,
                           },
-                          "id": "34",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "31",
                       "type": "==",
                     },
                     {
@@ -1104,7 +959,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "return",
                           },
-                          "id": "479",
                           "type": "name",
                         },
                         {
@@ -1112,17 +966,14 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "initial",
                           },
-                          "id": "485",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "482",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "476",
                   "type": "if",
                 },
                 {
@@ -1132,7 +983,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                       "data": {
                         "value": "midpoint",
                       },
-                      "id": "486",
                       "type": "name",
                     },
                     {
@@ -1142,7 +992,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "floor",
                           },
-                          "id": "494",
                           "type": "name",
                         },
                         {
@@ -1154,7 +1003,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                   "data": {
                                     "value": "len",
                                   },
-                                  "id": "508",
                                   "type": "name",
                                 },
                                 {
@@ -1162,27 +1010,22 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                   "data": {
                                     "value": 2,
                                   },
-                                  "id": "514",
                                   "type": "number",
                                 },
                               ],
                               "data": {},
-                              "id": "511",
                               "type": "/",
                             },
                           ],
                           "data": {},
-                          "id": "515",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "500",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "488",
                   "type": ":=",
                 },
                 {
@@ -1192,7 +1035,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                       "data": {
                         "value": "item",
                       },
-                      "id": "516",
                       "type": "name",
                     },
                     {
@@ -1202,7 +1044,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "list",
                           },
-                          "id": "525",
                           "type": "name",
                         },
                         {
@@ -1210,17 +1051,14 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "midpoint",
                           },
-                          "id": "533",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "534",
                       "type": "index",
                     },
                   ],
                   "data": {},
-                  "id": "518",
                   "type": ":=",
                 },
                 {
@@ -1232,7 +1070,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "first",
                           },
-                          "id": "535",
                           "type": "name",
                         },
                         {
@@ -1240,12 +1077,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "second",
                           },
-                          "id": "537",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "536",
                       "type": ",",
                     },
                     {
@@ -1255,7 +1090,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "all",
                           },
-                          "id": "549",
                           "type": "name",
                         },
                         {
@@ -1279,7 +1113,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                           "data": {
                                                             "value": "reduce",
                                                           },
-                                                          "id": "585",
                                                           "type": "name",
                                                         },
                                                         {
@@ -1287,12 +1120,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                           "data": {
                                                             "value": "slice",
                                                           },
-                                                          "id": "607",
                                                           "type": "name",
                                                         },
                                                       ],
                                                       "data": {},
-                                                      "id": "596",
                                                       "type": "application",
                                                     },
                                                     {
@@ -1304,7 +1135,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                               "data": {
                                                                 "value": "list",
                                                               },
-                                                              "id": "648",
                                                               "type": "name",
                                                             },
                                                             {
@@ -1312,7 +1142,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                               "data": {
                                                                 "value": 0,
                                                               },
-                                                              "id": "657",
                                                               "type": "number",
                                                             },
                                                             {
@@ -1320,22 +1149,18 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                               "data": {
                                                                 "value": "midpoint",
                                                               },
-                                                              "id": "666",
                                                               "type": "name",
                                                             },
                                                           ],
                                                           "data": {},
-                                                          "id": "651",
                                                           "type": ",",
                                                         },
                                                       ],
                                                       "data": {},
-                                                      "id": "667",
                                                       "type": "parens",
                                                     },
                                                   ],
                                                   "data": {},
-                                                  "id": "629",
                                                   "type": "application",
                                                 },
                                                 {
@@ -1343,12 +1168,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                   "data": {
                                                     "value": "reducer",
                                                   },
-                                                  "id": "676",
                                                   "type": "name",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "673",
                                               "type": "application",
                                             },
                                             {
@@ -1356,12 +1179,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                               "data": {
                                                 "value": "merge",
                                               },
-                                              "id": "685",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "682",
                                           "type": "application",
                                         },
                                         {
@@ -1369,17 +1190,14 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                           "data": {
                                             "value": "initial",
                                           },
-                                          "id": "694",
                                           "type": "name",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "691",
                                       "type": "application",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "695",
                                   "type": "parens",
                                 },
                                 {
@@ -1399,7 +1217,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                           "data": {
                                                             "value": "reduce",
                                                           },
-                                                          "id": "709",
                                                           "type": "name",
                                                         },
                                                         {
@@ -1407,12 +1224,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                           "data": {
                                                             "value": "slice",
                                                           },
-                                                          "id": "727",
                                                           "type": "name",
                                                         },
                                                       ],
                                                       "data": {},
-                                                      "id": "718",
                                                       "type": "application",
                                                     },
                                                     {
@@ -1424,7 +1239,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                               "data": {
                                                                 "value": "list",
                                                               },
-                                                              "id": "759",
                                                               "type": "name",
                                                             },
                                                             {
@@ -1434,7 +1248,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                                   "data": {
                                                                     "value": "midpoint",
                                                                   },
-                                                                  "id": "765",
                                                                   "type": "name",
                                                                 },
                                                                 {
@@ -1442,27 +1255,22 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                                   "data": {
                                                                     "value": 1,
                                                                   },
-                                                                  "id": "771",
                                                                   "type": "number",
                                                                 },
                                                               ],
                                                               "data": {},
-                                                              "id": "768",
                                                               "type": "add",
                                                             },
                                                           ],
                                                           "data": {},
-                                                          "id": "762",
                                                           "type": ",",
                                                         },
                                                       ],
                                                       "data": {},
-                                                      "id": "772",
                                                       "type": "parens",
                                                     },
                                                   ],
                                                   "data": {},
-                                                  "id": "745",
                                                   "type": "application",
                                                 },
                                                 {
@@ -1470,12 +1278,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                                   "data": {
                                                     "value": "reducer",
                                                   },
-                                                  "id": "781",
                                                   "type": "name",
                                                 },
                                               ],
                                               "data": {},
-                                              "id": "778",
                                               "type": "application",
                                             },
                                             {
@@ -1483,12 +1289,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                               "data": {
                                                 "value": "merge",
                                               },
-                                              "id": "790",
                                               "type": "name",
                                             },
                                           ],
                                           "data": {},
-                                          "id": "787",
                                           "type": "application",
                                         },
                                         {
@@ -1496,37 +1300,30 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                           "data": {
                                             "value": "initial",
                                           },
-                                          "id": "799",
                                           "type": "name",
                                         },
                                       ],
                                       "data": {},
-                                      "id": "796",
                                       "type": "application",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "800",
                                   "type": "parens",
                                 },
                               ],
                               "data": {},
-                              "id": "701",
                               "type": "parallel",
                             },
                           ],
                           "data": {},
-                          "id": "803",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "561",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "540",
                   "type": ":=",
                 },
                 {
@@ -1538,7 +1335,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                           "data": {
                             "value": "merge",
                           },
-                          "id": "809",
                           "type": "name",
                         },
                         {
@@ -1552,7 +1348,6 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                       "data": {
                                         "value": "reducer",
                                       },
-                                      "id": "823",
                                       "type": "name",
                                     },
                                     {
@@ -1560,12 +1355,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                       "data": {
                                         "value": "first",
                                       },
-                                      "id": "829",
                                       "type": "name",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "826",
                                   "type": "application",
                                 },
                                 {
@@ -1573,22 +1366,18 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                                   "data": {
                                     "value": "item",
                                   },
-                                  "id": "838",
                                   "type": "name",
                                 },
                               ],
                               "data": {},
-                              "id": "835",
                               "type": "application",
                             },
                           ],
                           "data": {},
-                          "id": "839",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "815",
                       "type": "application",
                     },
                     {
@@ -1596,32 +1385,26 @@ exports[`advent of code 1 single file > reduce list 1`] = `
                       "data": {
                         "value": "second",
                       },
-                      "id": "845",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "843",
                   "type": "application",
                 },
               ],
               "data": {},
-              "id": "848",
               "type": "sequence",
             },
           ],
           "data": {},
-          "id": "849",
           "type": "func",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "852",
   "type": "script",
 }
 `;
@@ -1636,7 +1419,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
           "data": {
             "value": "lines",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -1650,7 +1432,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                       "data": {
                         "value": "lines",
                       },
-                      "id": "8",
                       "type": "name",
                     },
                     {
@@ -1662,7 +1443,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "split",
                               },
-                              "id": "13",
                               "type": "name",
                             },
                             {
@@ -1670,12 +1450,10 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "document",
                               },
-                              "id": "19",
                               "type": "name",
                             },
                           ],
                           "data": {},
-                          "id": "16",
                           "type": "application",
                         },
                         {
@@ -1684,17 +1462,14 @@ exports[`advent of code 1 single file > split lines 1`] = `
                             "value": "
 ",
                           },
-                          "id": "28",
                           "type": "string",
                         },
                       ],
                       "data": {},
-                      "id": "25",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "10",
                   "type": ":=",
                 },
                 {
@@ -1704,7 +1479,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                       "data": {
                         "value": "lines",
                       },
-                      "id": "29",
                       "type": "name",
                     },
                     {
@@ -1716,7 +1490,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "map",
                               },
-                              "id": "34",
                               "type": "name",
                             },
                             {
@@ -1724,12 +1497,10 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "lines",
                               },
-                              "id": "46",
                               "type": "name",
                             },
                           ],
                           "data": {},
-                          "id": "40",
                           "type": "application",
                         },
                         {
@@ -1743,7 +1514,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                                       "data": {
                                         "value": "replace",
                                       },
-                                      "id": "66",
                                       "type": "name",
                                     },
                                     {
@@ -1751,12 +1521,10 @@ exports[`advent of code 1 single file > split lines 1`] = `
                                       "data": {
                                         "value": "w+",
                                       },
-                                      "id": "72",
                                       "type": "string",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "69",
                                   "type": "application",
                                 },
                                 {
@@ -1764,27 +1532,22 @@ exports[`advent of code 1 single file > split lines 1`] = `
                                   "data": {
                                     "value": "",
                                   },
-                                  "id": "81",
                                   "type": "string",
                                 },
                               ],
                               "data": {},
-                              "id": "78",
                               "type": "application",
                             },
                           ],
                           "data": {},
-                          "id": "82",
                           "type": "parens",
                         },
                       ],
                       "data": {},
-                      "id": "58",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "31",
                   "type": "=",
                 },
                 {
@@ -1794,7 +1557,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                       "data": {
                         "value": "lines",
                       },
-                      "id": "83",
                       "type": "name",
                     },
                     {
@@ -1806,7 +1568,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "filter",
                               },
-                              "id": "88",
                               "type": "name",
                             },
                             {
@@ -1814,12 +1575,10 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "lines",
                               },
-                              "id": "94",
                               "type": "name",
                             },
                           ],
                           "data": {},
-                          "id": "91",
                           "type": "application",
                         },
                         {
@@ -1829,7 +1588,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                               "data": {
                                 "value": "line",
                               },
-                              "id": "101",
                               "type": "name",
                             },
                             {
@@ -1839,7 +1597,6 @@ exports[`advent of code 1 single file > split lines 1`] = `
                                   "data": {
                                     "value": "line",
                                   },
-                                  "id": "106",
                                   "type": "name",
                                 },
                                 {
@@ -1847,47 +1604,38 @@ exports[`advent of code 1 single file > split lines 1`] = `
                                   "data": {
                                     "value": "",
                                   },
-                                  "id": "112",
                                   "type": "string",
                                 },
                               ],
                               "data": {},
-                              "id": "109",
                               "type": "!=",
                             },
                           ],
                           "data": {},
-                          "id": "103",
                           "type": "func",
                         },
                       ],
                       "data": {},
-                      "id": "100",
                       "type": "application",
                     },
                   ],
                   "data": {},
-                  "id": "85",
                   "type": "=",
                 },
               ],
               "data": {},
-              "id": "113",
               "type": "sequence",
             },
           ],
           "data": {},
-          "id": "114",
           "type": "block",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "117",
   "type": "script",
 }
 `;
@@ -1902,7 +1650,6 @@ exports[`advent of code 1 single file > variable 1`] = `
           "data": {
             "value": "document",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -1915,17 +1662,14 @@ exports[`advent of code 1 single file > variable 1`] = `
         treb7uchet
       ",
           },
-          "id": "4",
           "type": "string",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -1938,12 +1682,10 @@ exports[`comments > comment 1`] = `
       "data": {
         "value": 123,
       },
-      "id": "1",
       "type": "number",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -1956,12 +1698,10 @@ exports[`comments > comment block 1`] = `
       "data": {
         "value": 123,
       },
-      "id": "1",
       "type": "number",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -1980,7 +1720,6 @@ exports[`expressions > arithmetics > -(a+b) 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "13",
                   "type": "name",
                 },
                 {
@@ -1988,27 +1727,22 @@ exports[`expressions > arithmetics > -(a+b) 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "19",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "16",
               "type": "add",
             },
           ],
           "data": {},
-          "id": "20",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "minus",
     },
   ],
   "data": {},
-  "id": "21",
   "type": "script",
 }
 `;
@@ -2033,7 +1767,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                               "data": {
                                 "value": 2,
                               },
-                              "id": "7",
                               "type": "number",
                             },
                             {
@@ -2041,12 +1774,10 @@ exports[`expressions > arithmetics > complex 1`] = `
                               "data": {
                                 "value": 2,
                               },
-                              "id": "15",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "12",
                           "type": "pow",
                         },
                         {
@@ -2054,12 +1785,10 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": 5,
                           },
-                          "id": "24",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "21",
                       "type": "subtract",
                     },
                     {
@@ -2067,17 +1796,14 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 7,
                       },
-                      "id": "33",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "30",
                   "type": "add",
                 },
               ],
               "data": {},
-              "id": "34",
               "type": "parens",
             },
             {
@@ -2089,22 +1815,18 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "i",
                       },
-                      "id": "51",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "48",
                   "type": "minus",
                 },
               ],
               "data": {},
-              "id": "52",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "40",
           "type": "subtract",
         },
         {
@@ -2118,12 +1840,10 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "j",
                       },
-                      "id": "69",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "70",
                   "type": "parens",
                 },
                 {
@@ -2131,12 +1851,10 @@ exports[`expressions > arithmetics > complex 1`] = `
                   "data": {
                     "value": 0,
                   },
-                  "id": "76",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "73",
               "type": "/",
             },
             {
@@ -2146,7 +1864,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "85",
                   "type": "number",
                 },
                 {
@@ -2158,7 +1875,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": 1,
                           },
-                          "id": "99",
                           "type": "number",
                         },
                         {
@@ -2166,27 +1882,22 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": "f",
                           },
-                          "id": "105",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "102",
                       "type": "*",
                     },
                   ],
                   "data": {},
-                  "id": "106",
                   "type": "parens",
                 },
               ],
               "data": {},
-              "id": "91",
               "type": "*",
             },
           ],
           "data": {},
-          "id": "82",
           "type": "subtract",
         },
         {
@@ -2200,7 +1911,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 27,
                       },
-                      "id": "138",
                       "type": "number",
                     },
                     {
@@ -2208,17 +1918,14 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "x",
                       },
-                      "id": "144",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "141",
                   "type": "subtract",
                 },
               ],
               "data": {},
-              "id": "145",
               "type": "parens",
             },
             {
@@ -2226,12 +1933,10 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": "q",
               },
-              "id": "151",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "148",
           "type": "/",
         },
         {
@@ -2241,7 +1946,6 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": "send",
               },
-              "id": "169",
               "type": "name",
             },
             {
@@ -2261,7 +1965,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                                       "data": {
                                         "value": 2,
                                       },
-                                      "id": "206",
                                       "type": "number",
                                     },
                                     {
@@ -2269,22 +1972,18 @@ exports[`expressions > arithmetics > complex 1`] = `
                                       "data": {
                                         "value": 7,
                                       },
-                                      "id": "212",
                                       "type": "number",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "209",
                                   "type": "add",
                                 },
                               ],
                               "data": {},
-                              "id": "213",
                               "type": "parens",
                             },
                           ],
                           "data": {},
-                          "id": "198",
                           "type": "minus",
                         },
                         {
@@ -2292,12 +1991,10 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": "A",
                           },
-                          "id": "231",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "219",
                       "type": "/",
                     },
                     {
@@ -2305,7 +2002,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "j",
                       },
-                      "id": "246",
                       "type": "name",
                     },
                     {
@@ -2313,7 +2009,6 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "i",
                       },
-                      "id": "258",
                       "type": "name",
                     },
                     {
@@ -2321,22 +2016,18 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 127,
                       },
-                      "id": "267",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "237",
                   "type": ",",
                 },
               ],
               "data": {},
-              "id": "268",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "181",
           "type": "application",
         },
         {
@@ -2346,7 +2037,6 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "280",
               "type": "number",
             },
             {
@@ -2354,22 +2044,18 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "285",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "283",
           "type": "/",
         },
       ],
       "data": {},
-      "id": "62",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "286",
   "type": "script",
 }
 `;
@@ -2384,7 +2070,6 @@ exports[`expressions > arithmetics > order of application 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "2",
           "type": "number",
         },
         {
@@ -2398,7 +2083,6 @@ exports[`expressions > arithmetics > order of application 1`] = `
                       "data": {
                         "value": 2,
                       },
-                      "id": "8",
                       "type": "number",
                     },
                     {
@@ -2408,17 +2092,14 @@ exports[`expressions > arithmetics > order of application 1`] = `
                           "data": {
                             "value": 3,
                           },
-                          "id": "19",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "16",
                       "type": "minus",
                     },
                   ],
                   "data": {},
-                  "id": "13",
                   "type": "pow",
                 },
                 {
@@ -2426,12 +2107,10 @@ exports[`expressions > arithmetics > order of application 1`] = `
                   "data": {
                     "value": 4,
                   },
-                  "id": "31",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "28",
               "type": "*",
             },
             {
@@ -2441,7 +2120,6 @@ exports[`expressions > arithmetics > order of application 1`] = `
                   "data": {
                     "value": 5,
                   },
-                  "id": "40",
                   "type": "number",
                 },
                 {
@@ -2451,7 +2129,6 @@ exports[`expressions > arithmetics > order of application 1`] = `
                       "data": {
                         "value": 6,
                       },
-                      "id": "46",
                       "type": "number",
                     },
                     {
@@ -2459,32 +2136,26 @@ exports[`expressions > arithmetics > order of application 1`] = `
                       "data": {
                         "value": 7,
                       },
-                      "id": "51",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "49",
                   "type": "%",
                 },
               ],
               "data": {},
-              "id": "43",
               "type": "/",
             },
           ],
           "data": {},
-          "id": "37",
           "type": "subtract",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "52",
   "type": "script",
 }
 `;
@@ -2501,7 +2172,6 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "a",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -2509,7 +2179,6 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "b",
               },
-              "id": "8",
               "type": "name",
             },
             {
@@ -2517,12 +2186,10 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "c",
               },
-              "id": "17",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "and",
         },
         {
@@ -2530,7 +2197,6 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
           "data": {
             "value": "d",
           },
-          "id": "26",
           "type": "name",
         },
         {
@@ -2542,12 +2208,10 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
                   "data": {
                     "value": "e",
                   },
-                  "id": "38",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "35",
               "type": "not",
             },
             {
@@ -2555,7 +2219,6 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "f",
               },
-              "id": "47",
               "type": "name",
             },
             {
@@ -2563,12 +2226,10 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "g",
               },
-              "id": "56",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "44",
           "type": "and",
         },
         {
@@ -2578,12 +2239,10 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
               "data": {
                 "value": "h",
               },
-              "id": "71",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "68",
           "type": "not",
         },
         {
@@ -2591,17 +2250,14 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
           "data": {
             "value": "i",
           },
-          "id": "82",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "23",
       "type": "or",
     },
   ],
   "data": {},
-  "id": "83",
   "type": "script",
 }
 `;
@@ -2620,12 +2276,10 @@ exports[`expressions > boolean expressions > in operator 1`] = `
                   "data": {
                     "value": "key",
                   },
-                  "id": "7",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": "atom",
             },
             {
@@ -2633,12 +2287,10 @@ exports[`expressions > boolean expressions > in operator 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "16",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "13",
           "type": "in",
         },
         {
@@ -2646,17 +2298,14 @@ exports[`expressions > boolean expressions > in operator 1`] = `
           "data": {
             "value": "y",
           },
-          "id": "24",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "22",
       "type": "and",
     },
   ],
   "data": {},
-  "id": "25",
   "type": "script",
 }
 `;
@@ -2671,17 +2320,14 @@ exports[`expressions > boolean expressions > not 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "4",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "not",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -2698,7 +2344,6 @@ exports[`expressions > concurrent programming > await 1`] = `
               "data": {
                 "value": "await",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -2706,12 +2351,10 @@ exports[`expressions > concurrent programming > await 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "8",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "application",
         },
         {
@@ -2719,17 +2362,14 @@ exports[`expressions > concurrent programming > await 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "16",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -2744,17 +2384,14 @@ exports[`expressions > concurrent programming > channel receive 1`] = `
           "data": {
             "value": "c",
           },
-          "id": "4",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "receive",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -2769,7 +2406,6 @@ exports[`expressions > concurrent programming > channel send 1`] = `
           "data": {
             "value": "c",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -2777,17 +2413,14 @@ exports[`expressions > concurrent programming > channel send 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "7",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "send",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -2802,17 +2435,14 @@ exports[`expressions > concurrent programming > channel try receive 1`] = `
           "data": {
             "value": "c",
           },
-          "id": "4",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "<-?",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -2827,7 +2457,6 @@ exports[`expressions > concurrent programming > channel try send 1`] = `
           "data": {
             "value": "c",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -2835,17 +2464,14 @@ exports[`expressions > concurrent programming > channel try send 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "7",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "?<-",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -2860,7 +2486,6 @@ exports[`expressions > concurrent programming > parallel value 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "2",
           "type": "number",
         },
         {
@@ -2868,17 +2493,14 @@ exports[`expressions > concurrent programming > parallel value 1`] = `
           "data": {
             "value": 456,
           },
-          "id": "7",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "parallel",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -2895,7 +2517,6 @@ exports[`expressions > concurrent programming > parallel with channels 1`] = `
               "data": {
                 "value": "c",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -2903,12 +2524,10 @@ exports[`expressions > concurrent programming > parallel with channels 1`] = `
               "data": {
                 "value": 123,
               },
-              "id": "8",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "send",
         },
         {
@@ -2918,22 +2537,18 @@ exports[`expressions > concurrent programming > parallel with channels 1`] = `
               "data": {
                 "value": "c",
               },
-              "id": "19",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "17",
           "type": "receive",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "parallel",
     },
   ],
   "data": {},
-  "id": "20",
   "type": "script",
 }
 `;
@@ -2946,12 +2561,10 @@ exports[`expressions > concurrent programming > prefix parallel with code after 
         {
           "children": [],
           "data": {},
-          "id": "8",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "9",
       "type": "block",
     },
     {
@@ -2961,7 +2574,6 @@ exports[`expressions > concurrent programming > prefix parallel with code after 
           "data": {
             "value": "numbers",
           },
-          "id": "10",
           "type": "name",
         },
         {
@@ -2971,7 +2583,6 @@ exports[`expressions > concurrent programming > prefix parallel with code after 
               "data": {
                 "value": "channel",
               },
-              "id": "17",
               "type": "name",
             },
             {
@@ -2979,27 +2590,22 @@ exports[`expressions > concurrent programming > prefix parallel with code after 
                 {
                   "children": [],
                   "data": {},
-                  "id": "25",
                   "type": "implicit_placeholder",
                 },
               ],
               "data": {},
-              "id": "26",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "21",
           "type": "application",
         },
       ],
       "data": {},
-      "id": "12",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "31",
   "type": "script",
 }
 `;
@@ -3014,7 +2620,6 @@ exports[`expressions > concurrent programming > try receive with assignment 1`] 
           "data": {
             "value": "status",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -3024,22 +2629,18 @@ exports[`expressions > concurrent programming > try receive with assignment 1`] 
               "data": {
                 "value": "numbers",
               },
-              "id": "7",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "<-?",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -3064,7 +2665,6 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
                               "data": {
                                 "value": 2,
                               },
-                              "id": "24",
                               "type": "number",
                             },
                             {
@@ -3072,22 +2672,18 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
                               "data": {
                                 "value": 7,
                               },
-                              "id": "30",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "27",
                           "type": "add",
                         },
                       ],
                       "data": {},
-                      "id": "31",
                       "type": "parens",
                     },
                   ],
                   "data": {},
-                  "id": "16",
                   "type": "minus",
                 },
                 {
@@ -3095,12 +2691,10 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
                   "data": {
                     "value": "A",
                   },
-                  "id": "49",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "37",
               "type": "/",
             },
             {
@@ -3108,7 +2702,6 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
               "data": {
                 "value": "j",
               },
-              "id": "64",
               "type": "name",
             },
             {
@@ -3116,7 +2709,6 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
               "data": {
                 "value": "i",
               },
-              "id": "76",
               "type": "name",
             },
             {
@@ -3124,22 +2716,18 @@ exports[`expressions > data structures > (-(2+7)/A,j, i, 127.0 ) 1`] = `
               "data": {
                 "value": 127,
               },
-              "id": "85",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "55",
           "type": ",",
         },
       ],
       "data": {},
-      "id": "86",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "87",
   "type": "script",
 }
 `;
@@ -3154,17 +2742,14 @@ exports[`expressions > data structures > atom (global symbol) 1`] = `
           "data": {
             "value": "atom",
           },
-          "id": "4",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "atom",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -3183,12 +2768,10 @@ exports[`expressions > data structures > dictionary 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "16",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "17",
               "type": "square_brackets",
             },
             {
@@ -3196,12 +2779,10 @@ exports[`expressions > data structures > dictionary 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "37",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "28",
           "type": ":",
         },
         {
@@ -3213,12 +2794,10 @@ exports[`expressions > data structures > dictionary 1`] = `
                   "data": {
                     "value": 3,
                   },
-                  "id": "62",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "63",
               "type": "square_brackets",
             },
             {
@@ -3226,22 +2805,18 @@ exports[`expressions > data structures > dictionary 1`] = `
               "data": {
                 "value": 4,
               },
-              "id": "68",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "66",
           "type": ":",
         },
       ],
       "data": {},
-      "id": "53",
       "type": ",",
     },
   ],
   "data": {},
-  "id": "69",
   "type": "script",
 }
 `;
@@ -3260,7 +2835,6 @@ exports[`expressions > data structures > field assignment 1`] = `
                   "data": {
                     "value": "x",
                   },
-                  "id": "2",
                   "type": "name",
                 },
                 {
@@ -3268,12 +2842,10 @@ exports[`expressions > data structures > field assignment 1`] = `
                   "data": {
                     "value": "y",
                   },
-                  "id": "5",
                   "type": "string",
                 },
               ],
               "data": {},
-              "id": "6",
               "type": "index",
             },
             {
@@ -3281,12 +2853,10 @@ exports[`expressions > data structures > field assignment 1`] = `
               "data": {
                 "value": "=",
               },
-              "id": "12",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "9",
           "type": "application",
         },
         {
@@ -3294,17 +2864,14 @@ exports[`expressions > data structures > field assignment 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "18",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "16",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "19",
   "type": "script",
 }
 `;
@@ -3321,7 +2888,6 @@ exports[`expressions > data structures > field assignment dynamic 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -3329,12 +2895,10 @@ exports[`expressions > data structures > field assignment dynamic 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "3",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "4",
           "type": "index",
         },
         {
@@ -3342,17 +2906,14 @@ exports[`expressions > data structures > field assignment dynamic 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "8",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "6",
       "type": "=",
     },
   ],
   "data": {},
-  "id": "9",
   "type": "script",
 }
 `;
@@ -3367,7 +2928,6 @@ exports[`expressions > data structures > index 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "5",
           "type": "name",
         },
         {
@@ -3375,17 +2935,14 @@ exports[`expressions > data structures > index 1`] = `
           "data": {
             "value": 0,
           },
-          "id": "12",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "13",
       "type": "index",
     },
   ],
   "data": {},
-  "id": "14",
   "type": "script",
 }
 `;
@@ -3404,7 +2961,6 @@ exports[`expressions > data structures > map without braces 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "2",
                   "type": "number",
                 },
                 {
@@ -3412,12 +2968,10 @@ exports[`expressions > data structures > map without braces 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "14",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "5",
               "type": "add",
             },
             {
@@ -3425,12 +2979,10 @@ exports[`expressions > data structures > map without braces 1`] = `
               "data": {
                 "value": 3,
               },
-              "id": "36",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "30",
           "type": ":",
         },
         {
@@ -3442,7 +2994,6 @@ exports[`expressions > data structures > map without braces 1`] = `
                   "data": {
                     "value": 4,
                   },
-                  "id": "45",
                   "type": "number",
                 },
                 {
@@ -3450,12 +3001,10 @@ exports[`expressions > data structures > map without braces 1`] = `
                   "data": {
                     "value": 5,
                   },
-                  "id": "52",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "48",
               "type": "add",
             },
             {
@@ -3463,22 +3012,18 @@ exports[`expressions > data structures > map without braces 1`] = `
               "data": {
                 "value": 6,
               },
-              "id": "60",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "58",
           "type": ":",
         },
       ],
       "data": {},
-      "id": "42",
       "type": ",",
     },
   ],
   "data": {},
-  "id": "61",
   "type": "script",
 }
 `;
@@ -3499,7 +3044,6 @@ exports[`expressions > data structures > methods 1`] = `
                       "data": {
                         "value": "math",
                       },
-                      "id": "2",
                       "type": "name",
                     },
                     {
@@ -3507,12 +3051,10 @@ exports[`expressions > data structures > methods 1`] = `
                       "data": {
                         "value": "floor",
                       },
-                      "id": "5",
                       "type": "string",
                     },
                   ],
                   "data": {},
-                  "id": "6",
                   "type": "index",
                 },
                 {
@@ -3522,17 +3064,14 @@ exports[`expressions > data structures > methods 1`] = `
                       "data": {
                         "value": 1,
                       },
-                      "id": "18",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "19",
                   "type": "parens",
                 },
               ],
               "data": {},
-              "id": "11",
               "type": "application",
             },
             {
@@ -3540,12 +3079,10 @@ exports[`expressions > data structures > methods 1`] = `
               "data": {
                 "value": "multiply",
               },
-              "id": "26",
               "type": "string",
             },
           ],
           "data": {},
-          "id": "27",
           "type": "index",
         },
         {
@@ -3555,22 +3092,18 @@ exports[`expressions > data structures > methods 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "37",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "38",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "31",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "39",
   "type": "script",
 }
 `;
@@ -3585,7 +3118,6 @@ exports[`expressions > data structures > period operator 1`] = `
           "data": {
             "value": "math",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -3593,17 +3125,14 @@ exports[`expressions > data structures > period operator 1`] = `
           "data": {
             "value": "floor",
           },
-          "id": "5",
           "type": "string",
         },
       ],
       "data": {},
-      "id": "6",
       "type": "index",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -3620,7 +3149,6 @@ exports[`expressions > data structures > record 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "8",
               "type": "name",
             },
             {
@@ -3628,12 +3156,10 @@ exports[`expressions > data structures > record 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "22",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "16",
           "type": ":",
         },
         {
@@ -3643,7 +3169,6 @@ exports[`expressions > data structures > record 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "32",
               "type": "name",
             },
             {
@@ -3651,22 +3176,18 @@ exports[`expressions > data structures > record 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "37",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "35",
           "type": ":",
         },
       ],
       "data": {},
-      "id": "28",
       "type": ",",
     },
   ],
   "data": {},
-  "id": "38",
   "type": "script",
 }
 `;
@@ -3681,7 +3202,6 @@ exports[`expressions > data structures > record single 1`] = `
           "data": {
             "value": "a",
           },
-          "id": "3",
           "type": "name",
         },
         {
@@ -3689,17 +3209,14 @@ exports[`expressions > data structures > record single 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "8",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "6",
       "type": ":",
     },
   ],
   "data": {},
-  "id": "9",
   "type": "script",
 }
 `;
@@ -3714,7 +3231,6 @@ exports[`expressions > data structures > tuple 1`] = `
           "data": {
             "value": "list",
           },
-          "id": "9",
           "type": "name",
         },
         {
@@ -3722,7 +3238,6 @@ exports[`expressions > data structures > tuple 1`] = `
           "data": {
             "value": "reducer",
           },
-          "id": "19",
           "type": "name",
         },
         {
@@ -3730,7 +3245,6 @@ exports[`expressions > data structures > tuple 1`] = `
           "data": {
             "value": "merge",
           },
-          "id": "29",
           "type": "name",
         },
         {
@@ -3738,17 +3252,14 @@ exports[`expressions > data structures > tuple 1`] = `
           "data": {
             "value": "initial",
           },
-          "id": "37",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "12",
       "type": ",",
     },
   ],
   "data": {},
-  "id": "38",
   "type": "script",
 }
 `;
@@ -3767,33 +3278,27 @@ exports[`expressions > data structures > tuple with single item (atom) 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "21",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "15",
               "type": "atom",
             },
             {
               "children": [],
               "data": {},
-              "id": "28",
               "type": "implicit_placeholder",
             },
           ],
           "data": {},
-          "id": "27",
           "type": ",",
         },
       ],
       "data": {},
-      "id": "29",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "30",
   "type": "script",
 }
 `;
@@ -3806,17 +3311,14 @@ exports[`expressions > data structures > unit 1`] = `
         {
           "children": [],
           "data": {},
-          "id": "3",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -3835,7 +3337,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "11",
                   "type": "name",
                 },
                 {
@@ -3843,12 +3344,10 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "31",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "22",
               "type": ":",
             },
             {
@@ -3858,7 +3357,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "43",
                   "type": "name",
                 },
                 {
@@ -3866,17 +3364,14 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "51",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "48",
               "type": ":",
             },
           ],
           "data": {},
-          "id": "37",
           "type": ",",
         },
         {
@@ -3890,7 +3385,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                       "data": {
                         "value": "a",
                       },
-                      "id": "52",
                       "type": "name",
                     },
                     {
@@ -3898,12 +3392,10 @@ exports[`expressions > effect handlers > complex 1`] = `
                       "data": {
                         "value": "b",
                       },
-                      "id": "54",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "57",
                   "type": "object",
                 },
                 {
@@ -3911,12 +3403,10 @@ exports[`expressions > effect handlers > complex 1`] = `
                   "data": {
                     "value": "handlers",
                   },
-                  "id": "62",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "59",
               "type": ":=",
             },
             {
@@ -3930,7 +3420,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                           "data": {
                             "value": "a",
                           },
-                          "id": "68",
                           "type": "name",
                         },
                         {
@@ -3940,7 +3429,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                               "data": {
                                 "value": "a",
                               },
-                              "id": "76",
                               "type": "name",
                             },
                             {
@@ -3948,17 +3436,14 @@ exports[`expressions > effect handlers > complex 1`] = `
                               "data": {
                                 "value": 1,
                               },
-                              "id": "88",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "79",
                           "type": "add",
                         },
                       ],
                       "data": {},
-                      "id": "73",
                       "type": ":",
                     },
                     {
@@ -3968,7 +3453,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                           "data": {
                             "value": "b",
                           },
-                          "id": "103",
                           "type": "name",
                         },
                         {
@@ -3978,7 +3462,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                               "data": {
                                 "value": "b",
                               },
-                              "id": "111",
                               "type": "name",
                             },
                             {
@@ -3986,22 +3469,18 @@ exports[`expressions > effect handlers > complex 1`] = `
                               "data": {
                                 "value": 2,
                               },
-                              "id": "117",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "114",
                           "type": "add",
                         },
                       ],
                       "data": {},
-                      "id": "108",
                       "type": ":",
                     },
                   ],
                   "data": {},
-                  "id": "97",
                   "type": ",",
                 },
                 {
@@ -4011,7 +3490,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                       "data": {
                         "value": "a",
                       },
-                      "id": "120",
                       "type": "string",
                     },
                     {
@@ -4021,7 +3499,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                           "data": {
                             "value": "b",
                           },
-                          "id": "123",
                           "type": "string",
                         },
                         {
@@ -4035,12 +3512,10 @@ exports[`expressions > effect handlers > complex 1`] = `
                                       "data": {
                                         "value": "a",
                                       },
-                                      "id": "124",
                                       "type": "name",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "126",
                                   "type": "object",
                                 },
                                 {
@@ -4048,12 +3523,10 @@ exports[`expressions > effect handlers > complex 1`] = `
                                   "data": {
                                     "value": "handlers",
                                   },
-                                  "id": "131",
                                   "type": "name",
                                 },
                               ],
                               "data": {},
-                              "id": "128",
                               "type": ":=",
                             },
                             {
@@ -4063,7 +3536,6 @@ exports[`expressions > effect handlers > complex 1`] = `
                                   "data": {
                                     "value": "a",
                                   },
-                                  "id": "134",
                                   "type": "name",
                                 },
                                 {
@@ -4071,47 +3543,38 @@ exports[`expressions > effect handlers > complex 1`] = `
                                   "data": {
                                     "value": 1,
                                   },
-                                  "id": "139",
                                   "type": "number",
                                 },
                               ],
                               "data": {},
-                              "id": "137",
                               "type": "add",
                             },
                           ],
                           "data": {},
-                          "id": "142",
                           "type": "sequence",
                         },
                       ],
                       "data": {},
-                      "id": "143",
                       "type": "without",
                     },
                   ],
                   "data": {},
-                  "id": "145",
                   "type": "mask",
                 },
               ],
               "data": {},
-              "id": "147",
               "type": "inject",
             },
           ],
           "data": {},
-          "id": "149",
           "type": "sequence",
         },
       ],
       "data": {},
-      "id": "150",
       "type": "inject",
     },
   ],
   "data": {},
-  "id": "152",
   "type": "script",
 }
 `;
@@ -4130,7 +3593,6 @@ exports[`expressions > effect handlers > inject 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "11",
                   "type": "name",
                 },
                 {
@@ -4138,12 +3600,10 @@ exports[`expressions > effect handlers > inject 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "31",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "22",
               "type": ":",
             },
             {
@@ -4153,7 +3613,6 @@ exports[`expressions > effect handlers > inject 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "43",
                   "type": "name",
                 },
                 {
@@ -4161,17 +3620,14 @@ exports[`expressions > effect handlers > inject 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "51",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "48",
               "type": ":",
             },
           ],
           "data": {},
-          "id": "37",
           "type": ",",
         },
         {
@@ -4179,17 +3635,14 @@ exports[`expressions > effect handlers > inject 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "53",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "55",
       "type": "inject",
     },
   ],
   "data": {},
-  "id": "57",
   "type": "script",
 }
 `;
@@ -4206,7 +3659,6 @@ exports[`expressions > effect handlers > mask 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "5",
               "type": "string",
             },
             {
@@ -4214,12 +3666,10 @@ exports[`expressions > effect handlers > mask 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "11",
               "type": "string",
             },
           ],
           "data": {},
-          "id": "8",
           "type": ",",
         },
         {
@@ -4227,17 +3677,14 @@ exports[`expressions > effect handlers > mask 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "13",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "15",
       "type": "mask",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -4254,7 +3701,6 @@ exports[`expressions > effect handlers > without 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "5",
               "type": "string",
             },
             {
@@ -4262,12 +3708,10 @@ exports[`expressions > effect handlers > without 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "11",
               "type": "string",
             },
           ],
           "data": {},
-          "id": "8",
           "type": ",",
         },
         {
@@ -4275,17 +3719,14 @@ exports[`expressions > effect handlers > without 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "13",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "15",
       "type": "without",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -4306,7 +3747,6 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
                       "data": {
                         "value": "send",
                       },
-                      "id": "7",
                       "type": "name",
                     },
                     {
@@ -4314,12 +3754,10 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
                       "data": {
                         "value": 1,
                       },
-                      "id": "13",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "10",
                   "type": "application",
                 },
                 {
@@ -4327,17 +3765,14 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
                   "data": {
                     "value": 2,
                   },
-                  "id": "22",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "19",
               "type": "application",
             },
           ],
           "data": {},
-          "id": "23",
           "type": "parens",
         },
         {
@@ -4349,7 +3784,6 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
                   "data": {
                     "value": 2,
                   },
-                  "id": "42",
                   "type": "number",
                 },
                 {
@@ -4357,27 +3791,22 @@ exports[`expressions > function expressions > application > (send 1 2)(2, 3) 1`]
                   "data": {
                     "value": 3,
                   },
-                  "id": "48",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "45",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "49",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "30",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "50",
   "type": "script",
 }
 `;
@@ -4396,7 +3825,6 @@ exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] =
                   "data": {
                     "value": "send",
                   },
-                  "id": "7",
                   "type": "name",
                 },
                 {
@@ -4404,17 +3832,14 @@ exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] =
                   "data": {
                     "value": 1,
                   },
-                  "id": "13",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "10",
               "type": "application",
             },
           ],
           "data": {},
-          "id": "14",
           "type": "parens",
         },
         {
@@ -4426,7 +3851,6 @@ exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] =
                   "data": {
                     "value": 2,
                   },
-                  "id": "33",
                   "type": "number",
                 },
                 {
@@ -4434,27 +3858,22 @@ exports[`expressions > function expressions > application > (send 1)(2, 3) 1`] =
                   "data": {
                     "value": 3,
                   },
-                  "id": "39",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "36",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "40",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "21",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "41",
   "type": "script",
 }
 `;
@@ -4471,12 +3890,10 @@ exports[`expressions > function expressions > application > (send)(2, 3) 1`] = `
               "data": {
                 "value": "send",
               },
-              "id": "11",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "12",
           "type": "parens",
         },
         {
@@ -4488,7 +3905,6 @@ exports[`expressions > function expressions > application > (send)(2, 3) 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "31",
                   "type": "number",
                 },
                 {
@@ -4496,27 +3912,22 @@ exports[`expressions > function expressions > application > (send)(2, 3) 1`] = `
                   "data": {
                     "value": 3,
                   },
-                  "id": "37",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "34",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "38",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "19",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "39",
   "type": "script",
 }
 `;
@@ -4531,7 +3942,6 @@ exports[`expressions > function expressions > application > a + send (2, 3) 1`] 
           "data": {
             "value": "a",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -4541,7 +3951,6 @@ exports[`expressions > function expressions > application > a + send (2, 3) 1`] 
               "data": {
                 "value": "send",
               },
-              "id": "13",
               "type": "name",
             },
             {
@@ -4553,7 +3962,6 @@ exports[`expressions > function expressions > application > a + send (2, 3) 1`] 
                       "data": {
                         "value": 2,
                       },
-                      "id": "32",
                       "type": "number",
                     },
                     {
@@ -4561,32 +3969,26 @@ exports[`expressions > function expressions > application > a + send (2, 3) 1`] 
                       "data": {
                         "value": 3,
                       },
-                      "id": "38",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "35",
                   "type": ",",
                 },
               ],
               "data": {},
-              "id": "39",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "20",
           "type": "application",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "40",
   "type": "script",
 }
 `;
@@ -4601,7 +4003,6 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
           "data": {
             "value": "a",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -4611,7 +4012,6 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
               "data": {
                 "value": "send",
               },
-              "id": "8",
               "type": "name",
             },
             {
@@ -4619,12 +4019,10 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
               "data": {
                 "value": 1,
               },
-              "id": "14",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "application",
         },
         {
@@ -4632,17 +4030,14 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
           "data": {
             "value": 2,
           },
-          "id": "25",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "26",
   "type": "script",
 }
 `;
@@ -4657,7 +4052,6 @@ exports[`expressions > function expressions > application > function call 1`] = 
           "data": {
             "value": "f",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -4665,17 +4059,14 @@ exports[`expressions > function expressions > application > function call 1`] = 
           "data": {
             "value": "x",
           },
-          "id": "6",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -4692,7 +4083,6 @@ exports[`expressions > function expressions > application > function call multip
               "data": {
                 "value": "f",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -4700,12 +4090,10 @@ exports[`expressions > function expressions > application > function call multip
               "data": {
                 "value": "x",
               },
-              "id": "8",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "application",
         },
         {
@@ -4713,17 +4101,14 @@ exports[`expressions > function expressions > application > function call multip
           "data": {
             "value": "y",
           },
-          "id": "14",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "12",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "15",
   "type": "script",
 }
 `;
@@ -4740,7 +4125,6 @@ exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = 
               "data": {
                 "value": "send",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -4748,12 +4132,10 @@ exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = 
               "data": {
                 "value": 1,
               },
-              "id": "18",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "application",
         },
         {
@@ -4765,7 +4147,6 @@ exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = 
                   "data": {
                     "value": 2,
                   },
-                  "id": "44",
                   "type": "number",
                 },
                 {
@@ -4773,27 +4154,22 @@ exports[`expressions > function expressions > application > send 1 (2, 3) 1`] = 
                   "data": {
                     "value": 3,
                   },
-                  "id": "50",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "47",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "51",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "32",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "52",
   "type": "script",
 }
 `;
@@ -4810,7 +4186,6 @@ exports[`expressions > function expressions > application > send 1 + 2 1`] = `
               "data": {
                 "value": "send",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -4818,12 +4193,10 @@ exports[`expressions > function expressions > application > send 1 + 2 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "8",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "application",
         },
         {
@@ -4831,17 +4204,14 @@ exports[`expressions > function expressions > application > send 1 + 2 1`] = `
           "data": {
             "value": 2,
           },
-          "id": "16",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -4858,7 +4228,6 @@ exports[`expressions > function expressions > application > send a (2, 3) 1`] = 
               "data": {
                 "value": "send",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -4866,12 +4235,10 @@ exports[`expressions > function expressions > application > send a (2, 3) 1`] = 
               "data": {
                 "value": "a",
               },
-              "id": "18",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "application",
         },
         {
@@ -4883,7 +4250,6 @@ exports[`expressions > function expressions > application > send a (2, 3) 1`] = 
                   "data": {
                     "value": 2,
                   },
-                  "id": "44",
                   "type": "number",
                 },
                 {
@@ -4891,27 +4257,22 @@ exports[`expressions > function expressions > application > send a (2, 3) 1`] = 
                   "data": {
                     "value": 3,
                   },
-                  "id": "50",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "47",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "51",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "32",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "52",
   "type": "script",
 }
 `;
@@ -4926,7 +4287,6 @@ exports[`expressions > function expressions > application > send((1+2), 3) 1`] =
           "data": {
             "value": "send",
           },
-          "id": "8",
           "type": "name",
         },
         {
@@ -4942,7 +4302,6 @@ exports[`expressions > function expressions > application > send((1+2), 3) 1`] =
                           "data": {
                             "value": 1,
                           },
-                          "id": "33",
                           "type": "number",
                         },
                         {
@@ -4950,17 +4309,14 @@ exports[`expressions > function expressions > application > send((1+2), 3) 1`] =
                           "data": {
                             "value": 2,
                           },
-                          "id": "39",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "36",
                       "type": "add",
                     },
                   ],
                   "data": {},
-                  "id": "40",
                   "type": "parens",
                 },
                 {
@@ -4968,27 +4324,22 @@ exports[`expressions > function expressions > application > send((1+2), 3) 1`] =
                   "data": {
                     "value": 3,
                   },
-                  "id": "46",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "43",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "47",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "17",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "48",
   "type": "script",
 }
 `;
@@ -5003,7 +4354,6 @@ exports[`expressions > function expressions > application > send(2, 3) 1`] = `
           "data": {
             "value": "send",
           },
-          "id": "7",
           "type": "name",
         },
         {
@@ -5015,7 +4365,6 @@ exports[`expressions > function expressions > application > send(2, 3) 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "26",
                   "type": "number",
                 },
                 {
@@ -5023,27 +4372,22 @@ exports[`expressions > function expressions > application > send(2, 3) 1`] = `
                   "data": {
                     "value": 3,
                   },
-                  "id": "32",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "29",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "33",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "34",
   "type": "script",
 }
 `;
@@ -5058,7 +4402,6 @@ exports[`expressions > function expressions > arrow function 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -5066,17 +4409,14 @@ exports[`expressions > function expressions > arrow function 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "4",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -5089,7 +4429,6 @@ exports[`expressions > function expressions > fn increment 1`] = `
         {
           "children": [],
           "data": {},
-          "id": "0",
           "type": "implicit_placeholder",
         },
         {
@@ -5099,22 +4438,18 @@ exports[`expressions > function expressions > fn increment 1`] = `
               "data": {
                 "value": "line_handled_count",
               },
-              "id": "5",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "7",
           "type": "post_increment",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -5127,7 +4462,6 @@ exports[`expressions > function expressions > fn no parameters 1`] = `
         {
           "children": [],
           "data": {},
-          "id": "0",
           "type": "implicit_placeholder",
         },
         {
@@ -5135,17 +4469,14 @@ exports[`expressions > function expressions > fn no parameters 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "4",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -5158,7 +4489,6 @@ exports[`expressions > function expressions > fn no parameters block 1`] = `
         {
           "children": [],
           "data": {},
-          "id": "0",
           "type": "implicit_placeholder",
         },
         {
@@ -5166,17 +4496,14 @@ exports[`expressions > function expressions > fn no parameters block 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "4",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -5193,7 +4520,6 @@ exports[`expressions > function expressions > function block body 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -5201,12 +4527,10 @@ exports[`expressions > function expressions > function block body 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "1",
           "type": ",",
         },
         {
@@ -5216,7 +4540,6 @@ exports[`expressions > function expressions > function block body 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "7",
               "type": "name",
             },
             {
@@ -5224,22 +4547,18 @@ exports[`expressions > function expressions > function block body 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "13",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "add",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "15",
   "type": "script",
 }
 `;
@@ -5256,7 +4575,6 @@ exports[`expressions > function expressions > function multiple params 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -5264,12 +4582,10 @@ exports[`expressions > function expressions > function multiple params 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "1",
           "type": ",",
         },
         {
@@ -5279,7 +4595,6 @@ exports[`expressions > function expressions > function multiple params 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "8",
               "type": "name",
             },
             {
@@ -5287,22 +4602,18 @@ exports[`expressions > function expressions > function multiple params 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "13",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "add",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "14",
   "type": "script",
 }
 `;
@@ -5319,7 +4630,6 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
               "data": {
                 "value": "x",
               },
-              "id": "2",
               "type": "name",
             },
             {
@@ -5331,7 +4641,6 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
                       "data": {
                         "value": "a",
                       },
-                      "id": "3",
                       "type": "name",
                     },
                     {
@@ -5339,22 +4648,18 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
                       "data": {
                         "value": "b",
                       },
-                      "id": "5",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "4",
                   "type": ",",
                 },
               ],
               "data": {},
-              "id": "8",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "is",
         },
         {
@@ -5364,7 +4669,6 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
               "data": {
                 "value": "a",
               },
-              "id": "16",
               "type": "name",
             },
             {
@@ -5374,7 +4678,6 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
                   "data": {
                     "value": "b",
                   },
-                  "id": "22",
                   "type": "name",
                 },
                 {
@@ -5382,27 +4685,22 @@ exports[`expressions > pattern matching > binding visible in scope where it is t
                   "data": {
                     "value": 1,
                   },
-                  "id": "27",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "25",
               "type": "add",
             },
           ],
           "data": {},
-          "id": "19",
           "type": "==",
         },
       ],
       "data": {},
-      "id": "13",
       "type": "and",
     },
   ],
   "data": {},
-  "id": "28",
   "type": "script",
 }
 `;
@@ -5419,7 +4717,6 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "0",
               "type": "name",
             },
             {
@@ -5427,12 +4724,10 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "object",
         },
         {
@@ -5440,17 +4735,14 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
           "data": {
             "value": "handlers",
           },
-          "id": "9",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "7",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "10",
   "type": "script",
 }
 `;
@@ -5469,7 +4761,6 @@ exports[`expressions > pattern matching > in function parameters 1`] = `
                   "data": {
                     "value": "x",
                   },
-                  "id": "0",
                   "type": "name",
                 },
                 {
@@ -5477,17 +4768,14 @@ exports[`expressions > pattern matching > in function parameters 1`] = `
                   "data": {
                     "value": "y",
                   },
-                  "id": "2",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "1",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "parens",
         },
         {
@@ -5497,7 +4785,6 @@ exports[`expressions > pattern matching > in function parameters 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "10",
               "type": "name",
             },
             {
@@ -5505,22 +4792,18 @@ exports[`expressions > pattern matching > in function parameters 1`] = `
               "data": {
                 "value": "y",
               },
-              "id": "15",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "13",
           "type": "add",
         },
       ],
       "data": {},
-      "id": "7",
       "type": "func",
     },
   ],
   "data": {},
-  "id": "16",
   "type": "script",
 }
 `;
@@ -5535,7 +4818,6 @@ exports[`expressions > pattern matching > switch 1`] = `
           "data": {
             "value": "a",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5545,7 +4827,6 @@ exports[`expressions > pattern matching > switch 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "3",
               "type": "number",
             },
             {
@@ -5553,12 +4834,10 @@ exports[`expressions > pattern matching > switch 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "7",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "8",
           "type": "match_case",
         },
         {
@@ -5568,7 +4847,6 @@ exports[`expressions > pattern matching > switch 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "9",
               "type": "number",
             },
             {
@@ -5576,12 +4854,10 @@ exports[`expressions > pattern matching > switch 1`] = `
               "data": {
                 "value": 3,
               },
-              "id": "13",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "14",
           "type": "match_case",
         },
         {
@@ -5589,7 +4865,6 @@ exports[`expressions > pattern matching > switch 1`] = `
             {
               "children": [],
               "data": {},
-              "id": "15",
               "type": "placeholder",
             },
             {
@@ -5597,22 +4872,18 @@ exports[`expressions > pattern matching > switch 1`] = `
               "data": {
                 "value": 4,
               },
-              "id": "19",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "20",
           "type": "match_case",
         },
       ],
       "data": {},
-      "id": "21",
       "type": "match",
     },
   ],
   "data": {},
-  "id": "23",
   "type": "script",
 }
 `;
@@ -5627,7 +4898,6 @@ exports[`expressions > pattern matching > with 'is' operator 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5639,7 +4909,6 @@ exports[`expressions > pattern matching > with 'is' operator 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -5647,27 +4916,22 @@ exports[`expressions > pattern matching > with 'is' operator 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "5",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "8",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "9",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "10",
   "type": "script",
 }
 `;
@@ -5682,7 +4946,6 @@ exports[`expressions > pattern matching > with constant value 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5694,7 +4957,6 @@ exports[`expressions > pattern matching > with constant value 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "3",
                   "type": "number",
                 },
                 {
@@ -5702,27 +4964,22 @@ exports[`expressions > pattern matching > with constant value 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "5",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "8",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "9",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "10",
   "type": "script",
 }
 `;
@@ -5737,7 +4994,6 @@ exports[`expressions > pattern matching > with name for match 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5753,7 +5009,6 @@ exports[`expressions > pattern matching > with name for match 1`] = `
                           "data": {
                             "value": "a",
                           },
-                          "id": "3",
                           "type": "name",
                         },
                         {
@@ -5761,17 +5016,14 @@ exports[`expressions > pattern matching > with name for match 1`] = `
                           "data": {
                             "value": "b",
                           },
-                          "id": "5",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "4",
                       "type": ",",
                     },
                   ],
                   "data": {},
-                  "id": "8",
                   "type": "parens",
                 },
                 {
@@ -5779,27 +5031,22 @@ exports[`expressions > pattern matching > with name for match 1`] = `
                   "data": {
                     "value": "c",
                   },
-                  "id": "10",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "9",
               "type": "@",
             },
           ],
           "data": {},
-          "id": "13",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "14",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "15",
   "type": "script",
 }
 `;
@@ -5814,7 +5061,6 @@ exports[`expressions > pattern matching > with pin 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5828,12 +5074,10 @@ exports[`expressions > pattern matching > with pin 1`] = `
                       "data": {
                         "value": "a",
                       },
-                      "id": "4",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "3",
                   "type": "pin",
                 },
                 {
@@ -5841,27 +5085,22 @@ exports[`expressions > pattern matching > with pin 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "7",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "6",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "11",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "12",
   "type": "script",
 }
 `;
@@ -5876,7 +5115,6 @@ exports[`expressions > pattern matching > with placeholder 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5886,7 +5124,6 @@ exports[`expressions > pattern matching > with placeholder 1`] = `
                 {
                   "children": [],
                   "data": {},
-                  "id": "3",
                   "type": "placeholder",
                 },
                 {
@@ -5894,27 +5131,22 @@ exports[`expressions > pattern matching > with placeholder 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "5",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "8",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "9",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "10",
   "type": "script",
 }
 `;
@@ -5929,7 +5161,6 @@ exports[`expressions > pattern matching > with record pattern 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5939,7 +5170,6 @@ exports[`expressions > pattern matching > with record pattern 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "3",
               "type": "name",
             },
             {
@@ -5947,22 +5177,18 @@ exports[`expressions > pattern matching > with record pattern 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "5",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "8",
           "type": "object",
         },
       ],
       "data": {},
-      "id": "9",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "10",
   "type": "script",
 }
 `;
@@ -5977,7 +5203,6 @@ exports[`expressions > pattern matching > with record pattern key 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -5993,7 +5218,6 @@ exports[`expressions > pattern matching > with record pattern key 1`] = `
                           "data": {
                             "value": "a",
                           },
-                          "id": "5",
                           "type": "name",
                         },
                         {
@@ -6001,17 +5225,14 @@ exports[`expressions > pattern matching > with record pattern key 1`] = `
                           "data": {
                             "value": "b",
                           },
-                          "id": "11",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "8",
                       "type": "add",
                     },
                   ],
                   "data": {},
-                  "id": "12",
                   "type": "square_brackets",
                 },
                 {
@@ -6019,12 +5240,10 @@ exports[`expressions > pattern matching > with record pattern key 1`] = `
                   "data": {
                     "value": "c",
                   },
-                  "id": "14",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "13",
               "type": ":",
             },
             {
@@ -6032,22 +5251,18 @@ exports[`expressions > pattern matching > with record pattern key 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "17",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "20",
           "type": "object",
         },
       ],
       "data": {},
-      "id": "21",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "22",
   "type": "script",
 }
 `;
@@ -6062,7 +5277,6 @@ exports[`expressions > pattern matching > with record pattern nested 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6074,7 +5288,6 @@ exports[`expressions > pattern matching > with record pattern nested 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -6086,7 +5299,6 @@ exports[`expressions > pattern matching > with record pattern nested 1`] = `
                           "data": {
                             "value": "c",
                           },
-                          "id": "5",
                           "type": "name",
                         },
                         {
@@ -6094,22 +5306,18 @@ exports[`expressions > pattern matching > with record pattern nested 1`] = `
                           "data": {
                             "value": "d",
                           },
-                          "id": "7",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "6",
                       "type": ",",
                     },
                   ],
                   "data": {},
-                  "id": "10",
                   "type": "parens",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ":",
             },
             {
@@ -6117,22 +5325,18 @@ exports[`expressions > pattern matching > with record pattern nested 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "13",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "16",
           "type": "object",
         },
       ],
       "data": {},
-      "id": "17",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "18",
   "type": "script",
 }
 `;
@@ -6147,7 +5351,6 @@ exports[`expressions > pattern matching > with record pattern rename 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6159,7 +5362,6 @@ exports[`expressions > pattern matching > with record pattern rename 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -6167,12 +5369,10 @@ exports[`expressions > pattern matching > with record pattern rename 1`] = `
                   "data": {
                     "value": "c",
                   },
-                  "id": "5",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ":",
             },
             {
@@ -6180,22 +5380,18 @@ exports[`expressions > pattern matching > with record pattern rename 1`] = `
               "data": {
                 "value": "b",
               },
-              "id": "8",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "object",
         },
       ],
       "data": {},
-      "id": "12",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "13",
   "type": "script",
 }
 `;
@@ -6210,7 +5406,6 @@ exports[`expressions > pattern matching > with rename 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6224,7 +5419,6 @@ exports[`expressions > pattern matching > with rename 1`] = `
                       "data": {
                         "value": "a",
                       },
-                      "id": "3",
                       "type": "name",
                     },
                     {
@@ -6232,12 +5426,10 @@ exports[`expressions > pattern matching > with rename 1`] = `
                       "data": {
                         "value": "b",
                       },
-                      "id": "5",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "4",
                   "type": "@",
                 },
                 {
@@ -6245,27 +5437,22 @@ exports[`expressions > pattern matching > with rename 1`] = `
                   "data": {
                     "value": "c",
                   },
-                  "id": "8",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "7",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "12",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "13",
   "type": "script",
 }
 `;
@@ -6280,7 +5467,6 @@ exports[`expressions > pattern matching > with rest value 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6292,7 +5478,6 @@ exports[`expressions > pattern matching > with rest value 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "3",
                   "type": "name",
                 },
                 {
@@ -6302,32 +5487,26 @@ exports[`expressions > pattern matching > with rest value 1`] = `
                       "data": {
                         "value": "b",
                       },
-                      "id": "6",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "5",
                   "type": "...",
                 },
               ],
               "data": {},
-              "id": "4",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "11",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "12",
   "type": "script",
 }
 `;
@@ -6342,7 +5521,6 @@ exports[`expressions > pattern matching > with rest value first 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6356,12 +5534,10 @@ exports[`expressions > pattern matching > with rest value first 1`] = `
                       "data": {
                         "value": "b",
                       },
-                      "id": "4",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "3",
                   "type": "...",
                 },
                 {
@@ -6369,27 +5545,22 @@ exports[`expressions > pattern matching > with rest value first 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "7",
                   "type": "name",
                 },
               ],
               "data": {},
-              "id": "6",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "10",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "11",
       "type": "is",
     },
   ],
   "data": {},
-  "id": "12",
   "type": "script",
 }
 `;
@@ -6404,17 +5575,14 @@ exports[`expressions > structured programming > block 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "5",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "6",
       "type": "block",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -6429,7 +5597,6 @@ exports[`expressions > structured programming > for loop 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -6441,7 +5608,6 @@ exports[`expressions > structured programming > for loop 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "20",
                   "type": "number",
                 },
                 {
@@ -6449,7 +5615,6 @@ exports[`expressions > structured programming > for loop 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "29",
                   "type": "number",
                 },
                 {
@@ -6457,17 +5622,14 @@ exports[`expressions > structured programming > for loop 1`] = `
                   "data": {
                     "value": 3,
                   },
-                  "id": "38",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "23",
               "type": ",",
             },
           ],
           "data": {},
-          "id": "39",
           "type": "parens",
         },
         {
@@ -6475,17 +5637,14 @@ exports[`expressions > structured programming > for loop 1`] = `
           "data": {
             "value": "x",
           },
-          "id": "42",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "43",
       "type": "for",
     },
   ],
   "data": {},
-  "id": "44",
   "type": "script",
 }
 `;
@@ -6500,7 +5659,6 @@ exports[`expressions > structured programming > if-then 1`] = `
           "data": {
             "value": "true",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6508,17 +5666,14 @@ exports[`expressions > structured programming > if-then 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "7",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "if",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -6533,7 +5688,6 @@ exports[`expressions > structured programming > if-then-else 1`] = `
           "data": {
             "value": "true",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6541,7 +5695,6 @@ exports[`expressions > structured programming > if-then-else 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "5",
           "type": "number",
         },
         {
@@ -6549,17 +5702,14 @@ exports[`expressions > structured programming > if-then-else 1`] = `
           "data": {
             "value": 456,
           },
-          "id": "8",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "6",
       "type": "if_else",
     },
   ],
   "data": {},
-  "id": "9",
   "type": "script",
 }
 `;
@@ -6574,7 +5724,6 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
           "data": {
             "value": "true",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6582,7 +5731,6 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "5",
           "type": "number",
         },
         {
@@ -6592,7 +5740,6 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
               "data": {
                 "value": "false",
               },
-              "id": "9",
               "type": "name",
             },
             {
@@ -6600,7 +5747,6 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
               "data": {
                 "value": 789,
               },
-              "id": "12",
               "type": "number",
             },
             {
@@ -6608,22 +5754,18 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
               "data": {
                 "value": 456,
               },
-              "id": "15",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "13",
           "type": "if_else",
         },
       ],
       "data": {},
-      "id": "6",
       "type": "if_else",
     },
   ],
   "data": {},
-  "id": "16",
   "type": "script",
 }
 `;
@@ -6638,17 +5780,14 @@ exports[`expressions > structured programming > loop 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "4",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "loop",
     },
   ],
   "data": {},
-  "id": "5",
   "type": "script",
 }
 `;
@@ -6665,22 +5804,18 @@ exports[`expressions > structured programming > loop scope 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "10",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "block",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "loop",
     },
   ],
   "data": {},
-  "id": "12",
   "type": "script",
 }
 `;
@@ -6697,12 +5832,10 @@ exports[`expressions > structured programming > while loop 1`] = `
               "data": {
                 "value": "true",
               },
-              "id": "2",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "3",
           "type": "while",
         },
         {
@@ -6710,17 +5843,14 @@ exports[`expressions > structured programming > while loop 1`] = `
           "data": {
             "value": 123,
           },
-          "id": "7",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "8",
   "type": "script",
 }
 `;
@@ -6733,12 +5863,10 @@ exports[`expressions > values > float 1`] = `
       "data": {
         "value": 123.456,
       },
-      "id": "1",
       "type": "number",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -6751,12 +5879,10 @@ exports[`expressions > values > integer 1`] = `
       "data": {
         "value": 123,
       },
-      "id": "1",
       "type": "number",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -6769,12 +5895,10 @@ exports[`expressions > values > string 1`] = `
       "data": {
         "value": "string",
       },
-      "id": "1",
       "type": "string",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -6793,7 +5917,6 @@ exports[`newline handling > block semicolon newline 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "5",
                   "type": "name",
                 },
                 {
@@ -6801,12 +5924,10 @@ exports[`newline handling > block semicolon newline 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "10",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "7",
               "type": ":=",
             },
             {
@@ -6816,7 +5937,6 @@ exports[`newline handling > block semicolon newline 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "11",
                   "type": "name",
                 },
                 {
@@ -6824,27 +5944,22 @@ exports[`newline handling > block semicolon newline 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "16",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "13",
               "type": ":=",
             },
           ],
           "data": {},
-          "id": "17",
           "type": "sequence",
         },
       ],
       "data": {},
-      "id": "18",
       "type": "block",
     },
   ],
   "data": {},
-  "id": "19",
   "type": "script",
 }
 `;
@@ -6863,7 +5978,6 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
                   "data": {
                     "value": "a",
                   },
-                  "id": "5",
                   "type": "name",
                 },
                 {
@@ -6871,12 +5985,10 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "10",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "7",
               "type": ":=",
             },
             {
@@ -6886,7 +5998,6 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
                   "data": {
                     "value": "b",
                   },
-                  "id": "11",
                   "type": "name",
                 },
                 {
@@ -6894,27 +6005,22 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
                   "data": {
                     "value": 2,
                   },
-                  "id": "16",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "13",
               "type": ":=",
             },
           ],
           "data": {},
-          "id": "17",
           "type": "sequence",
         },
       ],
       "data": {},
-      "id": "18",
       "type": "block",
     },
   ],
   "data": {},
-  "id": "19",
   "type": "script",
 }
 `;
@@ -6929,7 +6035,6 @@ exports[`newline handling > chaining 1`] = `
           "data": {
             "value": "a",
           },
-          "id": "1",
           "type": "name",
         },
         {
@@ -6937,17 +6042,14 @@ exports[`newline handling > chaining 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "4",
           "type": "string",
         },
       ],
       "data": {},
-      "id": "5",
       "type": "index",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -6962,7 +6064,6 @@ exports[`newline handling > infix-infix 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "2",
           "type": "name",
         },
         {
@@ -6970,7 +6071,6 @@ exports[`newline handling > infix-infix 1`] = `
           "data": {
             "value": "c",
           },
-          "id": "7",
           "type": "name",
         },
         {
@@ -6978,17 +6078,14 @@ exports[`newline handling > infix-infix 1`] = `
           "data": {
             "value": "d",
           },
-          "id": "13",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "14",
   "type": "script",
 }
 `;
@@ -7003,7 +6100,6 @@ exports[`newline handling > infix-prefix 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -7013,22 +6109,18 @@ exports[`newline handling > infix-prefix 1`] = `
               "data": {
                 "value": "a",
               },
-              "id": "6",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "4",
           "type": "not",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -7043,7 +6135,6 @@ exports[`newline handling > no parens 1`] = `
           "data": {
             "value": 1,
           },
-          "id": "2",
           "type": "number",
         },
         {
@@ -7051,7 +6142,6 @@ exports[`newline handling > no parens 1`] = `
           "data": {
             "value": 2,
           },
-          "id": "6",
           "type": "number",
         },
         {
@@ -7059,17 +6149,14 @@ exports[`newline handling > no parens 1`] = `
           "data": {
             "value": 3,
           },
-          "id": "14",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -7086,7 +6173,6 @@ exports[`newline handling > parallel parens 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "8",
               "type": "number",
             },
             {
@@ -7094,22 +6180,18 @@ exports[`newline handling > parallel parens 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "13",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "11",
           "type": "parallel",
         },
       ],
       "data": {},
-      "id": "16",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "17",
   "type": "script",
 }
 `;
@@ -7126,7 +6208,6 @@ exports[`newline handling > parens 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "7",
               "type": "number",
             },
             {
@@ -7134,7 +6215,6 @@ exports[`newline handling > parens 1`] = `
               "data": {
                 "value": 2,
               },
-              "id": "11",
               "type": "number",
             },
             {
@@ -7142,22 +6222,18 @@ exports[`newline handling > parens 1`] = `
               "data": {
                 "value": 3,
               },
-              "id": "19",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "9",
           "type": "add",
         },
       ],
       "data": {},
-      "id": "22",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "23",
   "type": "script",
 }
 `;
@@ -7172,17 +6248,14 @@ exports[`newline handling > prefix 1`] = `
           "data": {
             "value": "a",
           },
-          "id": "3",
           "type": "name",
         },
       ],
       "data": {},
-      "id": "1",
       "type": "not",
     },
   ],
   "data": {},
-  "id": "4",
   "type": "script",
 }
 `;
@@ -7197,19 +6270,16 @@ exports[`programs > import 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "0",
           "type": "name",
         },
       ],
       "data": {
         "name": "a",
       },
-      "id": "1",
       "type": "import",
     },
   ],
   "data": {},
-  "id": "2",
   "type": "script",
 }
 `;
@@ -7226,7 +6296,6 @@ exports[`programs > module > export declaration 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "3",
               "type": "name",
             },
             {
@@ -7234,23 +6303,19 @@ exports[`programs > module > export declaration 1`] = `
               "data": {
                 "value": 123,
               },
-              "id": "7",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "5",
           "type": ":=",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "export",
     },
   ],
   "data": {},
-  "id": "8",
-  "type": "module",
+  "type": "script",
 }
 `;
 
@@ -7266,7 +6331,6 @@ exports[`programs > module > export default 1`] = `
               "data": {
                 "value": "args",
               },
-              "id": "3",
               "type": "name",
             },
             {
@@ -7274,23 +6338,19 @@ exports[`programs > module > export default 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "7",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "func",
         },
       ],
       "data": {},
-      "id": "2",
       "type": "export",
     },
   ],
   "data": {},
-  "id": "8",
-  "type": "module",
+  "type": "script",
 }
 `;
 
@@ -7304,7 +6364,6 @@ exports[`programs > script > dynamic async import 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -7314,22 +6373,18 @@ exports[`programs > script > dynamic async import 1`] = `
               "data": {
                 "name": "a",
               },
-              "id": "6",
               "type": "import",
             },
           ],
           "data": {},
-          "id": "5",
           "type": "async",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -7344,7 +6399,6 @@ exports[`programs > script > dynamic import 1`] = `
           "data": {
             "value": "b",
           },
-          "id": "0",
           "type": "name",
         },
         {
@@ -7352,17 +6406,14 @@ exports[`programs > script > dynamic import 1`] = `
           "data": {
             "name": "a",
           },
-          "id": "3",
           "type": "import",
         },
       ],
       "data": {},
-      "id": "2",
       "type": ":=",
     },
   ],
   "data": {},
-  "id": "4",
   "type": "script",
 }
 `;
