@@ -385,7 +385,7 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.LESS_EQUAL, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.GREATER, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.GREATER_EQUAL, Fixity.INFIX, Associativity.RIGHT],
-  [NodeType.IS, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [NodeType.IS, Fixity.POSTFIX],
   [NodeType.IN, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.NOT, Fixity.PREFIX],
 

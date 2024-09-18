@@ -87,7 +87,6 @@ const idToExprOp = {
   '|': NodeType.PARALLEL,
   and: NodeType.AND,
   or: NodeType.OR,
-  is: NodeType.IS,
   in: NodeType.IN,
 };
 
@@ -118,6 +117,7 @@ const idToPatternOp = {
   ',': NodeType.TUPLE,
   '=': NodeType.ASSIGN,
   ':': NodeType.COLON,
+  '@': NodeType.BIND,
 };
 
 const idToPrefixPatternOp = {
@@ -855,6 +855,18 @@ const parseGroup =
           position: nodePosition(),
           children: [value, sequence],
         }),
+      ];
+    }
+
+    if (lhs && src[index].src === 'is') {
+      index++;
+
+      let pattern: Tree;
+      [index, pattern] = parsePattern(0, banned, skip)(src, index);
+
+      return [
+        index,
+        _node(NodeType.IS, { position: nodePosition(), children: [pattern] }),
       ];
     }
 

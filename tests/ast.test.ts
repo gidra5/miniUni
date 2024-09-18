@@ -478,7 +478,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with variable value', () => {
+    it.todo('with pin', () => {
       const src = `x is (^a, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
