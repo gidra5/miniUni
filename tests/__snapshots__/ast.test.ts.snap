@@ -2047,7 +2047,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                           ],
                           "data": {},
                           "id": "10",
-                          "type": "^",
+                          "type": "pow",
                         },
                         {
                           "children": [],
@@ -2419,7 +2419,7 @@ exports[`expressions > arithmetics > order of application 1`] = `
                   ],
                   "data": {},
                   "id": "11",
-                  "type": "^",
+                  "type": "pow",
                 },
                 {
                   "children": [],
@@ -3169,6 +3169,83 @@ exports[`expressions > data structures > atom (global symbol) 1`] = `
 }
 `;
 
+exports[`expressions > data structures > dictionary 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "id": "4",
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "id": "5",
+              "type": "square_brackets",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "id": "19",
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "id": "13",
+          "type": ":",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 3,
+                  },
+                  "id": "40",
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "id": "41",
+              "type": "square_brackets",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 4,
+              },
+              "id": "46",
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "id": "44",
+          "type": ":",
+        },
+      ],
+      "data": {},
+      "id": "35",
+      "type": ",",
+    },
+  ],
+  "data": {},
+  "id": "47",
+  "type": "script",
+}
+`;
+
 exports[`expressions > data structures > field assignment 1`] = `
 {
   "children": [
@@ -3309,83 +3386,6 @@ exports[`expressions > data structures > index 1`] = `
   ],
   "data": {},
   "id": "12",
-  "type": "script",
-}
-`;
-
-exports[`expressions > data structures > map 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": 1,
-                  },
-                  "id": "4",
-                  "type": "number",
-                },
-              ],
-              "data": {},
-              "id": "5",
-              "type": "square_brackets",
-            },
-            {
-              "children": [],
-              "data": {
-                "value": 2,
-              },
-              "id": "19",
-              "type": "number",
-            },
-          ],
-          "data": {},
-          "id": "13",
-          "type": ":",
-        },
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": 3,
-                  },
-                  "id": "40",
-                  "type": "number",
-                },
-              ],
-              "data": {},
-              "id": "41",
-              "type": "square_brackets",
-            },
-            {
-              "children": [],
-              "data": {
-                "value": 4,
-              },
-              "id": "46",
-              "type": "number",
-            },
-          ],
-          "data": {},
-          "id": "44",
-          "type": ":",
-        },
-      ],
-      "data": {},
-      "id": "35",
-      "type": ",",
-    },
-  ],
-  "data": {},
-  "id": "47",
   "type": "script",
 }
 `;

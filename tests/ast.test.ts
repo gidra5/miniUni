@@ -815,7 +815,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it('map', () => {
+    it('dictionary', () => {
       const src = `[1]: 2, [3]: 4`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);

@@ -1185,7 +1185,7 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it('map', async () => {
+    it('dictionary', async () => {
       const input = `[1]: 2, [3]: 4`;
       const result = await evaluate(input);
       expect(result).toStrictEqual({ record: { 1: 2, 3: 4 } });

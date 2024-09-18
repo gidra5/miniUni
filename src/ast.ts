@@ -26,7 +26,7 @@ export const OperatorNodeType = {
   DIV: '/',
   MULT: '*',
   MOD: '%',
-  POW: '^',
+  POW: 'pow',
   PARALLEL: 'parallel',
   SEND: 'send',
   COLON: ':',
@@ -46,6 +46,8 @@ export const OperatorNodeType = {
   GREATER_EQUAL: '>=',
   IS: 'is',
   IN: 'in',
+  BIND: '@',
+  PIN: 'pin',
 
   RECEIVE: 'receive',
   DECLARE: ':=',
