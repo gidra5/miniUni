@@ -232,7 +232,7 @@ const parsePatternGroup =
       return [index, node()];
     }
 
-    if (lhs && src[index].src === '[') {
+    if (src[index].src === '[') {
       index++;
       squareBrackets++;
       if (src[index]?.type === 'newline') index++;
@@ -242,7 +242,7 @@ const parsePatternGroup =
       followSet.pop();
       index = _index;
       const node = () =>
-        _node(NodeType.INDEX, {
+        _node(lhs ? NodeType.INDEX : NodeType.SQUARE_BRACKETS, {
           position: nodePosition(),
           children: [pattern],
         });

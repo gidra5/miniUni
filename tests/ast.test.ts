@@ -526,7 +526,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with record pattern key', () => {
+    it('with record pattern key', () => {
       const src = `x is { [a + b]: c, b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
