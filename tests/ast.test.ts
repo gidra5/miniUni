@@ -174,15 +174,12 @@ describe('comments', () => {
 describe('expressions', () => {
   describe('values', () => {
     it('integer', () => testCase(`123`));
-
     it('float', () => testCase(`123.456`));
-
     it('string', () => testCase(`"string"`));
   });
 
   describe('arithmetics', () => {
     it('order of application', () => testCase(`1 + 2^-3 * 4 - 5 / 6 % 7`));
-
     it('-(a+b)', () => testCase(`-(a+b)`));
 
     it('complex', () => {
@@ -194,49 +191,31 @@ describe('expressions', () => {
 
   describe('boolean expressions', () => {
     it('not', () => testCase(`!123`));
-
     it('"and", "or" and "not" associativity', () =>
       testCase(`a and b and c or d or !e and f and g or not h or i`));
-
     it('in operator', () => testCase(`:key in x and y`));
   });
 
   describe('function expressions', () => {
     it('function block body', () => testCase(`fn x, y { x + y }`));
-
     it('function multiple params', () => testCase(`fn x, y -> x + y`));
-
     it('fn no parameters', () => testCase(`fn -> 123`));
-
     it('fn no parameters block', () => testCase(`fn { 123 }`));
-
     it('arrow function', () => testCase(`x -> x`));
-
     it('fn increment', () => testCase(`fn -> line_handled_count++`));
 
     describe('application', () => {
       it('function call', () => testCase(`f x`));
-
       it('function call multiple args', () => testCase(`f x y`));
-
       it('send((1+2), 3)', () => testCase(`send((1+2), 3)`));
-
       it('send(2, 3)', () => testCase(`send(2, 3)`));
-
       it('(send)(2, 3)', () => testCase(`(send)(2, 3)`));
-
       it('(send 1)(2, 3)', () => testCase(`(send 1)(2, 3)`));
-
       it('(send 1 2)(2, 3)', () => testCase(`(send 1 2)(2, 3)`));
-
       it('send 1 + 2', () => testCase(`send 1 + 2`));
-
       it('a + send (2, 3)', () => testCase(`a + send (2, 3)`));
-
       it('send a (2, 3)', () => testCase(`send a (2, 3)`));
-
       it('send 1 (2, 3)', () => testCase(`send 1 (2, 3)`));
-
       it('a + send 1 + 2', () => testCase(`a + send 1 + 2`));
     });
   });
@@ -252,33 +231,20 @@ describe('expressions', () => {
       `));
 
     it('in function parameters', () => testCase(`(x, y) -> x + y`));
-
     it('declare record pattern', () => testCase(`{ a, b } := handlers`));
-
     it("with 'is' operator", () => testCase(`x is (a, b)`));
-
     it('with placeholder', () => testCase(`x is (_, b)`));
-
     it('with pin', () => testCase(`x is (^a, b)`));
-
+    it.todo('with pin expression', () => testCase(`x is (^(a + b), b)`));
     it('with constant value', () => testCase(`x is (1, b)`));
-
     it('with rest value', () => testCase(`x is (a, ...b)`));
-
     it('with rest value first', () => testCase(`x is (...b, a)`));
-
     it('with record pattern', () => testCase(`x is { a, b }`));
-
     it('with record pattern rename', () => testCase(`x is { a: c, b }`));
-
     it('with record pattern key', () => testCase(`x is { [a + b]: c, b }`));
-
     it('with record pattern nested', () => testCase(`x is { a: (c, d), b }`));
-
     it.todo('with default value', () => testCase(`x is ((b = 4), a)`));
-
     it('with rename', () => testCase(`x is (a @ b, c)`));
-
     it('with name for match', () => testCase(`x is ((a, b) @ c)`));
 
     it('binding visible in scope where it is true', () =>
@@ -286,9 +252,9 @@ describe('expressions', () => {
   });
 
   describe('structured programming', () => {
-    it.todo('complex 1', () =>
+    it('complex 1', () =>
       testCase(`
-        y := (
+        y := {
           x := 25;
           loop if x < 0: break x else {
             y := x;
@@ -296,97 +262,60 @@ describe('expressions', () => {
             if y == 19: continue 69;
             y
           }
-        )
-      `)
-    );
+        }
+      `));
 
     it('if-then', () => testCase(`if true: 123`));
-
     it('if-then-else', () => testCase(`if true: 123 else 456`));
-
     it('if-then-elseif-then-else', () =>
       testCase(`if true: 123 else if false: 789 else 456`));
-
-    it.todo('sequencing', () => testCase(`123; 234; 345; 456`));
-
+    it('sequence', () => testCase(`123; 234; 345; 456`));
+    it('block sequence', () => testCase(`{ 123; 234; 345; 456 }`));
+    it.todo('parens sequence', () => testCase(`(123; 234; 345; 456)`));
     it('block', () => testCase(`{ 123 }`));
-
     it('for loop', () => testCase(`for x in (1, 2, 3) { x }`));
-
     it('while loop', () => testCase(`while true: 123`));
-
     it('loop', () => testCase(`loop 123`));
-
     it('loop scope', () => testCase(`loop { x }`));
-
     it.todo('labeled expression', () => testCase(`label::123`));
   });
 
   describe('concurrent programming', () => {
     it('channel send', () => testCase(`c <- 123`));
-
     it('channel receive', () => testCase(`<- c`));
-
     it('channel try send', () => testCase(`c ?<- 123`));
-
     it('channel try receive', () => testCase(`<-? c`));
-
     it('try receive with assignment', () => testCase(`status := <-?numbers`));
-
     it('parallel value', () => testCase(`123 | 456`));
-
     it('prefix parallel with code after', () =>
-      testCase(`
-          | { };
-          numbers := channel()
-        `));
-
+      testCase(`| { };\nnumbers := channel()`));
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
-
     it.todo('', () => testCase(` f x`));
-
     it.todo('await ', () => testCase(`await  f x`));
-
     it('await', () => testCase(`await x + 1`));
   });
 
   describe('data structures', () => {
     it('unit', () => testCase(`()`));
-
     it('tuple', () => testCase(`list, reducer, merge, initial`));
-
     it('record single', () => testCase(`a: 1`));
-
     it('record', () => testCase(`a: 1, b: 2`));
-
     it('tuple with single item (atom)', () => testCase(`(:a,)`));
-
     it('(-(2+7)/A,j, i, 127.0 )', () => testCase(`(-(2+7)/A,j, i, 127.0 )`));
-
     it('atom (global symbol)', () => testCase(`:atom`));
-
     it('dictionary', () => testCase(`[1]: 2, [3]: 4`));
-
     it('map without braces', () => testCase(`1+2: 3, 4+5: 6`));
-
     it('period operator', () => testCase(`math.floor`));
-
     it('index', () => testCase(`x[0]`));
-
     it('methods', () => testCase(`math.floor(1).multiply(2)`));
-
     it('field assignment', () => testCase(`x.y = 123`));
-
     it('field assignment dynamic', () => testCase(`x[y] = 123`));
   });
 
   describe('effect handlers', () => {
     it('inject', () => testCase(`inject a: 1, b: 2 { 1 }`));
-
     it('mask', () => testCase(`mask "a", "b" { 1 }`));
-
     it('without', () => testCase(`without "a", "b" { 1 }`));
-
     it('complex', () =>
       testCase(`
         inject a: 1, b: 2 {
@@ -409,54 +338,36 @@ describe('programs', () => {
 
   describe('script', () => {
     it('dynamic import', () => testCase(`b := import "a"`));
-
     it('dynamic  import', () => testCase(`b :=  import "a"`));
   });
 
   describe('module', () => {
     it('export declaration', () => testCase(`export x := 123`));
-
     it('export default', () => testCase(`export fn args -> 1`));
   });
 });
 
 describe('newline handling', () => {
   it.todo('for loop newline', () => testCase(`for x in [1, 2, 3]\n x`));
-
   it('parallel parens', () => testCase(`(\n| 1\n| 2\n)`));
-
   it('chaining', () => testCase(`a\n.b`));
-
   it('parens', () => testCase(`(\n1 +\n2\n+ 3\n)`));
-
   it('no parens', () => testCase(`1 +\n2\n+ 3`));
-
   it('prefix', () => testCase(`!\na`));
-
   it('infix-prefix', () => testCase(`b :=\n !\na`));
-
   it('infix-infix', () => testCase(`b +\nc +\nd`));
-
   it.todo('if else separate lines', () => testCase(`if a\n 1\n else\n 2`));
-
   it.todo('if-then newline', () => testCase(`if true\n 123`));
-
   it.todo('if-then newline-else', () => testCase(`if true\n 123 else 456`));
-
   it.todo('if-then newline-else newline', () =>
     testCase(`if true\n 123 else\n 456`)
   );
-
   it.todo('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
-
   it.todo('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
-
   it.todo('block newline at the beginning', () =>
     testCase(`{\n a := 1\n b := 2 }`)
   );
-
   it('block semicolon newline', () => testCase(`{ a := 1;\n b := 2 }`));
-
   it('block semicolon newline at the end', () =>
     testCase(`{ a := 1;\n b := 2;\n }`));
 });

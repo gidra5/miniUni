@@ -5587,6 +5587,279 @@ exports[`expressions > structured programming > block 1`] = `
 }
 `;
 
+exports[`expressions > structured programming > block sequence 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 123,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 234,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 345,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 456,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "block",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > complex 1 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "y",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "x",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 25,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": ":=",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "x",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": 0,
+                              },
+                              "type": "number",
+                            },
+                          ],
+                          "data": {},
+                          "type": "<",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "break",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "x",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {},
+                          "type": "application",
+                        },
+                        {
+                          "children": [
+                            {
+                              "children": [
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "y",
+                                      },
+                                      "type": "name",
+                                    },
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "x",
+                                      },
+                                      "type": "name",
+                                    },
+                                  ],
+                                  "data": {},
+                                  "type": ":=",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [],
+                                      "data": {
+                                        "value": "x",
+                                      },
+                                      "type": "name",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "x",
+                                          },
+                                          "type": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": 1,
+                                          },
+                                          "type": "number",
+                                        },
+                                      ],
+                                      "data": {},
+                                      "type": "subtract",
+                                    },
+                                  ],
+                                  "data": {},
+                                  "type": "=",
+                                },
+                                {
+                                  "children": [
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "y",
+                                          },
+                                          "type": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": 19,
+                                          },
+                                          "type": "number",
+                                        },
+                                      ],
+                                      "data": {},
+                                      "type": "==",
+                                    },
+                                    {
+                                      "children": [
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": "continue",
+                                          },
+                                          "type": "name",
+                                        },
+                                        {
+                                          "children": [],
+                                          "data": {
+                                            "value": 69,
+                                          },
+                                          "type": "number",
+                                        },
+                                      ],
+                                      "data": {},
+                                      "type": "application",
+                                    },
+                                  ],
+                                  "data": {},
+                                  "type": "if",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "y",
+                                  },
+                                  "type": "name",
+                                },
+                              ],
+                              "data": {},
+                              "type": "sequence",
+                            },
+                          ],
+                          "data": {},
+                          "type": "block",
+                        },
+                      ],
+                      "data": {},
+                      "type": "if_else",
+                    },
+                  ],
+                  "data": {},
+                  "type": "loop",
+                },
+              ],
+              "data": {},
+              "type": "sequence",
+            },
+          ],
+          "data": {},
+          "type": "block",
+        },
+      ],
+      "data": {},
+      "type": ":=",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > structured programming > for loop 1`] = `
 {
   "children": [
@@ -5813,6 +6086,43 @@ exports[`expressions > structured programming > loop scope 1`] = `
       ],
       "data": {},
       "type": "loop",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > sequence 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "value": 123,
+      },
+      "type": "number",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": 234,
+      },
+      "type": "number",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": 345,
+      },
+      "type": "number",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": 456,
+      },
+      "type": "number",
     },
   ],
   "data": {},
@@ -6372,41 +6682,6 @@ exports[`programs > script > dynamic  import 1`] = `
             "name": "a",
           },
           "type": "import",
-        },
-      ],
-      "data": {},
-      "type": ":=",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`programs > script > dynamic async import 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [],
-          "data": {
-            "value": "b",
-          },
-          "type": "name",
-        },
-        {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "name": "a",
-              },
-              "type": "import",
-            },
-          ],
-          "data": {},
-          "type": "async",
         },
       ],
       "data": {},

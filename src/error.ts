@@ -30,6 +30,8 @@ export enum ErrorType {
   IMPORT_RESOLVE_FAILED,
   INVALID_INCREMENT_ASSIGN,
   DUPLICATE_DEFAULT_EXPORT,
+  INVALID_DEFAULT_PATTERN,
+  INVALID_PIN_PATTERN,
 }
 
 type Options = {
@@ -559,6 +561,34 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.DUPLICATE_DEFAULT_EXPORT, msg, options);
+  }
+  static invalidDefaultPattern(pos: Position): SystemError {
+    const msg = `default value for pattern can't be an operator`;
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'unexpected default export',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.INVALID_DEFAULT_PATTERN, msg, options);
+  }
+  static invalidPinPattern(pos: Position): SystemError {
+    const msg = `pin value for pattern can't be an operator`;
+    const labels: Array<ErrorLabel> = [];
+    const options = { labels };
+
+    labels.push({
+      start: pos.start,
+      end: pos.end,
+      message: 'unexpected default export',
+      kind: 'primary',
+    });
+
+    return new SystemError(ErrorType.INVALID_PIN_PATTERN, msg, options);
   }
 
   static testError(type: ErrorType) {

@@ -115,7 +115,7 @@ const idToLhsPatternExprOp = {
 
 const idToPatternOp = {
   ',': NodeType.TUPLE,
-  '=': NodeType.ASSIGN,
+  // '=': NodeType.ASSIGN,
   ':': NodeType.COLON,
   '@': NodeType.BIND,
 };
@@ -125,7 +125,6 @@ const idToPrefixPatternOp = {
   ':': NodeType.ATOM,
   export: NodeType.EXPORT,
   mut: NodeType.MUTABLE,
-  '^': NodeType.PIN,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
@@ -258,6 +257,44 @@ const parsePatternGroup =
       index++;
 
       return [index, node()];
+    }
+
+    // if (lhs && src[index].src === '=') {
+    //   index++;
+    //   let value: Tree;
+    //   [index, value] = parseGroup()(src, index);
+    //   const node = _node(NodeType.ASSIGN, {
+    //     position: nodePosition(),
+    //     children: [value],
+    //   });
+    //   const precedence = getExprPrecedence(value);
+    //   if (precedence[0] !== null && precedence[1] !== null) {
+    //     return [
+    //       index,
+    //       error(SystemError.invalidDefaultPattern(nodePosition()), node),
+    //     ];
+    //   }
+
+    //   return [index, node];
+    // }
+
+    if (!lhs && src[index].src === '^') {
+      index++;
+      let value: Tree;
+      [index, value] = parseGroup()(src, index);
+      const node = _node(NodeType.PIN, {
+        position: nodePosition(),
+        children: [value],
+      });
+      const precedence = getExprPrecedence(value);
+      if (precedence[0] !== null && precedence[1] !== null) {
+        return [
+          index,
+          error(SystemError.invalidPinPattern(nodePosition()), node),
+        ];
+      }
+
+      return [index, node];
     }
 
     index++;
