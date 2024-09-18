@@ -5727,6 +5727,83 @@ exports[`expressions > pattern matching > with constant value 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > with name for match 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "a",
+                          },
+                          "id": "3",
+                          "type": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "b",
+                          },
+                          "id": "5",
+                          "type": "name",
+                        },
+                      ],
+                      "data": {},
+                      "id": "4",
+                      "type": ",",
+                    },
+                  ],
+                  "data": {},
+                  "id": "8",
+                  "type": "parens",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "c",
+                  },
+                  "id": "10",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "9",
+              "type": "@",
+            },
+          ],
+          "data": {},
+          "id": "13",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "14",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "15",
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > with pin 1`] = `
 {
   "children": [
@@ -5838,6 +5915,272 @@ exports[`expressions > pattern matching > with placeholder 1`] = `
   ],
   "data": {},
   "id": "10",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with record pattern 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "a",
+              },
+              "id": "3",
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "b",
+              },
+              "id": "5",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "8",
+          "type": "object",
+        },
+      ],
+      "data": {},
+      "id": "9",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "10",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with record pattern nested 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "id": "3",
+                  "type": "name",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "c",
+                          },
+                          "id": "5",
+                          "type": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "d",
+                          },
+                          "id": "7",
+                          "type": "name",
+                        },
+                      ],
+                      "data": {},
+                      "id": "6",
+                      "type": ",",
+                    },
+                  ],
+                  "data": {},
+                  "id": "10",
+                  "type": "parens",
+                },
+              ],
+              "data": {},
+              "id": "4",
+              "type": ":",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "b",
+              },
+              "id": "13",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "16",
+          "type": "object",
+        },
+      ],
+      "data": {},
+      "id": "17",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "18",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with record pattern rename 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "id": "3",
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "c",
+                  },
+                  "id": "5",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "4",
+              "type": ":",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "b",
+              },
+              "id": "8",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "11",
+          "type": "object",
+        },
+      ],
+      "data": {},
+      "id": "12",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "13",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with rename 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "a",
+                      },
+                      "id": "3",
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "id": "5",
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "id": "4",
+                  "type": "@",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "c",
+                  },
+                  "id": "8",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "7",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "11",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "12",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "13",
   "type": "script",
 }
 `;

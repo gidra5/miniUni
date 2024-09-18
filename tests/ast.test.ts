@@ -510,7 +510,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with record pattern', () => {
+    it('with record pattern', () => {
       const src = `x is { a, b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -518,7 +518,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with record pattern rename', () => {
+    it('with record pattern rename', () => {
       const src = `x is { a: c, b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -527,14 +527,14 @@ describe('expressions', () => {
     });
 
     it.todo('with record pattern key', () => {
-      const src = `x is { [a]: c, b }`;
+      const src = `x is { [a + b]: c, b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with record pattern nested', () => {
+    it('with record pattern nested', () => {
       const src = `x is { a: (c, d), b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -550,7 +550,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with rename', () => {
+    it('with rename', () => {
       const src = `x is (a @ b, c)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -558,7 +558,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with name for match', () => {
+    it('with name for match', () => {
       const src = `x is ((a, b) @ c)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
