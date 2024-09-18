@@ -108,7 +108,7 @@ const incAssign = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.TUPLE) {
+  if (patternAst.type === NodeType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -119,7 +119,7 @@ const incAssign = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.type === OperatorNodeType.SPREAD) {
+      if (pattern.type === NodeType.SPREAD) {
         unreachable(
           SystemError.evaluationError(
             'you sick fuck, how would that work?',
@@ -143,7 +143,7 @@ const incAssign = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.PARENS) {
+  if (patternAst.type === NodeType.PARENS) {
     return await incAssign(patternAst.children[0], value, context);
   }
 
@@ -154,7 +154,7 @@ const incAssign = async (
     )
   );
 
-  if (patternAst.type === OperatorNodeType.INDEX) {
+  if (patternAst.type === NodeType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
     );
@@ -226,7 +226,7 @@ const assign = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.TUPLE) {
+  if (patternAst.type === NodeType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -237,7 +237,7 @@ const assign = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.type === OperatorNodeType.SPREAD) {
+      if (pattern.type === NodeType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -253,11 +253,11 @@ const assign = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.PARENS) {
+  if (patternAst.type === NodeType.PARENS) {
     return await assign(patternAst.children[0], value, context);
   }
 
-  if (patternAst.type === OperatorNodeType.INDEX) {
+  if (patternAst.type === NodeType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
     );
@@ -317,11 +317,11 @@ const bind = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.EXPORT) {
+  if (patternAst.type === NodeType.EXPORT) {
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.type === OperatorNodeType.TUPLE) {
+  if (patternAst.type === NodeType.TUPLE) {
     assert(
       Array.isArray(value),
       SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
@@ -332,7 +332,7 @@ const bind = async (
     const patterns = patternAst.children;
     let consumed = 0;
     for (const pattern of patterns) {
-      if (pattern.type === OperatorNodeType.SPREAD) {
+      if (pattern.type === NodeType.SPREAD) {
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
@@ -348,7 +348,7 @@ const bind = async (
     return context;
   }
 
-  if (patternAst.type === OperatorNodeType.PARENS) {
+  if (patternAst.type === NodeType.PARENS) {
     return await bind(patternAst.children[0], value, context);
   }
 
@@ -371,13 +371,13 @@ const bind = async (
         context.env[name] = record[name] ?? null;
         consumedNames.push(name);
         continue;
-      } else if (pattern.type === OperatorNodeType.COLON) {
+      } else if (pattern.type === NodeType.COLON) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
         context = await bind(valuePattern, record[name] ?? null, context);
         continue;
-      } else if (pattern.type === OperatorNodeType.SPREAD) {
+      } else if (pattern.type === NodeType.SPREAD) {
         const rest = omit(record, consumedNames);
         context = await bind(pattern.children[0], { record: rest }, context);
         continue;
@@ -425,7 +425,7 @@ async function bindExport(
     return exports;
   }
 
-  if (patternAst.type === OperatorNodeType.EXPORT) {
+  if (patternAst.type === NodeType.EXPORT) {
     return await bindExport(
       patternAst.children[0],
       value,
@@ -558,7 +558,7 @@ const showNode = (node: Tree, context: Context, msg: string = '') => {
 };
 
 const operators = {
-  [OperatorNodeType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
     let sum = head;
     assert(
       typeof sum === 'number' || typeof sum === 'string',
@@ -573,7 +573,7 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.SUB]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.SUB]: (head: EvalValue, ...rest: EvalValue[]) => {
     assert(typeof head === 'number', 'expected number');
     let sum = head;
     for (const v of rest) {
@@ -582,7 +582,7 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.MULT]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.MULT]: (head: EvalValue, ...rest: EvalValue[]) => {
     assert(typeof head === 'number', 'expected number');
     let sum = head;
     for (const v of rest) {
@@ -591,7 +591,7 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.DIV]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.DIV]: (head: EvalValue, ...rest: EvalValue[]) => {
     assert(typeof head === 'number', 'expected number');
     let sum = head;
     for (const v of rest) {
@@ -600,7 +600,7 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.MOD]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.MOD]: (head: EvalValue, ...rest: EvalValue[]) => {
     assert(typeof head === 'number', 'expected number');
     let sum = head;
     for (const v of rest) {
@@ -609,7 +609,7 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.POW]: (head: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.POW]: (head: EvalValue, ...rest: EvalValue[]) => {
     assert(typeof head === 'number', 'expected number');
     let sum = head;
     for (const v of rest) {
@@ -618,16 +618,16 @@ const operators = {
     }
     return sum;
   },
-  [OperatorNodeType.PLUS]: (arg: EvalValue) => {
+  [NodeType.PLUS]: (arg: EvalValue) => {
     assert(typeof arg === 'number', 'expected number');
     return +arg;
   },
-  [OperatorNodeType.MINUS]: (arg: EvalValue) => {
+  [NodeType.MINUS]: (arg: EvalValue) => {
     assert(typeof arg === 'number', 'expected number');
     return -arg;
   },
 
-  [OperatorNodeType.EQUAL]: (left: EvalValue, right: EvalValue) => {
+  [NodeType.EQUAL]: (left: EvalValue, right: EvalValue) => {
     if (isSymbol(left) && isSymbol(right)) {
       return left.symbol === right.symbol;
     } else if (isChannel(left) && isChannel(right)) {
@@ -636,34 +636,34 @@ const operators = {
       return left.record === right.record;
     } else return left === right;
   },
-  [OperatorNodeType.NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
-    return !operators[OperatorNodeType.EQUAL](left, right);
+  [NodeType.NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return !operators[NodeType.EQUAL](left, right);
   },
-  [OperatorNodeType.LESS]: (left: EvalValue, right: EvalValue) => {
+  [NodeType.LESS]: (left: EvalValue, right: EvalValue) => {
     assert(typeof left === 'number', 'expected number');
     assert(typeof right === 'number', 'expected number');
     return left < right;
   },
-  [OperatorNodeType.LESS_EQUAL]: (left: EvalValue, right: EvalValue) => {
+  [NodeType.LESS_EQUAL]: (left: EvalValue, right: EvalValue) => {
     return (
-      operators[OperatorNodeType.LESS](left, right) ||
-      operators[OperatorNodeType.EQUAL](left, right)
+      operators[NodeType.LESS](left, right) ||
+      operators[NodeType.EQUAL](left, right)
     );
   },
-  [OperatorNodeType.GREATER]: (left: EvalValue, right: EvalValue) => {
-    return !operators[OperatorNodeType.LESS_EQUAL](left, right);
+  [NodeType.GREATER]: (left: EvalValue, right: EvalValue) => {
+    return !operators[NodeType.LESS_EQUAL](left, right);
   },
-  [OperatorNodeType.GREATER_EQUAL]: (left: EvalValue, right: EvalValue) => {
-    return !operators[OperatorNodeType.LESS](left, right);
+  [NodeType.GREATER_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return !operators[NodeType.LESS](left, right);
   },
-  [OperatorNodeType.NOT]: (arg: EvalValue) => {
+  [NodeType.NOT]: (arg: EvalValue) => {
     // assert(typeof arg === 'boolean', 'expected boolean');
     return !arg;
   },
 };
 
 const lazyOperators = {
-  [OperatorNodeType.FORK]: async ([expr]: Tree[], context: Context) => {
+  [NodeType.FORK]: async ([expr]: Tree[], context: Context) => {
     return createTask(
       async () => await evaluateBlock(expr, context),
       (e) => {
@@ -673,49 +673,44 @@ const lazyOperators = {
       }
     );
   },
-  [OperatorNodeType.PARALLEL]: (args: Tree[], context: Context) => {
+  [NodeType.PARALLEL]: (args: Tree[], context: Context) => {
     const tasks = args.map((arg) =>
-      lazyOperators[OperatorNodeType.FORK]([arg], context)
+      lazyOperators[NodeType.FORK]([arg], context)
     );
     return Promise.all(tasks);
   },
-  [OperatorNodeType.AND]: async ([head, ...rest]: Tree[], context: Context) => {
+  [NodeType.AND]: async ([head, ...rest]: Tree[], context: Context) => {
     const restAst =
-      rest.length > 1
-        ? node(OperatorNodeType.AND, { children: rest })
-        : rest[0];
-    return await lazyOperators[OperatorNodeType.IF_ELSE](
+      rest.length > 1 ? node(NodeType.AND, { children: rest }) : rest[0];
+    return await lazyOperators[NodeType.IF_ELSE](
       [head, restAst, nameAST('false', getPosition(head))],
       context
     );
   },
-  [OperatorNodeType.OR]: async ([head, ...rest]: Tree[], context: Context) => {
+  [NodeType.OR]: async ([head, ...rest]: Tree[], context: Context) => {
     const restAst =
-      rest.length > 1 ? node(OperatorNodeType.OR, { children: rest }) : rest[0];
-    return await lazyOperators[OperatorNodeType.IF_ELSE](
+      rest.length > 1 ? node(NodeType.OR, { children: rest }) : rest[0];
+    return await lazyOperators[NodeType.IF_ELSE](
       [head, nameAST('true', getPosition(head)), restAst],
       context
     );
   },
 
-  [OperatorNodeType.PARENS]: async ([arg]: Tree[], context: Context) => {
+  [NodeType.PARENS]: async ([arg]: Tree[], context: Context) => {
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
   },
-  [OperatorNodeType.SQUARE_BRACKETS]: async (
-    [arg]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.SQUARE_BRACKETS]: async ([arg]: Tree[], context: Context) => {
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
   },
 
-  [OperatorNodeType.ATOM]: async ([name]: Tree[]) => {
+  [NodeType.ATOM]: async ([name]: Tree[]) => {
     assert(name.type === NodeType.NAME, 'expected name');
     return atom(name.data.value);
   },
 
-  [OperatorNodeType.INJECT]: async ([expr, body]: Tree[], context: Context) => {
+  [NodeType.INJECT]: async ([expr, body]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     assert(isRecord(value), 'expected record');
 
@@ -723,10 +718,7 @@ const lazyOperators = {
     Object.setPrototypeOf(handlers, context.handlers);
     return await evaluateBlock(body, { ...context, handlers });
   },
-  [OperatorNodeType.WITHOUT]: async (
-    [expr, body]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.WITHOUT]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
     assert(
@@ -738,7 +730,7 @@ const lazyOperators = {
     const handlers = omitHandlers(context.handlers, handlerNames);
     return await evaluateBlock(body, { ...context, handlers });
   },
-  [OperatorNodeType.MASK]: async ([expr, body]: Tree[], context: Context) => {
+  [NodeType.MASK]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
     assert(
@@ -751,17 +743,11 @@ const lazyOperators = {
     return await evaluateBlock(body, { ...context, handlers });
   },
 
-  [OperatorNodeType.MATCH]: async (
-    [expr, ...branches]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.MATCH]: async ([expr, ...branches]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
 
     for (const branch of branches) {
-      assert(
-        branch.type === OperatorNodeType.MATCH_CASE,
-        'expected match case'
-      );
+      assert(branch.type === NodeType.MATCH_CASE, 'expected match case');
       const [pattern, body] = branch.children;
 
       const bound = await bind(pattern, value, context).catch();
@@ -770,17 +756,14 @@ const lazyOperators = {
 
     return null;
   },
-  [OperatorNodeType.IF]: async (
-    [condition, branch]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.IF]: async ([condition, branch]: Tree[], context: Context) => {
     const falseBranch = placeholder(getPosition(branch));
-    return await lazyOperators[OperatorNodeType.IF_ELSE](
+    return await lazyOperators[NodeType.IF_ELSE](
       [condition, branch, falseBranch],
       context
     );
   },
-  [OperatorNodeType.IF_ELSE]: async (
+  [NodeType.IF_ELSE]: async (
     [condition, trueBranch, falseBranch]: Tree[],
     context: Context
   ) => {
@@ -788,10 +771,7 @@ const lazyOperators = {
     if (result) return await evaluateBlock(trueBranch, context);
     else return await evaluateBlock(falseBranch, context);
   },
-  [OperatorNodeType.WHILE]: async (
-    [condition, body]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.WHILE]: async ([condition, body]: Tree[], context: Context) => {
     while (true) {
       const _context = { ...context, env: forkEnv(context.env) };
       try {
@@ -811,10 +791,7 @@ const lazyOperators = {
       }
     }
   },
-  [OperatorNodeType.FOR]: async (
-    [pattern, expr, body]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.FOR]: async ([pattern, expr, body]: Tree[], context: Context) => {
     const list = await evaluateExpr(expr, context);
 
     assert(
@@ -851,8 +828,8 @@ const lazyOperators = {
 
     return mapped;
   },
-  [OperatorNodeType.LOOP]: async ([body]: Tree[], context: Context) => {
-    if (body.type === OperatorNodeType.BLOCK) {
+  [NodeType.LOOP]: async ([body]: Tree[], context: Context) => {
+    if (body.type === NodeType.BLOCK) {
       body = body.children[0];
     }
 
@@ -874,7 +851,7 @@ const lazyOperators = {
     }
   },
 
-  [OperatorNodeType.BLOCK]: async ([expr]: Tree[], context: Context) => {
+  [NodeType.BLOCK]: async ([expr]: Tree[], context: Context) => {
     try {
       return await evaluateBlock(expr, context);
     } catch (e) {
@@ -883,43 +860,34 @@ const lazyOperators = {
       else throw e;
     }
   },
-  [OperatorNodeType.SEQUENCE]: async (
-    [expr, ...rest]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.SEQUENCE]: async ([expr, ...rest]: Tree[], context: Context) => {
     if (rest.length === 0) return await evaluateStatement(expr, context);
     await evaluateStatement(expr, context);
-    return await lazyOperators[OperatorNodeType.SEQUENCE](rest, context);
+    return await lazyOperators[NodeType.SEQUENCE](rest, context);
   },
 
-  [OperatorNodeType.INCREMENT]: async ([arg]: Tree[], context: Context) => {
+  [NodeType.INCREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value + 1, context);
     return value + 1;
   },
-  [OperatorNodeType.DECREMENT]: async ([arg]: Tree[], context: Context) => {
+  [NodeType.DECREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value - 1, context);
     return value - 1;
   },
-  [OperatorNodeType.POST_DECREMENT]: async (
-    [arg]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.POST_DECREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
     await assign(arg, value - 1, context);
     return value;
   },
-  [OperatorNodeType.POST_INCREMENT]: async (
-    [arg]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.POST_INCREMENT]: async ([arg]: Tree[], context: Context) => {
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
     assert(typeof value === 'number', 'expected number');
@@ -927,33 +895,24 @@ const lazyOperators = {
     return value;
   },
 
-  [OperatorNodeType.DECLARE]: async (
-    [pattern, expr]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.DECLARE]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
     await bind(pattern, value, context);
     return value;
   },
-  [OperatorNodeType.ASSIGN]: async (
-    [pattern, expr]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.ASSIGN]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
     await assign(pattern, value, context);
     return value;
   },
-  [OperatorNodeType.INC_ASSIGN]: async (
-    [pattern, expr]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.INC_ASSIGN]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     assert(typeof value === 'number' || Array.isArray(value));
     await incAssign(pattern, value, context);
     return value;
   },
 
-  [OperatorNodeType.COLON]: async ([_key, expr]: Tree[], context: Context) => {
+  [NodeType.COLON]: async ([_key, expr]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     const key =
       _key.type === NodeType.NAME
@@ -962,12 +921,12 @@ const lazyOperators = {
 
     return { record: { [key]: value } };
   },
-  [OperatorNodeType.TUPLE]: async (children: Tree[], context: Context) => {
+  [NodeType.TUPLE]: async (children: Tree[], context: Context) => {
     const list: EvalValue[] = [];
     const record = {};
 
     for (const child of children) {
-      if (child.type === OperatorNodeType.SPREAD) {
+      if (child.type === NodeType.SPREAD) {
         const rest = await evaluateExpr(child.children[0], context);
         if (Array.isArray(rest)) list.push(...rest);
         else if (isRecord(rest)) Object.assign(record, rest.record);
@@ -978,7 +937,7 @@ const lazyOperators = {
             )
           );
         }
-      } else if (child.type === OperatorNodeType.COLON) {
+      } else if (child.type === NodeType.COLON) {
         const _key = child.children[0];
         const key =
           _key.type === NodeType.NAME
@@ -997,10 +956,7 @@ const lazyOperators = {
 
     return list;
   },
-  [OperatorNodeType.INDEX]: async (
-    [_target, _index]: Tree[],
-    context: Context
-  ) => {
+  [NodeType.INDEX]: async ([_target, _index]: Tree[], context: Context) => {
     const target = await evaluateExpr(_target, context);
     const index = await evaluateExpr(_index, context);
 
@@ -1063,7 +1019,7 @@ export const evaluateStatement = async (
   }
 
   switch (ast.type) {
-    case OperatorNodeType.IMPORT: {
+    case NodeType.IMPORT: {
       const name = ast.data.name;
       const module = await getModule({ name, from: context.file });
       assert(!Buffer.isBuffer(module), 'binary file import is not supported');
@@ -1081,7 +1037,7 @@ export const evaluateStatement = async (
       return value;
     }
 
-    case OperatorNodeType.SEND: {
+    case NodeType.SEND: {
       const [channelValue, value] = [
         await evaluateExpr(ast.children[0], context),
         await evaluateExpr(ast.children[1], context),
@@ -1112,7 +1068,7 @@ export const evaluateStatement = async (
 
       return null;
     }
-    case OperatorNodeType.RECEIVE: {
+    case NodeType.RECEIVE: {
       const channelValue = await evaluateExpr(ast.children[0], context);
 
       assert(
@@ -1130,7 +1086,7 @@ export const evaluateStatement = async (
         throw e;
       });
     }
-    case OperatorNodeType.SEND_STATUS: {
+    case NodeType.SEND_STATUS: {
       const [channelValue, value] = [
         await evaluateExpr(ast.children[0], context),
         await evaluateExpr(ast.children[1], context),
@@ -1146,7 +1102,7 @@ export const evaluateStatement = async (
       const status = send(channelValue.channel, value);
       return atom(status);
     }
-    case OperatorNodeType.RECEIVE_STATUS: {
+    case NodeType.RECEIVE_STATUS: {
       const channelValue = await evaluateExpr(ast.children[0], context);
 
       assert(
@@ -1163,13 +1119,11 @@ export const evaluateStatement = async (
       return [value ?? [], atom(status)];
     }
 
-    case OperatorNodeType.FUNCTION: {
+    case NodeType.FUNCTION: {
       const [_patterns, _body] = ast.children;
       const isTopFunction = ast.data.isTopFunction ?? true;
       const patterns =
-        _patterns.type !== OperatorNodeType.TUPLE
-          ? [_patterns]
-          : _patterns.children;
+        _patterns.type !== NodeType.TUPLE ? [_patterns] : _patterns.children;
       const pattern = patterns[0];
       const rest = patterns.slice(1);
       const body =
@@ -1195,7 +1149,7 @@ export const evaluateStatement = async (
       };
       return self;
     }
-    case OperatorNodeType.APPLICATION: {
+    case NodeType.APPLICATION: {
       const [fnExpr, argStmt] = ast.children;
       const [fnValue, argValue] = [
         await evaluateExpr(fnExpr, context),
@@ -1216,7 +1170,7 @@ export const evaluateStatement = async (
       ]);
     }
 
-    case OperatorNodeType.SPREAD: {
+    case NodeType.SPREAD: {
       unreachable(
         SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
           context.fileId
@@ -1283,7 +1237,7 @@ export const evaluateScript = async (
   context: Context
 ): Promise<EvalValue> => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
-  return await lazyOperators[OperatorNodeType.SEQUENCE](ast.children, context);
+  return await lazyOperators[NodeType.SEQUENCE](ast.children, context);
 };
 
 export const evaluateModule = async (
@@ -1294,9 +1248,9 @@ export const evaluateModule = async (
   const record: Record<string | symbol, EvalValue> = {};
 
   for (const child of ast.children) {
-    if (child.type === OperatorNodeType.IMPORT) {
+    if (child.type === NodeType.IMPORT) {
       await evaluateStatement(child, context);
-    } else if (child.type === OperatorNodeType.EXPORT) {
+    } else if (child.type === NodeType.EXPORT) {
       const expr = child.children[0];
       const value = await evaluateExpr(expr, context);
 

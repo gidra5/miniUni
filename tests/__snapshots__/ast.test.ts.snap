@@ -5672,6 +5672,61 @@ exports[`expressions > pattern matching > with 'is' operator 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > with constant value 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "id": "22",
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "id": "28",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "25",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "29",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "10",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "30",
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > with placeholder 1`] = `
 {
   "children": [

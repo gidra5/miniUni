@@ -17,7 +17,7 @@ export const validate = (
 
   if (Object.values(OperatorNodeType).includes(ast.type as any)) {
     const precedence = getExprPrecedence(ast);
-    if (ast.type === OperatorNodeType.APPLICATION) {
+    if (ast.type === NodeType.APPLICATION) {
       const [lhs, rhs] = ast.children;
 
       assert(lhs !== undefined, 'expected lhs in application node');

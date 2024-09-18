@@ -486,7 +486,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with constant value', () => {
+    it('with constant value', () => {
       const src = `x is (1, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
