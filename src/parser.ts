@@ -71,6 +71,8 @@ const idToExprOp = {
   '^': OperatorNodeType.POW,
   '==': OperatorNodeType.EQUAL,
   '!=': OperatorNodeType.NOT_EQUAL,
+  '===': OperatorNodeType.DEEP_EQUAL,
+  '!==': OperatorNodeType.DEEP_NOT_EQUAL,
   '<': OperatorNodeType.LESS,
   '<=': OperatorNodeType.LESS_EQUAL,
   '>': OperatorNodeType.GREATER,
@@ -86,6 +88,8 @@ const idToExprOp = {
   '|': OperatorNodeType.PARALLEL,
   and: OperatorNodeType.AND,
   or: OperatorNodeType.OR,
+  is: OperatorNodeType.IS,
+  in: OperatorNodeType.IN,
 };
 
 const idToPrefixExprOp = {

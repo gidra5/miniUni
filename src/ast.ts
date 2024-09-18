@@ -44,6 +44,8 @@ export const OperatorNodeType = {
   SEND_STATUS: '?<-',
   GREATER: '>',
   GREATER_EQUAL: '>=',
+  IS: 'is',
+  IN: 'in',
 
   RECEIVE: 'receive',
   DECLARE: ':=',
@@ -375,10 +377,14 @@ const exprPrecedenceList: [OperatorNodeType, Fixity, Associativity?][] = [
   [OperatorNodeType.AND, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorNodeType.EQUAL, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.NOT_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.DEEP_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.DEEP_NOT_EQUAL, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.LESS, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.LESS_EQUAL, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.GREATER, Fixity.INFIX, Associativity.RIGHT],
   [OperatorNodeType.GREATER_EQUAL, Fixity.INFIX, Associativity.RIGHT],
+  [OperatorNodeType.IS, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [OperatorNodeType.IN, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [OperatorNodeType.NOT, Fixity.PREFIX],
 
   [OperatorNodeType.ADD, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],

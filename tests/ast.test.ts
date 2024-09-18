@@ -273,6 +273,14 @@ describe('expressions', () => {
 
       expect(ast).toMatchSnapshot();
     });
+
+    it('in operator', async () => {
+      const input = `:key in x and y`;
+      const tokens = parseTokens(input);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
   });
 
   describe('function expressions', () => {
@@ -454,7 +462,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo("with 'is' operator", () => {
+    it("with 'is' operator", () => {
       const src = `x is (a, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -462,7 +470,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with placeholder', () => {
+    it('with placeholder', () => {
       const src = `x is (_, b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -478,7 +486,15 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with rest value', () => {
+    it.todo('with constant value', () => {
+      const src = `x is (1, b)`;
+      const tokens = parseTokens(src);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it('with rest value', () => {
       const src = `x is (a, ...b)`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -486,8 +502,32 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('with rest value first', () => {
+    it('with rest value first', () => {
       const src = `x is (...b, a)`;
+      const tokens = parseTokens(src);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo('with record pattern', () => {
+      const src = `x is { a, b }`;
+      const tokens = parseTokens(src);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo('with record pattern rename', () => {
+      const src = `x is { a: c, b }`;
+      const tokens = parseTokens(src);
+      const ast = parseScript(tokens);
+
+      expect(ast).toMatchSnapshot();
+    });
+
+    it.todo('with record pattern nested', () => {
+      const src = `x is { a: (c, d), b }`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
 
@@ -518,7 +558,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('binding visible in scope where it is true', () => {
+    it('binding visible in scope where it is true', () => {
       const src = `x is (a, b) and a == b + 1`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);

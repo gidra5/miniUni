@@ -2606,6 +2606,61 @@ exports[`expressions > boolean expressions > "and", "or" and "not" associativity
 }
 `;
 
+exports[`expressions > boolean expressions > in operator 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "key",
+                  },
+                  "id": "7",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "4",
+              "type": "atom",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "id": "16",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "13",
+          "type": "in",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "y",
+          },
+          "id": "24",
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "id": "22",
+      "type": "and",
+    },
+  ],
+  "data": {},
+  "id": "25",
+  "type": "script",
+}
+`;
+
 exports[`expressions > boolean expressions > not 1`] = `
 {
   "children": [
@@ -5252,6 +5307,106 @@ exports[`expressions > function expressions > function multiple params 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > binding visible in scope where it is true 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "id": "2",
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "a",
+                      },
+                      "id": "23",
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "id": "29",
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "id": "26",
+                  "type": ",",
+                },
+              ],
+              "data": {},
+              "id": "30",
+              "type": "parens",
+            },
+          ],
+          "data": {},
+          "id": "10",
+          "type": "is",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "a",
+              },
+              "id": "39",
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "id": "45",
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "id": "50",
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "id": "48",
+              "type": "add",
+            },
+          ],
+          "data": {},
+          "id": "42",
+          "type": "==",
+        },
+      ],
+      "data": {},
+      "id": "36",
+      "type": "and",
+    },
+  ],
+  "data": {},
+  "id": "51",
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > declare record pattern 1`] = `
 {
   "children": [
@@ -5458,6 +5613,238 @@ exports[`expressions > pattern matching > switch 1`] = `
   ],
   "data": {},
   "id": "23",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with 'is' operator 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "id": "22",
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "id": "28",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "25",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "29",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "10",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "30",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with placeholder 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {},
+                  "id": "22",
+                  "type": "placeholder",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "id": "28",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "25",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "29",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "10",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "30",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with rest value 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "id": "28",
+                  "type": "name",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "id": "39",
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "id": "36",
+                  "type": "...",
+                },
+              ],
+              "data": {},
+              "id": "31",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "40",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "12",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "41",
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with rest value first 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "id": "34",
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "id": "28",
+                  "type": "...",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "id": "43",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "40",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "44",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "12",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "45",
   "type": "script",
 }
 `;
