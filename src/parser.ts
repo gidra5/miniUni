@@ -270,7 +270,7 @@ const parsePatternPrefix =
     let index = i;
     let group: Tree;
     [index, group] = parsePatternGroup(banned, skip)(src, index);
-    const [, right] = getExprPrecedence(group) ?? [null, null];
+    const [, right] = getPatternPrecedence(group) ?? [null, null];
 
     if (right !== null) {
       let rhs: Tree;
@@ -294,7 +294,7 @@ const parsePattern =
         skip,
         true
       )(src, index);
-      const [left, right] = getExprPrecedence(group) ?? [null, null];
+      const [left, right] = getPatternPrecedence(group) ?? [null, null];
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -1167,6 +1167,10 @@ export const parseModule = (src: TokenPos[], i = 0) => {
     let node: ImportNode | DeclarationPatternNode | ExportNode;
     [index, node] = parseDeclaration(src, index);
     if (node.type === NodeType.EXPORT) {
+      if (node.children[0].type === NodeType.DECLARE) {
+        children.push(node as unknown as DeclarationPatternNode);
+        continue;
+      }
       if (lastExport) {
         const errorNode = error(
           SystemError.duplicateDefaultExport(getPosition(lastExport)),
@@ -1174,7 +1178,7 @@ export const parseModule = (src: TokenPos[], i = 0) => {
         );
         children.push(errorNode);
       }
-      lastExport = node as ExportNode;
+      lastExport = node;
     } else children.push(node);
   }
 

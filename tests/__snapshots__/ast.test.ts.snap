@@ -2041,12 +2041,12 @@ exports[`expressions > arithmetics > complex 1`] = `
                               "data": {
                                 "value": 2,
                               },
-                              "id": "13",
+                              "id": "15",
                               "type": "number",
                             },
                           ],
                           "data": {},
-                          "id": "10",
+                          "id": "12",
                           "type": "pow",
                         },
                         {
@@ -2054,12 +2054,12 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": 5,
                           },
-                          "id": "22",
+                          "id": "24",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "19",
+                      "id": "21",
                       "type": "subtract",
                     },
                     {
@@ -2067,17 +2067,17 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 7,
                       },
-                      "id": "31",
+                      "id": "33",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "28",
+                  "id": "30",
                   "type": "add",
                 },
               ],
               "data": {},
-              "id": "32",
+              "id": "34",
               "type": "parens",
             },
             {
@@ -2089,22 +2089,22 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "i",
                       },
-                      "id": "49",
+                      "id": "51",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "46",
+                  "id": "48",
                   "type": "minus",
                 },
               ],
               "data": {},
-              "id": "50",
+              "id": "52",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "38",
+          "id": "40",
           "type": "subtract",
         },
         {
@@ -2118,12 +2118,12 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "j",
                       },
-                      "id": "67",
+                      "id": "69",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "68",
+                  "id": "70",
                   "type": "parens",
                 },
                 {
@@ -2131,12 +2131,12 @@ exports[`expressions > arithmetics > complex 1`] = `
                   "data": {
                     "value": 0,
                   },
-                  "id": "74",
+                  "id": "76",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "71",
+              "id": "73",
               "type": "/",
             },
             {
@@ -2146,7 +2146,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                   "data": {
                     "value": 1,
                   },
-                  "id": "83",
+                  "id": "85",
                   "type": "number",
                 },
                 {
@@ -2158,7 +2158,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": 1,
                           },
-                          "id": "97",
+                          "id": "99",
                           "type": "number",
                         },
                         {
@@ -2166,27 +2166,27 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": "f",
                           },
-                          "id": "103",
+                          "id": "105",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "100",
+                      "id": "102",
                       "type": "*",
                     },
                   ],
                   "data": {},
-                  "id": "104",
+                  "id": "106",
                   "type": "parens",
                 },
               ],
               "data": {},
-              "id": "89",
+              "id": "91",
               "type": "*",
             },
           ],
           "data": {},
-          "id": "80",
+          "id": "82",
           "type": "subtract",
         },
         {
@@ -2200,7 +2200,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 27,
                       },
-                      "id": "136",
+                      "id": "138",
                       "type": "number",
                     },
                     {
@@ -2208,17 +2208,17 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "x",
                       },
-                      "id": "142",
+                      "id": "144",
                       "type": "name",
                     },
                   ],
                   "data": {},
-                  "id": "139",
+                  "id": "141",
                   "type": "subtract",
                 },
               ],
               "data": {},
-              "id": "143",
+              "id": "145",
               "type": "parens",
             },
             {
@@ -2226,12 +2226,12 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": "q",
               },
-              "id": "149",
+              "id": "151",
               "type": "name",
             },
           ],
           "data": {},
-          "id": "146",
+          "id": "148",
           "type": "/",
         },
         {
@@ -2241,7 +2241,7 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": "send",
               },
-              "id": "167",
+              "id": "169",
               "type": "name",
             },
             {
@@ -2261,7 +2261,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                                       "data": {
                                         "value": 2,
                                       },
-                                      "id": "204",
+                                      "id": "206",
                                       "type": "number",
                                     },
                                     {
@@ -2269,22 +2269,22 @@ exports[`expressions > arithmetics > complex 1`] = `
                                       "data": {
                                         "value": 7,
                                       },
-                                      "id": "210",
+                                      "id": "212",
                                       "type": "number",
                                     },
                                   ],
                                   "data": {},
-                                  "id": "207",
+                                  "id": "209",
                                   "type": "add",
                                 },
                               ],
                               "data": {},
-                              "id": "211",
+                              "id": "213",
                               "type": "parens",
                             },
                           ],
                           "data": {},
-                          "id": "196",
+                          "id": "198",
                           "type": "minus",
                         },
                         {
@@ -2292,12 +2292,12 @@ exports[`expressions > arithmetics > complex 1`] = `
                           "data": {
                             "value": "A",
                           },
-                          "id": "229",
+                          "id": "231",
                           "type": "name",
                         },
                       ],
                       "data": {},
-                      "id": "217",
+                      "id": "219",
                       "type": "/",
                     },
                     {
@@ -2305,7 +2305,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "j",
                       },
-                      "id": "244",
+                      "id": "246",
                       "type": "name",
                     },
                     {
@@ -2313,7 +2313,7 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": "i",
                       },
-                      "id": "256",
+                      "id": "258",
                       "type": "name",
                     },
                     {
@@ -2321,22 +2321,22 @@ exports[`expressions > arithmetics > complex 1`] = `
                       "data": {
                         "value": 127,
                       },
-                      "id": "265",
+                      "id": "267",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "235",
+                  "id": "237",
                   "type": ",",
                 },
               ],
               "data": {},
-              "id": "266",
+              "id": "268",
               "type": "parens",
             },
           ],
           "data": {},
-          "id": "179",
+          "id": "181",
           "type": "application",
         },
         {
@@ -2346,7 +2346,7 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "278",
+              "id": "280",
               "type": "number",
             },
             {
@@ -2354,22 +2354,22 @@ exports[`expressions > arithmetics > complex 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "283",
+              "id": "285",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "281",
+          "id": "283",
           "type": "/",
         },
       ],
       "data": {},
-      "id": "60",
+      "id": "62",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "284",
+  "id": "286",
   "type": "script",
 }
 `;
@@ -2408,17 +2408,17 @@ exports[`expressions > arithmetics > order of application 1`] = `
                           "data": {
                             "value": 3,
                           },
-                          "id": "17",
+                          "id": "19",
                           "type": "number",
                         },
                       ],
                       "data": {},
-                      "id": "14",
+                      "id": "16",
                       "type": "minus",
                     },
                   ],
                   "data": {},
-                  "id": "11",
+                  "id": "13",
                   "type": "pow",
                 },
                 {
@@ -2426,12 +2426,12 @@ exports[`expressions > arithmetics > order of application 1`] = `
                   "data": {
                     "value": 4,
                   },
-                  "id": "29",
+                  "id": "31",
                   "type": "number",
                 },
               ],
               "data": {},
-              "id": "26",
+              "id": "28",
               "type": "*",
             },
             {
@@ -2441,7 +2441,7 @@ exports[`expressions > arithmetics > order of application 1`] = `
                   "data": {
                     "value": 5,
                   },
-                  "id": "38",
+                  "id": "40",
                   "type": "number",
                 },
                 {
@@ -2451,7 +2451,7 @@ exports[`expressions > arithmetics > order of application 1`] = `
                       "data": {
                         "value": 6,
                       },
-                      "id": "44",
+                      "id": "46",
                       "type": "number",
                     },
                     {
@@ -2459,22 +2459,22 @@ exports[`expressions > arithmetics > order of application 1`] = `
                       "data": {
                         "value": 7,
                       },
-                      "id": "49",
+                      "id": "51",
                       "type": "number",
                     },
                   ],
                   "data": {},
-                  "id": "47",
+                  "id": "49",
                   "type": "%",
                 },
               ],
               "data": {},
-              "id": "41",
+              "id": "43",
               "type": "/",
             },
           ],
           "data": {},
-          "id": "35",
+          "id": "37",
           "type": "subtract",
         },
       ],
@@ -2484,7 +2484,7 @@ exports[`expressions > arithmetics > order of application 1`] = `
     },
   ],
   "data": {},
-  "id": "50",
+  "id": "52",
   "type": "script",
 }
 `;
@@ -5727,6 +5727,68 @@ exports[`expressions > pattern matching > with constant value 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > with pin 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "id": "2",
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "a",
+                      },
+                      "id": "4",
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "id": "3",
+                  "type": "pin",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "id": "7",
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "id": "6",
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "id": "10",
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "id": "11",
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "id": "12",
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > with placeholder 1`] = `
 {
   "children": [
@@ -6736,30 +6798,30 @@ exports[`programs > module > export declaration 1`] = `
               "data": {
                 "value": "x",
               },
-              "id": "1",
+              "id": "3",
               "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 123,
+              },
+              "id": "7",
+              "type": "number",
             },
           ],
           "data": {},
-          "id": "0",
-          "type": "export",
-        },
-        {
-          "children": [],
-          "data": {
-            "value": 123,
-          },
-          "id": "6",
-          "type": "number",
+          "id": "5",
+          "type": ":=",
         },
       ],
       "data": {},
-      "id": "4",
-      "type": ":=",
+      "id": "2",
+      "type": "export",
     },
   ],
   "data": {},
-  "id": "7",
+  "id": "8",
   "type": "module",
 }
 `;
@@ -6776,7 +6838,7 @@ exports[`programs > module > export default 1`] = `
               "data": {
                 "value": "args",
               },
-              "id": "5",
+              "id": "3",
               "type": "name",
             },
             {
@@ -6784,22 +6846,22 @@ exports[`programs > module > export default 1`] = `
               "data": {
                 "value": 1,
               },
-              "id": "9",
+              "id": "7",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "7",
+          "id": "5",
           "type": "func",
         },
       ],
       "data": {},
-      "id": "4",
+      "id": "2",
       "type": "export",
     },
   ],
   "data": {},
-  "id": "10",
+  "id": "8",
   "type": "module",
 }
 `;

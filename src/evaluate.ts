@@ -11,7 +11,6 @@ import { getPosition, parseModule, parseScript } from './parser.js';
 import {
   NodeType,
   node,
-  OperatorNodeType,
   name as nameAST,
   placeholder,
   fn as fnAST,
@@ -415,24 +414,13 @@ async function bindExport(
   patternAst: Tree,
   value: EvalValue,
   exports: Record<string, EvalValue>,
-  context: Context,
-  exporting = false
+  context: Context
 ): Promise<Record<string, EvalValue>> {
   if (
     patternAst.type === NodeType.PLACEHOLDER ||
     patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
   ) {
     return exports;
-  }
-
-  if (patternAst.type === NodeType.EXPORT) {
-    return await bindExport(
-      patternAst.children[0],
-      value,
-      exports,
-      context,
-      true
-    );
   }
 
   if (patternAst.type === NodeType.TUPLE) {
@@ -450,17 +438,11 @@ async function bindExport(
         const start = consumed++;
         consumed = value.length - patterns.length + consumed;
         const rest = value.slice(start, Math.max(start, consumed));
-        exports = await bindExport(
-          pattern.children[0],
-          rest,
-          exports,
-          context,
-          exporting
-        );
+        exports = await bindExport(pattern.children[0], rest, exports, context);
         continue;
       } else {
         const v = value[consumed++];
-        exports = await bindExport(pattern, v, exports, context, exporting);
+        exports = await bindExport(pattern, v, exports, context);
         continue;
       }
     }
@@ -469,13 +451,7 @@ async function bindExport(
   }
 
   if (patternAst.type === NodeType.PARENS) {
-    return await bindExport(
-      patternAst.children[0],
-      value,
-      exports,
-      context,
-      exporting
-    );
+    return await bindExport(patternAst.children[0], value, exports, context);
   }
 
   if (patternAst.type === NodeType.RECORD) {
@@ -492,7 +468,7 @@ async function bindExport(
     for (const pattern of patterns) {
       if (pattern.type === 'name') {
         const name = pattern.data.value;
-        if (exporting) exports[name] = record[name];
+        exports[name] = record[name];
         consumedNames.push(name);
         continue;
       } else if (pattern.type === NodeType.COLON) {
@@ -503,8 +479,7 @@ async function bindExport(
           valuePattern,
           record[name],
           exports,
-          context,
-          exporting
+          context
         );
         continue;
       } else if (pattern.type === NodeType.SPREAD) {
@@ -513,8 +488,7 @@ async function bindExport(
           pattern.children[0],
           { record: rest },
           exports,
-          context,
-          exporting
+          context
         );
         continue;
       }
@@ -531,7 +505,7 @@ async function bindExport(
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
-    if (exporting && value !== null) exports[name] = value;
+    if (value !== null) exports[name] = value;
     return exports;
   }
 
@@ -1248,25 +1222,28 @@ export const evaluateModule = async (
   const record: Record<string | symbol, EvalValue> = {};
 
   for (const child of ast.children) {
-    if (child.type === NodeType.IMPORT) {
-      await evaluateStatement(child, context);
-    } else if (child.type === NodeType.EXPORT) {
-      const expr = child.children[0];
-      const value = await evaluateExpr(expr, context);
+    if (child.type === NodeType.EXPORT) {
+      const exportNode = child.children[0];
 
-      assert(
-        !(ModuleDefault in record),
-        SystemError.duplicateDefaultExport(getPosition(expr)).withFileId(
-          context.fileId
-        )
-      );
+      if (exportNode.type === NodeType.DECLARE) {
+        const [name, expr] = exportNode.children;
+        const value = await evaluateExpr(expr, context);
+        await bindExport(name, value, record, context);
+        await bind(name, value, context);
+      } else {
+        const value = await evaluateExpr(exportNode, context);
 
-      record[ModuleDefault] = value;
+        assert(
+          !(ModuleDefault in record),
+          SystemError.duplicateDefaultExport(
+            getPosition(exportNode)
+          ).withFileId(context.fileId)
+        );
+
+        record[ModuleDefault] = value;
+      }
     } else {
-      const [name, expr] = child.children;
-      const value = await evaluateExpr(expr, context);
-      await bindExport(name, value, record, context);
-      await bind(name, value, context);
+      await evaluateStatement(child, context);
     }
   }
 

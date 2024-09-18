@@ -414,6 +414,8 @@ const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.SPREAD, Fixity.PREFIX],
+  [NodeType.MUTABLE, Fixity.PREFIX],
+  [NodeType.INDEX, Fixity.POSTFIX],
   [NodeType.PIN, Fixity.PREFIX],
   [NodeType.BIND, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.ATOM, Fixity.PREFIX],
