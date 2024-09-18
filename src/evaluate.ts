@@ -18,7 +18,14 @@ import {
   type Tree,
 } from './ast.js';
 import { parseTokens } from './tokens.js';
-import { assert, getClosestName, inspect, omit, unreachable } from './utils.js';
+import {
+  assert,
+  getClosestName,
+  inspect,
+  isEqual,
+  omit,
+  unreachable,
+} from './utils.js';
 import {
   atom,
   createTask,
@@ -612,6 +619,12 @@ const operators = {
   },
   [NodeType.NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
     return !operators[NodeType.EQUAL](left, right);
+  },
+  [NodeType.DEEP_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return isEqual(left, right);
+  },
+  [NodeType.DEEP_NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
+    return !operators[NodeType.DEEP_EQUAL](left, right);
   },
   [NodeType.LESS]: (left: EvalValue, right: EvalValue) => {
     assert(typeof left === 'number', 'expected number');

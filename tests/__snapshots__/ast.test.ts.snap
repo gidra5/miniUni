@@ -6354,6 +6354,35 @@ exports[`programs > module > export default 1`] = `
 }
 `;
 
+exports[`programs > script > dynamic  import 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "b",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "name": "a",
+          },
+          "type": "import",
+        },
+      ],
+      "data": {},
+      "type": ":=",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`programs > script > dynamic async import 1`] = `
 {
   "children": [

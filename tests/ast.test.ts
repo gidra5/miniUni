@@ -198,7 +198,7 @@ describe('expressions', () => {
     it('"and", "or" and "not" associativity', () =>
       testCase(`a and b and c or d or !e and f and g or not h or i`));
 
-    it('in operator', async () => testCase(`:key in x and y`));
+    it('in operator', () => testCase(`:key in x and y`));
   });
 
   describe('function expressions', () => {
@@ -242,7 +242,7 @@ describe('expressions', () => {
   });
 
   describe('pattern matching', () => {
-    it('switch', async () =>
+    it('switch', () =>
       testCase(`
         switch a {
           1 -> 2,
@@ -253,7 +253,7 @@ describe('expressions', () => {
 
     it('in function parameters', () => testCase(`(x, y) -> x + y`));
 
-    it('declare record pattern', async () => testCase(`{ a, b } := handlers`));
+    it('declare record pattern', () => testCase(`{ a, b } := handlers`));
 
     it("with 'is' operator", () => testCase(`x is (a, b)`));
 
@@ -307,7 +307,7 @@ describe('expressions', () => {
     it('if-then-elseif-then-else', () =>
       testCase(`if true: 123 else if false: 789 else 456`));
 
-    it.todo('sequencing', async () => testCase(`123; 234; 345; 456`));
+    it.todo('sequencing', () => testCase(`123; 234; 345; 456`));
 
     it('block', () => testCase(`{ 123 }`));
 
@@ -317,7 +317,7 @@ describe('expressions', () => {
 
     it('loop', () => testCase(`loop 123`));
 
-    it('loop scope', async () => testCase(`loop { x }`));
+    it('loop scope', () => testCase(`loop { x }`));
 
     it.todo('labeled expression', () => testCase(`label::123`));
   });
@@ -343,9 +343,9 @@ describe('expressions', () => {
 
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
 
-    it.todo('async', () => testCase(`async f x`));
+    it.todo('', () => testCase(` f x`));
 
-    it.todo('await async', () => testCase(`await async f x`));
+    it.todo('await ', () => testCase(`await  f x`));
 
     it('await', () => testCase(`await x + 1`));
   });
@@ -355,11 +355,11 @@ describe('expressions', () => {
 
     it('tuple', () => testCase(`list, reducer, merge, initial`));
 
-    it('record single', async () => testCase(`a: 1`));
+    it('record single', () => testCase(`a: 1`));
 
-    it('record', async () => testCase(`a: 1, b: 2`));
+    it('record', () => testCase(`a: 1, b: 2`));
 
-    it('tuple with single item (atom)', async () => testCase(`(:a,)`));
+    it('tuple with single item (atom)', () => testCase(`(:a,)`));
 
     it('(-(2+7)/A,j, i, 127.0 )', () => testCase(`(-(2+7)/A,j, i, 127.0 )`));
 
@@ -381,28 +381,13 @@ describe('expressions', () => {
   });
 
   describe('effect handlers', () => {
-    it('inject', async () =>
-      testCase(`
-        inject a: 1, b: 2 {
-          1
-        }
-      `));
+    it('inject', () => testCase(`inject a: 1, b: 2 { 1 }`));
 
-    it('mask', async () =>
-      testCase(`
-        mask "a", "b" {
-          1
-        }
-      `));
+    it('mask', () => testCase(`mask "a", "b" { 1 }`));
 
-    it('without', async () =>
-      testCase(`
-        without "a", "b" {
-          1
-        }
-      `));
+    it('without', () => testCase(`without "a", "b" { 1 }`));
 
-    it('complex', async () =>
+    it('complex', () =>
       testCase(`
         inject a: 1, b: 2 {
           { a, b } := handlers;
@@ -425,7 +410,7 @@ describe('programs', () => {
   describe('script', () => {
     it('dynamic import', () => testCase(`b := import "a"`));
 
-    it('dynamic async import', () => testCase(`b := async import "a"`));
+    it('dynamic  import', () => testCase(`b :=  import "a"`));
   });
 
   describe('module', () => {
@@ -438,47 +423,21 @@ describe('programs', () => {
 describe('newline handling', () => {
   it.todo('for loop newline', () => testCase(`for x in [1, 2, 3]\n x`));
 
-  it('parallel parens', async () =>
-    testCase(`(
-        | 1
-        | 2
-      )`));
+  it('parallel parens', () => testCase(`(\n| 1\n| 2\n)`));
 
-  it('chaining', async () =>
-    testCase(`a
-        .b`));
+  it('chaining', () => testCase(`a\n.b`));
 
-  it('parens', async () =>
-    testCase(`(
-        1 +
-        2
-        + 3
-      )`));
+  it('parens', () => testCase(`(\n1 +\n2\n+ 3\n)`));
 
-  it('no parens', async () =>
-    testCase(`
-        1 +
-        2
-        + 3
-      `));
+  it('no parens', () => testCase(`1 +\n2\n+ 3`));
 
-  it('prefix', async () =>
-    testCase(`!
-        a`));
+  it('prefix', () => testCase(`!\na`));
 
-  it('infix-prefix', async () =>
-    testCase(`b :=
-        !
-        a`));
+  it('infix-prefix', () => testCase(`b :=\n !\na`));
 
-  it('infix-infix', async () =>
-    testCase(`b +
-        c +
-        d`));
+  it('infix-infix', () => testCase(`b +\nc +\nd`));
 
-  it.todo('if else separate lines', async () =>
-    testCase(`if a\n 1\n else\n 2`)
-  );
+  it.todo('if else separate lines', () => testCase(`if a\n 1\n else\n 2`));
 
   it.todo('if-then newline', () => testCase(`if true\n 123`));
 

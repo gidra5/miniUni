@@ -387,7 +387,7 @@ describe('expressions', () => {
       expect(result).toBe(false);
     });
 
-    it.todo('deep eq', async () => {
+    it('deep eq', async () => {
       const input = `(1, 2) === (1, 2)`;
       const result = await evaluate(input);
       expect(result).toBe(true);
