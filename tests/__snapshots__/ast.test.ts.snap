@@ -2631,6 +2631,54 @@ exports[`expressions > boolean expressions > not 1`] = `
 }
 `;
 
+exports[`expressions > concurrent programming > await 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "await",
+              },
+              "id": "2",
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "id": "8",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "5",
+          "type": "application",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "id": "16",
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "id": "14",
+      "type": "add",
+    },
+  ],
+  "data": {},
+  "id": "17",
+  "type": "script",
+}
+`;
+
 exports[`expressions > concurrent programming > channel receive 1`] = `
 {
   "children": [
@@ -2776,6 +2824,61 @@ exports[`expressions > concurrent programming > parallel value 1`] = `
   ],
   "data": {},
   "id": "8",
+  "type": "script",
+}
+`;
+
+exports[`expressions > concurrent programming > parallel with channels 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "c",
+              },
+              "id": "2",
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 123,
+              },
+              "id": "8",
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "id": "5",
+          "type": "send",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "c",
+              },
+              "id": "19",
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "id": "17",
+          "type": "receive",
+        },
+      ],
+      "data": {},
+      "id": "14",
+      "type": "parallel",
+    },
+  ],
+  "data": {},
+  "id": "20",
   "type": "script",
 }
 `;
@@ -3151,6 +3254,83 @@ exports[`expressions > data structures > index 1`] = `
   ],
   "data": {},
   "id": "12",
+  "type": "script",
+}
+`;
+
+exports[`expressions > data structures > map 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "id": "4",
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "id": "5",
+              "type": "square_brackets",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "id": "19",
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "id": "13",
+          "type": ":",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 3,
+                  },
+                  "id": "40",
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "id": "41",
+              "type": "square_brackets",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 4,
+              },
+              "id": "46",
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "id": "44",
+          "type": ":",
+        },
+      ],
+      "data": {},
+      "id": "35",
+      "type": ",",
+    },
+  ],
+  "data": {},
+  "id": "47",
   "type": "script",
 }
 `;
@@ -5512,6 +5692,31 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
   ],
   "data": {},
   "id": "16",
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > loop 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "id": "4",
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "id": "2",
+      "type": "loop",
+    },
+  ],
+  "data": {},
+  "id": "5",
   "type": "script",
 }
 `;

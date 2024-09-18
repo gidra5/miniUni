@@ -528,7 +528,7 @@ describe('expressions', () => {
   });
 
   describe('structured programming', () => {
-    it.todo('if-then 2', () => {
+    it.todo('complex 1', () => {
       const src = `y := (
         x := 25;
         loop if x < 0: break x else {
@@ -600,7 +600,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('loop', () => {
+    it('loop', () => {
       const src = `loop 123`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -685,7 +685,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('parallel with channels', () => {
+    it('parallel with channels', () => {
       const src = `c <- 123 | <- c`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -709,7 +709,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('await', () => {
+    it('await', () => {
       const src = `await x + 1`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);
@@ -775,7 +775,7 @@ describe('expressions', () => {
       expect(ast).toMatchSnapshot();
     });
 
-    it.todo('map', () => {
+    it('map', () => {
       const src = `[1]: 2, [3]: 4`;
       const tokens = parseTokens(src);
       const ast = parseScript(tokens);

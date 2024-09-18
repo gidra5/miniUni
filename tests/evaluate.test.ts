@@ -423,10 +423,10 @@ describe('expressions', () => {
   describe('function expressions', () => {
     it('fn increment', async () => {
       const input = `
-          line_handled_count := 0;
-          inc := fn -> line_handled_count++;
-          inc()
-        `;
+        line_handled_count := 0;
+        inc := fn -> line_handled_count++;
+        inc()
+      `;
       const result = await evaluate(input);
       expect(result).toBe(0);
     });
@@ -443,18 +443,10 @@ describe('expressions', () => {
       expect(result).toBe(2);
     });
 
-    describe('application', () => {
-      it.todo('function call', async () => {
-        const input = `f x`;
-        const result = await evaluate(input);
-        expect(result).toBe(123);
-      });
-
-      it.todo('function call multiple args', async () => {
-        const input = `f x y`;
-        const result = await evaluate(input);
-        expect(result).toBe(123);
-      });
+    it('function call multiple args', async () => {
+      const input = `(fn x, y -> x + y) 1 2`;
+      const result = await evaluate(input);
+      expect(result).toBe(3);
     });
   });
 
@@ -538,9 +530,9 @@ describe('expressions', () => {
 
   describe('structured programming', () => {
     it.todo('label', async () => {
-      const input = `x:=label::{ label 1; 2 }`;
+      const input = `label::{ label 1; 2 }`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(1);
     });
 
     it.todo('loop if-then', async () => {
@@ -595,7 +587,19 @@ describe('expressions', () => {
     it.todo('for loop', async () => {
       const input = `for x in (1, 2, 3): x`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe([1, 2, 3]);
+    });
+
+    it.todo('for loop map', async () => {
+      const input = `for x in (1, 2, 3): x+1`;
+      const result = await evaluate(input);
+      expect(result).toBe([2, 3, 4]);
+    });
+
+    it.todo('for loop filter', async () => {
+      const input = `for x in (1, 2, 3): if x > 1: x+1`;
+      const result = await evaluate(input);
+      expect(result).toBe([3, 4]);
     });
 
     it.todo('while loop', async () => {
@@ -1181,10 +1185,10 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it.todo('map', async () => {
+    it('map', async () => {
       const input = `[1]: 2, [3]: 4`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toStrictEqual({ record: { 1: 2, 3: 4 } });
     });
 
     it('map without braces', async () => {
@@ -1193,16 +1197,16 @@ describe('expressions', () => {
       expect(result).toStrictEqual({ record: { [3]: 3, [9]: 6 } });
     });
 
-    it.todo('field access static', async () => {
+    it('field access static', async () => {
       const input = `record := a: 1, b: 2; record.a`;
       const result = await evaluate(input);
       expect(result).toBe(1);
     });
 
-    it.todo('field access dynamic', async () => {
+    it('field access dynamic', async () => {
       const input = `map := "some string": 1, b: 2; map["some string"]`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(1);
     });
   });
 });

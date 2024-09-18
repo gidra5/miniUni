@@ -44,6 +44,7 @@ testCase('1 2');
 testCase('"1" 2');
 testCase('1 +');
 testCase('1 *');
+testCase('"uwu\n 1', [], it.todo);
 testCase(
   `
     quick_sort := xs -> {
