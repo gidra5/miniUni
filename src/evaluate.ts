@@ -408,7 +408,7 @@ const bind = async (
     return await bind(patternAst.children[0], value, context);
   }
 
-  inspect(patternAst);
+  // inspect(patternAst);
 
   unreachable(
     SystemError.invalidPattern(getPosition(patternAst)).withFileId(

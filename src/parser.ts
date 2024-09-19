@@ -23,13 +23,13 @@ import {
   getExprPrecedence as _getExprPrecedence,
   getPatternPrecedence as _getPatternPrecedence,
   ExpressionNode,
-  sequence,
   ExportNode,
   ImportNode,
   DeclarationPatternNode,
   ErrorNode,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
+import { inspect } from './utils.js';
 
 export const getExprPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
@@ -81,7 +81,7 @@ const idToExprOp = {
   '->': NodeType.FUNCTION,
   ',': NodeType.TUPLE,
   ':': NodeType.COLON,
-  // ';': NodeType.SEQUENCE,
+  ';': NodeType.SEQUENCE,
   '<-': NodeType.SEND,
   '?<-': NodeType.SEND_STATUS,
   '|': NodeType.PARALLEL,
@@ -97,7 +97,6 @@ const idToPrefixExprOp = {
   '++': NodeType.INCREMENT,
   '--': NodeType.DECREMENT,
   '...': NodeType.SPREAD,
-  ':': NodeType.ATOM,
   '<-': NodeType.RECEIVE,
   '<-?': NodeType.RECEIVE_STATUS,
   not: NodeType.NOT,
@@ -132,233 +131,680 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
   (tokens.includes(token.src) ||
     (tokens.includes('\n') && token.type === 'newline'));
 
-let parens = 0;
-let squareBrackets = 0;
-let brackets = 0;
-const followSet: string[] = [];
+type Context = {
+  lhs: boolean;
+  followSet: string[];
+  banned: string[];
+  skip: string[];
+};
 
-const parsePatternGroup =
-  (banned: string[] = [], skip: string[] = [], lhs = false) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
-    let index = i;
-    const start = index;
-    const nodePosition = () => mapListPosToPos(position(start, index), src);
+const newContext = (): Context => ({
+  lhs: false,
+  followSet: [],
+  banned: [],
+  skip: [],
+});
 
-    if (!src[index])
+type Parser<T = Tree> = (src: TokenPos[], i: number) => [index: number, ast: T];
+type ContextParser<T = Tree> = (context: Context) => Parser<T>;
+
+const parseValue: Parser = (src, i) => {
+  let index = i;
+  const start = index;
+  const nodePosition = () => mapListPosToPos(position(start, index), src);
+
+  if (src[index].src === ':') {
+    index++;
+
+    const name = src[index];
+    if (name.type !== 'identifier') {
       return [
         index,
-        error(SystemError.endOfSource(nodePosition()), nodePosition()),
+        error(SystemError.invalidPattern(nodePosition()), nodePosition()),
       ];
-
-    if (tokenIncludes(src[index], skip))
-      return parsePatternGroup(banned, skip, lhs)(src, index + 1);
-    if (tokenIncludes(src[index], banned))
-      return [index, implicitPlaceholder(nodePosition())];
-    if (tokenIncludes(src[index], followSet))
-      return [index, implicitPlaceholder(nodePosition())];
-
-    if (!lhs && src[index].src in idToPrefixPatternOp) {
-      const op = idToPrefixPatternOp[src[index].src];
-      index++;
-      return [index, _node(op, { position: nodePosition() })];
-    }
-
-    if (lhs && src[index].src in idToPatternOp) {
-      const op = idToPatternOp[src[index].src];
-      index++;
-      return [index, _node(op)];
-    }
-
-    if (src[index].src === '{') {
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push('}');
-      const [_index, pattern] = parsePattern(0, ['}'])(src, index);
-      followSet.pop();
-      index = _index;
-      const node = () => {
-        const node = _node(NodeType.RECORD, {
-          position: nodePosition(),
-        });
-        if (pattern.type === NodeType.TUPLE) {
-          node.children = pattern.children;
-        } else {
-          node.children.push(pattern);
-        }
-        return node;
-      };
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '}'), node()),
-        ];
-      }
-      index++;
-      brackets--;
-
-      return [index, node()];
-    }
-
-    if (src[index].src === '(') {
-      index++;
-      parens++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push(')');
-      const [_index, pattern] = parsePattern(0, [')'], ['\n'])(src, index);
-      followSet.pop();
-      index = _index;
-      const node = () =>
-        _node(NodeType.PARENS, {
-          position: nodePosition(),
-          children: [pattern],
-        });
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== ')') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), ')'), node()),
-        ];
-      }
-      parens--;
-      index++;
-
-      return [index, node()];
-    }
-
-    if (src[index].src === '[') {
-      index++;
-      squareBrackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push(']');
-      const [_index, pattern] = parseExpr(0, [']'], ['\n'])(src, index);
-      followSet.pop();
-      index = _index;
-      const node = () =>
-        _node(lhs ? NodeType.INDEX : NodeType.SQUARE_BRACKETS, {
-          position: nodePosition(),
-          children: [pattern],
-        });
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== ']') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), ']'), node()),
-        ];
-      }
-      squareBrackets--;
-      index++;
-
-      return [index, node()];
-    }
-
-    // if (lhs && src[index].src === '=') {
-    //   index++;
-    //   let value: Tree;
-    //   [index, value] = parseGroup()(src, index);
-    //   const node = _node(NodeType.ASSIGN, {
-    //     position: nodePosition(),
-    //     children: [value],
-    //   });
-    //   const precedence = getExprPrecedence(value);
-    //   if (precedence[0] !== null && precedence[1] !== null) {
-    //     return [
-    //       index,
-    //       error(SystemError.invalidDefaultPattern(nodePosition()), node),
-    //     ];
-    //   }
-
-    //   return [index, node];
-    // }
-
-    if (!lhs && src[index].src === '^') {
-      index++;
-      let value: Tree;
-      [index, value] = parseGroup()(src, index);
-      const node = _node(NodeType.PIN, {
-        position: nodePosition(),
-        children: [value],
-      });
-      const precedence = getExprPrecedence(value);
-      if (precedence[0] !== null && precedence[1] !== null) {
-        return [
-          index,
-          error(SystemError.invalidPinPattern(nodePosition()), node),
-        ];
-      }
-
-      return [index, node];
     }
 
     index++;
-    return [index, token(src[index - 1], nodePosition())];
-  };
+    return [
+      index,
+      _node(NodeType.ATOM, {
+        data: { name: name.src },
+        position: nodePosition(),
+      }),
+    ];
+  }
 
-const parsePatternPrefix =
-  (banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
+  index++;
+  return [index, token(src[index - 1], nodePosition())];
+};
+
+const parsePairGroup =
+  (
+    context: Context,
+    [left, right]: [string, string],
+    parseInner: ContextParser,
+    node: (ast: Tree) => Tree
+  ): Parser =>
+  (src, i) => {
     let index = i;
-    let group: Tree;
-    [index, group] = parsePatternGroup(banned, skip)(src, index);
-    const [, right] = getPatternPrecedence(group) ?? [null, null];
+    const start = index;
+    const nodePosition = () => mapListPosToPos(position(start, index), src);
+    index++;
 
-    if (right !== null) {
-      let rhs: Tree;
-      [index, rhs] = parsePattern(right, banned, skip)(src, index);
-      return [index, prefix(group, rhs)];
+    if (src[index]?.type === 'newline') index++;
+    if (!src[index]) {
+      return [
+        index,
+        error(
+          SystemError.unbalancedOpenToken(
+            [left, right],
+            nodePosition(),
+            indexPosition(index)
+          ),
+          node(implicitPlaceholder(nodePosition()))
+        ),
+      ];
     }
 
-    return [index, group];
+    let ast: Tree;
+    [index, ast] = parseInner({
+      ...context,
+      followSet: [...context.followSet, right],
+      skip: ['\n'],
+    })(src, index);
+
+    // inspect({
+    //   tag: 'parsePairGroup',
+    //   context,
+    //   head: src.slice(index, index + 10),
+    //   prev: src.slice(index - 10, index),
+    //   index,
+    //   pair: [left, right],
+    //   ast,
+    //   parseInner,
+    // });
+
+    if (src[index]?.type === 'newline') index++;
+    if (src[index]?.src !== right) {
+      return [
+        index,
+        error(SystemError.missingToken(nodePosition(), right), node(ast)),
+      ];
+    }
+    index++;
+
+    return [index, node(ast)];
   };
 
-const parsePattern =
-  (precedence = 0, banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
+const parseStatementForm =
+  (
+    context: Context,
+    parseInner: ContextParser,
+    node: (inner: Tree, ast?: Tree) => Tree
+  ) =>
+  (src: TokenPos[], i: number): [index: number, ast: Tree] => {
     let index = i;
-    let lhs: Tree;
-    [index, lhs] = parsePatternPrefix(banned, skip)(src, index);
+    const start = index;
+    const nodePosition = () => mapListPosToPos(position(start, index), src);
+    let inner: Tree;
+    [index, inner] = parseInner({
+      ...context,
+      banned: ['do', '->', '\n', '{'],
+    })(src, index);
+    const token = src[index]?.src;
 
-    while (src[index] && !tokenIncludes(src[index], ['\n'])) {
-      let [nextIndex, group] = parsePatternGroup(
-        banned,
-        skip,
-        true
+    if (!token)
+      return [
+        index,
+        error(SystemError.endOfSource(nodePosition()), node(inner)),
+      ];
+
+    if (token === '{') {
+      const _node = (expr: Tree) => node(inner, expr);
+      return parsePairGroup(context, ['{', '}'], parseExpr, _node)(src, index);
+    }
+
+    if (token === 'do' || token.includes('\n')) {
+      index++;
+      return [index, node(inner)];
+    }
+
+    if (token === '->') {
+      index++;
+      const precedence = _getExprPrecedence(NodeType.FUNCTION);
+      let expr: Tree;
+      [index, expr] = parsePratt(
+        context,
+        parseExprGroup,
+        getExprPrecedence,
+        precedence[1]!
       )(src, index);
-      const [left, right] = getPatternPrecedence(group) ?? [null, null];
-      if (left === null) break;
-      if (left <= precedence) break;
-      index = nextIndex;
-
-      if (right === null) {
-        lhs = postfix(group, lhs);
-        continue;
-      }
-
-      let rhs: Tree;
-      [index, rhs] = parsePattern(right, banned, skip)(src, index);
-
-      // if two same operators are next to each other, and their precedence is the same on both sides - it is both left and right associative
-      // which means we can put all arguments into one group
-      if (left === right && group.type === lhs.type) {
-        lhs.children.push(rhs);
-      } else {
-        lhs = infix(group, lhs, rhs);
-      }
+      return [index, node(inner, expr)];
     }
 
-    return [index, lhs];
+    return [
+      index,
+      error(
+        SystemError.missingToken(nodePosition(), ':', 'newline', '{'),
+        node(inner)
+      ),
+    ];
   };
 
-const parseGroup =
-  (banned: string[] = [], skip: string[] = [], lhs = false) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
+const parsePatternGroup: ContextParser = (context) => (src, i) => {
+  let index = i;
+  const start = index;
+  const nodePosition = () => mapListPosToPos(position(start, index), src);
+
+  if (!context.lhs && Object.hasOwn(idToPrefixPatternOp, src[index].src)) {
+    const op = idToPrefixPatternOp[src[index].src];
+    index++;
+    return [index, _node(op, { position: nodePosition() })];
+  }
+
+  if (context.lhs && Object.hasOwn(idToPatternOp, src[index].src)) {
+    const op = idToPatternOp[src[index].src];
+    index++;
+    return [index, _node(op)];
+  }
+
+  if (src[index].src === '{') {
+    const node = (pattern: Tree) => {
+      const node = _node(NodeType.RECORD, {
+        position: nodePosition(),
+      });
+      if (pattern.type === NodeType.TUPLE) node.children = pattern.children;
+      else node.children.push(pattern);
+
+      return node;
+    };
+
+    return parsePairGroup(context, ['{', '}'], parsePattern, node)(src, index);
+  }
+
+  if (src[index].src === '(') {
+    const node = (pattern: Tree) =>
+      _node(NodeType.PARENS, { position: nodePosition(), children: [pattern] });
+    return parsePairGroup(context, ['(', ')'], parsePattern, node)(src, index);
+  }
+
+  if (src[index].src === '[') {
+    const node = (expr: Tree) =>
+      _node(context.lhs ? NodeType.INDEX : NodeType.SQUARE_BRACKETS, {
+        position: nodePosition(),
+        children: [expr],
+      });
+
+    return parsePairGroup(context, ['[', ']'], parseExpr, node)(src, index);
+  }
+
+  // if (context.lhs && src[index].src === '=') {
+  //   index++;
+  //   let value: Tree;
+  //   [index, value] = parseGroup()(src, index);
+  //   const node = _node(NodeType.ASSIGN, {
+  //     position: nodePosition(),
+  //     children: [value],
+  //   });
+  //   const precedence = getExprPrecedence(value);
+  //   if (precedence[0] !== null && precedence[1] !== null) {
+  //     return [
+  //       index,
+  //       error(SystemError.invalidDefaultPattern(nodePosition()), node),
+  //     ];
+  //   }
+
+  //   return [index, node];
+  // }
+
+  // if (!context.lhs && src[index].src === '^') {
+  //   index++;
+  //   let value: Tree;
+  //   [index, value] = parseExprGroup(context)(src, index);
+  //   const node = _node(NodeType.PIN, {
+  //     position: nodePosition(),
+  //     children: [value],
+  //   });
+  //   const precedence = getExprPrecedence(value);
+  //   if (precedence[0] !== null && precedence[1] !== null) {
+  //     return [
+  //       index,
+  //       error(SystemError.invalidPinPattern(nodePosition()), node),
+  //     ];
+  //   }
+
+  //   return [index, node];
+  // }
+
+  return parseValue(src, i);
+};
+
+const parseExprGroup: ContextParser = (context) => (src, i) => {
+  let index = i;
+  const start = index;
+  const nodePosition = () => mapListPosToPos(position(start, index), src);
+
+  if (!context.lhs && src[index].src === 'import') {
+    index++;
+    const nameToken = src[index];
+    if (nameToken?.type !== 'string') {
+      return [index, _node(NodeType.IMPORT, { position: nodePosition() })];
+    }
+    index++;
+    const name = nameToken.value;
+    let pattern: Tree | null = null;
+    const node = () => {
+      const node = _node(NodeType.IMPORT, {
+        position: nodePosition(),
+      });
+      node.data.name = name;
+      if (pattern) node.children.push(pattern);
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    if (src[index]?.src === 'as') {
+      index++;
+      [index, pattern] = parsePattern({
+        ...context,
+      })(src, index);
+    }
+
+    return [index, node()];
+  }
+
+  if (context.lhs && src[index].src === 'is') {
+    index++;
+
+    let pattern: Tree;
+    [index, pattern] = parsePattern(context)(src, index);
+
+    return [
+      index,
+      _node(NodeType.IS, { position: nodePosition(), children: [pattern] }),
+    ];
+  }
+
+  if (!context.lhs && src[index].src === 'fn') {
+    index++;
+
+    const node = (pattern: Tree, expr?: Tree) => {
+      if (!expr) {
+        return _node(NodeType.FUNCTION, {
+          position: nodePosition(),
+          children: [pattern],
+          data: { isTopFunction: true },
+        });
+      }
+
+      const node = _node(NodeType.FUNCTION, {
+        position: nodePosition(),
+        children: [pattern, expr],
+        data: { isTopFunction: true },
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    return parseStatementForm(context, parsePattern, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === 'if') {
+    index++;
+    const __node = (condition: Tree, trueBranch?: Tree) => {
+      return _node('', {
+        children: [condition, ...(trueBranch ? [trueBranch] : [])],
+      });
+    };
+
+    let result: Tree;
+    [index, result] = parseStatementForm(
+      context,
+      parseExpr,
+      __node
+    )(src, index);
+
+    const condition = result.children[0];
+    const trueBranch = result.children[1];
+    if (!trueBranch) {
+      const [_index, body] = parseExpr({
+        ...context,
+        banned: ['else'],
+      })(src, index);
+
+      if (src[_index]?.src !== 'else') {
+        return [
+          index,
+          _node(NodeType.IF, {
+            position: nodePosition(),
+            children: [condition],
+          }),
+        ];
+      }
+
+      index = _index + 1;
+      return [
+        index,
+        _node(NodeType.IF_ELSE, {
+          position: nodePosition(),
+          children: [condition, body],
+        }),
+      ];
+    }
+
+    if (src[index]?.src === 'else') {
+      index++;
+      return [
+        index,
+        _node(NodeType.IF_ELSE, {
+          position: nodePosition(),
+          children: [condition, trueBranch],
+        }),
+      ];
+    }
+    if (src[index]?.type === 'newline' && src[index + 1]?.src === 'else') {
+      index++;
+      return [
+        index + 2,
+        _node(NodeType.IF_ELSE, {
+          position: nodePosition(),
+          children: [condition, trueBranch],
+        }),
+      ];
+    }
+
+    const node = _node(NodeType.IF, {
+      position: nodePosition(),
+      children: [condition, trueBranch],
+    });
+    inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+    return [index, node];
+  }
+
+  if (!context.lhs && src[index].src === 'while') {
+    index++;
+
+    const node = (condition: Tree, expr?: Tree) => {
+      if (!expr) {
+        return _node(NodeType.WHILE, {
+          position: nodePosition(),
+          children: [condition],
+        });
+      }
+
+      const node = _node(NodeType.WHILE, {
+        position: nodePosition(),
+        children: [condition, expr],
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    return parseStatementForm(context, parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === 'for') {
+    index++;
+    if (src[index]?.type === 'newline') index++;
+    let pattern: Tree;
+    [index, pattern] = parsePattern({
+      ...context,
+      banned: ['in', ':', '\n', '{'],
+    })(src, index);
+
+    const hasInKeyword = src[index]?.src === 'in';
+    const inKeywordPosition = mapListPosToPos(indexPosition(index), src);
+    if (hasInKeyword) index++;
+
+    const node = (expr: Tree, body?: Tree) => {
+      if (!body) {
+        let node: Tree = _node(NodeType.FOR, {
+          position: nodePosition(),
+          children: [pattern, expr],
+        });
+        if (!hasInKeyword)
+          node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
+        return node;
+      }
+
+      let node: Tree = _node(NodeType.FOR, {
+        position: nodePosition(),
+        children: [pattern, expr, body],
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+
+      return node;
+    };
+
+    return parseStatementForm(context, parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === 'switch') {
+    index++;
+    let value: Tree;
+    [index, value] = parseExpr({
+      ...context,
+
+      banned: ['{'],
+    })(src, index);
+    const cases: Tree[] = [];
+    const node = () =>
+      _node(NodeType.MATCH, {
+        position: nodePosition(),
+        children: [value, ...cases],
+      });
+
+    if (src[index]?.src !== '{') {
+      return [
+        index,
+        error(SystemError.missingToken(nodePosition(), '{'), node()),
+      ];
+    }
+    index++;
+
+    if (src[index]?.type === 'newline') index++;
+
+    context.followSet.push('}');
+    while (src[index] && src[index].src !== '}') {
+      if (src[index]?.type === 'newline') index++;
+      let pattern: Tree;
+      [index, pattern] = parsePattern({
+        ...context,
+
+        banned: ['->'],
+      })(src, index);
+      if (src[index]?.src === '->') index++;
+      // else error missing ->
+      if (src[index]?.type === 'newline') index++;
+      let body: Tree;
+      [index, body] = parseExpr({
+        ...context,
+
+        banned: ['}', ','],
+      })(src, index);
+      if (src[index]?.src === ',') index++;
+      if (src[index]?.type === 'newline') index++;
+
+      const options = { children: [pattern, body] };
+      const node = _node(NodeType.MATCH_CASE, options);
+      cases.push(node);
+    }
+    context.followSet.pop();
+
+    if (src[index]?.src !== '}') {
+      return [
+        index,
+        error(SystemError.missingToken(nodePosition(), '}'), node()),
+      ];
+    }
+
+    index++;
+    return [index, node()];
+  }
+
+  if (!context.lhs && src[index].src === 'inject') {
+    index++;
+
+    const node = (value: Tree, expr?: Tree) => {
+      if (!expr) {
+        return _node(NodeType.INJECT, {
+          position: nodePosition(),
+          children: [value],
+        });
+      }
+
+      const node = _node(NodeType.INJECT, {
+        position: nodePosition(),
+        children: [value, expr],
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    return parseStatementForm(context, parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === 'without') {
+    index++;
+
+    const node = (value: Tree, expr?: Tree) => {
+      if (!expr) {
+        return _node(NodeType.WITHOUT, {
+          position: nodePosition(),
+          children: [value],
+        });
+      }
+
+      const node = _node(NodeType.WITHOUT, {
+        position: nodePosition(),
+        children: [value, expr],
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    return parseStatementForm(context, parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === 'mask') {
+    index++;
+
+    const node = (value: Tree, expr?: Tree) => {
+      if (!expr) {
+        return _node(NodeType.MASK, {
+          position: nodePosition(),
+          children: [value],
+        });
+      }
+
+      const node = _node(NodeType.MASK, {
+        position: nodePosition(),
+        children: [value, expr],
+      });
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
+      return node;
+    };
+
+    return parseStatementForm(context, parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs) {
+    const [nextIndex, pattern] = parsePattern(context)(src, index);
+    if (
+      src[nextIndex] &&
+      !tokenIncludes(src[nextIndex], context.followSet) &&
+      !tokenIncludes(src[nextIndex], context.banned) &&
+      pattern.type !== NodeType.ERROR &&
+      Object.hasOwn(idToLhsPatternExprOp, src[nextIndex].src)
+    ) {
+      const op = idToLhsPatternExprOp[src[nextIndex].src];
+      return [
+        nextIndex + 1,
+        _node(op, { position: nodePosition(), children: [pattern] }),
+      ];
+    }
+  }
+
+  if (!context.lhs && Object.hasOwn(idToPrefixExprOp, src[index].src)) {
+    const op = idToPrefixExprOp[src[index].src];
+    index++;
+    return [index, _node(op, { position: nodePosition() })];
+  }
+
+  if (context.lhs && Object.hasOwn(idToExprOp, src[index].src)) {
+    const op = idToExprOp[src[index].src];
+    index++;
+    return [index, _node(op)];
+  }
+
+  if (!context.lhs && src[index].src === '|') {
+    index++;
+    return parsePrattGroup(
+      context,
+      parseExprGroup,
+      getExprPrecedence
+    )(src, index);
+  }
+
+  if (!context.lhs && src[index].src === '{') {
+    const node = (expr: Tree) => block(expr, nodePosition());
+
+    return parsePairGroup(context, ['{', '}'], parseExpr, node)(src, index);
+  }
+
+  if (src[index].src === '[') {
+    const node = (expr: Tree) =>
+      _node(context.lhs ? NodeType.INDEX : NodeType.SQUARE_BRACKETS, {
+        position: nodePosition(),
+        children: [expr],
+      });
+
+    return parsePairGroup(context, ['[', ']'], parseExpr, node)(src, index);
+  }
+
+  if (!context.lhs && src[index].src === '(') {
+    const node = (expr: Tree) =>
+      _node(NodeType.PARENS, { position: nodePosition(), children: [expr] });
+    return parsePairGroup(context, ['(', ')'], parseExpr, node)(src, index);
+  }
+
+  if (context.lhs && src[index].src === '.') {
+    index++;
+    const next = src[index];
+    if (
+      !tokenIncludes(next, context.followSet) &&
+      next?.type === 'identifier'
+    ) {
+      index++;
+      const key = string(next.src, { start: next.start, end: next.end });
+      return [
+        index,
+        _node(NodeType.INDEX, {
+          position: nodePosition(),
+          children: [key],
+        }),
+      ];
+    }
+    return [
+      index,
+      error(SystemError.invalidIndex(nodePosition()), nodePosition()),
+    ];
+  }
+
+  if (context.lhs) return [index, _node(NodeType.APPLICATION)];
+
+  return parseValue(src, i);
+};
+
+const parsePrattGroup =
+  (
+    context: Context,
+    groupParser: (
+      context: Context
+    ) => (tokens: TokenPos[], index: number) => [index: number, node: Tree],
+    getPrecedence: (node: Tree) => Precedence
+  ): Parser =>
+  (src, i) => {
     let index = i;
     const start = index;
     const nodePosition = () => mapListPosToPos(position(start, index), src);
@@ -370,709 +816,65 @@ const parseGroup =
       ];
     }
 
-    if (parens === 0 && src[index].src === ')') {
-      while (src[index] && src[index].src === ')') index++;
-      return [
-        index,
-        error(
-          SystemError.unbalancedCloseToken(['(', ')'], nodePosition()),
-          nodePosition()
-        ),
-      ];
-    }
-    if (brackets === 0 && src[index].src === '}') {
-      while (src[index] && src[index].src === '}') index++;
-      return [
-        index,
-        error(
-          SystemError.unbalancedCloseToken(['{', '}'], nodePosition()),
-          nodePosition()
-        ),
-      ];
-    }
-    if (squareBrackets === 0 && src[index].src === ']') {
-      while (src[index] && src[index].src === ']') index++;
-      return [
-        index,
-        error(
-          SystemError.unbalancedCloseToken(['[', ']'], nodePosition()),
-          nodePosition()
-        ),
-      ];
-    }
-
-    if (tokenIncludes(src[index], skip))
-      return parseGroup(banned, skip, lhs)(src, index + 1);
-    if (tokenIncludes(src[index], banned))
-      return [index, implicitPlaceholder(nodePosition())];
-    if (tokenIncludes(src[index], followSet))
-      return [index, implicitPlaceholder(nodePosition())];
-
-    if (!lhs && src[index].src === 'fn') {
-      index++;
-      let pattern: Tree;
-      [index, pattern] = parsePattern(0, ['{', '->'], ['\n'])(src, index);
-      const token = src[index]?.src;
-
-      if (token === '{') {
-        index++;
-        brackets++;
-        if (src[index]?.type === 'newline') index++;
-        let sequence: Tree;
-        followSet.push('}');
-        [index, sequence] = parseSequence(src, index, ['}']);
-        followSet.pop();
-
-        const node = () => {
-          const node = fn(pattern, sequence, { position: nodePosition() });
-          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
-          return node;
-        };
-
-        if (src[index]?.type === 'newline') index++;
-        if (src[index]?.src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-
-        brackets--;
-        index++;
-        return [index, node()];
-      }
-
-      if (token === '->') {
-        index++;
-        return [
-          index,
-          _node(NodeType.FUNCTION, {
-            position: nodePosition(),
-            children: [pattern],
-          }),
-        ];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), '->', '{'),
-          _node(NodeType.FUNCTION, {
-            position: nodePosition(),
-            children: [pattern],
-          })
-        ),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'if') {
-      index++;
-      let condition: Tree;
-      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
-      const token = src[index]?.src;
-
-      if (token === '{') {
-        index++;
-        brackets++;
-        if (src[index]?.type === 'newline') index++;
-        let sequence: Tree;
-        followSet.push('}');
-        [index, sequence] = parseSequence(src, index, ['}']);
-        followSet.pop();
-
-        const node = () => {
-          const node = _node(NodeType.IF, {
-            position: nodePosition(),
-            children: [condition, sequence],
-          });
-          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
-          return node;
-        };
-        if (src[index]?.type === 'newline') index++;
-        if (src[index]?.src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-        brackets--;
-        index++;
-
-        if (src[index]?.src === 'else') {
-          index++;
-          return [
-            index,
-            _node(NodeType.IF_ELSE, {
-              position: nodePosition(),
-              children: [condition, sequence],
-            }),
-          ];
-        }
-
-        return [index, node()];
-      }
-
-      if (token === ':' || token.includes('\n')) {
-        index++;
-        const [_index, body] = parseExpr(0, ['else'])(src, index);
-
-        if (src[_index]?.src !== 'else') {
-          return [
-            index,
-            _node(NodeType.IF, {
-              position: nodePosition(),
-              children: [condition],
-            }),
-          ];
-        }
-
-        index = _index + 1;
-        return [
-          index,
-          _node(NodeType.IF_ELSE, {
-            position: nodePosition(),
-            children: [condition, body],
-          }),
-        ];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          _node(NodeType.IF, {
-            position: nodePosition(),
-            children: [condition],
-          })
-        ),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'while') {
-      index++;
-      let condition: Tree;
-      [index, condition] = parseExpr(0, [':', '\n', '{'])(src, index);
-      const token = src[index]?.src;
-
-      if (token === '{') {
-        index++;
-        brackets++;
-        if (src[index]?.type === 'newline') index++;
-
-        let sequence: Tree;
-        followSet.push('}');
-        [index, sequence] = parseSequence(src, index, ['}']);
-        followSet.pop();
-        const node = () => {
-          const node = _node(NodeType.WHILE, {
-            position: nodePosition(),
-            children: [condition, sequence],
-          });
-          inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
-          return node;
-        };
-        if (src[index]?.type === 'newline') index++;
-        if (src[index]?.src !== '}') {
-          return [
-            index,
-            error(SystemError.missingToken(nodePosition(), '}'), node()),
-          ];
-        }
-        brackets--;
-        index++;
-
-        return [index, node()];
-      }
-
-      if (token === ':' || token.includes('\n')) {
-        index++;
-        return [
-          index,
-          _node(NodeType.WHILE, {
-            position: nodePosition(),
-            children: [condition],
-          }),
-        ];
-      }
-
-      return [
-        index,
-        error(
-          SystemError.missingToken(nodePosition(), ':', '\\n', '{'),
-          _node(NodeType.WHILE, {
-            position: nodePosition(),
-            children: [condition],
-          })
-        ),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'import') {
-      index++;
-      const nameToken = src[index];
-      if (nameToken?.type !== 'string') {
-        return [index, _node(NodeType.IMPORT, { position: nodePosition() })];
-      }
-      index++;
-      const name = nameToken.value;
-      let pattern: Tree | null = null;
-      const node = () => {
-        const node = _node(NodeType.IMPORT, {
-          position: nodePosition(),
-        });
-        node.data.name = name;
-        if (pattern) node.children.push(pattern);
-        inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
-        return node;
-      };
-
-      if (src[index]?.src === 'as') {
-        index++;
-        [index, pattern] = parsePattern(0)(src, index);
-      }
-
-      return [index, node()];
-    }
-
-    if (!lhs && src[index].src === 'for') {
-      index++;
-      if (src[index]?.type === 'newline') index++;
-      let pattern: Tree;
-      [index, pattern] = parsePattern(0, ['in'])(src, index);
-
-      const hasInKeyword = src[index]?.src === 'in';
-      const inKeywordPosition = mapListPosToPos(indexPosition(index), src);
-      if (hasInKeyword) index++;
-      let expr: Tree;
-      [index, expr] = parseExpr(0, ['{'])(src, index);
-
-      const hasOpeningBracket = ['{', ':', '\n'].includes(src[index]?.src);
-      const openingBracketPosition = mapListPosToPos(indexPosition(index), src);
-      if (hasOpeningBracket) index++;
-      brackets++;
-
-      let sequence: Tree;
-      followSet.push('}');
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-
-      const node = () => {
-        let node: Tree = _node(NodeType.FOR, {
-          position: nodePosition(),
-          children: [pattern, expr, sequence],
-        });
-        inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, null]);
-
-        if (!hasInKeyword)
-          node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
-
-        if (!hasOpeningBracket)
-          node = error(
-            SystemError.missingToken(openingBracketPosition, '{', ':', '\n'),
-            node
-          );
-
-        return node;
-      };
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '}'), node()),
-        ];
-      }
-
-      brackets--;
-      index++;
-      return [index, node()];
-    }
-
-    if (!lhs && src[index].src === 'switch') {
-      index++;
-      let value: Tree;
-      [index, value] = parseExpr(0, ['{'])(src, index);
-      const cases: Tree[] = [];
-      const node = () =>
-        _node(NodeType.MATCH, {
-          position: nodePosition(),
-          children: [value, ...cases],
-        });
-
-      if (src[index]?.src !== '{') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '{'), node()),
-        ];
-      }
-
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push('}');
-
-      while (src[index] && src[index].src !== '}') {
-        if (src[index]?.type === 'newline') index++;
-        let pattern: Tree;
-        [index, pattern] = parsePattern(0, ['->'])(src, index);
-        if (src[index]?.src === '->') index++;
-        // else error missing ->
-        if (src[index]?.type === 'newline') index++;
-        let body: Tree;
-        [index, body] = parseExpr(0, ['}', ','])(src, index);
-        if (src[index]?.src === ',') index++;
-        if (src[index]?.type === 'newline') index++;
-
-        const options = { children: [pattern, body] };
-        const node = _node(NodeType.MATCH_CASE, options);
-        cases.push(node);
-      }
-      followSet.pop();
-
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '}'), node()),
-        ];
-      }
-
-      brackets--;
-      index++;
-      return [index, node()];
-    }
-
-    if (!lhs && src[index].src === 'inject') {
-      index++;
-      let value: Tree;
-      [index, value] = parseExpr(0, ['{'])(src, index);
-
-      if (src[index]?.src !== '{') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '{'),
-            _node(NodeType.INJECT, {
-              position: nodePosition(),
-              children: [value, implicitPlaceholder(nodePosition())],
-            })
-          ),
-        ];
-      }
-
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push('}');
-      let sequence: Tree;
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '}'),
-            _node(NodeType.INJECT, {
-              position: nodePosition(),
-              children: [value, sequence],
-            })
-          ),
-        ];
-      }
-
-      brackets--;
-      index++;
-      return [
-        index,
-        _node(NodeType.INJECT, {
-          position: nodePosition(),
-          children: [value, sequence],
-        }),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'without') {
-      index++;
-      let value: Tree;
-      [index, value] = parseExpr(0, ['{'])(src, index);
-
-      if (src[index]?.src !== '{') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '{'),
-            _node(NodeType.WITHOUT, {
-              position: nodePosition(),
-              children: [value, implicitPlaceholder(nodePosition())],
-            })
-          ),
-        ];
-      }
-
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push('}');
-      let sequence: Tree;
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '}'),
-            _node(NodeType.WITHOUT, {
-              position: nodePosition(),
-              children: [value, sequence],
-            })
-          ),
-        ];
-      }
-
-      brackets--;
-      index++;
-      return [
-        index,
-        _node(NodeType.WITHOUT, {
-          position: nodePosition(),
-          children: [value, sequence],
-        }),
-      ];
-    }
-
-    if (!lhs && src[index].src === 'mask') {
-      index++;
-      let value: Tree;
-      [index, value] = parseExpr(0, ['{'])(src, index);
-
-      if (src[index]?.src !== '{') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '{'),
-            _node(NodeType.MASK, {
-              position: nodePosition(),
-              children: [value, implicitPlaceholder(nodePosition())],
-            })
-          ),
-        ];
-      }
-
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push('}');
-      let sequence: Tree;
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(
-            SystemError.missingToken(nodePosition(), '}'),
-            _node(NodeType.MASK, {
-              position: nodePosition(),
-              children: [value, sequence],
-            })
-          ),
-        ];
-      }
-
-      brackets--;
-      index++;
-      return [
-        index,
-        _node(NodeType.MASK, {
-          position: nodePosition(),
-          children: [value, sequence],
-        }),
-      ];
-    }
-
-    if (lhs && src[index].src === 'is') {
-      index++;
-
-      let pattern: Tree;
-      [index, pattern] = parsePattern(0, banned, skip)(src, index);
-
-      return [
-        index,
-        _node(NodeType.IS, { position: nodePosition(), children: [pattern] }),
-      ];
-    }
-
-    const patternResult = parsePattern(0, banned, skip)(src, index);
-
-    if (
-      src[patternResult[0]] &&
-      !lhs &&
-      patternResult[1].type !== NodeType.ERROR
-    ) {
-      let index = patternResult[0];
-      const pattern = patternResult[1];
-      if (src[index].src in idToLhsPatternExprOp) {
-        const op = idToLhsPatternExprOp[src[index].src];
-        index++;
-        return [
-          index,
-          _node(op, { position: nodePosition(), children: [pattern] }),
-        ];
-      }
-    }
-
-    if (!lhs && src[index].src in idToPrefixExprOp) {
-      const op = idToPrefixExprOp[src[index].src];
-      index++;
-      return [index, _node(op, { position: nodePosition() })];
-    }
-
-    if (lhs && src[index].src in idToExprOp) {
-      const op = idToExprOp[src[index].src];
-      index++;
-      return [index, _node(op)];
-    }
-
-    if (!lhs && src[index].src === '|') {
-      index++;
-      return parseGroup(banned, skip, lhs)(src, index);
-    }
-
-    if (!lhs && src[index].src === '{') {
-      index++;
-      brackets++;
-      if (src[index]?.type === 'newline') index++;
-      let sequence: Tree;
-      followSet.push('}');
-      [index, sequence] = parseSequence(src, index, ['}']);
-      followSet.pop();
-      const node = () => block(sequence, nodePosition());
-
-      if (src[index]?.type === 'newline') index++;
-      if (src[index]?.src !== '}') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), '}'), node()),
-        ];
-      }
-      brackets--;
-      index++;
-      return [index, node()];
-    }
-
-    if (src[index].src === '[') {
-      index++;
-      squareBrackets++;
-      if (src[index]?.type === 'newline') index++;
-
-      followSet.push(']');
-      const [_index, expr] = parseExpr(0, [']'], ['\n'])(src, index);
-      followSet.pop();
-      index = _index;
-      const node = () =>
-        _node(lhs ? NodeType.INDEX : NodeType.SQUARE_BRACKETS, {
-          position: nodePosition(),
-          children: [expr],
-        });
-
-      while (tokenIncludes(src[index], ['\n'])) index++;
-
-      if (src[index]?.src !== ']') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), ']'), node()),
-        ];
-      }
-      squareBrackets--;
-      index++;
-
-      return [index, node()];
-    }
-
-    if (!lhs && src[index].src === '(') {
-      index++;
-      parens++;
-      if (src[index]?.type === 'newline') index++;
-
-      if (!src[index]) {
-        return [
-          index,
-          error(
-            SystemError.unbalancedOpenToken(
-              ['(', ')'],
-              nodePosition(),
-              indexPosition(index)
-            ),
-            _node(NodeType.PARENS, {
-              position: nodePosition(),
-              children: [implicitPlaceholder(nodePosition())],
-            })
-          ),
-        ];
-      }
-
-      let expr: Tree;
-      followSet.push(')');
-      [index, expr] = parseExpr(0, [')'], ['\n'])(src, index);
-      followSet.pop();
-      const node = () =>
-        _node(NodeType.PARENS, {
-          position: nodePosition(),
-          children: [expr],
-        });
-
-      while (tokenIncludes(src[index], ['\n'])) index++;
-
-      if (src[index]?.src !== ')') {
-        return [
-          index,
-          error(SystemError.missingToken(nodePosition(), ')'), node()),
-        ];
-      }
-      parens--;
-      index++;
-
-      return [index, node()];
-    }
-
-    if (src[index].src === '.') {
-      index++;
-      const next = src[index];
-      if (next?.type === 'identifier') {
-        index++;
-        const key = string(next.src, { start: next.start, end: next.end });
-        return [
-          index,
-          _node(NodeType.INDEX, {
-            position: nodePosition(),
-            children: [key],
-          }),
-        ];
-      }
-      return [
-        index,
-        error(SystemError.invalidIndex(nodePosition()), nodePosition()),
-      ];
-    }
-
-    // if (parens !== 0 && src[index].src === ')') {
-    //   return [index, implicitPlaceholder(nodePosition())];
+    // if (!context.followSet.includes(')') && src[index].src === ')') {
+    //   while (src[index] && src[index].src === ')') index++;
+    //   return [
+    //     index,
+    //     error(
+    //       SystemError.unbalancedCloseToken(['(', ')'], nodePosition()),
+    //       nodePosition()
+    //     ),
+    //   ];
+    // }
+    // if (!context.followSet.includes('}') && src[index].src === '}') {
+    //   while (src[index] && src[index].src === '}') index++;
+    //   return [
+    //     index,
+    //     error(
+    //       SystemError.unbalancedCloseToken(['{', '}'], nodePosition()),
+    //       nodePosition()
+    //     ),
+    //   ];
+    // }
+    // if (!context.followSet.includes(']') && src[index].src === ']') {
+    //   while (src[index] && src[index].src === ']') index++;
+    //   return [
+    //     index,
+    //     error(
+    //       SystemError.unbalancedCloseToken(['[', ']'], nodePosition()),
+    //       nodePosition()
+    //     ),
+    //   ];
     // }
 
-    if (lhs) return [index, _node(NodeType.APPLICATION)];
+    if (tokenIncludes(src[index], context.skip))
+      return parsePrattGroup(
+        context,
+        groupParser,
+        getPrecedence
+      )(src, index + 1);
+    if (tokenIncludes(src[index], context.banned))
+      return [index, implicitPlaceholder(nodePosition())];
+    if (tokenIncludes(src[index], context.followSet))
+      return [index, implicitPlaceholder(nodePosition())];
 
-    index++;
-    return [index, token(src[index - 1], nodePosition())];
+    let node: Tree;
+    [index, node] = groupParser(context)(src, index);
+
+    while (tokenIncludes(src[index], context.skip)) index++;
+
+    return [index, node];
   };
 
 const parsePrefix =
-  (banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: Tree] => {
+  (
+    context: Context,
+    groupParser: (
+      context: Context
+    ) => (tokens: TokenPos[], index: number) => [index: number, node: Tree],
+    getPrecedence: (node: Tree) => Precedence
+  ): Parser =>
+  (src, i) => {
     let index = i;
     //skip possible whitespace prefix
     if (src[index]?.type === 'newline') index++;
@@ -1085,36 +887,84 @@ const parsePrefix =
         error(SystemError.endOfSource(nodePosition()), nodePosition()),
       ];
 
-    let [nextIndex, group] = parseGroup(banned, skip)(src, index);
+    let [nextIndex, group] = parsePrattGroup(
+      { ...context, lhs: false },
+      groupParser,
+      getPrecedence
+    )(src, index);
     index = nextIndex;
-    const [, right] = getExprPrecedence(group) ?? [null, null];
+    const [, right] = getPrecedence(group);
 
     if (right !== null) {
       let rhs: Tree;
-      [index, rhs] = parseExpr(right, banned, skip)(src, index);
+      [index, rhs] = parsePratt(
+        context,
+        groupParser,
+        getPrecedence,
+        right
+      )(src, index);
       return [index, prefix(group, rhs)];
     }
 
     return [index, group];
   };
 
-const parseExpr =
-  (precedence = 0, banned: string[] = [], skip: string[] = []) =>
-  (src: TokenPos[], i = 0): [index: number, ast: ExpressionNode] => {
+const parsePratt =
+  (
+    context: Context,
+    groupParser: (
+      context: Context
+    ) => (tokens: TokenPos[], index: number) => [index: number, node: Tree],
+    getPrecedence: (node: Tree) => Precedence,
+    precedence: number
+  ): Parser =>
+  (src, i) => {
     let index = i;
+    // if (groupParser === parseExprGroup)
+    //   inspect({
+    //     tag: 'parsePratt',
+    //     context,
+    //     precedence,
+    //     head: src.slice(index, index + 10),
+    //     prev: src.slice(index - 10, index),
+    //     index,
+    //     groupParser,
+    //   });
     let lhs: Tree;
-    [index, lhs] = parsePrefix(banned, skip)(src, index);
+    [index, lhs] = parsePrefix(context, groupParser, getPrecedence)(src, index);
     const until = () => {
-      return banned.length === 0 || !tokenIncludes(src[index], banned);
+      return (
+        context.followSet.length === 0 ||
+        !tokenIncludes(src[index], context.followSet) ||
+        context.banned.length === 0 ||
+        !tokenIncludes(src[index], context.banned)
+      );
     };
 
     while (src[index] && until()) {
-      let [nextIndex, opGroup] = parseGroup(
-        banned,
-        [...skip, '\n'],
-        true
+      let [nextIndex, opGroup] = parsePrattGroup(
+        {
+          ...context,
+          lhs: true,
+          skip: [...context.skip, '\n'],
+        },
+        groupParser,
+        getPrecedence
       )(src, index);
-      const [left, right] = getExprPrecedence(opGroup) ?? [null, null];
+      const [left, right] = getPrecedence(opGroup);
+      // if (groupParser === parseExprGroup)
+      //   inspect({
+      //     tag: 'parsePratt 2',
+      //     context,
+      //     precedence,
+      //     head: src.slice(nextIndex, nextIndex + 10),
+      //     prev: src.slice(nextIndex - 10, nextIndex),
+      //     nextIndex,
+      //     groupParser,
+      //     opGroup,
+      //     op_precedences: [left, right],
+      //     lhs,
+      //   });
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -1124,8 +974,13 @@ const parseExpr =
         continue;
       }
 
-      let rhs: ExpressionNode;
-      [index, rhs] = parseExpr(right, banned, skip)(src, index);
+      let rhs: Tree;
+      [index, rhs] = parsePratt(
+        context,
+        groupParser,
+        getPrecedence,
+        right
+      )(src, index);
 
       // if two same operators are next to each other, and their precedence is the same on both sides
       // so it is both left and right associative
@@ -1133,68 +988,85 @@ const parseExpr =
       const associative = left === right;
       const hasSameOperator = opGroup.type === lhs.type;
       const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
-      if (associative && hasSameOperator && !isPlaceholder) {
+      // if (groupParser === parseExprGroup)
+      //   inspect({
+      //     tag: 'parsePratt 5',
+      //     context,
+      //     precedence,
+      //     head: src.slice(nextIndex, nextIndex + 10),
+      //     prev: src.slice(nextIndex - 10, nextIndex),
+      //     nextIndex,
+      //     groupParser,
+      //     hasSameOperator,
+      //     isPlaceholder,
+      //     associative,
+      //     lhs,
+      //     rhs,
+      //   });
+
+      if (associative && hasSameOperator /* && isPlaceholder */) {
         lhs.children.push(rhs);
       } else {
         lhs = infix(opGroup, lhs, rhs);
       }
     }
 
-    return [index, lhs as ExpressionNode];
+    // if (groupParser === parseExprGroup)
+    //   inspect({
+    //     tag: 'parsePratt 3',
+    //     context,
+    //     precedence,
+    //     head: src.slice(index, index + 10),
+    //     prev: src.slice(index - 10, index),
+    //     index,
+    //     groupParser,
+    //     lhs,
+    //   });
+    return [index, lhs];
   };
 
-const parseSequence = (
-  src: TokenPos[],
-  i: number,
-  banned: string[] = []
-): [index: number, ast: ExpressionNode] => {
-  // return parseExpr(0, banned)(src, i);
-  let index = i;
-  const start = index;
-  const nodePosition = () => mapListPosToPos(position(start, index), src);
-  const children: ExpressionNode[] = [];
+const parseExpr =
+  (context: Context): Parser<ExpressionNode> =>
+  (src, i) => {
+    return parsePratt(
+      context,
+      parseExprGroup,
+      getExprPrecedence,
+      0
+    )(src, i) as unknown as [index: number, ast: ExpressionNode];
+  };
 
-  while (
-    src[index] &&
-    (banned.length === 0 || !tokenIncludes(src[index], banned)) &&
-    (followSet.length === 0 || !tokenIncludes(src[index], followSet))
-  ) {
-    if (tokenIncludes(src[index], ['\n', ';'])) {
-      index++;
-      continue;
-    }
-    let node: ExpressionNode;
-    [index, node] = parseExpr(0, [';', ...banned])(src, index);
-    children.push(node);
-  }
+const parsePattern =
+  (context: Context): Parser =>
+  (src, i) => {
+    return parsePratt(
+      context,
+      parsePatternGroup,
+      getPatternPrecedence,
+      0
+    )(src, i) as unknown as [index: number, ast: Tree];
+  };
 
-  if (children.length === 1) return [index, children[0]];
-  if (children.length === 0)
-    return [index, implicitPlaceholder(nodePosition())];
-
-  return [index, sequence(children)];
-};
-
-const parseDeclaration = (
-  src: TokenPos[],
-  i = 0
-): [index: number, ast: ImportNode | DeclarationPatternNode | ExportNode] => {
-  return parseExpr(0, [';'])(src, i) as unknown as [
+type DeclarationNode = ImportNode | DeclarationPatternNode | ExportNode;
+const parseDeclaration: Parser<DeclarationNode> = (src, i) => {
+  const context = newContext();
+  context.banned = [';'];
+  return parseExpr(context)(src, i) as unknown as [
     index: number,
     ast: ImportNode | DeclarationPatternNode | ExportNode
   ];
 };
 
-export const parseScript = (src: TokenPos[], i = 0) => {
-  const [_, sequence] = parseSequence(src, i);
-  if (sequence.type === NodeType.SEQUENCE) return script(sequence.children);
-  return script([sequence]);
+export const parseScript = (src: TokenPos[]) => {
+  const context = newContext();
+  const [_, expr] = parseExpr(context)(src, 0);
+  return script(expr);
 };
 
-export const parseModule = (src: TokenPos[], i = 0) => {
+export const parseModule = (src: TokenPos[]) => {
   const children: (ImportNode | DeclarationPatternNode | ErrorNode)[] = [];
   let lastExport: ExportNode | null = null;
-  let index = i;
+  let index = 0;
 
   while (src[index]) {
     if (tokenIncludes(src[index], ['\n', ';'])) {

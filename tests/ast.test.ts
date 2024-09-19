@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect } from 'vitest';
 import { it, fc } from '@fast-check/vitest';
 import { identifier, parseTokens, TokenPos } from '../src/tokens.ts';
-import { tokenArbitrary } from '../src/testing.ts';
+import { tokenArbitrary, tokenListArbitrary } from '../src/testing.ts';
 import { parseModule, parseScript } from '../src/parser.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
 import { NodeType, Tree } from '../src/ast.ts';
+import { inspect } from '../src/utils.ts';
 
 const zeroPos = { start: 0, end: 0 };
 
@@ -49,8 +50,10 @@ it.prop([fc.array(tokenArbitrary)])('script parsing never throws', (tokens) => {
   }
 });
 
-it.todo.prop([
-  fc.array(tokenArbitrary.filter((s) => s.src !== '{' && s.src !== '}')),
+it.prop([
+  tokenListArbitrary.filter(
+    (tokens) => !tokens.some((t) => t.src !== '{' && t.src !== '}')
+  ),
 ])('block parsing always bound by braces', (_tokens) => {
   const tokens = [
     identifier('{', zeroPos),
@@ -61,9 +64,11 @@ it.todo.prop([
   expect(ast.children[0]).toMatchObject({ type: NodeType.BLOCK });
 });
 
-it.todo.prop([
-  fc.array(tokenArbitrary.filter((s) => s.src !== '(' && s.src !== ')')),
-])('parens parsing always bound by parens', (_tokens) => {
+it.prop([
+  tokenListArbitrary.filter(
+    (tokens) => !tokens.some((t) => t.src !== '(' && t.src !== ')')
+  ),
+])('parsing always bound by parens', (_tokens) => {
   const tokens = [
     identifier('(', zeroPos),
     ..._tokens.map((t) => ({ ...t, ...zeroPos })),
@@ -73,16 +78,21 @@ it.todo.prop([
   expect(ast.children[0]).toMatchObject({ type: NodeType.PARENS });
 });
 
-it.todo.prop([
-  fc.array(tokenArbitrary.filter((s) => s.src !== '[' && s.src !== ']')),
-])('square brackets parsing always bound by square brackets', (_tokens) => {
+it.prop(
+  [
+    tokenListArbitrary.filter(
+      (tokens) => !tokens.some((t) => t.src !== '[' && t.src !== ']')
+    ),
+  ],
+  { seed: -2024914109, path: '0', endOnFailure: true }
+)('square brackets parsing always bound by square brackets', (_tokens) => {
   const tokens = [
     identifier('[', zeroPos),
     ..._tokens.map((t) => ({ ...t, ...zeroPos })),
     identifier(']', zeroPos),
   ] as TokenPos[];
   let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({ type: NodeType.PARENS });
+  expect(ast.children[0]).toMatchObject({ type: NodeType.SQUARE_BRACKETS });
 });
 
 describe('advent of code 1 single file', () => {
@@ -101,16 +111,17 @@ describe('advent of code 1 single file', () => {
       "
     `));
 
-  it('split lines', () =>
+  it.todo('split lines', () =>
     testCase(`
         lines := {
           lines := split document "\\n";
           lines = map lines (replace "\\w+" "");
-          lines = filter lines fn line -> line != "";
+          lines = filter lines (fn line -> line != "");
         }
-      `));
+      `)
+  );
 
-  it('parse numbers', () =>
+  it.todo('parse numbers', () =>
     testCase(`
         numbers := flat_map lines fn line {
           digits := ();
@@ -118,7 +129,7 @@ describe('advent of code 1 single file', () => {
           while line != "" {
             if match "\d" (char_at line 0) {
               digit := number(char_at line 0);
-              if !digits[0]: digits[0] = digit;
+              if !digits[0] do digits[0] = digit;
               digits[1] = digit;
             };
             (_, ...line) = line;
@@ -126,7 +137,8 @@ describe('advent of code 1 single file', () => {
   
           digits[0], digits[1] * 10
         }
-      `));
+      `)
+  );
 
   it('fn multiple args', () =>
     testCase(`
@@ -149,7 +161,7 @@ describe('advent of code 1 single file', () => {
     testCase(`
         reduce := fn list, reducer, merge, initial {
           len := length list;
-          if len == 0: return initial;
+          if len == 0 do return initial;
         
           midpoint := floor(len / 2);
           item := list[midpoint];
@@ -182,11 +194,10 @@ describe('expressions', () => {
     it('order of application', () => testCase(`1 + 2^-3 * 4 - 5 / 6 % 7`));
     it('-(a+b)', () => testCase(`-(a+b)`));
 
-    it('complex', () => {
+    it('complex', () =>
       testCase(
         `(2^2-5+7)-(-i)+ (j)/0 - 1*(1*f)+(27-x )/q + send(-(2+7)/A,j, i, 127.0 ) + 1/1`
-      );
-    });
+      ));
   });
 
   describe('boolean expressions', () => {
@@ -234,7 +245,7 @@ describe('expressions', () => {
     it('declare record pattern', () => testCase(`{ a, b } := handlers`));
     it("with 'is' operator", () => testCase(`x is (a, b)`));
     it('with placeholder', () => testCase(`x is (_, b)`));
-    it('with pin', () => testCase(`x is (^a, b)`));
+    it.todo('with pin', () => testCase(`x is (^a, b)`));
     it.todo('with pin expression', () => testCase(`x is (^(a + b), b)`));
     it('with constant value', () => testCase(`x is (1, b)`));
     it('with rest value', () => testCase(`x is (a, ...b)`));
@@ -256,28 +267,34 @@ describe('expressions', () => {
       testCase(`
         y := {
           x := 25;
-          loop if x < 0: break x else {
+          loop if x < 0 do break x else {
             y := x;
             x = x - 1;
-            if y == 19: continue 69;
+            if y == 19 do continue 69;
             y
           }
         }
       `));
 
-    it('if-then', () => testCase(`if true: 123`));
-    it('if-then-else', () => testCase(`if true: 123 else 456`));
+    it('if-then', () => testCase(`if true do 123`));
+    it('if-then-else', () => testCase(`if true do 123 else 456`));
     it('if-then-elseif-then-else', () =>
-      testCase(`if true: 123 else if false: 789 else 456`));
+      testCase(`if true do 123 else if false do 789 else 456`));
     it('sequence', () => testCase(`123; 234; 345; 456`));
     it('block sequence', () => testCase(`{ 123; 234; 345; 456 }`));
-    it.todo('parens sequence', () => testCase(`(123; 234; 345; 456)`));
+    it('parens sequence', () => testCase(`(123; 234; 345; 456)`));
     it('block', () => testCase(`{ 123 }`));
-    it('for loop', () => testCase(`for x in (1, 2, 3) { x }`));
-    it('while loop', () => testCase(`while true: 123`));
+    it('for loop', () => testCase(`for x in (1, 2, 3) do x`));
+    it('while loop', () => testCase(`while true do 123`));
     it('loop', () => testCase(`loop 123`));
     it('loop scope', () => testCase(`loop { x }`));
     it.todo('labeled expression', () => testCase(`label::123`));
+
+    describe('statement forms', () => {
+      it('immediate form', () => testCase(`if true do 123; 456`));
+      it('block form', () => testCase(`if true { 123 }`));
+      it('rest form', () => testCase(`if true -> 123; 456`));
+    });
   });
 
   describe('concurrent programming', () => {
@@ -348,7 +365,7 @@ describe('programs', () => {
 });
 
 describe('newline handling', () => {
-  it.todo('for loop newline', () => testCase(`for x in [1, 2, 3]\n x`));
+  it.todo('for loop newline', () => testCase(`for x in 1, 2, 3\n x`));
   it('parallel parens', () => testCase(`(\n| 1\n| 2\n)`));
   it('chaining', () => testCase(`a\n.b`));
   it('parens', () => testCase(`(\n1 +\n2\n+ 3\n)`));

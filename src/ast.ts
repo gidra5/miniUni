@@ -100,7 +100,7 @@ type ScriptNode = {
   id: string;
   data: {};
   type: typeof NodeType.SCRIPT;
-  children: ExpressionNode[];
+  children: [ExpressionNode];
 };
 export type ModuleNode = {
   id: string;
@@ -348,17 +348,16 @@ const generatePrecedences = <T extends string>(
 // if two same operators are next to each other, which one will take precedence
 // first come lower precedence operators
 const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
-  // [NodeType.SEQUENCE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.FUNCTION, Fixity.PREFIX],
+  [NodeType.SEQUENCE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.IF, Fixity.PREFIX],
   [NodeType.IF_ELSE, Fixity.PREFIX],
   [NodeType.LOOP, Fixity.PREFIX],
-  // [NodeType.WHILE, Fixity.PREFIX],
-  // [NodeType.FOR, Fixity.PREFIX],
-  // [NodeType.MATCH, Fixity.PREFIX],
-  // [NodeType.INJECT, Fixity.PREFIX],
-  // [NodeType.MASK, Fixity.PREFIX],
-  // [NodeType.WITHOUT, Fixity.PREFIX],
+  [NodeType.WHILE, Fixity.PREFIX],
+  [NodeType.FOR, Fixity.PREFIX],
+  [NodeType.INJECT, Fixity.PREFIX],
+  [NodeType.MASK, Fixity.PREFIX],
+  [NodeType.WITHOUT, Fixity.PREFIX],
 
   [NodeType.DECLARE, Fixity.PREFIX],
   [NodeType.ASSIGN, Fixity.PREFIX],
@@ -407,7 +406,6 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.MUTABLE, Fixity.PREFIX],
   [NodeType.INDEX, Fixity.POSTFIX],
   [NodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
-  [NodeType.ATOM, Fixity.PREFIX],
 ] as const;
 
 const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [
@@ -487,8 +485,10 @@ export const atom = (name: string): AtomNode =>
 export const module = (children: ModuleNode['children']): ModuleNode =>
   node(NodeType.MODULE, { children }) as ModuleNode;
 
-export const script = (children: ScriptNode['children']): ScriptNode =>
-  node(NodeType.SCRIPT, { children }) as ScriptNode;
+export const script = (expr: ExpressionNode): ScriptNode =>
+  node(NodeType.SCRIPT, {
+    children: expr.type === NodeType.SEQUENCE ? expr.children : [expr],
+  }) as ScriptNode;
 
 export const block = (expr: Tree, position: Position): BlockNode =>
   node(NodeType.BLOCK, { position, children: [expr] }) as BlockNode;

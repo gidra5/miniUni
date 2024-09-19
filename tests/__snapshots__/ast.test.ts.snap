@@ -136,7 +136,9 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                                   "type": "parens",
                                 },
                               ],
-                              "data": {},
+                              "data": {
+                                "isTopFunction": true,
+                              },
                               "type": "func",
                             },
                           ],
@@ -210,7 +212,9 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
                               "type": "parens",
                             },
                           ],
-                          "data": {},
+                          "data": {
+                            "isTopFunction": true,
+                          },
                           "type": "func",
                         },
                       ],
@@ -237,7 +241,9 @@ exports[`advent of code 1 single file > flat map list impl 1`] = `
               "type": "application",
             },
           ],
-          "data": {},
+          "data": {
+            "isTopFunction": true,
+          },
           "type": "func",
         },
       ],
@@ -327,7 +333,9 @@ exports[`advent of code 1 single file > flat map list reducer 1`] = `
           "type": "parens",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -373,473 +381,10 @@ exports[`advent of code 1 single file > fn multiple args 1`] = `
           "type": "parens",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`advent of code 1 single file > parse numbers 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [],
-          "data": {
-            "value": "numbers",
-          },
-          "type": "name",
-        },
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": "flat_map",
-                  },
-                  "type": "name",
-                },
-                {
-                  "children": [],
-                  "data": {
-                    "value": "lines",
-                  },
-                  "type": "name",
-                },
-              ],
-              "data": {},
-              "type": "application",
-            },
-            {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": "line",
-                  },
-                  "type": "name",
-                },
-                {
-                  "children": [
-                    {
-                      "children": [
-                        {
-                          "children": [],
-                          "data": {
-                            "value": "digits",
-                          },
-                          "type": "name",
-                        },
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {},
-                              "type": "implicit_placeholder",
-                            },
-                          ],
-                          "data": {},
-                          "type": "parens",
-                        },
-                      ],
-                      "data": {},
-                      "type": ":=",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "line",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "",
-                              },
-                              "type": "string",
-                            },
-                          ],
-                          "data": {},
-                          "type": "!=",
-                        },
-                        {
-                          "children": [
-                            {
-                              "children": [
-                                {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "match",
-                                          },
-                                          "type": "name",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "d",
-                                          },
-                                          "type": "string",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": "application",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": "char_at",
-                                                  },
-                                                  "type": "name",
-                                                },
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": "line",
-                                                  },
-                                                  "type": "name",
-                                                },
-                                              ],
-                                              "data": {},
-                                              "type": "application",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": 0,
-                                              },
-                                              "type": "number",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "application",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": "parens",
-                                    },
-                                  ],
-                                  "data": {},
-                                  "type": "application",
-                                },
-                                {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "digit",
-                                          },
-                                          "type": "name",
-                                        },
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": "number",
-                                              },
-                                              "type": "name",
-                                            },
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [
-                                                    {
-                                                      "children": [
-                                                        {
-                                                          "children": [],
-                                                          "data": {
-                                                            "value": "char_at",
-                                                          },
-                                                          "type": "name",
-                                                        },
-                                                        {
-                                                          "children": [],
-                                                          "data": {
-                                                            "value": "line",
-                                                          },
-                                                          "type": "name",
-                                                        },
-                                                      ],
-                                                      "data": {},
-                                                      "type": "application",
-                                                    },
-                                                    {
-                                                      "children": [],
-                                                      "data": {
-                                                        "value": 0,
-                                                      },
-                                                      "type": "number",
-                                                    },
-                                                  ],
-                                                  "data": {},
-                                                  "type": "application",
-                                                },
-                                              ],
-                                              "data": {},
-                                              "type": "parens",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "application",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": ":=",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": "digits",
-                                                  },
-                                                  "type": "name",
-                                                },
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": 0,
-                                                  },
-                                                  "type": "number",
-                                                },
-                                              ],
-                                              "data": {},
-                                              "type": "index",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "not",
-                                        },
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": "digits",
-                                                  },
-                                                  "type": "name",
-                                                },
-                                                {
-                                                  "children": [],
-                                                  "data": {
-                                                    "value": 0,
-                                                  },
-                                                  "type": "number",
-                                                },
-                                              ],
-                                              "data": {},
-                                              "type": "index",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": "digit",
-                                              },
-                                              "type": "name",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "=",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": "if",
-                                    },
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": "digits",
-                                              },
-                                              "type": "name",
-                                            },
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": 1,
-                                              },
-                                              "type": "number",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "index",
-                                        },
-                                        {
-                                          "children": [],
-                                          "data": {
-                                            "value": "digit",
-                                          },
-                                          "type": "name",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": "=",
-                                    },
-                                  ],
-                                  "data": {},
-                                  "type": "sequence",
-                                },
-                              ],
-                              "data": {},
-                              "type": "if",
-                            },
-                            {
-                              "children": [
-                                {
-                                  "children": [
-                                    {
-                                      "children": [
-                                        {
-                                          "children": [],
-                                          "data": {},
-                                          "type": "placeholder",
-                                        },
-                                        {
-                                          "children": [
-                                            {
-                                              "children": [],
-                                              "data": {
-                                                "value": "line",
-                                              },
-                                              "type": "name",
-                                            },
-                                          ],
-                                          "data": {},
-                                          "type": "...",
-                                        },
-                                      ],
-                                      "data": {},
-                                      "type": ",",
-                                    },
-                                  ],
-                                  "data": {},
-                                  "type": "parens",
-                                },
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": "line",
-                                  },
-                                  "type": "name",
-                                },
-                              ],
-                              "data": {},
-                              "type": "=",
-                            },
-                          ],
-                          "data": {},
-                          "type": "sequence",
-                        },
-                      ],
-                      "data": {},
-                      "type": "while",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "digits",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": 0,
-                              },
-                              "type": "number",
-                            },
-                          ],
-                          "data": {},
-                          "type": "index",
-                        },
-                        {
-                          "children": [
-                            {
-                              "children": [
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": "digits",
-                                  },
-                                  "type": "name",
-                                },
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": 1,
-                                  },
-                                  "type": "number",
-                                },
-                              ],
-                              "data": {},
-                              "type": "index",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": 10,
-                              },
-                              "type": "number",
-                            },
-                          ],
-                          "data": {},
-                          "type": "*",
-                        },
-                      ],
-                      "data": {},
-                      "type": ",",
-                    },
-                  ],
-                  "data": {},
-                  "type": "sequence",
-                },
-              ],
-              "data": {},
-              "type": "func",
-            },
-          ],
-          "data": {},
-          "type": "application",
-        },
-      ],
-      "data": {},
-      "type": ":=",
     },
   ],
   "data": {},
@@ -1396,239 +941,10 @@ exports[`advent of code 1 single file > reduce list 1`] = `
               "type": "sequence",
             },
           ],
-          "data": {},
-          "type": "func",
-        },
-      ],
-      "data": {},
-      "type": ":=",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`advent of code 1 single file > split lines 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [],
           "data": {
-            "value": "lines",
+            "isTopFunction": true,
           },
-          "type": "name",
-        },
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "lines",
-                      },
-                      "type": "name",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "split",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "document",
-                              },
-                              "type": "name",
-                            },
-                          ],
-                          "data": {},
-                          "type": "application",
-                        },
-                        {
-                          "children": [],
-                          "data": {
-                            "value": "
-",
-                          },
-                          "type": "string",
-                        },
-                      ],
-                      "data": {},
-                      "type": "application",
-                    },
-                  ],
-                  "data": {},
-                  "type": ":=",
-                },
-                {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "lines",
-                      },
-                      "type": "name",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "map",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "lines",
-                              },
-                              "type": "name",
-                            },
-                          ],
-                          "data": {},
-                          "type": "application",
-                        },
-                        {
-                          "children": [
-                            {
-                              "children": [
-                                {
-                                  "children": [
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "value": "replace",
-                                      },
-                                      "type": "name",
-                                    },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "value": "w+",
-                                      },
-                                      "type": "string",
-                                    },
-                                  ],
-                                  "data": {},
-                                  "type": "application",
-                                },
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": "",
-                                  },
-                                  "type": "string",
-                                },
-                              ],
-                              "data": {},
-                              "type": "application",
-                            },
-                          ],
-                          "data": {},
-                          "type": "parens",
-                        },
-                      ],
-                      "data": {},
-                      "type": "application",
-                    },
-                  ],
-                  "data": {},
-                  "type": "=",
-                },
-                {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "lines",
-                      },
-                      "type": "name",
-                    },
-                    {
-                      "children": [
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "filter",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "lines",
-                              },
-                              "type": "name",
-                            },
-                          ],
-                          "data": {},
-                          "type": "application",
-                        },
-                        {
-                          "children": [
-                            {
-                              "children": [],
-                              "data": {
-                                "value": "line",
-                              },
-                              "type": "name",
-                            },
-                            {
-                              "children": [
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": "line",
-                                  },
-                                  "type": "name",
-                                },
-                                {
-                                  "children": [],
-                                  "data": {
-                                    "value": "",
-                                  },
-                                  "type": "string",
-                                },
-                              ],
-                              "data": {},
-                              "type": "!=",
-                            },
-                          ],
-                          "data": {},
-                          "type": "func",
-                        },
-                      ],
-                      "data": {},
-                      "type": "application",
-                    },
-                  ],
-                  "data": {},
-                  "type": "=",
-                },
-              ],
-              "data": {},
-              "type": "sequence",
-            },
-          ],
-          "data": {},
-          "type": "block",
+          "type": "func",
         },
       ],
       "data": {},
@@ -2270,16 +1586,10 @@ exports[`expressions > boolean expressions > in operator 1`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": "key",
-                  },
-                  "type": "name",
-                },
-              ],
-              "data": {},
+              "children": [],
+              "data": {
+                "name": "key",
+              },
               "type": "atom",
             },
             {
@@ -2736,16 +2046,10 @@ exports[`expressions > data structures > atom (global symbol) 1`] = `
 {
   "children": [
     {
-      "children": [
-        {
-          "children": [],
-          "data": {
-            "value": "atom",
-          },
-          "type": "name",
-        },
-      ],
-      "data": {},
+      "children": [],
+      "data": {
+        "name": "atom",
+      },
       "type": "atom",
     },
   ],
@@ -3272,16 +2576,10 @@ exports[`expressions > data structures > tuple with single item (atom) 1`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": "a",
-                  },
-                  "type": "name",
-                },
-              ],
-              "data": {},
+              "children": [],
+              "data": {
+                "name": "a",
+              },
               "type": "atom",
             },
             {
@@ -4445,7 +3743,9 @@ exports[`expressions > function expressions > fn increment 1`] = `
           "type": "post_increment",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -4472,7 +3772,9 @@ exports[`expressions > function expressions > fn no parameters 1`] = `
           "type": "number",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -4499,7 +3801,9 @@ exports[`expressions > function expressions > fn no parameters block 1`] = `
           "type": "number",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -4554,7 +3858,9 @@ exports[`expressions > function expressions > function block body 1`] = `
           "type": "add",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -4609,7 +3915,9 @@ exports[`expressions > function expressions > function multiple params 1`] = `
           "type": "add",
         },
       ],
-      "data": {},
+      "data": {
+        "isTopFunction": true,
+      },
       "type": "func",
     },
   ],
@@ -5036,60 +4344,6 @@ exports[`expressions > pattern matching > with name for match 1`] = `
               ],
               "data": {},
               "type": "@",
-            },
-          ],
-          "data": {},
-          "type": "parens",
-        },
-      ],
-      "data": {},
-      "type": "is",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`expressions > pattern matching > with pin 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [],
-          "data": {
-            "value": "x",
-          },
-          "type": "name",
-        },
-        {
-          "children": [
-            {
-              "children": [
-                {
-                  "children": [
-                    {
-                      "children": [],
-                      "data": {
-                        "value": "a",
-                      },
-                      "type": "name",
-                    },
-                  ],
-                  "data": {},
-                  "type": "pin",
-                },
-                {
-                  "children": [],
-                  "data": {
-                    "value": "b",
-                  },
-                  "type": "name",
-                },
-              ],
-              "data": {},
-              "type": ",",
             },
           ],
           "data": {},
@@ -6093,6 +5347,55 @@ exports[`expressions > structured programming > loop scope 1`] = `
 }
 `;
 
+exports[`expressions > structured programming > parens sequence 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 123,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 234,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 345,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 456,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "parens",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > structured programming > sequence 1`] = `
 {
   "children": [
@@ -6130,23 +5433,17 @@ exports[`expressions > structured programming > sequence 1`] = `
 }
 `;
 
-exports[`expressions > structured programming > while loop 1`] = `
+exports[`expressions > structured programming > statement forms > block form 1`] = `
 {
   "children": [
     {
       "children": [
         {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "value": "true",
-              },
-              "type": "name",
-            },
-          ],
-          "data": {},
-          "type": "while",
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
         },
         {
           "children": [],
@@ -6157,7 +5454,114 @@ exports[`expressions > structured programming > while loop 1`] = `
         },
       ],
       "data": {},
-      "type": "application",
+      "type": "if",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > statement forms > immediate form 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "if",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": 456,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > statement forms > rest form 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 123,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 456,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "if",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > while loop 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "while",
     },
   ],
   "data": {},
@@ -6320,6 +5724,11 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
               ],
               "data": {},
               "type": ":=",
+            },
+            {
+              "children": [],
+              "data": {},
+              "type": "implicit_placeholder",
             },
           ],
           "data": {},
@@ -6651,7 +6060,9 @@ exports[`programs > module > export default 1`] = `
               "type": "number",
             },
           ],
-          "data": {},
+          "data": {
+            "isTopFunction": true,
+          },
           "type": "func",
         },
       ],
