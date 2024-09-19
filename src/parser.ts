@@ -249,7 +249,7 @@ const parseStatementForm =
     let inner: Tree;
     [index, inner] = parseInner({
       ...context,
-      banned: ['do', '->', '\n', '{'],
+      banned: ['do', '->', '{'],
     })(src, index);
     const token = src[index]?.src;
 
@@ -264,7 +264,7 @@ const parseStatementForm =
       return parsePairGroup(context, ['{', '}'], parseExpr, _node)(src, index);
     }
 
-    if (token === 'do' || token.includes('\n')) {
+    if (token === 'do') {
       index++;
       return [index, node(inner)];
     }
@@ -1004,10 +1004,12 @@ const parsePratt =
       //     rhs,
       //   });
 
-      if (associative && hasSameOperator /* && isPlaceholder */) {
+      if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
-      } else {
+      } else if (!isPlaceholder) {
         lhs = infix(opGroup, lhs, rhs);
+      } else if (!(associative && hasSameOperator)) {
+        lhs = postfix(opGroup, lhs);
       }
     }
 

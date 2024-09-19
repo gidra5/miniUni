@@ -365,7 +365,7 @@ describe('programs', () => {
 });
 
 describe('newline handling', () => {
-  it.todo('for loop newline', () => testCase(`for x in 1, 2, 3\n x`));
+  it('for loop newline', () => testCase(`for x in 1, 2, 3 do\n x`));
   it('parallel parens', () => testCase(`(\n| 1\n| 2\n)`));
   it('chaining', () => testCase(`a\n.b`));
   it('parens', () => testCase(`(\n1 +\n2\n+ 3\n)`));

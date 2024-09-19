@@ -2582,11 +2582,6 @@ exports[`expressions > data structures > tuple with single item (atom) 1`] = `
               },
               "type": "atom",
             },
-            {
-              "children": [],
-              "data": {},
-              "type": "implicit_placeholder",
-            },
           ],
           "data": {},
           "type": ",",
@@ -5725,11 +5720,6 @@ exports[`newline handling > block semicolon newline at the end 1`] = `
               "data": {},
               "type": ":=",
             },
-            {
-              "children": [],
-              "data": {},
-              "type": "implicit_placeholder",
-            },
           ],
           "data": {},
           "type": "sequence",
@@ -5766,6 +5756,62 @@ exports[`newline handling > chaining 1`] = `
       ],
       "data": {},
       "type": "index",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > for loop newline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 3,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": ",",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "for",
     },
   ],
   "data": {},
