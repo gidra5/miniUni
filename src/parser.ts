@@ -487,14 +487,18 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     const condition = result.children[0];
     const trueBranch = result.children[1];
     if (!trueBranch) {
-      const [_index, body] = parseExpr({
+      let body: Tree;
+      let _index = index;
+      [index, body] = parseExpr({
         ...context,
         banned: ['else'],
       })(src, index);
 
-      if (src[_index]?.src !== 'else') {
+      if (src[index]?.type === 'newline') index++;
+
+      if (src[index]?.src !== 'else') {
         return [
-          index,
+          _index,
           _node(NodeType.IF, {
             position: nodePosition(),
             children: [condition],
@@ -502,7 +506,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         ];
       }
 
-      index = _index + 1;
+      index++;
       return [
         index,
         _node(NodeType.IF_ELSE, {
@@ -516,16 +520,6 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       index++;
       return [
         index,
-        _node(NodeType.IF_ELSE, {
-          position: nodePosition(),
-          children: [condition, trueBranch],
-        }),
-      ];
-    }
-    if (src[index]?.type === 'newline' && src[index + 1]?.src === 'else') {
-      index++;
-      return [
-        index + 2,
         _node(NodeType.IF_ELSE, {
           position: nodePosition(),
           children: [condition, trueBranch],

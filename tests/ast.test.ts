@@ -374,12 +374,11 @@ describe('newline handling', () => {
   it('prefix', () => testCase(`!\na`));
   it('infix-prefix', () => testCase(`b :=\n !\na`));
   it('infix-infix', () => testCase(`b +\nc +\nd`));
-  it.todo('if else separate lines', () => testCase(`if a do\n 1\n else\n 2`));
-  it.todo('if-then newline', () => testCase(`if true do\n 123`));
-  it.todo('if-then newline-else', () => testCase(`if true do\n 123 else 456`));
-  it.todo('if-then newline-else newline', () =>
-    testCase(`if true do\n 123 else\n 456`)
-  );
+  it('if else separate lines', () => testCase(`if a do\n 1\n else\n 2`));
+  it('if-then newline', () => testCase(`if true do\n 123`));
+  it('if-then newline-else', () => testCase(`if true do\n 123 else 456`));
+  it('if-then newline-else newline', () =>
+    testCase(`if true do\n 123 else\n 456`));
   it.todo('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
   it.todo('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
   it.todo('block newline at the beginning', () =>

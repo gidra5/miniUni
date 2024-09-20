@@ -6737,6 +6737,143 @@ exports[`newline handling > for loop newline 1`] = `
 }
 `;
 
+exports[`newline handling > if else separate lines 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "a",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 2,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "if_else",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > if-then newline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "if",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > if-then newline-else 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 456,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "if_else",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > if-then newline-else newline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "true",
+          },
+          "type": "name",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 456,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "if_else",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`newline handling > infix-infix 1`] = `
 {
   "children": [
