@@ -102,6 +102,7 @@ const idToPrefixExprOp = {
   not: NodeType.NOT,
   fork: NodeType.FORK,
   async: NodeType.ASYNC,
+  await: NodeType.AWAIT,
   loop: NodeType.LOOP,
   export: NodeType.EXPORT,
 };
@@ -156,6 +157,13 @@ const parseValue: Parser = (src, i) => {
 
   if (src[index].src === ':') {
     index++;
+
+    if (!src[index]) {
+      return [
+        index,
+        error(SystemError.endOfSource(nodePosition()), nodePosition()),
+      ];
+    }
 
     const name = src[index];
     if (name.type !== 'identifier') {
@@ -803,7 +811,22 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     ];
   }
 
-  if (context.lhs) return [index, _node(NodeType.APPLICATION)];
+  if (context.lhs) {
+    const node = _node(NodeType.APPLICATION);
+
+    // if function call is with parentheses, make precedence higher than field access
+    // so method chaining works as usual
+    if (src[index].src === '(') {
+      const indexPrecedence = _getExprPrecedence(NodeType.INDEX);
+      const applicationPrecedence = _getExprPrecedence(NodeType.APPLICATION);
+      inject(Injectable.ASTNodePrecedenceMap).set(node.id, [
+        applicationPrecedence[0],
+        indexPrecedence[0]! + 1,
+      ]);
+    }
+
+    return [index, node];
+  }
 
   return parseValue(src, i);
 };

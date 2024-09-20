@@ -73,6 +73,7 @@ export const OperatorNodeType = {
   FOR: 'for',
   FORK: 'fork',
   ASYNC: 'async',
+  AWAIT: 'await',
   MATCH: 'match',
   MATCH_CASE: 'match_case',
   INJECT: 'inject',
@@ -407,9 +408,10 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.IMPORT, Fixity.PREFIX],
   [NodeType.EXPORT, Fixity.PREFIX],
   [NodeType.MUTABLE, Fixity.PREFIX],
-  [NodeType.INDEX, Fixity.POSTFIX],
+  [NodeType.AWAIT, Fixity.PREFIX],
   [NodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
   [NodeType.ASYNC, Fixity.PREFIX],
+  [NodeType.INDEX, Fixity.POSTFIX],
 ] as const;
 
 const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [

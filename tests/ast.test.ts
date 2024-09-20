@@ -111,17 +111,16 @@ describe('advent of code 1 single file', () => {
       "
     `));
 
-  it.todo('split lines', () =>
+  it('split lines', () =>
     testCase(`
         lines := {
           lines := split document "\\n";
           lines = map lines (replace "\\w+" "");
-          lines = filter lines (fn line -> line != "");
+          lines = filter lines fn line do line != "";
         }
-      `)
-  );
+      `));
 
-  it.todo('parse numbers', () =>
+  it('parse numbers', () =>
     testCase(`
         numbers := flat_map lines fn line {
           digits := ();
@@ -137,8 +136,7 @@ describe('advent of code 1 single file', () => {
   
           digits[0], digits[1] * 10
         }
-      `)
-  );
+      `));
 
   it('fn multiple args', () =>
     testCase(`
@@ -218,7 +216,7 @@ describe('expressions', () => {
     describe('application', () => {
       it('function call', () => testCase(`f x`));
       it('function call multiple args', () => testCase(`f x y`));
-      it.todo('function call param with field', () => testCase(`f x.y`));
+      it('function call param with field', () => testCase(`f x.y`));
       it('send((1+2), 3)', () => testCase(`send((1+2), 3)`));
       it('send(2, 3)', () => testCase(`send(2, 3)`));
       it('(send)(2, 3)', () => testCase(`(send)(2, 3)`));
@@ -311,8 +309,8 @@ describe('expressions', () => {
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
     it('fork', () => testCase(`fork f x; y`));
     it('async', () => testCase(`async f x`));
-    it.todo('async index', () => testCase(`async f.a`));
-    it.todo('await async', () => testCase(`await async f x`));
+    it('async index', () => testCase(`async f.a`));
+    it('await async', () => testCase(`await async f x`));
     it('await', () => testCase(`await x + 1`));
   });
 
