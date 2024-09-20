@@ -29,7 +29,7 @@ export const OperatorNodeType = {
   POW: 'pow',
   PARALLEL: 'parallel',
   SEND: 'send',
-  COLON: ':',
+  LABEL: ':',
   TUPLE: ',',
   NOT_EQUAL: '!=',
   EQUAL: '==',
@@ -71,12 +71,14 @@ export const OperatorNodeType = {
   INC_ASSIGN: '+=',
   LOOP: 'loop',
   FOR: 'for',
-  FORK: 'async',
+  FORK: 'fork',
+  ASYNC: 'async',
   MATCH: 'match',
   MATCH_CASE: 'match_case',
   INJECT: 'inject',
   MASK: 'mask',
   WITHOUT: 'without',
+  CODE_LABEL: '::',
 
   SPREAD: '...',
   MUTABLE: 'mut',
@@ -277,7 +279,7 @@ type RecordPatternNode = {
 type RecordNameWithDefaultNode = {
   id: string;
   data: {};
-  type: typeof NodeType.COLON;
+  type: typeof NodeType.LABEL;
   children: [NameNode, ExpressionNode];
 };
 type SpreadPatternNode = {
@@ -289,7 +291,7 @@ type SpreadPatternNode = {
 type RecordRenamePatternNode = {
   id: string;
   data: {};
-  type: typeof NodeType.COLON;
+  type: typeof NodeType.LABEL;
   children: [NameNode | ExpressionNode, PatternWithDefaultNode];
 };
 
@@ -350,6 +352,7 @@ const generatePrecedences = <T extends string>(
 const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.FUNCTION, Fixity.PREFIX],
   [NodeType.SEQUENCE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [NodeType.FORK, Fixity.PREFIX],
   [NodeType.IF, Fixity.PREFIX],
   [NodeType.IF_ELSE, Fixity.PREFIX],
   [NodeType.LOOP, Fixity.PREFIX],
@@ -363,10 +366,9 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.ASSIGN, Fixity.PREFIX],
   [NodeType.INC_ASSIGN, Fixity.PREFIX],
 
-  [NodeType.FORK, Fixity.PREFIX],
   [NodeType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [NodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
+  [NodeType.LABEL, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.SPREAD, Fixity.PREFIX],
 
   [NodeType.SEND, Fixity.INFIX, Associativity.RIGHT],
@@ -398,6 +400,7 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.PLUS, Fixity.PREFIX],
   [NodeType.INCREMENT, Fixity.PREFIX],
   [NodeType.DECREMENT, Fixity.PREFIX],
+  [NodeType.CODE_LABEL, Fixity.PREFIX],
   [NodeType.POST_INCREMENT, Fixity.POSTFIX],
   [NodeType.POST_DECREMENT, Fixity.POSTFIX],
 
@@ -406,11 +409,12 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.MUTABLE, Fixity.PREFIX],
   [NodeType.INDEX, Fixity.POSTFIX],
   [NodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
+  [NodeType.ASYNC, Fixity.PREFIX],
 ] as const;
 
 const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
-  [NodeType.COLON, Fixity.INFIX, Associativity.RIGHT],
+  [NodeType.LABEL, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.SPREAD, Fixity.PREFIX],
   [NodeType.MUTABLE, Fixity.PREFIX],
   [NodeType.ASSIGN, Fixity.POSTFIX],

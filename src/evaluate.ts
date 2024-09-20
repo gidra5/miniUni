@@ -377,7 +377,7 @@ const bind = async (
         context.env[name] = record[name] ?? null;
         consumedNames.push(name);
         continue;
-      } else if (pattern.type === NodeType.COLON) {
+      } else if (pattern.type === NodeType.LABEL) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
@@ -478,7 +478,7 @@ async function bindExport(
         exports[name] = record[name];
         consumedNames.push(name);
         continue;
-      } else if (pattern.type === NodeType.COLON) {
+      } else if (pattern.type === NodeType.LABEL) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         consumedNames.push(name);
@@ -899,7 +899,7 @@ const lazyOperators = {
     return value;
   },
 
-  [NodeType.COLON]: async ([_key, expr]: Tree[], context: Context) => {
+  [NodeType.LABEL]: async ([_key, expr]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
     const key =
       _key.type === NodeType.NAME
@@ -924,7 +924,7 @@ const lazyOperators = {
             )
           );
         }
-      } else if (child.type === NodeType.COLON) {
+      } else if (child.type === NodeType.LABEL) {
         const _key = child.children[0];
         const key =
           _key.type === NodeType.NAME

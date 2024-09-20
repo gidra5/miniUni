@@ -1642,6 +1642,76 @@ exports[`expressions > boolean expressions > not 1`] = `
 }
 `;
 
+exports[`expressions > concurrent programming > async 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "f",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "type": "async",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "application",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > concurrent programming > async index 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "f",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "type": "async",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "a",
+          },
+          "type": "string",
+        },
+      ],
+      "data": {},
+      "type": "index",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > concurrent programming > await 1`] = `
 {
   "children": [
@@ -1779,6 +1849,48 @@ exports[`expressions > concurrent programming > channel try send 1`] = `
       ],
       "data": {},
       "type": "?<-",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > concurrent programming > fork 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "f",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "type": "application",
+        },
+      ],
+      "data": {},
+      "type": "fork",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": "y",
+      },
+      "type": "name",
     },
   ],
   "data": {},
@@ -3395,6 +3507,86 @@ exports[`expressions > function expressions > application > function call multip
             "value": "y",
           },
           "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "application",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > application > methods chaining 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "math",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "floor",
+                      },
+                      "type": "string",
+                    },
+                  ],
+                  "data": {},
+                  "type": "index",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 1,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "parens",
+                },
+              ],
+              "data": {},
+              "type": "application",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "multiply",
+              },
+              "type": "string",
+            },
+          ],
+          "data": {},
+          "type": "index",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "parens",
         },
       ],
       "data": {},
@@ -5292,6 +5484,30 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
 }
 `;
 
+exports[`expressions > structured programming > labeled expression 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {
+        "name": "123",
+      },
+      "type": "::",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > structured programming > loop 1`] = `
 {
   "children": [
@@ -5812,6 +6028,61 @@ exports[`newline handling > for loop newline 1`] = `
       ],
       "data": {},
       "type": "for",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > if else separate lines 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "a",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "else",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": "application",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "application",
+        },
+      ],
+      "data": {},
+      "type": "if",
     },
   ],
   "data": {},

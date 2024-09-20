@@ -80,7 +80,7 @@ const idToExprOp = {
   '--': NodeType.POST_DECREMENT,
   '->': NodeType.FUNCTION,
   ',': NodeType.TUPLE,
-  ':': NodeType.COLON,
+  ':': NodeType.LABEL,
   ';': NodeType.SEQUENCE,
   '<-': NodeType.SEND,
   '?<-': NodeType.SEND_STATUS,
@@ -100,7 +100,8 @@ const idToPrefixExprOp = {
   '<-': NodeType.RECEIVE,
   '<-?': NodeType.RECEIVE_STATUS,
   not: NodeType.NOT,
-  async: NodeType.FORK,
+  fork: NodeType.FORK,
+  async: NodeType.ASYNC,
   loop: NodeType.LOOP,
   export: NodeType.EXPORT,
 };
@@ -115,7 +116,7 @@ const idToLhsPatternExprOp = {
 const idToPatternOp = {
   ',': NodeType.TUPLE,
   // '=': NodeType.ASSIGN,
-  ':': NodeType.COLON,
+  ':': NodeType.LABEL,
   '@': NodeType.BIND,
 };
 
@@ -170,6 +171,17 @@ const parseValue: Parser = (src, i) => {
       _node(NodeType.ATOM, {
         data: { name: name.src },
         position: nodePosition(),
+      }),
+    ];
+  }
+
+  if (src[index].type === 'identifier' && src[index + 1]?.src === '::') {
+    index += 2;
+    return [
+      index,
+      _node(NodeType.CODE_LABEL, {
+        position: nodePosition(),
+        data: { name: src[index].src },
       }),
     ];
   }

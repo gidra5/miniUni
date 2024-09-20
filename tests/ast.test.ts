@@ -218,6 +218,7 @@ describe('expressions', () => {
     describe('application', () => {
       it('function call', () => testCase(`f x`));
       it('function call multiple args', () => testCase(`f x y`));
+      it.todo('function call param with field', () => testCase(`f x.y`));
       it('send((1+2), 3)', () => testCase(`send((1+2), 3)`));
       it('send(2, 3)', () => testCase(`send(2, 3)`));
       it('(send)(2, 3)', () => testCase(`(send)(2, 3)`));
@@ -228,6 +229,7 @@ describe('expressions', () => {
       it('send a (2, 3)', () => testCase(`send a (2, 3)`));
       it('send 1 (2, 3)', () => testCase(`send 1 (2, 3)`));
       it('a + send 1 + 2', () => testCase(`a + send 1 + 2`));
+      it('methods chaining', () => testCase(`math.floor(1).multiply(2)`));
     });
   });
 
@@ -288,7 +290,7 @@ describe('expressions', () => {
     it('while loop', () => testCase(`while true do 123`));
     it('loop', () => testCase(`loop 123`));
     it('loop scope', () => testCase(`loop { x }`));
-    it.todo('labeled expression', () => testCase(`label::123`));
+    it('labeled expression', () => testCase(`label::123`));
 
     describe('statement forms', () => {
       it('immediate form', () => testCase(`if true do 123; 456`));
@@ -307,8 +309,10 @@ describe('expressions', () => {
     it('prefix parallel with code after', () =>
       testCase(`| { };\nnumbers := channel()`));
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
-    it.todo('', () => testCase(` f x`));
-    it.todo('await ', () => testCase(`await  f x`));
+    it('fork', () => testCase(`fork f x; y`));
+    it('async', () => testCase(`async f x`));
+    it.todo('async index', () => testCase(`async f.a`));
+    it.todo('await async', () => testCase(`await async f x`));
     it('await', () => testCase(`await x + 1`));
   });
 
@@ -324,7 +328,6 @@ describe('expressions', () => {
     it('map without braces', () => testCase(`1+2: 3, 4+5: 6`));
     it('period operator', () => testCase(`math.floor`));
     it('index', () => testCase(`x[0]`));
-    it('methods', () => testCase(`math.floor(1).multiply(2)`));
     it('field assignment', () => testCase(`x.y = 123`));
     it('field assignment dynamic', () => testCase(`x[y] = 123`));
   });
@@ -373,11 +376,11 @@ describe('newline handling', () => {
   it('prefix', () => testCase(`!\na`));
   it('infix-prefix', () => testCase(`b :=\n !\na`));
   it('infix-infix', () => testCase(`b +\nc +\nd`));
-  it.todo('if else separate lines', () => testCase(`if a\n 1\n else\n 2`));
-  it.todo('if-then newline', () => testCase(`if true\n 123`));
-  it.todo('if-then newline-else', () => testCase(`if true\n 123 else 456`));
+  it.todo('if else separate lines', () => testCase(`if a do\n 1\n else\n 2`));
+  it.todo('if-then newline', () => testCase(`if true do\n 123`));
+  it.todo('if-then newline-else', () => testCase(`if true do\n 123 else 456`));
   it.todo('if-then newline-else newline', () =>
-    testCase(`if true\n 123 else\n 456`)
+    testCase(`if true do\n 123 else\n 456`)
   );
   it.todo('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
   it.todo('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
