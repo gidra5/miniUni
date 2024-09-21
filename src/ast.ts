@@ -351,8 +351,8 @@ const generatePrecedences = <T extends string>(
 // if two same operators are next to each other, which one will take precedence
 // first come lower precedence operators
 const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
-  [NodeType.FUNCTION, Fixity.PREFIX],
   [NodeType.SEQUENCE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [NodeType.FUNCTION, Fixity.PREFIX],
   [NodeType.FORK, Fixity.PREFIX],
   [NodeType.IF, Fixity.PREFIX],
   [NodeType.IF_ELSE, Fixity.PREFIX],

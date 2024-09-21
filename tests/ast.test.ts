@@ -156,6 +156,12 @@ describe('expressions', () => {
       it('a + send 1 + 2', () => testCase(`a + send 1 + 2`));
       it('methods chaining', () => testCase(`math.floor(1).multiply(2)`));
     });
+
+    describe('function forms', () => {
+      it('immediate form', () => testCase(`fn do x; y`));
+      it('block form', () => testCase(`fn { x }`));
+      it('rest form', () => testCase(`fn -> x; y`));
+    });
   });
 
   describe('pattern matching', () => {

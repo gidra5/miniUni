@@ -291,13 +291,13 @@ const parseStatementForm =
 
     if (token === '->') {
       index++;
-      const precedence = _getExprPrecedence(NodeType.FUNCTION);
+      const precedence = _getExprPrecedence(NodeType.SEQUENCE);
       let expr: Tree;
       [index, expr] = parsePratt(
         context,
         parseExprGroup,
         getExprPrecedence,
-        precedence[1]!
+        precedence[1]! - 1
       )(src, index);
       return [index, node(inner, expr)];
     }
@@ -1262,21 +1262,18 @@ if (import.meta.vitest) {
       ])
   );
 
-  it.only.prop([arb2])(
-    'pattern parsing always bound by paired tokens',
-    (tokens) => {
-      const patternType =
-        tokens[0].src === '['
-          ? NodeType.SQUARE_BRACKETS
-          : tokens[0].src === '{'
-          ? NodeType.RECORD
-          : NodeType.PARENS;
+  it.prop([arb2])('pattern parsing always bound by paired tokens', (tokens) => {
+    const patternType =
+      tokens[0].src === '['
+        ? NodeType.SQUARE_BRACKETS
+        : tokens[0].src === '{'
+        ? NodeType.RECORD
+        : NodeType.PARENS;
 
-      tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
-      let ast = parsePattern(newContext())(tokens as TokenPos[], 0)[1];
-      expect(ast).toMatchObject({ type: patternType });
-    }
-  );
+    tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
+    let ast = parsePattern(newContext())(tokens as TokenPos[], 0)[1];
+    expect(ast).toMatchObject({ type: patternType });
+  });
 
   it.prop([arb2])('expr parsing always bound by paired tokens', (tokens) => {
     const exprType =

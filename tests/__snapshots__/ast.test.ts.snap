@@ -4752,6 +4752,113 @@ exports[`expressions > function expressions > function block body 1`] = `
 }
 `;
 
+exports[`expressions > function expressions > function forms > block form 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "isTopFunction": true,
+      },
+      "type": "func",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > function forms > immediate form 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {
+        "isTopFunction": true,
+      },
+      "type": "func",
+    },
+    {
+      "children": [],
+      "data": {
+        "value": "y",
+      },
+      "type": "name",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > function expressions > function forms > rest form 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "y",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {
+        "isTopFunction": true,
+      },
+      "type": "func",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > function expressions > function multiple params 1`] = `
 {
   "children": [
