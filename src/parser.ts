@@ -245,7 +245,6 @@ const parsePairGroup =
     //   parseInner,
     // });
 
-    if (src[index]?.type === 'newline') index++;
     if (src[index]?.src !== right) {
       return [
         index,
@@ -349,7 +348,7 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
     };
 
     return parsePairGroup(
-      { ...context, allowPatternDefault: true, skip: ['\n'] },
+      { ...context, allowPatternDefault: true },
       ['{', '}'],
       parsePattern,
       node
@@ -360,7 +359,7 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
     const node = (pattern: Tree) =>
       _node(NodeType.PARENS, { position: nodePosition(), children: [pattern] });
     return parsePairGroup(
-      { ...context, allowPatternDefault: true, skip: ['\n'] },
+      { ...context, allowPatternDefault: true },
       ['(', ')'],
       parsePattern,
       node
@@ -375,7 +374,7 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
       });
 
     return parsePairGroup(
-      { ...context, skip: ['\n'] },
+      { ...context },
       ['[', ']'],
       parseExpr,
       node
@@ -526,8 +525,6 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         banned: ['else'],
       })(src, index);
 
-      if (src[index]?.type === 'newline') index++;
-
       if (src[index]?.src !== 'else') {
         return [
           _index,
@@ -591,7 +588,6 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
 
   if (!context.lhs && src[index].src === 'for') {
     index++;
-    if (src[index]?.type === 'newline') index++;
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
@@ -656,31 +652,31 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     }
     index++;
 
-    if (src[index]?.type === 'newline') index++;
-
     context.followSet.push('}');
     while (src[index] && src[index].src !== '}') {
-      if (src[index]?.type === 'newline') index++;
+      if (src[index]?.type === 'newline') {
+        index++;
+        continue;
+      }
+      // inspect({
+      //   tag: 'parseExprGroup switch',
+      //   context,
+      //   index,
+      //   head: src.slice(index, index + 10),
+      //   prev: src.slice(index - 10, index),
+      // });
       let pattern: Tree;
-      [index, pattern] = parsePattern({
-        ...context,
-
-        banned: ['->'],
-      })(src, index);
+      [index, pattern] = parsePattern({ ...context, banned: ['->'] })(
+        src,
+        index
+      );
       if (src[index]?.src === '->') index++;
       // else error missing ->
-      if (src[index]?.type === 'newline') index++;
       let body: Tree;
-      [index, body] = parseExpr({
-        ...context,
-
-        banned: ['}', ','],
-      })(src, index);
+      [index, body] = parseExpr({ ...context, banned: ['}', ','] })(src, index);
       if (src[index]?.src === ',') index++;
-      if (src[index]?.type === 'newline') index++;
 
-      const options = { children: [pattern, body] };
-      const node = _node(NodeType.MATCH_CASE, options);
+      const node = _node(NodeType.MATCH_CASE, { children: [pattern, body] });
       cases.push(node);
     }
     context.followSet.pop();
@@ -791,10 +787,42 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     return [index, _node(op)];
   }
 
-  // if (context.lhs && src[index].type === 'newline') {
-  //   index++;
-  //   return [index, _node(NodeType.SEQUENCE)];
-  // }
+  if (context.lhs && src[index].type === 'newline') {
+    index++;
+
+    if (!src[index]) return [index, _node(NodeType.SEQUENCE)];
+
+    if (context.lhs && Object.hasOwn(idToExprOp, src[index].src)) {
+      const op = idToExprOp[src[index].src];
+      index++;
+      return [index, _node(op)];
+    }
+
+    if (context.lhs && src[index].src === '.') {
+      index++;
+      const next = src[index];
+      if (
+        !tokenIncludes(next, context.followSet) &&
+        next?.type === 'identifier'
+      ) {
+        index++;
+        const key = string(next.src, { start: next.start, end: next.end });
+        return [
+          index,
+          _node(NodeType.INDEX, {
+            position: nodePosition(),
+            children: [key],
+          }),
+        ];
+      }
+      return [
+        index,
+        error(SystemError.invalidIndex(nodePosition()), nodePosition()),
+      ];
+    }
+
+    return [index, _node(NodeType.SEQUENCE)];
+  }
 
   if (!context.lhs && src[index].src === '|') {
     index++;
@@ -819,7 +847,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       });
 
     return parsePairGroup(
-      { ...context, skip: ['\n'] },
+      { ...context },
       ['[', ']'],
       parseExpr,
       node
@@ -830,7 +858,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     const node = (expr: Tree) =>
       _node(NodeType.PARENS, { position: nodePosition(), children: [expr] });
     return parsePairGroup(
-      { ...context, skip: ['\n'] },
+      { ...context },
       ['(', ')'],
       parseExpr,
       node
@@ -1027,7 +1055,7 @@ const parsePratt =
 
     while (src[index] && until()) {
       let [nextIndex, opGroup] = parsePrattGroup(
-        { ...context, skip: [...context.skip, '\n'], lhs: true },
+        { ...context, lhs: true },
         groupParser,
         getPrecedence
       )(src, index);
@@ -1053,6 +1081,8 @@ const parsePratt =
         lhs = postfix(opGroup, lhs);
         continue;
       }
+
+      if (opGroup.type === NodeType.SEQUENCE && !src[index]) break;
 
       let rhs: Tree;
       [index, rhs] = parsePratt(
@@ -1104,6 +1134,11 @@ const parsePratt =
     //   groupParser,
     //   lhs,
     // });
+
+    if (lhs.type === NodeType.SEQUENCE && lhs.children.length === 1) {
+      return [index, lhs.children[0]];
+    }
+
     return [index, lhs];
   };
 

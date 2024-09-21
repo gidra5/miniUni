@@ -1607,28 +1607,22 @@ exports[`advent of code 1 single file > split lines 1`] = `
                             {
                               "children": [
                                 {
-                                  "children": [
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "value": "line",
-                                      },
-                                      "type": "name",
-                                    },
-                                    {
-                                      "children": [],
-                                      "data": {
-                                        "value": "",
-                                      },
-                                      "type": "string",
-                                    },
-                                  ],
-                                  "data": {},
-                                  "type": "!=",
+                                  "children": [],
+                                  "data": {
+                                    "value": "line",
+                                  },
+                                  "type": "name",
+                                },
+                                {
+                                  "children": [],
+                                  "data": {
+                                    "value": "",
+                                  },
+                                  "type": "string",
                                 },
                               ],
                               "data": {},
-                              "type": "sequence",
+                              "type": "!=",
                             },
                           ],
                           "data": {
@@ -4944,6 +4938,28 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > empty switch 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "a",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "match",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > in function parameters 1`] = `
 {
   "children": [
@@ -6503,6 +6519,22 @@ exports[`expressions > structured programming > parens sequence 1`] = `
 }
 `;
 
+exports[`expressions > structured programming > semicolon at the end 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "value": 1,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > structured programming > sequence 1`] = `
 {
   "children": [
@@ -6724,6 +6756,189 @@ exports[`expressions > values > string 1`] = `
 }
 `;
 
+exports[`newline handling > block newline at the beginning 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "block",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > block newline at the end 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "block",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > block newline in the middle 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": ":=",
+            },
+          ],
+          "data": {},
+          "type": "sequence",
+        },
+      ],
+      "data": {},
+      "type": "block",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`newline handling > block semicolon newline 1`] = `
 {
   "children": [
@@ -6868,6 +7083,28 @@ exports[`newline handling > chaining 1`] = `
       ],
       "data": {},
       "type": "index",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > empty switch with newline 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "a",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "match",
     },
   ],
   "data": {},
@@ -7168,6 +7405,35 @@ exports[`newline handling > no parens 1`] = `
       ],
       "data": {},
       "type": "add",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > parallel 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 2,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "parallel",
     },
   ],
   "data": {},

@@ -46,25 +46,25 @@ describe('advent of code 1 single file', () => {
   it('split lines', () =>
     testCase(`
         lines := {
-          lines := split document "\\n";
-          lines = map lines (replace "\\w+" "");
-          lines = filter lines fn line do line != "";
+          lines := split document "\\n"
+          lines = map lines (replace "\\w+" "")
+          lines = filter lines fn line do line != ""
         }
       `));
 
   it('parse numbers', () =>
     testCase(`
         numbers := flat_map lines fn line {
-          digits := ();
+          digits := ()
   
           while line != "" {
             if match "\d" (char_at line 0) {
-              digit := number(char_at line 0);
-              if !digits[0] do digits[0] = digit;
-              digits[1] = digit;
-            };
-            (_, ...line) = line;
-          };
+              digit := number(char_at line 0)
+              if !digits[0] do digits[0] = digit
+              digits[1] = digit
+            }
+            (_, ...line) = line
+          }
   
           digits[0], digits[1] * 10
         }
@@ -85,15 +85,15 @@ describe('advent of code 1 single file', () => {
   it('reduce list', () =>
     testCase(`
         reduce := fn list, reducer, merge, initial {
-          len := length list;
-          if len == 0 do return initial;
+          len := length list
+          if len == 0 do return initial
         
-          midpoint := floor(len / 2);
-          item := list[midpoint];
+          midpoint := floor(len / 2)
+          item := list[midpoint]
           first, second := all(
             | (reduce slice(list, 0, midpoint) reducer merge initial)
             | (reduce slice(list, midpoint + 1) reducer merge initial)
-          );
+          )
         
           merge (reducer first item) second
         }
@@ -159,14 +159,7 @@ describe('expressions', () => {
   });
 
   describe('pattern matching', () => {
-    it('switch', () =>
-      testCase(`
-        switch a {
-          1 -> 2,
-          2 -> 3,
-          _ -> 4,
-        }
-      `));
+    it('switch', () => testCase(`switch a { 1 -> 2, 2 -> 3, _ -> 4 }`));
 
     it('in function parameters', () => testCase(`(x, y) -> x + y`));
     it('declare record pattern', () => testCase(`{ a, b } := handlers`));
@@ -193,11 +186,11 @@ describe('expressions', () => {
     it('complex 1', () =>
       testCase(`
         y := {
-          x := 25;
+          x := 25
           loop if x < 0 do break x else {
-            y := x;
-            x = x - 1;
-            if y == 19 do continue 69;
+            y := x
+            x = x - 1
+            if y == 19 do continue 69
             y
           }
         }
@@ -216,7 +209,7 @@ describe('expressions', () => {
     it('loop', () => testCase(`loop 123`));
     it('loop scope', () => testCase(`loop { x }`));
     it('labeled expression', () => testCase(`label::123`));
-    it.todo('semicolon at the end', () => testCase(`1;`));
+    it('semicolon at the end', () => testCase(`1;`));
 
     describe('statement forms', () => {
       it('immediate form', () => testCase(`if true do 123; 456`));
@@ -233,7 +226,7 @@ describe('expressions', () => {
     it('try receive with assignment', () => testCase(`status := <-?numbers`));
     it('parallel value', () => testCase(`123 | 456`));
     it('prefix parallel with code after', () =>
-      testCase(`| { };\nnumbers := channel()`));
+      testCase(`| { };numbers := channel()`));
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
     it('fork', () => testCase(`fork f x; y`));
     it('async', () => testCase(`async f x`));
@@ -265,11 +258,11 @@ describe('expressions', () => {
     it('complex', () =>
       testCase(`
         inject a: 1, b: 2 {
-          { a, b } := handlers;
+          { a, b } := handlers
           inject a: a+1, b: b+2 {
             mask "a" {
               without "b" {
-                { a } := handlers;
+                { a } := handlers
                 a + 1
               }
             }
@@ -296,6 +289,7 @@ describe('programs', () => {
 describe('newline handling', () => {
   it('for loop newline', () => testCase(`for x in 1, 2, 3 do\n x`));
   it('parallel parens', () => testCase(`(\n| 1\n| 2\n)`));
+  it('parallel', () => testCase(`| 1\n| 2`));
   it('chaining', () => testCase(`a\n.b`));
   it('parens', () => testCase(`(\n1 +\n2\n+ 3\n)`));
   it('no parens', () => testCase(`1 +\n2\n+ 3`));
@@ -307,13 +301,12 @@ describe('newline handling', () => {
   it('if-then newline-else', () => testCase(`if true do\n 123 else 456`));
   it('if-then newline-else newline', () =>
     testCase(`if true do\n 123 else\n 456`));
-  it.todo('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
-  it.todo('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
-  it.todo('block newline at the beginning', () =>
-    testCase(`{\n a := 1\n b := 2 }`)
-  );
+  it('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
+  it('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
+  it('block newline at the beginning', () => testCase(`{\n a := 1\n b := 2 }`));
   it('block semicolon newline', () => testCase(`{ a := 1;\n b := 2 }`));
   it('block semicolon newline at the end', () =>
     testCase(`{ a := 1;\n b := 2;\n }`));
   it('variable', () => testCase(`1\n`));
+  it('empty switch with newline', () => testCase(`switch a { \n }`));
 });
