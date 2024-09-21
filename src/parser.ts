@@ -135,6 +135,7 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
 
 type Context = {
   lhs: boolean;
+  allowPatternDefault: boolean;
   followSet: string[];
   banned: string[];
   skip: string[];
@@ -142,6 +143,7 @@ type Context = {
 
 const newContext = (): Context => ({
   lhs: false,
+  allowPatternDefault: false,
   followSet: [],
   banned: [],
   skip: [],
@@ -316,6 +318,14 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
 
+  // inspect({
+  //   tag: 'parsePatternGroup',
+  //   context,
+  //   head: src.slice(index, index + 10),
+  //   prev: src.slice(index - 10, index),
+  //   index,
+  // });
+
   if (!context.lhs && Object.hasOwn(idToPrefixPatternOp, src[index].src)) {
     const op = idToPrefixPatternOp[src[index].src];
     index++;
@@ -339,13 +349,23 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
       return node;
     };
 
-    return parsePairGroup(context, ['{', '}'], parsePattern, node)(src, index);
+    return parsePairGroup(
+      { ...context, allowPatternDefault: true },
+      ['{', '}'],
+      parsePattern,
+      node
+    )(src, index);
   }
 
   if (src[index].src === '(') {
     const node = (pattern: Tree) =>
       _node(NodeType.PARENS, { position: nodePosition(), children: [pattern] });
-    return parsePairGroup(context, ['(', ')'], parsePattern, node)(src, index);
+    return parsePairGroup(
+      { ...context, allowPatternDefault: true },
+      ['(', ')'],
+      parsePattern,
+      node
+    )(src, index);
   }
 
   if (src[index].src === '[') {
@@ -358,43 +378,51 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
     return parsePairGroup(context, ['[', ']'], parseExpr, node)(src, index);
   }
 
-  // if (context.lhs && src[index].src === '=') {
-  //   index++;
-  //   let value: Tree;
-  //   [index, value] = parseGroup()(src, index);
-  //   const node = _node(NodeType.ASSIGN, {
-  //     position: nodePosition(),
-  //     children: [value],
-  //   });
-  //   const precedence = getExprPrecedence(value);
-  //   if (precedence[0] !== null && precedence[1] !== null) {
-  //     return [
-  //       index,
-  //       error(SystemError.invalidDefaultPattern(nodePosition()), node),
-  //     ];
-  //   }
+  if (context.allowPatternDefault && context.lhs && src[index].src === '=') {
+    index++;
+    let value: Tree;
+    [index, value] = parsePrattGroup(
+      { ...context, lhs: false },
+      parseExprGroup,
+      getExprPrecedence
+    )(src, index);
+    const node = _node(NodeType.ASSIGN, {
+      position: nodePosition(),
+      children: [value],
+    });
+    const precedence = getExprPrecedence(value);
+    if (precedence[0] !== null || precedence[1] !== null) {
+      return [
+        index,
+        error(SystemError.invalidDefaultPattern(nodePosition()), node),
+      ];
+    }
 
-  //   return [index, node];
-  // }
+    return [index, node];
+  }
 
-  // if (!context.lhs && src[index].src === '^') {
-  //   index++;
-  //   let value: Tree;
-  //   [index, value] = parseExprGroup(context)(src, index);
-  //   const node = _node(NodeType.PIN, {
-  //     position: nodePosition(),
-  //     children: [value],
-  //   });
-  //   const precedence = getExprPrecedence(value);
-  //   if (precedence[0] !== null && precedence[1] !== null) {
-  //     return [
-  //       index,
-  //       error(SystemError.invalidPinPattern(nodePosition()), node),
-  //     ];
-  //   }
+  if (!context.lhs && src[index].src === '^') {
+    index++;
+    let value: Tree;
+    [index, value] = parsePrattGroup(
+      context,
+      parseExprGroup,
+      getExprPrecedence
+    )(src, index);
+    const node = _node(NodeType.PIN, {
+      position: nodePosition(),
+      children: [value],
+    });
+    const precedence = getExprPrecedence(value);
+    if (precedence[0] !== null && precedence[1] !== null) {
+      return [
+        index,
+        error(SystemError.invalidPinPattern(nodePosition()), node),
+      ];
+    }
 
-  //   return [index, node];
-  // }
+    return [index, node];
+  }
 
   return parseValue(src, i);
 };
@@ -751,6 +779,11 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     return [index, _node(op)];
   }
 
+  // if (context.lhs && src[index].type === 'newline') {
+  //   index++;
+  //   return [index, _node(NodeType.SEQUENCE)];
+  // }
+
   if (!context.lhs && src[index].src === '|') {
     index++;
     return parsePrattGroup(
@@ -982,18 +1015,18 @@ const parsePratt =
       )(src, index);
       const [left, right] = getPrecedence(opGroup);
       // if (groupParser === parseExprGroup)
-      //   inspect({
-      //     tag: 'parsePratt 2',
-      //     context,
-      //     precedence,
-      //     head: src.slice(nextIndex, nextIndex + 10),
-      //     prev: src.slice(nextIndex - 10, nextIndex),
-      //     nextIndex,
-      //     groupParser,
-      //     opGroup,
-      //     op_precedences: [left, right],
-      //     lhs,
-      //   });
+      // inspect({
+      //   tag: 'parsePratt 2',
+      //   context,
+      //   precedence,
+      //   head: src.slice(nextIndex, nextIndex + 10),
+      //   prev: src.slice(nextIndex - 10, nextIndex),
+      //   nextIndex,
+      //   groupParser,
+      //   opGroup,
+      //   op_precedences: [left, right],
+      //   lhs,
+      // });
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -1043,16 +1076,16 @@ const parsePratt =
     }
 
     // if (groupParser === parseExprGroup)
-    //   inspect({
-    //     tag: 'parsePratt 3',
-    //     context,
-    //     precedence,
-    //     head: src.slice(index, index + 10),
-    //     prev: src.slice(index - 10, index),
-    //     index,
-    //     groupParser,
-    //     lhs,
-    //   });
+    // inspect({
+    //   tag: 'parsePratt 3',
+    //   context,
+    //   precedence,
+    //   head: src.slice(index, index + 10),
+    //   prev: src.slice(index - 10, index),
+    //   index,
+    //   groupParser,
+    //   lhs,
+    // });
     return [index, lhs];
   };
 
@@ -1060,7 +1093,7 @@ const parseExpr =
   (context: Context): Parser<ExpressionNode> =>
   (src, i) => {
     return parsePratt(
-      context,
+      { ...context, allowPatternDefault: false },
       parseExprGroup,
       getExprPrecedence,
       0
@@ -1125,3 +1158,84 @@ export const parseModule = (src: TokenPos[]) => {
   if (lastExport) return module([...children, lastExport]);
   return module(children);
 };
+
+if (import.meta.vitest) {
+  const { expect } = import.meta.vitest;
+  const { it, fc } = await import('@fast-check/vitest');
+  const { parseTokens } = await import('../src/tokens.js');
+  const { tokenArbitrary, tokenListArbitrary } = await import(
+    '../src/testing.js'
+  );
+  const zeroPos = { start: 0, end: 0 };
+  const arb1 = fc.oneof(
+    fc.constant(['(', ')']),
+    fc.constant(['[', ']']),
+    fc.constant(['{', '}'])
+  );
+
+  it.prop([fc.array(tokenArbitrary)])(
+    'module parsing never throws',
+    (tokens) => {
+      try {
+        parseModule(tokens.map((t) => ({ ...t, ...zeroPos })));
+      } catch (e) {
+        const msg = e instanceof Error ? e.stack : e;
+        expect.unreachable(msg as string);
+      }
+    }
+  );
+
+  it.prop([fc.array(tokenArbitrary)])(
+    'script parsing never throws',
+    (tokens) => {
+      try {
+        parseScript(tokens.map((t) => ({ ...t, ...zeroPos })));
+      } catch (e) {
+        const msg = e instanceof Error ? e.stack : e;
+        expect.unreachable(msg as string);
+      }
+    }
+  );
+
+  const arb2 = arb1.chain(([open, close]) =>
+    tokenListArbitrary
+      .filter(
+        (tokens) => !tokens.some((t) => t.src !== open && t.src !== close)
+      )
+      .map((tokens) => [
+        { type: 'identifier', src: open },
+        ...tokens,
+        { type: 'identifier', src: close },
+      ])
+  );
+
+  it.only.prop([arb2])(
+    'pattern parsing always bound by paired tokens',
+    (tokens) => {
+      const patternType =
+        tokens[0].src === '['
+          ? NodeType.SQUARE_BRACKETS
+          : tokens[0].src === '{'
+          ? NodeType.RECORD
+          : NodeType.PARENS;
+
+      tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
+      let ast = parsePattern(newContext())(tokens as TokenPos[], 0)[1];
+      expect(ast).toMatchObject({ type: patternType });
+    }
+  );
+
+  it.prop([arb2])('expr parsing always bound by paired tokens', (tokens) => {
+    const exprType =
+      tokens[0].src === '('
+        ? NodeType.PARENS
+        : tokens[0].src === '{'
+        ? NodeType.BLOCK
+        : NodeType.SQUARE_BRACKETS;
+
+    tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
+
+    let ast = parseExpr(newContext())(tokens as TokenPos[], 0)[1];
+    expect(ast).toMatchObject({ type: exprType });
+  });
+}

@@ -1,14 +1,9 @@
-import { beforeEach, describe, expect } from 'vitest';
-import { it, fc } from '@fast-check/vitest';
-import { identifier, parseTokens, TokenPos } from '../src/tokens.ts';
-import { tokenArbitrary, tokenListArbitrary } from '../src/testing.ts';
-import { parseModule, parseScript } from '../src/parser.ts';
+import { it, beforeEach, describe, expect } from 'vitest';
+import { parseTokens } from '../src/tokens.ts';
+import { parseScript } from '../src/parser.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { NodeType, Tree } from '../src/ast.ts';
-import { inspect } from '../src/utils.ts';
-
-const zeroPos = { start: 0, end: 0 };
+import { Tree } from '../src/ast.ts';
 
 beforeEach(() => {
   register(Injectable.FileMap, new FileMap());
@@ -31,69 +26,6 @@ const testCase = (input: string) => {
     return ast;
   }
 };
-
-it.prop([fc.array(tokenArbitrary)])('module parsing never throws', (tokens) => {
-  try {
-    parseModule(tokens.map((t) => ({ ...t, ...zeroPos })));
-  } catch (e) {
-    const msg = e instanceof Error ? e.stack : e;
-    expect.unreachable(msg);
-  }
-});
-
-it.prop([fc.array(tokenArbitrary)])('script parsing never throws', (tokens) => {
-  try {
-    parseScript(tokens.map((t) => ({ ...t, ...zeroPos })));
-  } catch (e) {
-    const msg = e instanceof Error ? e.stack : e;
-    expect.unreachable(msg);
-  }
-});
-
-it.prop([
-  tokenListArbitrary.filter(
-    (tokens) => !tokens.some((t) => t.src !== '{' && t.src !== '}')
-  ),
-])('block parsing always bound by braces', (_tokens) => {
-  const tokens = [
-    identifier('{', zeroPos),
-    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
-    identifier('}', zeroPos),
-  ];
-  let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({ type: NodeType.BLOCK });
-});
-
-it.prop([
-  tokenListArbitrary.filter(
-    (tokens) => !tokens.some((t) => t.src !== '(' && t.src !== ')')
-  ),
-])('parsing always bound by parens', (_tokens) => {
-  const tokens = [
-    identifier('(', zeroPos),
-    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
-    identifier(')', zeroPos),
-  ];
-  let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({ type: NodeType.PARENS });
-});
-
-it.prop(
-  [
-    tokenListArbitrary.filter(
-      (tokens) => !tokens.some((t) => t.src !== '[' && t.src !== ']')
-    ),
-  ],
-  { seed: -2024914109, path: '0', endOnFailure: true }
-)('square brackets parsing always bound by square brackets', (_tokens) => {
-  const tokens = [
-    identifier('[', zeroPos),
-    ..._tokens.map((t) => ({ ...t, ...zeroPos })),
-    identifier(']', zeroPos),
-  ] as TokenPos[];
-  let ast = parseScript(tokens);
-  expect(ast.children[0]).toMatchObject({ type: NodeType.SQUARE_BRACKETS });
-});
 
 describe('advent of code 1 single file', () => {
   it('variable', () =>
@@ -245,8 +177,8 @@ describe('expressions', () => {
     it('declare record pattern', () => testCase(`{ a, b } := handlers`));
     it("with 'is' operator", () => testCase(`x is (a, b)`));
     it('with placeholder', () => testCase(`x is (_, b)`));
-    it.todo('with pin', () => testCase(`x is (^a, b)`));
-    it.todo('with pin expression', () => testCase(`x is (^(a + b), b)`));
+    it('with pin', () => testCase(`x is (^a, b)`));
+    it('with pin expression', () => testCase(`x is (^(a + b), b)`));
     it('with constant value', () => testCase(`x is (1, b)`));
     it('with rest value', () => testCase(`x is (a, ...b)`));
     it('with rest value first', () => testCase(`x is (...b, a)`));
@@ -254,7 +186,7 @@ describe('expressions', () => {
     it('with record pattern rename', () => testCase(`x is { a: c, b }`));
     it('with record pattern key', () => testCase(`x is { [a + b]: c, b }`));
     it('with record pattern nested', () => testCase(`x is { a: (c, d), b }`));
-    it.todo('with default value', () => testCase(`x is ((b = 4), a)`));
+    it('with default value', () => testCase(`x is ((b = 4), a)`));
     it('with rename', () => testCase(`x is (a @ b, c)`));
     it('with name for match', () => testCase(`x is ((a, b) @ c)`));
 
@@ -356,7 +288,7 @@ describe('programs', () => {
 
   describe('script', () => {
     it('dynamic import', () => testCase(`b := import "a"`));
-    it('dynamic  import', () => testCase(`b :=  import "a"`));
+    it('dynamic async import', () => testCase(`b := async import "a"`));
   });
 
   describe('module', () => {

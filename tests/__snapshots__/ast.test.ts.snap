@@ -5181,6 +5181,73 @@ exports[`expressions > pattern matching > with constant value 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > with default value 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": "b",
+                          },
+                          "type": "name",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 4,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {},
+                      "type": "=",
+                    },
+                  ],
+                  "data": {},
+                  "type": "parens",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > with name for match 1`] = `
 {
   "children": [
@@ -5233,6 +5300,133 @@ exports[`expressions > pattern matching > with name for match 1`] = `
               ],
               "data": {},
               "type": "@",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with pin 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "a",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "type": "pin",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with pin expression 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "a",
+                              },
+                              "type": "name",
+                            },
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "b",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {},
+                          "type": "add",
+                        },
+                      ],
+                      "data": {},
+                      "type": "parens",
+                    },
+                  ],
+                  "data": {},
+                  "type": "pin",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": ",",
             },
           ],
           "data": {},
@@ -7176,7 +7370,7 @@ exports[`programs > module > export default 1`] = `
 }
 `;
 
-exports[`programs > script > dynamic  import 1`] = `
+exports[`programs > script > dynamic async import 1`] = `
 {
   "children": [
     {
@@ -7189,11 +7383,17 @@ exports[`programs > script > dynamic  import 1`] = `
           "type": "name",
         },
         {
-          "children": [],
-          "data": {
-            "name": "a",
-          },
-          "type": "import",
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "name": "a",
+              },
+              "type": "import",
+            },
+          ],
+          "data": {},
+          "type": "async",
         },
       ],
       "data": {},
