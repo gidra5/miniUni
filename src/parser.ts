@@ -591,7 +591,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
-      banned: ['in', ':', '\n', '{'],
+      banned: ['in', 'do', '->', '{'],
     })(src, index);
 
     const hasInKeyword = src[index]?.src === 'in';
