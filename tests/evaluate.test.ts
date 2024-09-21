@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
-import { assert } from '../src/utils.ts';
+import { assert, inspect } from '../src/utils.ts';
 import { atom, EvalValue, fn, isChannel, isSymbol } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
@@ -104,18 +104,19 @@ describe('advent of code 2023 day 1 single', () => {
       }),
     };
     const input = `
-        import "std/string" as { char_at, match, slice };
+        import "std/string" as { char_at, match, slice }
+
         numbers := flat_map lines fn line {
-          digits := ();
+          digits := ()
           while line != "" {
             if match "\\\\d" (char_at line 0) {
-              digit := number (char_at line 0);
-              if !digits[0]: digits[0] = digit;
-              digits[1] = digit;
-            };
-            line = slice line (1,);
-          };
-          digits[0] * 10, digits[1];
+              digit := number (char_at line 0)
+              if !digits[0] do digits[0] = digit
+              digits[1] = digit
+            }
+            line = slice line (1,)
+          }
+          digits[0] * 10, digits[1]
         }
       `;
     const result = await evaluate(input, env);
@@ -134,20 +135,20 @@ describe('advent of code 2023 day 1 single', () => {
 
   it('reduce list', async () => {
     const input = `
-        import "std/concurrency" as { all };
-        import "std/math" as { floor };
-        import "std/string" as { slice };
+        import "std/concurrency" as { all }
+        import "std/math" as { floor }
+        import "std/string" as { slice }
   
         reduce := fn list, reducer, merge, initial {
-          len := length list;
-          if len == 0: return initial;
-  
-          midpoint := floor(len / 2);
-          item := list[midpoint];
+          len := length list
+          if len == 0 do return initial
+
+          midpoint := floor(len / 2)
+          item := list[midpoint]
           first, second := all(
             | (self (slice list (0, midpoint)) reducer merge initial)
             | (self (slice list (midpoint + 1,)) reducer merge initial)
-          );
+          )
   
           merge (reducer first item) second
         };
@@ -160,11 +161,11 @@ describe('advent of code 2023 day 1 single', () => {
 
   it('filter list impl', async () => {
     const input = `
-        predicate := true;
-        first := ();
-        item := 1;
-        acc := ();
-        if predicate: (...first, item) else acc
+        predicate := true
+        first := ()
+        item := 1
+        acc := ()
+        if predicate do (...first, item) else acc
       `;
     const result = await evaluate(input);
     expect(result).toStrictEqual([1]);
@@ -194,10 +195,8 @@ describe('scope', () => {
 
   it('fn concurrent', async () => {
     const input = `
-        import "std/concurrency" as { all };
-  
-        x := fn (a, b) -> a + b;
-  
+        import "std/concurrency" as { all }
+        x := fn (a, b) do a + b
         all(x(1, 2) | x(3, 4))
       `;
     const result = await evaluate(input);
@@ -314,10 +313,21 @@ describe('expressions', () => {
     });
   });
 
-  it('arithmetics', async () => {
-    const input = '1 + 2^-3 * 4 - 5 / 6 % 7';
-    const result = await evaluate(input);
-    expect(result).toBe(2 / 3);
+  describe('arithmetics', () => {
+    it('order of application', async () => {
+      const input = '1 + 2^-3 * 4 - 5 / 6 % 7';
+      const result = await evaluate(input);
+      expect(result).toBe(2 / 3);
+    });
+
+    it('post increment', async () => {
+      const input = `
+        x := 0
+        x++, x        
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual([0, 1]);
+    });
   });
 
   describe('boolean expressions', () => {
@@ -423,12 +433,13 @@ describe('expressions', () => {
   describe('function expressions', () => {
     it('fn increment', async () => {
       const input = `
-        line_handled_count := 0;
-        inc := fn -> line_handled_count++;
+        line_handled_count := 0
+        inc := fn do line_handled_count++
         inc()
+        line_handled_count
       `;
       const result = await evaluate(input);
-      expect(result).toBe(0);
+      expect(result).toBe(1);
     });
 
     it('immediately invoked function expression (iife)', async () => {
@@ -555,19 +566,19 @@ describe('expressions', () => {
     });
 
     it('if-then', async () => {
-      const input = `if true: 123`;
+      const input = `if true do 123`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
     it('if-then-else', async () => {
-      const input = `if true: 123 else 456`;
+      const input = `if true do 123 else 456`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
     it('if-then-elseif-then-else', async () => {
-      const input = `if true: 123 else if false: 789 else 456`;
+      const input = `if true do 123 else if false do 789 else 456`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
@@ -770,78 +781,43 @@ describe('expressions', () => {
 
     it('evaluate channels sync', async () => {
       const input = `
-          lines := channel "lines";
+          lines := channel "lines"
     
-          | {
-            lines <- "1";
+          fork {
+            lines <- "1"
             close lines
-          };
+          }
     
           while true {
-            value, status := <-?lines;
-            if status == (:empty): continue();
-            if status == (:closed): break();
+            value, status := <-? lines
+            if status == :empty do continue()
+            if status == :closed do break()
             value
           }
         `;
       const result = await evaluate(input);
       expect(result).toStrictEqual([]);
-      const input2 = `
-          lines := channel "lines";
-    
-          async {
-            lines <- "1";
-            close lines
-          };
-    
-          while true {
-            value, status := <-?lines;
-            if status == (:empty): continue();
-            if status == (:closed): break();
-            value
-          }
-        `;
-      const result2 = await evaluate(input2);
-      expect(result2).toStrictEqual([]);
     });
 
     it('evaluate channels sync 2', async () => {
       const input = `
-          lines := channel "lines";
+          lines := channel "lines"
     
-          | {
-            lines <- "1";
-            lines <- "2";
+          fork {
+            lines <- "1"
+            lines <- "2"
             close lines
           };
     
           while true {
-            value, status := <-?lines;
-            if status == (:empty): continue();
-            if status == (:closed): break();
+            value, status := <-?lines
+            if status == :empty do continue()
+            if status == :closed do break()
             value
           }
         `;
       const result = await evaluate(input);
       expect(result).toStrictEqual([]);
-      const input2 = `
-          lines := channel "lines";
-    
-          async {
-            lines <- "1";
-            lines <- "2";
-            close lines
-          };
-    
-          while true {
-            value, status := <-?lines;
-            if status == (:empty): continue();
-            if status == (:closed): break();
-            value
-          }
-        `;
-      const result2 = await evaluate(input2);
-      expect(result2).toStrictEqual([]);
     });
 
     it.todo('channel send', async () => {
@@ -1061,22 +1037,13 @@ describe('expressions', () => {
         f := fn {
           { a, b } := injected;
           a + b
-        };
-        
-        inject a: 1, b: 2 {
-          x1 := f();
-          x2 := async {
-            inject a: 3 {
-              f()
-            }
-          };
-          x3 := async {
-            inject a: 5, b: 4 {
-              f()
-            }
-          };
-          x1, await x2, await x3
         }
+        
+        inject a: 1, b: 2 ->
+        x1 := f()
+        x2 := fork { inject a: 3       do f() }
+        x3 := fork { inject a: 5, b: 4 do f() }
+        x1, await x2, await x3
       `;
       const result = await evaluate(input);
       expect(result).toEqual([3, 5, 9]);

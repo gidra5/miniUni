@@ -28,6 +28,7 @@ import {
 } from './utils.js';
 import {
   atom,
+  awaitTask,
   createTask,
   EvalFunction,
   EvalValue,
@@ -35,6 +36,7 @@ import {
   isChannel,
   isRecord,
   isSymbol,
+  isTask,
   receive,
   send,
   tryReceive,
@@ -647,6 +649,10 @@ const operators = {
     // assert(typeof arg === 'boolean', 'expected boolean');
     return !arg;
   },
+  [NodeType.AWAIT]: async (task: EvalValue) => {
+    assert(isTask(task), 'expected task');
+    return await awaitTask(task);
+  },
 };
 
 const lazyOperators = {
@@ -690,11 +696,6 @@ const lazyOperators = {
   [NodeType.SQUARE_BRACKETS]: async ([arg]: Tree[], context: Context) => {
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
-  },
-
-  [NodeType.ATOM]: async ([name]: Tree[]) => {
-    assert(name.type === NodeType.NAME, 'expected name');
-    return atom(name.data.value);
   },
 
   [NodeType.INJECT]: async ([expr, body]: Tree[], context: Context) => {
@@ -754,7 +755,18 @@ const lazyOperators = {
     [condition, trueBranch, falseBranch]: Tree[],
     context: Context
   ) => {
+    // inspect({
+    //   tag: 'evaluateExpr if else 1',
+    //   condition,
+    //   context,
+    // });
     const result = await evaluateExpr(condition, context);
+    // inspect({
+    //   tag: 'evaluateExpr if else 2',
+    //   result,
+    //   condition,
+    //   context,
+    // });
     if (result) return await evaluateBlock(trueBranch, context);
     else return await evaluateBlock(falseBranch, context);
   },
@@ -938,9 +950,22 @@ const lazyOperators = {
 
     if (Object.keys(record).length > 0) {
       Object.assign(record, list);
+      // inspect({
+      //   tag: 'evaluateExpr tuple record',
+      //   record,
+      //   children,
+      //   context,
+      // });
+
       return { record };
     }
 
+    // inspect({
+    //   tag: 'evaluateExpr tuple list',
+    //   list,
+    //   children,
+    //   context,
+    // });
     return list;
   },
   [NodeType.INDEX]: async ([_target, _index]: Tree[], context: Context) => {
@@ -1165,6 +1190,10 @@ export const evaluateStatement = async (
       );
     }
 
+    case NodeType.ATOM: {
+      return atom(ast.data.name);
+    }
+
     case NodeType.NAME:
       const name = ast.data.value;
       if (name === 'true') return true;
@@ -1208,6 +1237,12 @@ export const evaluateExpr = async (
   context: Context
 ): Promise<Exclude<EvalValue, null>> => {
   const result = await evaluateStatement(ast, context);
+  // inspect({
+  //   tag: 'evaluateExpr',
+  //   result,
+  //   ast,
+  //   context,
+  // });
   assert(
     result !== null,
     SystemError.evaluationError(
