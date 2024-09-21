@@ -48,6 +48,7 @@ import path from 'path';
 export type Context = {
   file: string;
   fileId: number;
+  readonly: Record<string, EvalValue>;
   env: Record<string, EvalValue>;
   handlers: Record<string | symbol, EvalValue>;
 };
@@ -101,7 +102,160 @@ const omitHandlers = (
 };
 
 export const newContext = (fileId: number, file: string): Context => {
-  return { file, fileId, env: forkEnv(prelude), handlers: {} };
+  return {
+    file,
+    fileId,
+    readonly: forkEnv(prelude),
+    env: forkEnv(prelude),
+    handlers: {},
+  };
+};
+
+type PatternTestResult = {
+  matched: boolean;
+  env: Context['env'];
+  readonly: Context['readonly'];
+};
+
+const testPattern = async (
+  patternAst: Tree,
+  value: EvalValue,
+  context: Context,
+  mutable = false
+): Promise<PatternTestResult> => {
+  const env = {};
+  const readonly = {};
+
+  if (patternAst.type === NodeType.PLACEHOLDER) {
+    return { matched: true, env, readonly };
+  }
+  if (patternAst.type === NodeType.IMPLICIT_PLACEHOLDER) {
+    return { matched: true, env, readonly };
+  }
+
+  if (patternAst.type === NodeType.PARENS) {
+    return await testPattern(patternAst.children[0], value, context, mutable);
+  }
+
+  if (patternAst.type === NodeType.NUMBER) {
+    if (typeof value !== 'number') return { matched: false, env, readonly };
+    return { matched: value === patternAst.data.value, env, readonly };
+  }
+
+  if (patternAst.type === NodeType.STRING) {
+    if (typeof value !== 'string') return { matched: false, env, readonly };
+    return { matched: value === patternAst.data.value, env, readonly };
+  }
+
+  if (patternAst.type === NodeType.ATOM) {
+    if (!isSymbol(value)) return { matched: false, env, readonly };
+    return {
+      matched: value.symbol === atom(patternAst.data.name).symbol,
+      env,
+      readonly,
+    };
+  }
+
+  if (patternAst.type === NodeType.TUPLE) {
+    if (!Array.isArray(value)) return { matched: false, env, readonly };
+
+    const patterns = patternAst.children;
+    let consumed = 0;
+    for (const pattern of patterns) {
+      if (pattern.type === NodeType.SPREAD) {
+        const start = consumed++;
+        consumed = value.length - patterns.length + consumed;
+        const rest = value.slice(start, Math.max(start, consumed));
+        const result = await testPattern(
+          pattern.children[0],
+          rest,
+          context,
+          mutable
+        );
+        Object.assign(env, result.env);
+        Object.assign(readonly, result.readonly);
+        continue;
+      } else {
+        const v = value[consumed++];
+        const result = await testPattern(pattern, v, context, mutable);
+        Object.assign(env, result.env);
+        Object.assign(readonly, result.readonly);
+        if (!result.matched) return { matched: false, env, readonly };
+        continue;
+      }
+    }
+
+    return { matched: true, env, readonly };
+  }
+
+  if (patternAst.type === NodeType.RECORD) {
+    if (!isRecord(value)) return { matched: false, env, readonly };
+
+    const record = value.record;
+    const patterns = patternAst.children;
+    const consumedNames: string[] = [];
+
+    for (const pattern of patterns) {
+      if (pattern.type === NodeType.NAME) {
+        const name = pattern.data.value;
+        const value = record[name] ?? null;
+        if (value === null) return { matched: false, env, readonly };
+        if (mutable) env[name] = value;
+        else readonly[name] = value;
+        consumedNames.push(name);
+        continue;
+      } else if (pattern.type === NodeType.LABEL) {
+        const [key, valuePattern] = pattern.children;
+        const name = key.data.value;
+        const value = record[name] ?? null;
+        if (value === null) return { matched: false, env, readonly };
+        consumedNames.push(name);
+        const result = await testPattern(valuePattern, value, context, mutable);
+        Object.assign(env, result.env);
+        Object.assign(readonly, result.readonly);
+        if (!result.matched) return { matched: false, env, readonly };
+        continue;
+      } else if (pattern.type === NodeType.SPREAD) {
+        const rest = omit(record, consumedNames);
+        const result = await testPattern(
+          pattern.children[0],
+          { record: rest },
+          context,
+          mutable
+        );
+        Object.assign(env, result.env);
+        Object.assign(readonly, result.readonly);
+        if (!result.matched) return { matched: false, env, readonly };
+        continue;
+      }
+
+      unreachable(
+        SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
+          context.fileId
+        )
+      );
+    }
+
+    return { matched: true, env, readonly };
+  }
+
+  if (patternAst.type === NodeType.NAME) {
+    const name = patternAst.data.value;
+    if (value !== null && mutable) env[name] = value;
+    if (value !== null && !mutable) readonly[name] = value;
+    return { matched: true, env, readonly };
+  }
+  if (patternAst.type === NodeType.MUTABLE) {
+    return await testPattern(patternAst.children[0], value, context, true);
+  }
+
+  // inspect(patternAst);
+
+  unreachable(
+    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
+      context.fileId
+    )
+  );
 };
 
 const incAssign = async (
@@ -646,12 +800,25 @@ const operators = {
     return !operators[NodeType.LESS](left, right);
   },
   [NodeType.NOT]: (arg: EvalValue) => {
-    // assert(typeof arg === 'boolean', 'expected boolean');
+    assert(typeof arg === 'boolean', 'expected boolean');
     return !arg;
   },
   [NodeType.AWAIT]: async (task: EvalValue) => {
     assert(isTask(task), 'expected task');
     return await awaitTask(task);
+  },
+  [NodeType.IN]: (key: EvalValue, value: EvalValue) => {
+    if (Array.isArray(value) && typeof key === 'number') {
+      const v = value[key];
+      return v !== null && v !== undefined;
+    }
+    if (isRecord(value) && isSymbol(key)) {
+      return key.symbol in value.record;
+    }
+    if (isRecord(value) && typeof key === 'string') {
+      return key in value.record;
+    }
+    unreachable('expected record or tuple');
   },
 };
 
@@ -731,6 +898,11 @@ const lazyOperators = {
     return await evaluateBlock(body, { ...context, handlers });
   },
 
+  [NodeType.IS]: async ([value, pattern]: Tree[], context: Context) => {
+    const v = await evaluateExpr(value, context);
+    const result = await testPattern(pattern, v, context);
+    return result.matched;
+  },
   [NodeType.MATCH]: async ([expr, ...branches]: Tree[], context: Context) => {
     const value = await evaluateExpr(expr, context);
 
@@ -738,8 +910,14 @@ const lazyOperators = {
       assert(branch.type === NodeType.MATCH_CASE, 'expected match case');
       const [pattern, body] = branch.children;
 
-      const bound = await bind(pattern, value, context).catch();
-      if (bound) return await evaluateBlock(body, bound);
+      const result = await testPattern(pattern, value, context);
+      if (result.matched) {
+        const env = forkEnv(context.env);
+        Object.assign(env, result.env);
+        const readonly = forkEnv(context.readonly);
+        Object.assign(readonly, result.readonly);
+        return await evaluateBlock(body, { ...context, env, readonly });
+      }
     }
 
     return null;

@@ -111,7 +111,7 @@ describe('advent of code 2023 day 1 single', () => {
           while line != "" {
             if match "\\\\d" (char_at line 0) {
               digit := number (char_at line 0)
-              if !digits[0] do digits[0] = digit
+              if !(0 in digits) do digits[0] = digit
               digits[1] = digit
             }
             line = slice line (1,)
@@ -331,10 +331,9 @@ describe('expressions', () => {
   });
 
   describe('boolean expressions', () => {
-    it.todo('not on not boolean', async () => {
+    it('not on not boolean', async () => {
       const input = `!123`;
-      const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(async () => await evaluate(input)).rejects.toThrow();
     });
 
     it('not on boolean', async () => {
@@ -367,14 +366,26 @@ describe('expressions', () => {
       expect(result).toBe(true);
     });
 
-    it.todo('in finds existing key', async () => {
-      const input = `:key in (key: 1, key2: 2)`;
+    it('in finds existing key', async () => {
+      const input = `"key" in (key: 1, key2: 2)`;
       const result = await evaluate(input);
       expect(result).toBe(true);
     });
 
-    it.todo('in not finds not existing key', async () => {
-      const input = `:key3 in (key: 1, key2: 2)`;
+    it('in not finds not existing key', async () => {
+      const input = `"key3" in (key: 1, key2: 2)`;
+      const result = await evaluate(input);
+      expect(result).toBe(false);
+    });
+
+    it('in finds index holds value in tuple', async () => {
+      const input = `1 in (1, 2)`;
+      const result = await evaluate(input);
+      expect(result).toBe(true);
+    });
+
+    it('in finds index not holds value in tuple', async () => {
+      const input = `5 in (1, 2)`;
       const result = await evaluate(input);
       expect(result).toBe(false);
     });
@@ -472,70 +483,96 @@ describe('expressions', () => {
       expect(result).toEqual([1, 2]);
     });
 
-    it.todo('switch', async () => {
+    it('switch', async () => {
       const input = `switch 1 { 1 -> 2, 3 -> 4 }`;
       const result = await evaluate(input);
       expect(result).toBe(2);
     });
 
-    it.todo('in function parameters', async () => {
-      const input = `(x, y) -> x + y`;
+    it('in function parameters', async () => {
+      const input = `((x, y) -> x + y)(1, 2)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(3);
     });
 
-    it.todo("with 'is' operator", async () => {
-      const input = `x is (a, b)`;
+    it("with 'is' operator", async () => {
+      const input = `1 is x`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
-    it.todo('with placeholder', async () => {
-      const input = `x is (_, b)`;
+    it('with record pattern', async () => {
+      expect(await evaluate(`(a: 1, b: 2) is { a, b }`)).toBe(true);
+      expect(await evaluate(`(a: 1, b: 2) is { a, b, c }`)).toBe(false);
+      expect(await evaluate(`(a: 1, b: 2) is { a }`)).toBe(true);
+      expect(await evaluate(`1 is { a }`)).toBe(false);
+    });
+
+    it('with record pattern rename', async () => {
+      expect(await evaluate(`(a: 1, b: 2) is { a: c, b }`)).toBe(true);
+      expect(await evaluate(`(a: 1, b: 2) is { c: a, d: b }`)).toBe(false);
+      expect(await evaluate(`(a: 1, b: 2) is { a: 1 }`)).toBe(true);
+    });
+    it('with record pattern nested', async () => {
+      expect(await evaluate(`(a: (1, 2), b: 2) is { a: (c, d) }`)).toBe(true);
+      expect(await evaluate(`(a: (1, 2), b: 2) is { a: { b } }`)).toBe(false);
+    });
+    it.todo('with record pattern key', async () => {
+      expect(await evaluate(`3: 1, b: 2 is { [1 + 2]: c, b }`)).toBe(true);
+      expect(await evaluate(`3: 1, b: 2 is { [1 + 1]: c, d }`)).toBe(false);
+    });
+
+    it('with constant value', async () => {
+      expect(await evaluate(`1 is 1`)).toBe(true);
+      expect(await evaluate(`1 is 2`)).toBe(false);
+    });
+
+    it('with placeholder', async () => {
+      const input = `1 is _`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
     it.todo('with variable value', async () => {
       const input = `x is (^a, b)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
-    it.todo('with rest value', async () => {
-      const input = `x is (a, ...b)`;
+    it('with rest value', async () => {
+      const input = `(1, 2, 3) is (a, ...b)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
-    it.todo('with rest value first', async () => {
-      const input = `x is (...b, a)`;
+    it('with rest value first', async () => {
+      const input = `(1, 2, 3) is (...b, a)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
     it.todo('with default value', async () => {
       const input = `x is ((b = 4), a)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
     it.todo('with rename', async () => {
       const input = `x is (a @ b, c)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
     it.todo('with name for match', async () => {
       const input = `x is ((a, b) @ c)`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
 
     it.todo('binding visible in scope where it is true', async () => {
       const input = `x is (a, b) and a == b + 1`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(true);
     });
   });
 
@@ -550,12 +587,12 @@ describe('expressions', () => {
       const input = `y := (
         x := 25 
         res := () 
-        loop::{ 
-          if x <= 0: (res = ...res, x; loop.break)
+        block::{ 
+          if x <= 0: (res = ...res, x; block.break)
           else {
             y := x
             x = x - 1
-            if y == 19: (res = ...res, 69; loop.continue)
+            if y == 19: (res = ...res, 69; block.continue)
             res = ...res, y
           }
         }
@@ -589,62 +626,62 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it.todo('sequencing', async () => {
+    it('sequencing', async () => {
       const input = `123; 234; 345; 456`;
       const result = await evaluate(input);
       expect(result).toBe(456);
     });
 
-    it.todo('for loop', async () => {
-      const input = `for x in (1, 2, 3): x`;
+    it('for loop', async () => {
+      const input = `for x in (1, 2, 3) do x`;
       const result = await evaluate(input);
-      expect(result).toBe([1, 2, 3]);
+      expect(result).toEqual([1, 2, 3]);
     });
 
-    it.todo('for loop map', async () => {
-      const input = `for x in (1, 2, 3): x+1`;
+    it('for loop map', async () => {
+      const input = `for x in (1, 2, 3) do x+1`;
       const result = await evaluate(input);
-      expect(result).toBe([2, 3, 4]);
+      expect(result).toEqual([2, 3, 4]);
     });
 
-    it.todo('for loop filter', async () => {
-      const input = `for x in (1, 2, 3): if x > 1: x+1`;
+    it('for loop filter', async () => {
+      const input = `for x in (1, 2, 3) do if x > 1 do x + 1`;
       const result = await evaluate(input);
-      expect(result).toBe([3, 4]);
+      expect(result).toEqual([3, 4]);
     });
 
     it.todo('while loop', async () => {
-      const input = `while true: 123`;
+      const input = `while true do 123`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
-    it.todo('while loop break', async () => {
-      const input = `while true: break()`;
+    it('while loop break', async () => {
+      const input = `while true do break _`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(null);
     });
 
-    it.todo('while loop break value', async () => {
-      const input = `while true: break 1`;
+    it('while loop break value', async () => {
+      const input = `while true do break 1`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(1);
     });
 
     it.todo('while loop continue', async () => {
-      const input = `while true: continue _`;
+      const input = `while true do continue _`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
     it.todo('while loop continue value', async () => {
-      const input = `while true: continue 1`;
+      const input = `while true do continue 1`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
     it('return', async () => {
-      const input = `(() -> { return 123; 456 }) ()`;
+      const input = `(() -> { return 123; 456 })()`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
@@ -668,7 +705,7 @@ describe('expressions', () => {
     });
 
     describe('error handling', () => {
-      it.todo('try', async () => {
+      it.todo('try throw', async () => {
         const input = `
           f := fn {
             throw 123
@@ -729,22 +766,20 @@ describe('expressions', () => {
       });
     });
 
-    describe('resource handling', () => {
-      it.todo('with resource', async () => {
-        const input = `
+    it.todo('resource handling', async () => {
+      const input = `
           import "std/io" as { open };
           import "std/concurrency" as concurrency;
 
           {
-            with open "file.txt" as file:
+            open "file.txt" fn file ->
             file.write("hello")
           }
 
           123
         `;
-        const result = await evaluate(input);
-        expect(result).toBe('hello');
-      });
+      const result = await evaluate(input);
+      expect(result).toBe('hello');
     });
   });
 
@@ -884,7 +919,7 @@ describe('expressions', () => {
         import "std/concurrency" as { creating_task };
 
         without creating_task {
-          async 123 // throws, since creating tasks is not allowed
+          fork 123 // throws, since creating tasks is not allowed
         };
       `;
       const result = await evaluate(input);
