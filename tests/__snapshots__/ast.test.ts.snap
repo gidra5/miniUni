@@ -7274,6 +7274,22 @@ exports[`newline handling > prefix 1`] = `
 }
 `;
 
+exports[`newline handling > variable 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "value": 1,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`programs > import 1`] = `
 {
   "children": [

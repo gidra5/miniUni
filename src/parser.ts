@@ -591,21 +591,29 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
-      banned: ['in', 'do', '->', '{'],
+      banned: ['in'],
     })(src, index);
 
-    const hasInKeyword = src[index]?.src === 'in';
-    const inKeywordPosition = mapListPosToPos(indexPosition(index), src);
-    if (hasInKeyword) index++;
+    if (src[index]?.src !== 'in') {
+      return [
+        index,
+        error(
+          SystemError.missingToken(nodePosition(), 'in'),
+          _node(NodeType.FOR, {
+            position: nodePosition(),
+            children: [pattern],
+          })
+        ),
+      ];
+    }
 
+    index++;
     const node = (expr: Tree, body?: Tree) => {
       if (!body) {
         let node: Tree = _node(NodeType.FOR, {
           position: nodePosition(),
           children: [pattern, expr],
         });
-        if (!hasInKeyword)
-          node = error(SystemError.missingToken(inKeywordPosition, 'in'), node);
         return node;
       }
 

@@ -70,15 +70,10 @@ describe('advent of code 1 single file', () => {
         }
       `));
 
-  it('fn multiple args', () =>
-    testCase(`
-        fn acc, item -> ()
-      `));
+  it('fn multiple args', () => testCase(`fn acc, item -> ()`));
 
   it('flat map list reducer', () =>
-    testCase(`
-        fn acc, item -> (...acc, ...mapper item)
-      `));
+    testCase(`fn acc, item -> (...acc, ...mapper item)`));
 
   it('flat map list impl', () =>
     testCase(`
@@ -221,6 +216,7 @@ describe('expressions', () => {
     it('loop', () => testCase(`loop 123`));
     it('loop scope', () => testCase(`loop { x }`));
     it('labeled expression', () => testCase(`label::123`));
+    it.todo('semicolon at the end', () => testCase(`1;`));
 
     describe('statement forms', () => {
       it('immediate form', () => testCase(`if true do 123; 456`));
@@ -319,4 +315,5 @@ describe('newline handling', () => {
   it('block semicolon newline', () => testCase(`{ a := 1;\n b := 2 }`));
   it('block semicolon newline at the end', () =>
     testCase(`{ a := 1;\n b := 2;\n }`));
+  it('variable', () => testCase(`1\n`));
 });
