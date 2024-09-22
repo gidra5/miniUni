@@ -533,10 +533,10 @@ describe('expressions', () => {
       expect(result).toBe(true);
     });
 
-    it.todo('with variable value', async () => {
-      const input = `x is (^a, b)`;
-      const result = await evaluate(input);
-      expect(result).toBe(true);
+    it('with variable value', async () => {
+      expect(await evaluate(`a:= 1; (1, 2) is (^a, b)`)).toBe(true);
+      expect(await evaluate(`a:= 1; (2, 2) is (^a, b)`)).toBe(false);
+      expect(await evaluate(`a:= 1; (2, 2) is (^(a + 1), b)`)).toBe(true);
     });
 
     it('with rest value', async () => {
@@ -552,21 +552,31 @@ describe('expressions', () => {
     });
 
     it.todo('with default value', async () => {
-      const input = `x is ((b = 4), a)`;
-      const result = await evaluate(input);
-      expect(result).toBe(true);
+      expect(await evaluate(`(a: 2, b: 1) is { b: (b = 4), a }`)).toBe(true);
+      expect(await evaluate(`(a: 2) is { b: (b = 4), a: 1 }`)).toBe(false);
+      expect(await evaluate(`{ b: (b = 4), a } := (a: 1); b`)).toBe(4);
+      expect(await evaluate(`{ b: (b = 4), a } := (a: 1, b: 2); b`)).toBe(2);
     });
 
-    it.todo('with rename', async () => {
-      const input = `x is (a @ b, c)`;
-      const result = await evaluate(input);
-      expect(result).toBe(true);
+    it.todo('with record default value', async () => {
+      expect(await evaluate(`(a: 2, b: 1) is { b = 4, a }`)).toBe(true);
+      expect(await evaluate(`(a: 2) is { b = 4, a: 1 }`)).toBe(false);
+      expect(await evaluate(`{ b = 4, a } := (a: 1); b`)).toBe(4);
+      expect(await evaluate(`{ b = 4, a } := (a: 1, b: 2); b`)).toBe(2);
     });
 
-    it.todo('with name for match', async () => {
-      const input = `x is ((a, b) @ c)`;
-      const result = await evaluate(input);
-      expect(result).toBe(true);
+    it('with rename', async () => {
+      expect(await evaluate(`(1, 2) is (a @ b, c)`)).toBe(true);
+      expect(await evaluate(`(1, 2) is (2 @ b, c)`)).toBe(false);
+      expect(await evaluate(`(1, 2) is (a @ 1, c)`)).toBe(true);
+      expect(await evaluate(`(a @ b, c) := (1, 2); a, b, c`)).toEqual([
+        1, 1, 2,
+      ]);
+      expect(await evaluate(`((a, b) @ c) := (1, 2); a, b, c`)).toEqual([
+        1,
+        2,
+        [1, 2],
+      ]);
     });
 
     it.todo('binding visible in scope where it is true', async () => {

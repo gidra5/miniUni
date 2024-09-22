@@ -183,6 +183,7 @@ describe('expressions', () => {
     it('with record pattern key', () => testCase(`x is { [a + b]: c, b }`));
     it('with record pattern nested', () => testCase(`x is { a: (c, d), b }`));
     it('with default value', () => testCase(`x is ((b = 4), a)`));
+    it.todo('with record default value', () => testCase(`x is { b = 4, a }`));
     it('with rename', () => testCase(`x is (a @ b, c)`));
     it('with name for match', () => testCase(`x is ((a, b) @ c)`));
 
