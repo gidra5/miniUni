@@ -4101,6 +4101,87 @@ exports[`expressions > function expressions > application > a + send 1 + 2 1`] =
 }
 `;
 
+exports[`expressions > function expressions > application > function as last arg 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "open",
+              },
+              "type": "name",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "file",
+              },
+              "type": "string",
+            },
+          ],
+          "data": {},
+          "type": "application",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "file",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "write",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "file",
+                      },
+                      "type": "name",
+                    },
+                  ],
+                  "data": {},
+                  "type": "application",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "yolo",
+                  },
+                  "type": "string",
+                },
+              ],
+              "data": {},
+              "type": "application",
+            },
+          ],
+          "data": {},
+          "type": "func",
+        },
+      ],
+      "data": {},
+      "type": "application",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > function expressions > application > function call 1`] = `
 {
   "children": [
@@ -5038,28 +5119,6 @@ exports[`expressions > pattern matching > declare record pattern 1`] = `
       ],
       "data": {},
       "type": ":=",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`expressions > pattern matching > empty switch 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [],
-          "data": {
-            "value": "a",
-          },
-          "type": "name",
-        },
-      ],
-      "data": {},
-      "type": "match",
     },
   ],
   "data": {},

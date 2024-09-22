@@ -155,6 +155,8 @@ describe('expressions', () => {
       it('send 1 (2, 3)', () => testCase(`send 1 (2, 3)`));
       it('a + send 1 + 2', () => testCase(`a + send 1 + 2`));
       it('methods chaining', () => testCase(`math.floor(1).multiply(2)`));
+      it('function as last arg', () =>
+        testCase(`open "file" file -> write file "yolo"`));
     });
 
     describe('function forms', () => {
