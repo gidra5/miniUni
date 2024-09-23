@@ -5670,6 +5670,61 @@ exports[`expressions > pattern matching > with placeholder 1`] = `
 }
 `;
 
+exports[`expressions > pattern matching > with record default value 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 4,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": "=",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": "a",
+              },
+              "type": "name",
+            },
+          ],
+          "data": {},
+          "type": "object",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > pattern matching > with record pattern 1`] = `
 {
   "children": [
