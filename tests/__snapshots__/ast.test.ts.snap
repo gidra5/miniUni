@@ -2979,35 +2979,22 @@ exports[`expressions > data structures > field assignment 1`] = `
         {
           "children": [
             {
-              "children": [
-                {
-                  "children": [],
-                  "data": {
-                    "value": "x",
-                  },
-                  "type": "name",
-                },
-                {
-                  "children": [],
-                  "data": {
-                    "value": "y",
-                  },
-                  "type": "string",
-                },
-              ],
-              "data": {},
-              "type": "index",
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "type": "name",
             },
             {
               "children": [],
               "data": {
-                "value": "=",
+                "value": "y",
               },
-              "type": "name",
+              "type": "string",
             },
           ],
           "data": {},
-          "type": "application",
+          "type": "index",
         },
         {
           "children": [],
@@ -3018,7 +3005,7 @@ exports[`expressions > data structures > field assignment 1`] = `
         },
       ],
       "data": {},
-      "type": "application",
+      "type": "=",
     },
   ],
   "data": {},

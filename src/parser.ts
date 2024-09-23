@@ -429,6 +429,29 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
     return [index, node];
   }
 
+  if (context.lhs && src[index].src === '.') {
+    index++;
+    const next = src[index];
+    if (
+      !tokenIncludes(next, context.followSet) &&
+      next?.type === 'identifier'
+    ) {
+      index++;
+      const key = string(next.src, { start: next.start, end: next.end });
+      return [
+        index,
+        _node(NodeType.INDEX, {
+          position: nodePosition(),
+          children: [key],
+        }),
+      ];
+    }
+    return [
+      index,
+      error(SystemError.invalidIndex(nodePosition()), nodePosition()),
+    ];
+  }
+
   return parseValue(src, i);
 };
 
