@@ -121,8 +121,9 @@ export const newContext = (fileId: number, file: string): Context => {
 };
 
 type PatternTestEnvs = {
-  env: Context['env'];
-  readonly: Context['readonly'];
+  env: Environment;
+  readonly: Environment;
+  exports: Environment;
 };
 type PatternTestResult = {
   matched: boolean;
@@ -143,6 +144,7 @@ const mergePatternTestResult = (
     envs: {
       env: { ...a.envs.env, ...b.envs.env },
       readonly: { ...a.envs.readonly, ...b.envs.readonly },
+      exports: { ...a.envs.exports, ...b.envs.exports },
     },
   };
 };
@@ -151,7 +153,7 @@ const testPattern = async (
   patternAst: Tree,
   value: EvalValue,
   context: Readonly<Context>,
-  envs: PatternTestEnvs = { env: {}, readonly: {} },
+  envs: PatternTestEnvs = { env: {}, readonly: {}, exports: {} },
   flags: PatternTestFlags = { mutable: false, export: false, strict: true }
 ): Promise<PatternTestResult> => {
   // inspect({
@@ -327,6 +329,7 @@ const testPattern = async (
         if (value === null && flags.strict) return { matched: false, envs };
         if (value !== null) {
           if (flags.mutable) envs.env[name] = value;
+          if (flags.export) envs.exports[name] = value;
           else envs.readonly[name] = value;
         }
         consumedNames.push(name);
@@ -377,6 +380,7 @@ const testPattern = async (
         if (value === null && flags.strict) return { matched: false, envs };
         if (value !== null) {
           if (flags.mutable) envs.env[name] = value;
+          else if (flags.export) envs.exports[name] = value;
           else envs.readonly[name] = value;
         }
         consumedNames.push(name);
@@ -404,8 +408,11 @@ const testPattern = async (
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
     if (value === null && flags.strict) return { matched: false, envs };
-    if (value !== null && flags.mutable) envs.env[name] = value;
-    if (value !== null && !flags.mutable) envs.readonly[name] = value;
+    if (value !== null) {
+      if (flags.mutable) envs.env[name] = value;
+      else if (flags.export) envs.exports[name] = value;
+      else envs.readonly[name] = value;
+    }
     return { matched: true, envs };
   }
 
@@ -423,60 +430,13 @@ const incAssign = async (
   value: number | EvalValue[],
   context: Context
 ): Promise<Context> => {
-  if (
-    patternAst.type === NodeType.PLACEHOLDER ||
-    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
-  ) {
-    return context;
-  }
-
-  if (patternAst.type === NodeType.TUPLE) {
+  if (patternAst.type === NodeType.INDEX) {
     assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
+      typeof value === 'number',
+      SystemError.invalidIncrementValue(getPosition(patternAst)).withFileId(
         context.fileId
       )
     );
-
-    const patterns = patternAst.children;
-    let consumed = 0;
-    for (const pattern of patterns) {
-      if (pattern.type === NodeType.SPREAD) {
-        unreachable(
-          SystemError.evaluationError(
-            'you sick fuck, how would that work?',
-            [],
-            getPosition(pattern)
-          ).withFileId(context.fileId)
-        );
-      } else {
-        const v = value[consumed++];
-        assert(
-          typeof v === 'number' || Array.isArray(v),
-          SystemError.invalidIncrementValue(getPosition(pattern)).withFileId(
-            context.fileId
-          )
-        );
-        context = await incAssign(pattern, v, context);
-        continue;
-      }
-    }
-
-    return context;
-  }
-
-  if (patternAst.type === NodeType.PARENS) {
-    return await incAssign(patternAst.children[0], value, context);
-  }
-
-  assert(
-    typeof value === 'number',
-    SystemError.invalidIncrementValue(getPosition(patternAst)).withFileId(
-      context.fileId
-    )
-  );
-
-  if (patternAst.type === NodeType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
     );
@@ -505,8 +465,26 @@ const incAssign = async (
     return context;
   }
 
-  if (patternAst.type === NodeType.NAME) {
-    const name = patternAst.data.value;
+  const { matched, envs } = await testPattern(patternAst, value, context);
+  assert(matched, 'expected pattern to match');
+
+  assert(
+    Object.keys(envs.exports).length === 0,
+    'cant do exports at increment'
+  );
+  assert(
+    Object.keys(envs.env).length === 0,
+    'cant do mutable declarations at increment'
+  );
+
+  // inspect({
+  //   tag: 'assign',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
+
+  for (const name in envs.readonly) {
     assert(!(name in context.readonly), 'expected mutable name');
     assert(
       name in context.env,
@@ -523,12 +501,28 @@ const incAssign = async (
         context.fileId
       )
     );
+    const value = envs.readonly[name];
+    assert(
+      typeof value === 'number',
+      SystemError.invalidIncrement(name, getPosition(patternAst)).withFileId(
+        context.fileId
+      )
+    );
     const enclosing = Object.getPrototypeOf(context.env);
     if (name in enclosing) {
       await incAssign(patternAst, value, { ...context, env: enclosing });
     } else context.env[name] = v + value;
     return context;
   }
+
+  // inspect({
+  //   tag: 'assign 2',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
+
+  return context;
 
   unreachable(
     SystemError.invalidPattern(getPosition(patternAst)).withFileId(
@@ -542,44 +536,6 @@ const assign = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  if (
-    patternAst.type === NodeType.PLACEHOLDER ||
-    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
-  ) {
-    return context;
-  }
-
-  if (patternAst.type === NodeType.TUPLE) {
-    assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
-
-    const patterns = patternAst.children;
-    let consumed = 0;
-    for (const pattern of patterns) {
-      if (pattern.type === NodeType.SPREAD) {
-        const start = consumed++;
-        consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.max(start, consumed));
-        context = await assign(pattern.children[0], rest, context);
-        continue;
-      } else {
-        const v = value[consumed++];
-        context = await assign(pattern, v, context);
-        continue;
-      }
-    }
-
-    return context;
-  }
-
-  if (patternAst.type === NodeType.PARENS) {
-    return await assign(patternAst.children[0], value, context);
-  }
-
   if (patternAst.type === NodeType.INDEX) {
     const [list, index] = await Promise.all(
       patternAst.children.map((child) => evaluateExpr(child, context))
@@ -602,8 +558,26 @@ const assign = async (
     return context;
   }
 
-  if (patternAst.type === NodeType.NAME) {
-    const name = patternAst.data.value;
+  const { matched, envs } = await testPattern(patternAst, value, context);
+  assert(matched, 'expected pattern to match');
+
+  assert(
+    Object.keys(envs.exports).length === 0,
+    'cant do exports in at assignment'
+  );
+  assert(
+    Object.keys(envs.env).length === 0,
+    'cant do mutable declarations at assignment'
+  );
+
+  // inspect({
+  //   tag: 'assign',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
+
+  for (const name in envs.readonly) {
     assert(!(name in context.readonly), 'expected mutable name');
     assert(
       name in context.env,
@@ -614,19 +588,22 @@ const assign = async (
       ).withFileId(context.fileId)
     );
 
+    const value = envs.readonly[name];
     const enclosing = Object.getPrototypeOf(context.env);
     if (value === null) delete context.env[name];
     else if (name in enclosing) {
       await assign(patternAst, value, { ...context, env: enclosing });
     } else context.env[name] = value;
-    return context;
   }
 
-  unreachable(
-    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
-      context.fileId
-    )
-  );
+  // inspect({
+  //   tag: 'assign 2',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
+
+  return context;
 };
 
 const bind = async (
@@ -634,32 +611,15 @@ const bind = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  if (patternAst.type === NodeType.EXPORT) {
-    return await bind(patternAst.children[0], value, context);
-  }
-
-  // if (patternAst.type === NodeType.NAME) {
-  //   const name = patternAst.data.value;
-  //   if (value !== null) context.env[name] = value;
-  //   return context;
-  // }
-
   const { matched, envs } = await testPattern(patternAst, value, context);
-  // inspect({
-  //   tag: 'bind',
-  //   matched,
-  //   envs,
-  //   context,
-  // });
+
   assert(matched, 'expected pattern to match');
 
   Object.assign(context.env, envs.env);
   Object.assign(context.readonly, envs.readonly);
 
-  // inspect({
-  //   tag: 'bind 2',
-  //   context,
-  // });
+  assert(Object.keys(envs.exports).length === 0, 'cant do exports in scripts');
+
   return context;
 };
 
@@ -669,104 +629,16 @@ async function bindExport(
   exports: Record<string, EvalValue>,
   context: Context
 ): Promise<Record<string, EvalValue>> {
-  if (
-    patternAst.type === NodeType.PLACEHOLDER ||
-    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
-  ) {
-    return exports;
-  }
+  const { matched, envs } = await testPattern(patternAst, value, context);
 
-  if (patternAst.type === NodeType.TUPLE) {
-    assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
+  assert(matched, 'expected pattern to match');
 
-    const patterns = patternAst.children;
-    let consumed = 0;
-    for (const pattern of patterns) {
-      if (pattern.type === NodeType.SPREAD) {
-        const start = consumed++;
-        consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.max(start, consumed));
-        exports = await bindExport(pattern.children[0], rest, exports, context);
-        continue;
-      } else {
-        const v = value[consumed++];
-        exports = await bindExport(pattern, v, exports, context);
-        continue;
-      }
-    }
+  Object.assign(context.env, envs.env);
+  Object.assign(context.readonly, envs.readonly);
+  Object.assign(context.readonly, envs.exports);
+  Object.assign(exports, envs.exports);
 
-    return exports;
-  }
-
-  if (patternAst.type === NodeType.PARENS) {
-    return await bindExport(patternAst.children[0], value, exports, context);
-  }
-
-  if (patternAst.type === NodeType.RECORD) {
-    assert(value !== null, 'expected value');
-    assert(
-      isRecord(value),
-      SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
-    const record = value.record;
-    const patterns = patternAst.children;
-    const consumedNames: string[] = [];
-    for (const pattern of patterns) {
-      if (pattern.type === 'name') {
-        const name = pattern.data.value;
-        exports[name] = record[name];
-        consumedNames.push(name);
-        continue;
-      } else if (pattern.type === NodeType.LABEL) {
-        const [key, valuePattern] = pattern.children;
-        const name = key.data.value;
-        consumedNames.push(name);
-        exports = await bindExport(
-          valuePattern,
-          record[name],
-          exports,
-          context
-        );
-        continue;
-      } else if (pattern.type === NodeType.SPREAD) {
-        const rest = omit(record, consumedNames);
-        exports = await bindExport(
-          pattern.children[0],
-          { record: rest },
-          exports,
-          context
-        );
-        continue;
-      }
-
-      unreachable(
-        SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
-          context.fileId
-        )
-      );
-    }
-
-    return exports;
-  }
-
-  if (patternAst.type === NodeType.NAME) {
-    const name = patternAst.data.value;
-    if (value !== null) exports[name] = value;
-    return exports;
-  }
-
-  unreachable(
-    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
-      context.fileId
-    )
-  );
+  return exports;
 }
 
 const showNode = (node: Tree, context: Context, msg: string = '') => {
