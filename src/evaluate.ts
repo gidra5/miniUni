@@ -737,6 +737,8 @@ const bind = async (
   context: Context
 ): Promise<Context> => {
   const { matched, envs } = result;
+  const readonly = {};
+  const env = {};
 
   // inspect({
   //   tag: 'bind',
@@ -749,21 +751,26 @@ const bind = async (
 
   for (const [key, value] of envs.readonly.entries()) {
     assert(typeof key === 'string', 'can only declare names');
-    // TODO: fork scope on duplicate declaration.
-    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
-    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
 
     if (value === null) continue;
-    context.readonly[key] = value;
+    if (Object.hasOwn(context.readonly, key)) readonly[key] = value;
+    else if (Object.hasOwn(context.env, key)) readonly[key] = value;
+    else context.readonly[key] = value;
   }
   for (const [key, value] of envs.env.entries()) {
     assert(typeof key === 'string', 'can only declare names');
-    // TODO: fork scope on duplicate declaration.
-    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
-    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
 
     if (value === null) continue;
-    context.env[key] = value;
+    if (Object.hasOwn(context.readonly, key)) env[key] = value;
+    else if (Object.hasOwn(context.env, key)) env[key] = value;
+    else context.env[key] = value;
+  }
+
+  if (Object.keys(readonly).length > 0 || Object.keys(env).length > 0) {
+    context.readonly = forkEnv(context.readonly);
+    context.env = forkEnv(context.env);
+    Object.assign(context.readonly, readonly);
+    Object.assign(context.env, env);
   }
 
   assert(envs.exports.size === 0, 'cant do exports in scripts');
@@ -1489,10 +1496,11 @@ export const evaluateStatement = async (
           ? _body
           : fnAST(tupleAST(rest), _body, { isTopFunction: false });
 
+      const _context = forkContext(context);
       const self: EvalFunction = async (arg, [, , callerContext]) => {
-        const _context = forkContext(context);
-        const result = await testPattern(pattern, arg, _context);
-        const bound = await bind(result, _context);
+        const __context = forkContext(_context);
+        const result = await testPattern(pattern, arg, __context);
+        const bound = await bind(result, __context);
         if (isTopFunction) {
           bound.env['self'] = self;
           bound.handlers = callerContext.handlers;

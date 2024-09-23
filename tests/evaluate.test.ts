@@ -265,10 +265,10 @@ describe('scope', () => {
     expect(result).toEqual(1);
   });
 
-  it.todo('declaration shadowing and closures', async () => {
+  it('declaration shadowing and closures', async () => {
     const input = `
       x := 1
-      f := fn -> x
+      f := fn do x
       x := 2
       f()
     `;
