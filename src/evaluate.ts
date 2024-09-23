@@ -129,6 +129,7 @@ type PatternTestEnvs = {
 type PatternTestResult = {
   matched: boolean;
   envs: PatternTestEnvs;
+  notEnvs: PatternTestEnvs;
 };
 type PatternTestFlags = {
   mutable: boolean; // bound names should be marked as mutable
@@ -154,6 +155,7 @@ const mergePatternTestResult = (
   return {
     matched: a.matched && b.matched,
     envs: mergePatternTestEnvs(a.envs, b.envs),
+    notEnvs: mergePatternTestEnvs(a.notEnvs, b.notEnvs),
   };
 };
 
@@ -178,6 +180,11 @@ const testPattern = async (
     readonly: new Map(),
     exports: new Map(),
   },
+  notEnvs: PatternTestEnvs = {
+    env: new Map(),
+    readonly: new Map(),
+    exports: new Map(),
+  },
   flags: PatternTestFlags = { mutable: false, export: false, strict: true }
 ): Promise<PatternTestResult> => {
   // inspect({
@@ -187,11 +194,11 @@ const testPattern = async (
   // });
 
   if (patternAst.type === NodeType.PLACEHOLDER) {
-    return { matched: true, envs };
+    return { matched: true, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.IMPLICIT_PLACEHOLDER) {
-    return { matched: true, envs };
+    return { matched: true, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.PARENS) {
@@ -200,36 +207,61 @@ const testPattern = async (
       value,
       context,
       envs,
+      notEnvs,
       flags
     );
   }
 
+  if (patternAst.type === NodeType.NOT) {
+    const result = await testPattern(
+      patternAst.children[0],
+      value,
+      context,
+      envs,
+      notEnvs,
+      flags
+    );
+    return {
+      matched: !result.matched,
+      envs: mergePatternTestEnvs(result.envs, notEnvs),
+      notEnvs: mergePatternTestEnvs(result.notEnvs, envs),
+    };
+  }
+
   if (patternAst.type === NodeType.NUMBER) {
-    if (typeof value !== 'number') return { matched: false, envs };
-    return { matched: value === patternAst.data.value, envs };
+    if (typeof value !== 'number') return { matched: false, envs, notEnvs };
+    return { matched: value === patternAst.data.value, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.STRING) {
-    if (typeof value !== 'string') return { matched: false, envs };
-    return { matched: value === patternAst.data.value, envs };
+    if (typeof value !== 'string') return { matched: false, envs, notEnvs };
+    return { matched: value === patternAst.data.value, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.ATOM) {
-    if (!isSymbol(value)) return { matched: false, envs };
+    if (!isSymbol(value)) return { matched: false, envs, notEnvs };
     return {
       matched: value.symbol === atom(patternAst.data.name).symbol,
       envs,
+      notEnvs,
     };
   }
 
   if (patternAst.type === NodeType.PIN) {
     const _value = await evaluateExpr(patternAst.children[0], context);
-    return { matched: isEqual(_value, value), envs };
+    return { matched: isEqual(_value, value), envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.ASSIGN) {
     const pattern = patternAst.children[0];
-    const result = await testPattern(pattern, value, context, envs, flags);
+    const result = await testPattern(
+      pattern,
+      value,
+      context,
+      envs,
+      notEnvs,
+      flags
+    );
     // inspect({
     //   tag: 'testPattern assign',
     //   result,
@@ -238,7 +270,14 @@ const testPattern = async (
     // });
     if (!result.matched) {
       const _value = await evaluateExpr(patternAst.children[1], context);
-      const _result = await testPattern(pattern, _value, context, envs, flags);
+      const _result = await testPattern(
+        pattern,
+        _value,
+        context,
+        envs,
+        notEnvs,
+        flags
+      );
       // inspect({
       //   tag: 'testPattern assign 2',
       //   result,
@@ -255,12 +294,20 @@ const testPattern = async (
   if (patternAst.type === NodeType.BIND) {
     const pattern = patternAst.children[0];
     const bindPattern = patternAst.children[1];
-    const result = await testPattern(pattern, value, context, envs, flags);
+    const result = await testPattern(
+      pattern,
+      value,
+      context,
+      envs,
+      notEnvs,
+      flags
+    );
     const bindResult = await testPattern(
       bindPattern,
       value,
       context,
       envs,
+      notEnvs,
       flags
     );
     return mergePatternTestResult(result, bindResult);
@@ -268,36 +315,52 @@ const testPattern = async (
 
   if (patternAst.type === NodeType.EXPORT) {
     assert(!flags.mutable, 'export cannot be mutable');
-    return await testPattern(patternAst.children[0], value, context, envs, {
-      ...flags,
-      export: true,
-    });
+    return await testPattern(
+      patternAst.children[0],
+      value,
+      context,
+      envs,
+      notEnvs,
+      { ...flags, export: true }
+    );
   }
 
   if (patternAst.type === NodeType.MUTABLE) {
     assert(!flags.export, 'export cannot be mutable');
-    return await testPattern(patternAst.children[0], value, context, envs, {
-      ...flags,
-      mutable: true,
-    });
+    return await testPattern(
+      patternAst.children[0],
+      value,
+      context,
+      envs,
+      notEnvs,
+      { ...flags, mutable: true }
+    );
   }
 
   if (patternAst.type === NodeType.LIKE) {
-    return await testPattern(patternAst.children[0], value, context, envs, {
-      ...flags,
-      strict: false,
-    });
+    return await testPattern(
+      patternAst.children[0],
+      value,
+      context,
+      envs,
+      notEnvs,
+      { ...flags, strict: false }
+    );
   }
 
   if (patternAst.type === NodeType.STRICT) {
-    return await testPattern(patternAst.children[0], value, context, envs, {
-      ...flags,
-      strict: true,
-    });
+    return await testPattern(
+      patternAst.children[0],
+      value,
+      context,
+      envs,
+      notEnvs,
+      { ...flags, strict: true }
+    );
   }
 
   if (patternAst.type === NodeType.TUPLE) {
-    if (!Array.isArray(value)) return { matched: false, envs };
+    if (!Array.isArray(value)) return { matched: false, envs, notEnvs };
 
     const patterns = patternAst.children;
     let consumed = 0;
@@ -311,13 +374,21 @@ const testPattern = async (
           rest,
           context,
           envs,
+          notEnvs,
           flags
         );
         envs = mergePatternTestEnvs(envs, result.envs);
         continue;
       } else {
         const v = value[consumed++] ?? null;
-        const result = await testPattern(pattern, v, context, envs, flags);
+        const result = await testPattern(
+          pattern,
+          v,
+          context,
+          envs,
+          notEnvs,
+          flags
+        );
         // inspect({
         //   tag: 'testPattern tuple',
         //   result,
@@ -328,22 +399,17 @@ const testPattern = async (
         //   overconsumed: value.length < consumed,
         //   flags,
         // });
-        // Object.assign(envs.env, result.envs.env);
-        // Object.assign(envs.readonly, result.envs.readonly);
         envs = mergePatternTestEnvs(envs, result.envs);
-        if (!result.matched) return { matched: false, envs };
-        // if (flags.strict && v === null) return { matched: false, envs };
-        // if (flags.strict && value.length < consumed)
-        //   return { matched: false, envs };
+        if (!result.matched) return { matched: false, envs, notEnvs };
         continue;
       }
     }
 
-    return { matched: true, envs };
+    return { matched: true, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.RECORD) {
-    if (!isRecord(value)) return { matched: false, envs };
+    if (!isRecord(value)) return { matched: false, envs, notEnvs };
 
     const record = value.record;
     const patterns = patternAst.children;
@@ -353,13 +419,10 @@ const testPattern = async (
       if (pattern.type === NodeType.NAME) {
         const name = pattern.data.value;
         const value = record[name] ?? null;
-        if (value === null && flags.strict) return { matched: false, envs };
-        if (value !== null) {
-          updatePatternTestEnv(envs, flags, name, value);
-          // if (flags.mutable) envs.env[name] = value;
-          // if (flags.export) envs.exports[name] = value;
-          // else envs.readonly[name] = value;
-        }
+        if (value === null && flags.strict)
+          return { matched: false, envs, notEnvs };
+        if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+
         consumedNames.push(name);
         continue;
       } else if (pattern.type === NodeType.LABEL) {
@@ -370,21 +433,21 @@ const testPattern = async (
             : key.type === NodeType.NAME
             ? key.data.value
             : null;
-        if (name === null) return { matched: false, envs };
+        if (name === null) return { matched: false, envs, notEnvs };
         const value = record[isSymbol(name) ? name.symbol : name] ?? null;
-        if (value === null && flags.strict) return { matched: false, envs };
+        if (value === null && flags.strict)
+          return { matched: false, envs, notEnvs };
         consumedNames.push(name);
         const result = await testPattern(
           valuePattern,
           value,
           context,
           envs,
+          notEnvs,
           flags
         );
-        // Object.assign(envs.env, result.envs.env);
-        // Object.assign(envs.readonly, result.envs.readonly);
         envs = mergePatternTestEnvs(envs, result.envs);
-        if (!result.matched) return { matched: false, envs };
+        if (!result.matched) return { matched: false, envs, notEnvs };
         continue;
       } else if (pattern.type === NodeType.SPREAD) {
         const rest = omit(record, consumedNames);
@@ -393,12 +456,11 @@ const testPattern = async (
           { record: rest },
           context,
           envs,
+          notEnvs,
           flags
         );
-        // Object.assign(envs.env, result.envs.env);
-        // Object.assign(envs.readonly, result.envs.readonly);
         envs = mergePatternTestEnvs(envs, result.envs);
-        if (!result.matched) return { matched: false, envs };
+        if (!result.matched) return { matched: false, envs, notEnvs };
         continue;
       } else if (pattern.type === NodeType.ASSIGN) {
         const _pattern = pattern.children[0];
@@ -407,13 +469,10 @@ const testPattern = async (
         const value =
           record[name] ?? (await evaluateExpr(pattern.children[1], context));
 
-        if (value === null && flags.strict) return { matched: false, envs };
-        if (value !== null) {
-          updatePatternTestEnv(envs, flags, name, value);
-          // if (flags.mutable) envs.env[name] = value;
-          // else if (flags.export) envs.exports[name] = value;
-          // else envs.readonly[name] = value;
-        }
+        if (value === null && flags.strict)
+          return { matched: false, envs, notEnvs };
+        if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+
         consumedNames.push(name);
         continue;
       }
@@ -433,7 +492,7 @@ const testPattern = async (
       );
     }
 
-    return { matched: true, envs };
+    return { matched: true, envs, notEnvs };
   }
 
   if (patternAst.type === NodeType.INDEX) {
@@ -448,7 +507,7 @@ const testPattern = async (
       );
       assert(typeof index === 'number');
       updatePatternTestEnv(envs, flags, [list, index], value);
-      return { matched: true, envs };
+      return { matched: true, envs, notEnvs };
     } else if (isRecord(list)) {
       assert(
         typeof index === 'string' || isSymbol(index),
@@ -457,7 +516,7 @@ const testPattern = async (
         )
       );
       updatePatternTestEnv(envs, flags, [list, index], value);
-      return { matched: true, envs };
+      return { matched: true, envs, notEnvs };
     }
 
     unreachable(
@@ -469,9 +528,10 @@ const testPattern = async (
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
-    if (value === null && flags.strict) return { matched: false, envs };
+    if (value === null && flags.strict)
+      return { matched: false, envs, notEnvs };
     if (value !== null) updatePatternTestEnv(envs, flags, name, value);
-    return { matched: true, envs };
+    return { matched: true, envs, notEnvs };
   }
 
   // inspect(patternAst);
@@ -733,10 +793,9 @@ const assign = async (
 };
 
 const bind = async (
-  result: PatternTestResult,
+  envs: PatternTestEnvs,
   context: Context
 ): Promise<Context> => {
-  const { matched, envs } = result;
   const readonly = {};
   const env = {};
 
@@ -746,8 +805,6 @@ const bind = async (
   //   envs,
   //   context,
   // });
-
-  assert(matched, 'expected pattern to match');
 
   for (const [key, value] of envs.readonly.entries()) {
     assert(typeof key === 'string', 'can only declare names');
@@ -1070,7 +1127,7 @@ const lazyOperators = {
       const result = await testPattern(pattern, value, context);
       if (result.matched) {
         const forked = forkContext(context);
-        await bind(result, forked);
+        await bind(result.envs, forked);
         return await evaluateBlock(body, forked);
       }
     }
@@ -1104,12 +1161,16 @@ const lazyOperators = {
       //   context,
       // });
 
+      const forked = forkContext(context);
       if (result.matched) {
-        const forked = forkContext(context);
-        await bind(result, forked);
+        await bind(result.envs, forked);
         return await evaluateBlock(trueBranch, forked);
-      } else return await evaluateBlock(falseBranch, context);
+      } else {
+        await bind(result.notEnvs, forked);
+        return await evaluateBlock(falseBranch, forked);
+      }
     }
+
     const result = await evaluateExpr(condition, context);
     // inspect({
     //   tag: 'evaluateExpr if else 3',
@@ -1157,7 +1218,8 @@ const lazyOperators = {
       const _context = forkContext(context);
       try {
         const result = await testPattern(pattern, item, _context);
-        const bound = await bind(result, _context);
+        assert(result.matched, 'expected pattern to match');
+        const bound = await bind(result.envs, _context);
         const value = await evaluateStatement(body, bound);
         if (value === null) continue;
         mapped.push(value);
@@ -1248,7 +1310,8 @@ const lazyOperators = {
   [NodeType.DECLARE]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
     const result = await testPattern(pattern, value, context);
-    await bind(result, context);
+    assert(result.matched, 'expected pattern to match');
+    await bind(result.envs, context);
     return value;
   },
   [NodeType.ASSIGN]: async ([pattern, expr]: Tree[], context: Context) => {
@@ -1386,7 +1449,6 @@ export const evaluateStatement = async (
     case NodeType.IMPORT: {
       const name = ast.data.name;
       const module = await getModule({ name, from: context.file });
-      assert(!Buffer.isBuffer(module), 'binary file import is not supported');
       const value =
         'script' in module
           ? module.script
@@ -1396,7 +1458,8 @@ export const evaluateStatement = async (
       const pattern = ast.children[0];
       if (pattern) {
         const result = await testPattern(pattern, value, context);
-        await bind(result, context);
+        assert(result.matched, 'expected pattern to match');
+        await bind(result.envs, context);
       }
 
       return value;
@@ -1500,7 +1563,8 @@ export const evaluateStatement = async (
       const self: EvalFunction = async (arg, [, , callerContext]) => {
         const __context = forkContext(_context);
         const result = await testPattern(pattern, arg, __context);
-        const bound = await bind(result, __context);
+        assert(result.matched, 'expected pattern to match');
+        const bound = await bind(result.envs, __context);
         if (isTopFunction) {
           bound.env['self'] = self;
           bound.handlers = callerContext.handlers;
@@ -1639,7 +1703,8 @@ export const evaluateModule = async (
         const value = await evaluateExpr(expr, context);
         const result = await testPattern(pattern, value, context);
         await bindExport(pattern, value, record, context);
-        await bind(result, context);
+        assert(result.matched, 'expected pattern to match');
+        await bind(result.envs, context);
       } else {
         const value = await evaluateExpr(exportNode, context);
 

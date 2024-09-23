@@ -669,6 +669,18 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
+    it('if is', async () => {
+      const input = `if 1 is a do a + 1`;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
+    it('if is not', async () => {
+      const input = `if 1 is not a do 0 else a + 1`;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
     it('if-then', async () => {
       const input = `if true do 123`;
       const result = await evaluate(input);
