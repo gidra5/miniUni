@@ -383,13 +383,13 @@ const testPattern = async (
         continue;
       }
 
-      inspect({
-        tag: 'testPattern record',
-        record,
-        pattern,
-        consumedNames,
-        flags,
-      });
+      // inspect({
+      //   tag: 'testPattern record',
+      //   record,
+      //   pattern,
+      //   consumedNames,
+      //   flags,
+      // });
 
       unreachable(
         SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
@@ -507,6 +507,7 @@ const incAssign = async (
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
+    assert(!(name in context.readonly), 'expected mutable name');
     assert(
       name in context.env,
       SystemError.invalidAssignment(
@@ -603,6 +604,7 @@ const assign = async (
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
+    assert(!(name in context.readonly), 'expected mutable name');
     assert(
       name in context.env,
       SystemError.invalidAssignment(
@@ -632,110 +634,32 @@ const bind = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  if (
-    patternAst.type === NodeType.PLACEHOLDER ||
-    patternAst.type === NodeType.IMPLICIT_PLACEHOLDER
-  ) {
-    return context;
-  }
-
   if (patternAst.type === NodeType.EXPORT) {
     return await bind(patternAst.children[0], value, context);
   }
 
-  // if (patternAst.type === NodeType.TUPLE) {
-  //   assert(
-  //     Array.isArray(value),
-  //     SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
-  //       context.fileId
-  //     )
-  //   );
-
-  //   const patterns = patternAst.children;
-  //   let consumed = 0;
-  //   for (const pattern of patterns) {
-  //     if (pattern.type === NodeType.SPREAD) {
-  //       const start = consumed++;
-  //       consumed = value.length - patterns.length + consumed;
-  //       const rest = value.slice(start, Math.max(start, consumed));
-  //       context = await bind(pattern.children[0], rest, context);
-  //       continue;
-  //     } else {
-  //       const v = value[consumed++];
-  //       context = await bind(pattern, v, context);
-  //       continue;
-  //     }
-  //   }
-
+  // if (patternAst.type === NodeType.NAME) {
+  //   const name = patternAst.data.value;
+  //   if (value !== null) context.env[name] = value;
   //   return context;
   // }
-
-  if (patternAst.type === NodeType.PARENS) {
-    return await bind(patternAst.children[0], value, context);
-  }
-
-  // if (patternAst.type === NodeType.RECORD) {
-  //   assert(value !== null, 'expected value');
-  //   assert(
-  //     isRecord(value),
-  //     SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
-  //       context.fileId
-  //     )
-  //   );
-
-  //   const record = value.record;
-  //   const patterns = patternAst.children;
-  //   const consumedNames: string[] = [];
-
-  //   for (const pattern of patterns) {
-  //     if (pattern.type === NodeType.NAME) {
-  //       const name = pattern.data.value;
-  //       context.env[name] = record[name] ?? null;
-  //       consumedNames.push(name);
-  //       continue;
-  //     } else if (pattern.type === NodeType.LABEL) {
-  //       const [key, valuePattern] = pattern.children;
-  //       const name = key.data.value;
-  //       consumedNames.push(name);
-  //       context = await bind(valuePattern, record[name] ?? null, context);
-  //       continue;
-  //     } else if (pattern.type === NodeType.SPREAD) {
-  //       const rest = omit(record, consumedNames);
-  //       context = await bind(pattern.children[0], { record: rest }, context);
-  //       continue;
-  //     }
-
-  //     unreachable(
-  //       SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
-  //         context.fileId
-  //       )
-  //     );
-  //   }
-
-  //   return context;
-  // }
-
-  if (patternAst.type === NodeType.NAME) {
-    const name = patternAst.data.value;
-    if (value !== null) context.env[name] = value;
-    return context;
-  }
-  if (patternAst.type === NodeType.MUTABLE) {
-    return await bind(patternAst.children[0], value, context);
-  }
 
   const { matched, envs } = await testPattern(patternAst, value, context);
-  inspect({
-    tag: 'bind',
-    matched,
-    envs,
-    context,
-  });
+  // inspect({
+  //   tag: 'bind',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
   assert(matched, 'expected pattern to match');
 
   Object.assign(context.env, envs.env);
   Object.assign(context.readonly, envs.readonly);
 
+  // inspect({
+  //   tag: 'bind 2',
+  //   context,
+  // });
   return context;
 };
 
@@ -1065,7 +989,7 @@ const lazyOperators = {
   },
 
   [NodeType.IS]: async ([value, pattern]: Tree[], context: Context) => {
-    const v = await evaluateExpr(value, context);
+    const v = await evaluateStatement(value, context);
     const result = await testPattern(pattern, v, context);
     // inspect({
     //   tag: 'evaluateExpr is',
@@ -1107,6 +1031,18 @@ const lazyOperators = {
     //   condition,
     //   context,
     // });
+    if (condition.type === NodeType.IS) {
+      const [value, pattern] = condition.children;
+      const v = await evaluateStatement(value, context);
+      const result = await testPattern(pattern, v, context);
+
+      if (result.matched) {
+        const forked = forkContext(context);
+        Object.assign(forked.env, result.envs.env);
+        Object.assign(forked.readonly, result.envs.readonly);
+        return await evaluateBlock(trueBranch, forked);
+      } else return await evaluateBlock(falseBranch, context);
+    }
     const result = await evaluateExpr(condition, context);
     // inspect({
     //   tag: 'evaluateExpr if else 2',
@@ -1558,7 +1494,7 @@ export const evaluateStatement = async (
       //   env: context.env,
       //   readonly: context.readonly,
       // });
-      return context.env[name] ?? context.readonly[name];
+      return context.readonly[name] ?? context.env[name];
     case NodeType.NUMBER:
     case NodeType.STRING:
       return ast.data.value;

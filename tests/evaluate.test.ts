@@ -74,7 +74,7 @@ describe('advent of code 2023 day 1 single', () => {
     };
     const input = `
         import "std/string" as { split, replace };
-        lines := split document "\\n";
+        mut lines := split document "\\n";
         lines = map lines (replace "\\\\s+" "");
         filter lines fn line -> line != ""
       `;
@@ -106,7 +106,7 @@ describe('advent of code 2023 day 1 single', () => {
     const input = `
         import "std/string" as { char_at, match, slice }
 
-        numbers := flat_map lines fn line {
+        numbers := flat_map lines fn mut line {
           digits := ()
           while line != "" {
             if match "\\\\d" (char_at line 0) {
@@ -235,7 +235,7 @@ describe('scope', () => {
 
   it('block assign', async () => {
     const input = `
-        n := 1;
+        mut n := 1;
         { n = 5 };
         n
       `;
@@ -245,7 +245,7 @@ describe('scope', () => {
 
   it('block increment', async () => {
     const input = `
-        n := 1;
+        mut n := 1;
         { n += 5 };
         n
       `;
@@ -322,7 +322,7 @@ describe('expressions', () => {
 
     it('post increment', async () => {
       const input = `
-        x := 0
+        mut x := 0
         x++, x        
       `;
       const result = await evaluate(input);
@@ -444,7 +444,7 @@ describe('expressions', () => {
   describe('function expressions', () => {
     it('fn increment', async () => {
       const input = `
-        line_handled_count := 0
+        mut line_handled_count := 0
         inc := fn do line_handled_count++
         inc()
         line_handled_count
@@ -473,28 +473,6 @@ describe('expressions', () => {
   });
 
   describe('pattern matching', () => {
-    it('evaluate drop last', async () => {
-      const input = `
-          list := 1, 2, 3;
-          ...list, _ = list;
-          list
-        `;
-      const result = await evaluate(input);
-      expect(result).toEqual([1, 2]);
-    });
-
-    it('switch', async () => {
-      const input = `switch 1 { 1 -> 2, 3 -> 4 }`;
-      const result = await evaluate(input);
-      expect(result).toBe(2);
-    });
-
-    it('in function parameters', async () => {
-      const input = `((x, y) -> x + y)(1, 2)`;
-      const result = await evaluate(input);
-      expect(result).toBe(3);
-    });
-
     it("with 'is' operator", async () => {
       const input = `1 is x`;
       const result = await evaluate(input);
@@ -513,10 +491,12 @@ describe('expressions', () => {
       expect(await evaluate(`(a: 1, b: 2) is { c: a, d: b }`)).toBe(false);
       expect(await evaluate(`(a: 1, b: 2) is { a: 1 }`)).toBe(true);
     });
+
     it('with record pattern nested', async () => {
       expect(await evaluate(`(a: (1, 2), b: 2) is { a: (c, d) }`)).toBe(true);
       expect(await evaluate(`(a: (1, 2), b: 2) is { a: { b } }`)).toBe(false);
     });
+
     it('with record pattern key', async () => {
       expect(await evaluate(`(3: 1, b: 2) is { [1 + 2]: c, b }`)).toBe(true);
       expect(await evaluate(`(3: 1, b: 2) is { [1 + 1]: c, d }`)).toBe(false);
@@ -576,6 +556,20 @@ describe('expressions', () => {
         false
       );
       expect(await evaluate(`(1, 2) is like (a, strict (b, c))`)).toBe(false);
+
+      expect(await evaluate(`(a: 1, b: 2) is like { a, b }`)).toBe(true);
+      expect(await evaluate(`(a: 1, b: 2) is like { a, b, c }`)).toBe(true);
+      expect(
+        await evaluate(
+          `(a: 1, b: (b: 2, c: 3)) is like { a, b: strict { b, c } }`
+        )
+      ).toBe(true);
+      expect(
+        await evaluate(`(a: 1, b: (b: 2)) is like { a, b: strict { b, c } }`)
+      ).toBe(false);
+      expect(
+        await evaluate(`(a: 1, b: 2) is like { a, b: strict { b, c } }`)
+      ).toBe(false);
     });
 
     it('with record default value', async () => {
@@ -599,10 +593,32 @@ describe('expressions', () => {
       ]);
     });
 
-    it.todo('binding visible in scope where it is true', async () => {
-      const input = `x is (a, b) and a == b + 1`;
+    it('is binding visible in scope where it is true', async () => {
+      const input = `(2, 1) is (a, b) and a == b + 1`;
       const result = await evaluate(input);
       expect(result).toBe(true);
+    });
+
+    it('switch', async () => {
+      const input = `switch 1 { 1 -> 2, 3 -> 4 }`;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
+    it('in function parameters', async () => {
+      const input = `((x, y) -> x + y)(1, 2)`;
+      const result = await evaluate(input);
+      expect(result).toBe(3);
+    });
+
+    it('evaluate drop last', async () => {
+      const input = `
+          mut list := 1, 2, 3;
+          ...list, _ = list;
+          list
+        `;
+      const result = await evaluate(input);
+      expect(result).toEqual([1, 2]);
     });
   });
 
