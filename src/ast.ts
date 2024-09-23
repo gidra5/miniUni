@@ -96,6 +96,8 @@ export const NodeType = {
   MODULE: 'module',
 
   RECORD: 'object',
+  LIKE: 'like',
+  STRICT: 'strict',
 } as const;
 export type NodeType = (typeof NodeType)[keyof typeof NodeType];
 
@@ -418,8 +420,11 @@ const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.LABEL, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.SPREAD, Fixity.PREFIX],
-  [NodeType.MUTABLE, Fixity.PREFIX],
   [NodeType.ASSIGN, Fixity.POSTFIX],
+  [NodeType.MUTABLE, Fixity.PREFIX],
+  [NodeType.LIKE, Fixity.PREFIX],
+  [NodeType.STRICT, Fixity.PREFIX],
+  [NodeType.EXPORT, Fixity.PREFIX],
   [NodeType.INDEX, Fixity.POSTFIX],
   [NodeType.BIND, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.ATOM, Fixity.PREFIX],

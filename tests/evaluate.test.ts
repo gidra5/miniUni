@@ -551,11 +551,18 @@ describe('expressions', () => {
       expect(result).toBe(true);
     });
 
-    it.todo('with default value', async () => {
-      expect(await evaluate(`(a: 2, b: 1) is { b: (b = 4), a }`)).toBe(true);
-      expect(await evaluate(`(a: 2) is { b: (b = 4), a: 1 }`)).toBe(false);
-      expect(await evaluate(`{ b: (b = 4), a } := (a: 1); b`)).toBe(4);
-      expect(await evaluate(`{ b: (b = 4), a } := (a: 1, b: 2); b`)).toBe(2);
+    it('with tuple pattern', async () => {
+      expect(await evaluate(`(1, 2) is (a, b)`)).toBe(true);
+      expect(await evaluate(`(1, 2) is (a, b, c)`)).toBe(false);
+      expect(await evaluate(`(1, 2) is (a,)`)).toBe(true);
+    });
+
+    it('with default value', async () => {
+      expect(await evaluate(`(2, 1) is (a, b = 4)`)).toBe(true);
+      expect(await evaluate(`(2,) is (a, b = 4)`)).toBe(true);
+      expect(await evaluate(`(2,) is (1, b = 4)`)).toBe(false);
+      expect(await evaluate(`(a, b = 4) := (1,); b`)).toBe(4);
+      expect(await evaluate(`(a, b = 4) := (1, 2); b`)).toBe(2);
     });
 
     it.todo('with record default value', async () => {

@@ -5382,6 +5382,67 @@ exports[`expressions > pattern matching > with default value 1`] = `
                 {
                   "children": [
                     {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 4,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "=",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with default value parens 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
                       "children": [
                         {
                           "children": [],
@@ -5419,6 +5480,115 @@ exports[`expressions > pattern matching > with default value 1`] = `
           ],
           "data": {},
           "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with default value second 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "b",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 4,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "=",
+                },
+              ],
+              "data": {},
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with like pattern 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "a",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "b",
+                  },
+                  "type": "name",
+                },
+              ],
+              "data": {},
+              "type": "object",
+            },
+          ],
+          "data": {},
+          "type": "like",
         },
       ],
       "data": {},
@@ -6128,6 +6298,72 @@ exports[`expressions > pattern matching > with rest value first 1`] = `
           ],
           "data": {},
           "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "is",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > pattern matching > with strict pattern 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": "a",
+                      },
+                      "type": "name",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [
+                            {
+                              "children": [],
+                              "data": {
+                                "value": "b",
+                              },
+                              "type": "name",
+                            },
+                          ],
+                          "data": {},
+                          "type": "object",
+                        },
+                      ],
+                      "data": {},
+                      "type": "strict",
+                    },
+                  ],
+                  "data": {},
+                  "type": ",",
+                },
+              ],
+              "data": {},
+              "type": "parens",
+            },
+          ],
+          "data": {},
+          "type": "like",
         },
       ],
       "data": {},
@@ -7815,20 +8051,20 @@ exports[`programs > module > export declaration 1`] = `
               },
               "type": "name",
             },
-            {
-              "children": [],
-              "data": {
-                "value": 123,
-              },
-              "type": "number",
-            },
           ],
           "data": {},
-          "type": ":=",
+          "type": "export",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 123,
+          },
+          "type": "number",
         },
       ],
       "data": {},
-      "type": "export",
+      "type": ":=",
     },
   ],
   "data": {},

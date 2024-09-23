@@ -45,11 +45,13 @@ import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'path';
 
+type Environment = Record<string, EvalValue>;
+
 export type Context = {
   file: string;
   fileId: number;
-  readonly: Record<string, EvalValue>;
-  env: Record<string, EvalValue>;
+  readonly: Environment;
+  env: Environment;
   handlers: Record<string | symbol, EvalValue>;
 };
 
@@ -57,6 +59,13 @@ const forkEnv = (env: Context['env']): Context['env'] => {
   const forked: Context['env'] = {};
   Object.setPrototypeOf(forked, env);
   return forked;
+};
+const forkContext = (context: Context): Context => {
+  return {
+    ...context,
+    env: forkEnv(context.env),
+    readonly: forkEnv(context.readonly),
+  };
 };
 
 const maskHandlers = (
@@ -120,8 +129,9 @@ type PatternTestResult = {
   envs: PatternTestEnvs;
 };
 type PatternTestFlags = {
-  mutable: boolean;
-  export: boolean;
+  mutable: boolean; // bound names should be marked as mutable
+  export: boolean; // bound names should be marked as exported
+  strict: boolean; // strict matching, do not report match if value is null
 };
 
 const mergePatternTestResult = (
@@ -140,10 +150,16 @@ const mergePatternTestResult = (
 const testPattern = async (
   patternAst: Tree,
   value: EvalValue,
-  context: Context,
+  context: Readonly<Context>,
   envs: PatternTestEnvs = { env: {}, readonly: {} },
-  flags: PatternTestFlags = { mutable: false, export: false }
+  flags: PatternTestFlags = { mutable: false, export: false, strict: true }
 ): Promise<PatternTestResult> => {
+  // inspect({
+  //   patternAst,
+  //   value,
+  //   envs,
+  // });
+
   if (patternAst.type === NodeType.PLACEHOLDER) {
     return { matched: true, envs };
   }
@@ -186,10 +202,31 @@ const testPattern = async (
 
   if (patternAst.type === NodeType.ASSIGN) {
     const pattern = patternAst.children[0];
-    const result = await testPattern(pattern, value, context, envs, flags);
+    const result = await testPattern(pattern, value, context, envs, {
+      ...flags,
+      strict: true,
+    });
+    // inspect({
+    //   tag: 'testPattern assign',
+    //   result,
+    //   value,
+    //   pattern,
+    // });
     if (!result.matched) {
       const _value = await evaluateExpr(patternAst.children[1], context);
-      return await testPattern(pattern, _value, context, envs, flags);
+      const _result = await testPattern(pattern, _value, context, envs, {
+        ...flags,
+        strict: true,
+      });
+      // inspect({
+      //   tag: 'testPattern assign 2',
+      //   result,
+      //   value,
+      //   pattern,
+      //   _value,
+      //   _result,
+      // });
+      return _result;
     }
     return result;
   }
@@ -236,11 +273,24 @@ const testPattern = async (
         Object.assign(envs.readonly, result.envs.readonly);
         continue;
       } else {
-        const v = value[consumed++];
+        const v = value[consumed++] ?? null;
         const result = await testPattern(pattern, v, context, envs, flags);
+        // inspect({
+        //   tag: 'testPattern tuple',
+        //   result,
+        //   value,
+        //   v,
+        //   pattern,
+        //   consumed,
+        //   overconsumed: value.length < consumed,
+        //   flags,
+        // });
         Object.assign(envs.env, result.envs.env);
         Object.assign(envs.readonly, result.envs.readonly);
         if (!result.matched) return { matched: false, envs };
+        // if (flags.strict && v === null) return { matched: false, envs };
+        // if (flags.strict && value.length < consumed)
+        //   return { matched: false, envs };
         continue;
       }
     }
@@ -259,16 +309,18 @@ const testPattern = async (
       if (pattern.type === NodeType.NAME) {
         const name = pattern.data.value;
         const value = record[name] ?? null;
-        if (value === null) return { matched: false, envs };
-        if (flags.mutable) envs.env[name] = value;
-        else envs.readonly[name] = value;
+        if (value === null && flags.strict) return { matched: false, envs };
+        if (value !== null) {
+          if (flags.mutable) envs.env[name] = value;
+          else envs.readonly[name] = value;
+        }
         consumedNames.push(name);
         continue;
       } else if (pattern.type === NodeType.LABEL) {
         const [key, valuePattern] = pattern.children;
         const name = key.data.value;
         const value = record[name] ?? null;
-        if (value === null) return { matched: false, envs };
+        if (value === null && flags.strict) return { matched: false, envs };
         consumedNames.push(name);
         const result = await testPattern(
           valuePattern,
@@ -308,6 +360,7 @@ const testPattern = async (
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
+    if (value === null && flags.strict) return { matched: false, envs };
     if (value !== null && flags.mutable) envs.env[name] = value;
     if (value !== null && !flags.mutable) envs.readonly[name] = value;
     return { matched: true, envs };
@@ -554,32 +607,32 @@ const bind = async (
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.type === NodeType.TUPLE) {
-    assert(
-      Array.isArray(value),
-      SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
+  // if (patternAst.type === NodeType.TUPLE) {
+  //   assert(
+  //     Array.isArray(value),
+  //     SystemError.invalidTuplePattern(getPosition(patternAst)).withFileId(
+  //       context.fileId
+  //     )
+  //   );
 
-    const patterns = patternAst.children;
-    let consumed = 0;
-    for (const pattern of patterns) {
-      if (pattern.type === NodeType.SPREAD) {
-        const start = consumed++;
-        consumed = value.length - patterns.length + consumed;
-        const rest = value.slice(start, Math.max(start, consumed));
-        context = await bind(pattern.children[0], rest, context);
-        continue;
-      } else {
-        const v = value[consumed++];
-        context = await bind(pattern, v, context);
-        continue;
-      }
-    }
+  //   const patterns = patternAst.children;
+  //   let consumed = 0;
+  //   for (const pattern of patterns) {
+  //     if (pattern.type === NodeType.SPREAD) {
+  //       const start = consumed++;
+  //       consumed = value.length - patterns.length + consumed;
+  //       const rest = value.slice(start, Math.max(start, consumed));
+  //       context = await bind(pattern.children[0], rest, context);
+  //       continue;
+  //     } else {
+  //       const v = value[consumed++];
+  //       context = await bind(pattern, v, context);
+  //       continue;
+  //     }
+  //   }
 
-    return context;
-  }
+  //   return context;
+  // }
 
   if (patternAst.type === NodeType.PARENS) {
     return await bind(patternAst.children[0], value, context);
@@ -636,16 +689,16 @@ const bind = async (
   }
 
   const { matched, envs } = await testPattern(patternAst, value, context);
-  assert(matched, 'expected pattern to match');
-
-  Object.assign(context.env, envs.env);
-  Object.assign(context.readonly, envs.readonly);
-
   inspect({
+    tag: 'bind',
     matched,
     envs,
     context,
   });
+  assert(matched, 'expected pattern to match');
+
+  Object.assign(context.env, envs.env);
+  Object.assign(context.readonly, envs.readonly);
 
   return context;
 };
@@ -978,6 +1031,10 @@ const lazyOperators = {
   [NodeType.IS]: async ([value, pattern]: Tree[], context: Context) => {
     const v = await evaluateExpr(value, context);
     const result = await testPattern(pattern, v, context);
+    // inspect({
+    //   tag: 'evaluateExpr is',
+    //   result,
+    // });
     return result.matched;
   },
   [NodeType.MATCH]: async ([expr, ...branches]: Tree[], context: Context) => {
@@ -989,11 +1046,10 @@ const lazyOperators = {
 
       const result = await testPattern(pattern, value, context);
       if (result.matched) {
-        const env = forkEnv(context.env);
-        Object.assign(env, result.envs.env);
-        const readonly = forkEnv(context.readonly);
-        Object.assign(readonly, result.envs.readonly);
-        return await evaluateBlock(body, { ...context, env, readonly });
+        const forked = forkContext(context);
+        Object.assign(forked.env, result.envs.env);
+        Object.assign(forked.readonly, result.envs.readonly);
+        return await evaluateBlock(body, forked);
       }
     }
 
@@ -1027,7 +1083,7 @@ const lazyOperators = {
   },
   [NodeType.WHILE]: async ([condition, body]: Tree[], context: Context) => {
     while (true) {
-      const _context = { ...context, env: forkEnv(context.env) };
+      const _context = forkContext(context);
       try {
         const cond = await evaluateExpr(condition, _context);
         if (!cond) return null;
@@ -1059,7 +1115,7 @@ const lazyOperators = {
 
     const mapped: EvalValue[] = [];
     for (const item of list) {
-      const _context = { ...context, env: forkEnv(context.env) };
+      const _context = forkContext(context);
       try {
         const bound = await bind(pattern, item, _context);
         const value = await evaluateStatement(body, bound);
@@ -1399,7 +1455,7 @@ export const evaluateStatement = async (
           : fnAST(tupleAST(rest), _body, { isTopFunction: false });
 
       const self: EvalFunction = async (arg, [, , callerContext]) => {
-        const _context = { ...context, env: forkEnv(context.env) };
+        const _context = forkContext(context);
         const bound = await bind(pattern, arg, _context);
         if (isTopFunction) {
           bound.env['self'] = self;
@@ -1460,6 +1516,12 @@ export const evaluateStatement = async (
           context.fileId
         )
       );
+      // inspect({
+      //   tag: 'evaluateExpr name',
+      //   name,
+      //   env: context.env,
+      //   readonly: context.readonly,
+      // });
       return context.env[name] ?? context.readonly[name];
     case NodeType.NUMBER:
     case NodeType.STRING:
@@ -1483,7 +1545,7 @@ export const evaluateBlock = async (
   ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
-  const _context = { ...context, env: forkEnv(context.env) };
+  const _context = forkContext(context);
   return await evaluateStatement(ast, _context);
 };
 

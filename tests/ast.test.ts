@@ -182,10 +182,14 @@ describe('expressions', () => {
     it('with record pattern rename', () => testCase(`x is { a: c, b }`));
     it('with record pattern key', () => testCase(`x is { [a + b]: c, b }`));
     it('with record pattern nested', () => testCase(`x is { a: (c, d), b }`));
-    it('with default value', () => testCase(`x is ((b = 4), a)`));
+    it('with default value', () => testCase(`x is (b = 4, a)`));
+    it('with default value second', () => testCase(`x is (a, b = 4)`));
+    it('with default value parens', () => testCase(`x is ((b = 4), a)`));
     it('with record default value', () => testCase(`x is { b = 4, a }`));
     it('with rename', () => testCase(`x is (a @ b, c)`));
     it('with name for match', () => testCase(`x is ((a, b) @ c)`));
+    it('with like pattern', () => testCase(`x is like { a, b }`));
+    it('with strict pattern', () => testCase(`x is like (a, strict { b })`));
 
     it('binding visible in scope where it is true', () =>
       testCase(`x is (a, b) and a == b + 1`));

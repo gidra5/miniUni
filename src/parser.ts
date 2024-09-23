@@ -126,6 +126,8 @@ const idToPrefixPatternOp = {
   ':': NodeType.ATOM,
   export: NodeType.EXPORT,
   mut: NodeType.MUTABLE,
+  like: NodeType.LIKE,
+  strict: NodeType.STRICT,
 };
 
 const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
