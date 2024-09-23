@@ -517,9 +517,9 @@ describe('expressions', () => {
       expect(await evaluate(`(a: (1, 2), b: 2) is { a: (c, d) }`)).toBe(true);
       expect(await evaluate(`(a: (1, 2), b: 2) is { a: { b } }`)).toBe(false);
     });
-    it.todo('with record pattern key', async () => {
-      expect(await evaluate(`3: 1, b: 2 is { [1 + 2]: c, b }`)).toBe(true);
-      expect(await evaluate(`3: 1, b: 2 is { [1 + 1]: c, d }`)).toBe(false);
+    it('with record pattern key', async () => {
+      expect(await evaluate(`(3: 1, b: 2) is { [1 + 2]: c, b }`)).toBe(true);
+      expect(await evaluate(`(3: 1, b: 2) is { [1 + 1]: c, d }`)).toBe(false);
     });
 
     it('with constant value', async () => {
@@ -565,7 +565,20 @@ describe('expressions', () => {
       expect(await evaluate(`(a, b = 4) := (1, 2); b`)).toBe(2);
     });
 
-    it.todo('with record default value', async () => {
+    it('with like pattern', async () => {
+      expect(await evaluate(`(1, 2) is like (a, b)`)).toBe(true);
+      expect(await evaluate(`(1, 2) is like (a, b, c)`)).toBe(true);
+      expect(await evaluate(`(1, 2) is like (a, (b, c))`)).toBe(false);
+      expect(await evaluate(`(1, (2, 3)) is like (a, strict (b, c))`)).toBe(
+        true
+      );
+      expect(await evaluate(`(1, (2,)) is like (a, strict (b, c))`)).toBe(
+        false
+      );
+      expect(await evaluate(`(1, 2) is like (a, strict (b, c))`)).toBe(false);
+    });
+
+    it('with record default value', async () => {
       expect(await evaluate(`(a: 2, b: 1) is { b = 4, a }`)).toBe(true);
       expect(await evaluate(`(a: 2) is { b = 4, a: 1 }`)).toBe(false);
       expect(await evaluate(`{ b = 4, a } := (a: 1); b`)).toBe(4);

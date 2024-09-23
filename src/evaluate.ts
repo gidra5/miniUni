@@ -202,10 +202,7 @@ const testPattern = async (
 
   if (patternAst.type === NodeType.ASSIGN) {
     const pattern = patternAst.children[0];
-    const result = await testPattern(pattern, value, context, envs, {
-      ...flags,
-      strict: true,
-    });
+    const result = await testPattern(pattern, value, context, envs, flags);
     // inspect({
     //   tag: 'testPattern assign',
     //   result,
@@ -214,10 +211,7 @@ const testPattern = async (
     // });
     if (!result.matched) {
       const _value = await evaluateExpr(patternAst.children[1], context);
-      const _result = await testPattern(pattern, _value, context, envs, {
-        ...flags,
-        strict: true,
-      });
+      const _result = await testPattern(pattern, _value, context, envs, flags);
       // inspect({
       //   tag: 'testPattern assign 2',
       //   result,
@@ -249,6 +243,27 @@ const testPattern = async (
     return await testPattern(patternAst.children[0], value, context, envs, {
       ...flags,
       export: true,
+    });
+  }
+
+  if (patternAst.type === NodeType.MUTABLE) {
+    return await testPattern(patternAst.children[0], value, context, envs, {
+      ...flags,
+      mutable: true,
+    });
+  }
+
+  if (patternAst.type === NodeType.LIKE) {
+    return await testPattern(patternAst.children[0], value, context, envs, {
+      ...flags,
+      strict: false,
+    });
+  }
+
+  if (patternAst.type === NodeType.STRICT) {
+    return await testPattern(patternAst.children[0], value, context, envs, {
+      ...flags,
+      strict: true,
     });
   }
 
@@ -318,8 +333,14 @@ const testPattern = async (
         continue;
       } else if (pattern.type === NodeType.LABEL) {
         const [key, valuePattern] = pattern.children;
-        const name = key.data.value;
-        const value = record[name] ?? null;
+        const name =
+          key.type === NodeType.SQUARE_BRACKETS
+            ? await evaluateExpr(key.children[0], context)
+            : key.type === NodeType.NAME
+            ? key.data.value
+            : null;
+        if (name === null) return { matched: false, envs };
+        const value = record[isSymbol(name) ? name.symbol : name] ?? null;
         if (value === null && flags.strict) return { matched: false, envs };
         consumedNames.push(name);
         const result = await testPattern(
@@ -346,7 +367,29 @@ const testPattern = async (
         Object.assign(envs.readonly, result.envs.readonly);
         if (!result.matched) return { matched: false, envs };
         continue;
+      } else if (pattern.type === NodeType.ASSIGN) {
+        const _pattern = pattern.children[0];
+        assert(_pattern.type === NodeType.NAME, 'expected name');
+        const name = _pattern.data.value;
+        const value =
+          record[name] ?? (await evaluateExpr(pattern.children[1], context));
+
+        if (value === null && flags.strict) return { matched: false, envs };
+        if (value !== null) {
+          if (flags.mutable) envs.env[name] = value;
+          else envs.readonly[name] = value;
+        }
+        consumedNames.push(name);
+        continue;
       }
+
+      inspect({
+        tag: 'testPattern record',
+        record,
+        pattern,
+        consumedNames,
+        flags,
+      });
 
       unreachable(
         SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
@@ -364,13 +407,6 @@ const testPattern = async (
     if (value !== null && flags.mutable) envs.env[name] = value;
     if (value !== null && !flags.mutable) envs.readonly[name] = value;
     return { matched: true, envs };
-  }
-
-  if (patternAst.type === NodeType.MUTABLE) {
-    return await testPattern(patternAst.children[0], value, context, envs, {
-      ...flags,
-      mutable: true,
-    });
   }
 
   // inspect(patternAst);
@@ -638,46 +674,46 @@ const bind = async (
     return await bind(patternAst.children[0], value, context);
   }
 
-  if (patternAst.type === NodeType.RECORD) {
-    assert(value !== null, 'expected value');
-    assert(
-      isRecord(value),
-      SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
+  // if (patternAst.type === NodeType.RECORD) {
+  //   assert(value !== null, 'expected value');
+  //   assert(
+  //     isRecord(value),
+  //     SystemError.invalidObjectPattern(getPosition(patternAst)).withFileId(
+  //       context.fileId
+  //     )
+  //   );
 
-    const record = value.record;
-    const patterns = patternAst.children;
-    const consumedNames: string[] = [];
+  //   const record = value.record;
+  //   const patterns = patternAst.children;
+  //   const consumedNames: string[] = [];
 
-    for (const pattern of patterns) {
-      if (pattern.type === NodeType.NAME) {
-        const name = pattern.data.value;
-        context.env[name] = record[name] ?? null;
-        consumedNames.push(name);
-        continue;
-      } else if (pattern.type === NodeType.LABEL) {
-        const [key, valuePattern] = pattern.children;
-        const name = key.data.value;
-        consumedNames.push(name);
-        context = await bind(valuePattern, record[name] ?? null, context);
-        continue;
-      } else if (pattern.type === NodeType.SPREAD) {
-        const rest = omit(record, consumedNames);
-        context = await bind(pattern.children[0], { record: rest }, context);
-        continue;
-      }
+  //   for (const pattern of patterns) {
+  //     if (pattern.type === NodeType.NAME) {
+  //       const name = pattern.data.value;
+  //       context.env[name] = record[name] ?? null;
+  //       consumedNames.push(name);
+  //       continue;
+  //     } else if (pattern.type === NodeType.LABEL) {
+  //       const [key, valuePattern] = pattern.children;
+  //       const name = key.data.value;
+  //       consumedNames.push(name);
+  //       context = await bind(valuePattern, record[name] ?? null, context);
+  //       continue;
+  //     } else if (pattern.type === NodeType.SPREAD) {
+  //       const rest = omit(record, consumedNames);
+  //       context = await bind(pattern.children[0], { record: rest }, context);
+  //       continue;
+  //     }
 
-      unreachable(
-        SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
-          context.fileId
-        )
-      );
-    }
+  //     unreachable(
+  //       SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
+  //         context.fileId
+  //       )
+  //     );
+  //   }
 
-    return context;
-  }
+  //   return context;
+  // }
 
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
