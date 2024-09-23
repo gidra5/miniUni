@@ -264,6 +264,17 @@ describe('scope', () => {
     const result = await evaluate(input);
     expect(result).toEqual(1);
   });
+
+  it.todo('declaration shadowing and closures', async () => {
+    const input = `
+      x := 1
+      f := fn -> x
+      x := 2
+      f()
+    `;
+    const result = await evaluate(input);
+    expect(result).toEqual(1);
+  });
 });
 
 describe('comments', () => {
@@ -619,6 +630,16 @@ describe('expressions', () => {
         `;
       const result = await evaluate(input);
       expect(result).toEqual([1, 2]);
+    });
+
+    it('assign', async () => {
+      expect(await evaluate(`mut x := (a: 1, b: 2); x.a = 3; x`)).toEqual({
+        record: { a: 3, b: 2 },
+      });
+      expect(await evaluate(`mut x := (a: 1, b: 2); x["b"] = 4; x`)).toEqual({
+        record: { a: 1, b: 4 },
+      });
+      expect(await evaluate(`mut x := (1, 2); x[0] = 3; x`)).toEqual([3, 2]);
     });
   });
 

@@ -120,10 +120,11 @@ export const newContext = (fileId: number, file: string): Context => {
   };
 };
 
+type PatternTestEnv = Map<string | EvalValue[], EvalValue>;
 type PatternTestEnvs = {
-  env: Environment;
-  readonly: Environment;
-  exports: Environment;
+  env: PatternTestEnv;
+  readonly: PatternTestEnv;
+  exports: PatternTestEnv;
 };
 type PatternTestResult = {
   matched: boolean;
@@ -135,25 +136,48 @@ type PatternTestFlags = {
   strict: boolean; // strict matching, do not report match if value is null
 };
 
+const mergePatternTestEnvs = (
+  a: PatternTestEnvs,
+  b: PatternTestEnvs
+): PatternTestEnvs => {
+  return {
+    env: new Map([...a.env, ...b.env]),
+    readonly: new Map([...a.readonly, ...b.readonly]),
+    exports: new Map([...a.exports, ...b.exports]),
+  };
+};
+
 const mergePatternTestResult = (
   a: PatternTestResult,
   b: PatternTestResult
 ): PatternTestResult => {
   return {
     matched: a.matched && b.matched,
-    envs: {
-      env: { ...a.envs.env, ...b.envs.env },
-      readonly: { ...a.envs.readonly, ...b.envs.readonly },
-      exports: { ...a.envs.exports, ...b.envs.exports },
-    },
+    envs: mergePatternTestEnvs(a.envs, b.envs),
   };
+};
+
+const updatePatternTestEnv = (
+  envs: PatternTestEnvs,
+  flags: PatternTestFlags,
+  key: string | EvalValue[],
+  value: EvalValue
+): PatternTestEnvs => {
+  if (flags.mutable) envs.env.set(key, value);
+  else if (flags.export) envs.exports.set(key, value);
+  else envs.readonly.set(key, value);
+  return envs;
 };
 
 const testPattern = async (
   patternAst: Tree,
   value: EvalValue,
   context: Readonly<Context>,
-  envs: PatternTestEnvs = { env: {}, readonly: {}, exports: {} },
+  envs: PatternTestEnvs = {
+    env: new Map(),
+    readonly: new Map(),
+    exports: new Map(),
+  },
   flags: PatternTestFlags = { mutable: false, export: false, strict: true }
 ): Promise<PatternTestResult> => {
   // inspect({
@@ -165,6 +189,7 @@ const testPattern = async (
   if (patternAst.type === NodeType.PLACEHOLDER) {
     return { matched: true, envs };
   }
+
   if (patternAst.type === NodeType.IMPLICIT_PLACEHOLDER) {
     return { matched: true, envs };
   }
@@ -242,6 +267,7 @@ const testPattern = async (
   }
 
   if (patternAst.type === NodeType.EXPORT) {
+    assert(!flags.mutable, 'export cannot be mutable');
     return await testPattern(patternAst.children[0], value, context, envs, {
       ...flags,
       export: true,
@@ -249,6 +275,7 @@ const testPattern = async (
   }
 
   if (patternAst.type === NodeType.MUTABLE) {
+    assert(!flags.export, 'export cannot be mutable');
     return await testPattern(patternAst.children[0], value, context, envs, {
       ...flags,
       mutable: true,
@@ -286,8 +313,7 @@ const testPattern = async (
           envs,
           flags
         );
-        Object.assign(envs.env, result.envs.env);
-        Object.assign(envs.readonly, result.envs.readonly);
+        envs = mergePatternTestEnvs(envs, result.envs);
         continue;
       } else {
         const v = value[consumed++] ?? null;
@@ -302,8 +328,9 @@ const testPattern = async (
         //   overconsumed: value.length < consumed,
         //   flags,
         // });
-        Object.assign(envs.env, result.envs.env);
-        Object.assign(envs.readonly, result.envs.readonly);
+        // Object.assign(envs.env, result.envs.env);
+        // Object.assign(envs.readonly, result.envs.readonly);
+        envs = mergePatternTestEnvs(envs, result.envs);
         if (!result.matched) return { matched: false, envs };
         // if (flags.strict && v === null) return { matched: false, envs };
         // if (flags.strict && value.length < consumed)
@@ -328,9 +355,10 @@ const testPattern = async (
         const value = record[name] ?? null;
         if (value === null && flags.strict) return { matched: false, envs };
         if (value !== null) {
-          if (flags.mutable) envs.env[name] = value;
-          if (flags.export) envs.exports[name] = value;
-          else envs.readonly[name] = value;
+          updatePatternTestEnv(envs, flags, name, value);
+          // if (flags.mutable) envs.env[name] = value;
+          // if (flags.export) envs.exports[name] = value;
+          // else envs.readonly[name] = value;
         }
         consumedNames.push(name);
         continue;
@@ -353,8 +381,9 @@ const testPattern = async (
           envs,
           flags
         );
-        Object.assign(envs.env, result.envs.env);
-        Object.assign(envs.readonly, result.envs.readonly);
+        // Object.assign(envs.env, result.envs.env);
+        // Object.assign(envs.readonly, result.envs.readonly);
+        envs = mergePatternTestEnvs(envs, result.envs);
         if (!result.matched) return { matched: false, envs };
         continue;
       } else if (pattern.type === NodeType.SPREAD) {
@@ -366,8 +395,9 @@ const testPattern = async (
           envs,
           flags
         );
-        Object.assign(envs.env, result.envs.env);
-        Object.assign(envs.readonly, result.envs.readonly);
+        // Object.assign(envs.env, result.envs.env);
+        // Object.assign(envs.readonly, result.envs.readonly);
+        envs = mergePatternTestEnvs(envs, result.envs);
         if (!result.matched) return { matched: false, envs };
         continue;
       } else if (pattern.type === NodeType.ASSIGN) {
@@ -379,9 +409,10 @@ const testPattern = async (
 
         if (value === null && flags.strict) return { matched: false, envs };
         if (value !== null) {
-          if (flags.mutable) envs.env[name] = value;
-          else if (flags.export) envs.exports[name] = value;
-          else envs.readonly[name] = value;
+          updatePatternTestEnv(envs, flags, name, value);
+          // if (flags.mutable) envs.env[name] = value;
+          // else if (flags.export) envs.exports[name] = value;
+          // else envs.readonly[name] = value;
         }
         consumedNames.push(name);
         continue;
@@ -405,14 +436,41 @@ const testPattern = async (
     return { matched: true, envs };
   }
 
+  if (patternAst.type === NodeType.INDEX) {
+    const list = await evaluateExpr(patternAst.children[0], context);
+    const index = await evaluateExpr(patternAst.children[1], context);
+    if (Array.isArray(list)) {
+      assert(
+        Number.isInteger(index),
+        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+      assert(typeof index === 'number');
+      updatePatternTestEnv(envs, flags, [list, index], value);
+      return { matched: true, envs };
+    } else if (isRecord(list)) {
+      assert(
+        typeof index === 'string' || isSymbol(index),
+        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+      updatePatternTestEnv(envs, flags, [list, index], value);
+      return { matched: true, envs };
+    }
+
+    unreachable(
+      SystemError.invalidIndexTarget(getPosition(patternAst)).withFileId(
+        context.fileId
+      )
+    );
+  }
+
   if (patternAst.type === NodeType.NAME) {
     const name = patternAst.data.value;
     if (value === null && flags.strict) return { matched: false, envs };
-    if (value !== null) {
-      if (flags.mutable) envs.env[name] = value;
-      else if (flags.export) envs.exports[name] = value;
-      else envs.readonly[name] = value;
-    }
+    if (value !== null) updatePatternTestEnv(envs, flags, name, value);
     return { matched: true, envs };
   }
 
@@ -468,14 +526,8 @@ const incAssign = async (
   const { matched, envs } = await testPattern(patternAst, value, context);
   assert(matched, 'expected pattern to match');
 
-  assert(
-    Object.keys(envs.exports).length === 0,
-    'cant do exports at increment'
-  );
-  assert(
-    Object.keys(envs.env).length === 0,
-    'cant do mutable declarations at increment'
-  );
+  assert(envs.exports.size === 0, 'cant do exports at increment');
+  assert(envs.env.size === 0, 'cant do mutable declarations at increment');
 
   // inspect({
   //   tag: 'assign',
@@ -484,8 +536,38 @@ const incAssign = async (
   //   context,
   // });
 
-  for (const name in envs.readonly) {
-    assert(!(name in context.readonly), 'expected mutable name');
+  // for (const name in envs.readonly) {
+  //   assert(!(name in context.readonly), 'expected mutable name');
+  // assert(
+  //   name in context.env,
+  //   SystemError.invalidAssignment(
+  //     name,
+  //     getPosition(patternAst),
+  //     getClosestName(name, Object.keys(context.env))
+  //   ).withFileId(context.fileId)
+  // );
+  // const v = context.env[name];
+  // assert(
+  //   typeof v === 'number',
+  //   SystemError.invalidIncrement(name, getPosition(patternAst)).withFileId(
+  //     context.fileId
+  //   )
+  // );
+  // const value = envs.readonly[name];
+  // assert(
+  //   typeof value === 'number',
+  //   SystemError.invalidIncrement(name, getPosition(patternAst)).withFileId(
+  //     context.fileId
+  //   )
+  // );
+  // const enclosing = Object.getPrototypeOf(context.env);
+  // if (name in enclosing) {
+  //   await incAssign(patternAst, value, { ...context, env: enclosing });
+  // } else context.env[name] = v + value;
+  //   return context;
+  // }
+  /* 
+  
     assert(
       name in context.env,
       SystemError.invalidAssignment(
@@ -512,7 +594,66 @@ const incAssign = async (
     if (name in enclosing) {
       await incAssign(patternAst, value, { ...context, env: enclosing });
     } else context.env[name] = v + value;
-    return context;
+  */
+  for (const [key, value] of envs.readonly.entries()) {
+    if (typeof key === 'string') {
+      assert(!(key in context.readonly), 'expected mutable name');
+      assert(
+        key in context.env,
+        SystemError.invalidAssignment(
+          key,
+          getPosition(patternAst),
+          getClosestName(key, Object.keys(context.env))
+        ).withFileId(context.fileId)
+      );
+      assert(
+        typeof value === 'number',
+        SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+
+      const v = context.env[key];
+      assert(
+        typeof v === 'number',
+        SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+
+      const enclosing = Object.getPrototypeOf(context.env);
+      if (key in enclosing) {
+        await incAssign(patternAst, value, { ...context, env: enclosing });
+      } else context.env[key] = v + value;
+    } else {
+      const [ref, _key] = key;
+      assert(isRecord(ref) || Array.isArray(ref));
+      assert(
+        typeof _key === 'number' || typeof _key === 'string' || isSymbol(_key),
+        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+      const __key = isSymbol(_key) ? _key.symbol : _key;
+      const target = isRecord(ref) ? ref.record : ref;
+      assert(
+        typeof value === 'number',
+        SystemError.invalidIncrement(
+          String(__key),
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
+      );
+
+      const v = target[__key];
+      assert(
+        typeof v === 'number',
+        SystemError.invalidIncrement(
+          String(__key),
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
+      );
+      target[__key] = v + value;
+    }
   }
 
   // inspect({
@@ -523,12 +664,6 @@ const incAssign = async (
   // });
 
   return context;
-
-  unreachable(
-    SystemError.invalidPattern(getPosition(patternAst)).withFileId(
-      context.fileId
-    )
-  );
 };
 
 const assign = async (
@@ -536,39 +671,17 @@ const assign = async (
   value: EvalValue,
   context: Context
 ): Promise<Context> => {
-  if (patternAst.type === NodeType.INDEX) {
-    const [list, index] = await Promise.all(
-      patternAst.children.map((child) => evaluateExpr(child, context))
-    );
-    assert(
-      Array.isArray(list),
-      SystemError.invalidIndexTarget(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
-    assert(
-      Number.isInteger(index),
-      SystemError.invalidIndex(getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
-    assert(typeof index === 'number');
-    assert(value !== null, 'expected value');
-    list[index] = value;
-    return context;
-  }
-
+  // inspect({
+  //   tag: 'assign',
+  //   patternAst,
+  //   value,
+  //   context,
+  // });
   const { matched, envs } = await testPattern(patternAst, value, context);
   assert(matched, 'expected pattern to match');
 
-  assert(
-    Object.keys(envs.exports).length === 0,
-    'cant do exports in at assignment'
-  );
-  assert(
-    Object.keys(envs.env).length === 0,
-    'cant do mutable declarations at assignment'
-  );
+  assert(envs.exports.size === 0, 'cant do exports in at assignment');
+  assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
 
   // inspect({
   //   tag: 'assign',
@@ -577,23 +690,36 @@ const assign = async (
   //   context,
   // });
 
-  for (const name in envs.readonly) {
-    assert(!(name in context.readonly), 'expected mutable name');
-    assert(
-      name in context.env,
-      SystemError.invalidAssignment(
-        name,
-        getPosition(patternAst),
-        getClosestName(name, Object.keys(context.env))
-      ).withFileId(context.fileId)
-    );
+  for (const [key, value] of envs.readonly.entries()) {
+    if (typeof key === 'string') {
+      assert(!(key in context.readonly), 'expected mutable name');
+      assert(
+        key in context.env,
+        SystemError.invalidAssignment(
+          key,
+          getPosition(patternAst),
+          getClosestName(key, Object.keys(context.env))
+        ).withFileId(context.fileId)
+      );
 
-    const value = envs.readonly[name];
-    const enclosing = Object.getPrototypeOf(context.env);
-    if (value === null) delete context.env[name];
-    else if (name in enclosing) {
-      await assign(patternAst, value, { ...context, env: enclosing });
-    } else context.env[name] = value;
+      const enclosing = Object.getPrototypeOf(context.env);
+      if (value === null) delete context.env[key];
+      else if (key in enclosing) {
+        await assign(patternAst, value, { ...context, env: enclosing });
+      } else context.env[key] = value;
+    } else {
+      const [ref, _key] = key;
+      assert(isRecord(ref) || Array.isArray(ref));
+      assert(
+        typeof _key === 'number' || typeof _key === 'string' || isSymbol(_key),
+        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+          context.fileId
+        )
+      );
+      const target = isRecord(ref) ? ref.record : ref;
+      if (value === null) delete target[isSymbol(_key) ? _key.symbol : _key];
+      else target[isSymbol(_key) ? _key.symbol : _key] = value;
+    }
   }
 
   // inspect({
@@ -607,18 +733,47 @@ const assign = async (
 };
 
 const bind = async (
-  patternAst: Tree,
-  value: EvalValue,
+  result: PatternTestResult,
   context: Context
 ): Promise<Context> => {
-  const { matched, envs } = await testPattern(patternAst, value, context);
+  const { matched, envs } = result;
+
+  // inspect({
+  //   tag: 'bind',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
 
   assert(matched, 'expected pattern to match');
 
-  Object.assign(context.env, envs.env);
-  Object.assign(context.readonly, envs.readonly);
+  for (const [key, value] of envs.readonly.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+    // TODO: fork scope on duplicate declaration.
+    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
+    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
 
-  assert(Object.keys(envs.exports).length === 0, 'cant do exports in scripts');
+    if (value === null) continue;
+    context.readonly[key] = value;
+  }
+  for (const [key, value] of envs.env.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+    // TODO: fork scope on duplicate declaration.
+    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
+    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+
+    if (value === null) continue;
+    context.env[key] = value;
+  }
+
+  assert(envs.exports.size === 0, 'cant do exports in scripts');
+
+  // inspect({
+  //   tag: 'bind 2',
+  //   matched,
+  //   envs,
+  //   context,
+  // });
 
   return context;
 };
@@ -633,10 +788,39 @@ async function bindExport(
 
   assert(matched, 'expected pattern to match');
 
-  Object.assign(context.env, envs.env);
-  Object.assign(context.readonly, envs.readonly);
-  Object.assign(context.readonly, envs.exports);
-  Object.assign(exports, envs.exports);
+  for (const [key, value] of envs.readonly.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+    // TODO: fork scope on duplicate declaration.
+    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
+    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+
+    if (value === null) continue;
+    context.readonly[key] = value;
+  }
+  for (const [key, value] of envs.env.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+    // TODO: fork scope on duplicate declaration.
+    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
+    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+
+    if (value === null) continue;
+    context.env[key] = value;
+  }
+  for (const [key, value] of envs.exports.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+    // TODO: fork scope on duplicate declaration.
+    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
+    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+
+    if (value === null) continue;
+    context.readonly[key] = value;
+  }
+  for (const [key, value] of envs.exports.entries()) {
+    assert(typeof key === 'string', 'can only declare names');
+
+    if (value === null) continue;
+    exports[key] = value;
+  }
 
   return exports;
 }
@@ -879,8 +1063,7 @@ const lazyOperators = {
       const result = await testPattern(pattern, value, context);
       if (result.matched) {
         const forked = forkContext(context);
-        Object.assign(forked.env, result.envs.env);
-        Object.assign(forked.readonly, result.envs.readonly);
+        await bind(result, forked);
         return await evaluateBlock(body, forked);
       }
     }
@@ -907,17 +1090,22 @@ const lazyOperators = {
       const [value, pattern] = condition.children;
       const v = await evaluateStatement(value, context);
       const result = await testPattern(pattern, v, context);
+      // inspect({
+      //   tag: 'evaluateExpr if else 2',
+      //   result,
+      //   condition,
+      //   context,
+      // });
 
       if (result.matched) {
         const forked = forkContext(context);
-        Object.assign(forked.env, result.envs.env);
-        Object.assign(forked.readonly, result.envs.readonly);
+        await bind(result, forked);
         return await evaluateBlock(trueBranch, forked);
       } else return await evaluateBlock(falseBranch, context);
     }
     const result = await evaluateExpr(condition, context);
     // inspect({
-    //   tag: 'evaluateExpr if else 2',
+    //   tag: 'evaluateExpr if else 3',
     //   result,
     //   condition,
     //   context,
@@ -961,7 +1149,8 @@ const lazyOperators = {
     for (const item of list) {
       const _context = forkContext(context);
       try {
-        const bound = await bind(pattern, item, _context);
+        const result = await testPattern(pattern, item, _context);
+        const bound = await bind(result, _context);
         const value = await evaluateStatement(body, bound);
         if (value === null) continue;
         mapped.push(value);
@@ -1051,7 +1240,8 @@ const lazyOperators = {
 
   [NodeType.DECLARE]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
-    await bind(pattern, value, context);
+    const result = await testPattern(pattern, value, context);
+    await bind(result, context);
     return value;
   },
   [NodeType.ASSIGN]: async ([pattern, expr]: Tree[], context: Context) => {
@@ -1198,7 +1388,8 @@ export const evaluateStatement = async (
           : (module.buffer as unknown as EvalValue);
       const pattern = ast.children[0];
       if (pattern) {
-        await bind(pattern, value, context);
+        const result = await testPattern(pattern, value, context);
+        await bind(result, context);
       }
 
       return value;
@@ -1300,7 +1491,8 @@ export const evaluateStatement = async (
 
       const self: EvalFunction = async (arg, [, , callerContext]) => {
         const _context = forkContext(context);
-        const bound = await bind(pattern, arg, _context);
+        const result = await testPattern(pattern, arg, _context);
+        const bound = await bind(result, _context);
         if (isTopFunction) {
           bound.env['self'] = self;
           bound.handlers = callerContext.handlers;
@@ -1435,10 +1627,11 @@ export const evaluateModule = async (
       const exportNode = child.children[0];
 
       if (exportNode.type === NodeType.DECLARE) {
-        const [name, expr] = exportNode.children;
+        const [pattern, expr] = exportNode.children;
         const value = await evaluateExpr(expr, context);
-        await bindExport(name, value, record, context);
-        await bind(name, value, context);
+        const result = await testPattern(pattern, value, context);
+        await bindExport(pattern, value, record, context);
+        await bind(result, context);
       } else {
         const value = await evaluateExpr(exportNode, context);
 
