@@ -116,7 +116,6 @@ const idToLhsPatternExprOp = {
 
 const idToPatternOp = {
   ',': NodeType.TUPLE,
-  // '=': NodeType.ASSIGN,
   ':': NodeType.LABEL,
   '@': NodeType.BIND,
 };
@@ -190,9 +189,8 @@ const parseValue: Parser = (src, i) => {
   }
 
   if (src[index].type === 'identifier' && src[index + 1]?.src === '::') {
-    index += 2;
     return [
-      index,
+      index + 2,
       _node(NodeType.CODE_LABEL, {
         position: nodePosition(),
         data: { name: src[index].src },
@@ -574,6 +572,17 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
 
     if (src[index]?.src === 'else') {
       index++;
+      return [
+        index,
+        _node(NodeType.IF_ELSE, {
+          position: nodePosition(),
+          children: [condition, trueBranch],
+        }),
+      ];
+    }
+
+    if (src[index]?.type === 'newline' && src[index + 1]?.src === 'else') {
+      index += 2;
       return [
         index,
         _node(NodeType.IF_ELSE, {

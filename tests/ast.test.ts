@@ -314,6 +314,8 @@ describe('newline handling', () => {
   it('if-then newline-else', () => testCase(`if true do\n 123 else 456`));
   it('if-then newline-else newline', () =>
     testCase(`if true do\n 123 else\n 456`));
+  it('if-then post newline', () => testCase(`if true do 123\nelse 456`));
+  it('if-then post newline block', () => testCase(`if true { 123 }\nelse 456`));
   it('block newline in the middle', () => testCase(`{ a := 1\n b := 2 }`));
   it('block newline at the end', () => testCase(`{ a := 1\n b := 2\n }`));
   it('block newline at the beginning', () => testCase(`{\n a := 1\n b := 2 }`));
