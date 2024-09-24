@@ -32,6 +32,7 @@ import {
   createTask,
   EvalFunction,
   EvalValue,
+  fn,
   getChannel,
   isChannel,
   isRecord,
@@ -1427,6 +1428,36 @@ const lazyOperators = {
       )
     );
   },
+
+  [NodeType.SEND]: async ([chanAst, valueAst]: Tree[], context: Context) => {
+    const channelValue = await evaluateExpr(chanAst, context);
+    const value = await evaluateExpr(valueAst, context);
+
+    assert(
+      isChannel(channelValue),
+      SystemError.invalidSendChannel(getPosition(chanAst)).withFileId(
+        context.fileId
+      )
+    );
+
+    const channel = getChannel(channelValue.channel);
+
+    assert(
+      channel,
+      SystemError.channelClosed(getPosition(chanAst)).withFileId(context.fileId)
+    );
+
+    const promise = channel.onReceive.shift();
+    if (!promise) {
+      channel.queue.push(value);
+      return null;
+    }
+    const { resolve, reject } = promise;
+    if (value instanceof Error) reject(value);
+    else resolve(value);
+
+    return null;
+  },
 };
 
 export const evaluateStatement = async (
@@ -1465,37 +1496,33 @@ export const evaluateStatement = async (
       return value;
     }
 
-    case NodeType.SEND: {
-      const [channelValue, value] = [
-        await evaluateExpr(ast.children[0], context),
-        await evaluateExpr(ast.children[1], context),
-      ];
+    case NodeType.CODE_LABEL: {
+      const expr = ast.children[0];
+      const labelBreak = fn(1, async (cs, value) => {
+        throw { break: value, label: ast.data.name };
+      });
+      const labelContinue = fn(1, async (cs, value) => {
+        throw { continue: value, label: ast.data.name };
+      });
 
-      assert(
-        isChannel(channelValue),
-        SystemError.invalidSendChannel(getPosition(ast)).withFileId(
-          context.fileId
-        )
-      );
-
-      const channel = getChannel(channelValue.channel);
-
-      assert(
-        channel,
-        SystemError.channelClosed(getPosition(ast)).withFileId(context.fileId)
-      );
-
-      const promise = channel.onReceive.shift();
-      if (!promise) {
-        channel.queue.push(value);
-        return null;
+      const forked = forkContext(context);
+      context.readonly[ast.data.name] = {
+        record: { break: labelBreak, continue: labelContinue },
+      };
+      try {
+        return await evaluateStatement(expr, forked);
+      } catch (e) {
+        if (typeof e !== 'object' || e === null) throw e;
+        if (!('label' in e && e.label === ast.data.name)) throw e;
+        if ('break' in e) {
+          const value = e.break as EvalValue;
+          return value;
+        } else if ('continue' in e) {
+          return await evaluateStatement(ast, context);
+        } else throw e;
       }
-      const { resolve, reject } = promise;
-      if (value instanceof Error) reject(value);
-      else resolve(value);
-
-      return null;
     }
+
     case NodeType.RECEIVE: {
       const channelValue = await evaluateExpr(ast.children[0], context);
 

@@ -644,29 +644,28 @@ describe('expressions', () => {
   });
 
   describe('structured programming', () => {
-    it.todo('label', async () => {
-      const input = `label::{ label 1; 2 }`;
+    it('label', async () => {
+      const input = `label::{ label.break 1; 2 }`;
       const result = await evaluate(input);
       expect(result).toBe(1);
     });
 
-    it.todo('loop if-then', async () => {
-      const input = `y := (
-        x := 25 
-        res := () 
-        block::{ 
-          if x <= 0: (res = ...res, x; block.break)
+    it('label loop if-then', async () => {
+      const input = `
+        mut x := 4 
+        mut res := () 
+        block::{
+          if print (x <= 0) { res = ...res, x; block.break res }
           else {
-            y := x
-            x = x - 1
-            if y == 19: (res = ...res, 69; block.continue)
+            y := x--
+            if y == 2 { res = ...res, 69; block.continue() }
             res = ...res, y
           }
+          block.continue()
         }
-        res
-      )`;
+      `;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toEqual([4, 3, 69, 1, 0]);
     });
 
     it('if is', async () => {
@@ -729,10 +728,10 @@ describe('expressions', () => {
       expect(result).toEqual([3, 4]);
     });
 
-    it.todo('while loop', async () => {
-      const input = `while true do 123`;
+    it('while loop continue', async () => {
+      const input = `mut x := 0; mut y := (); while x < 3 { x++; if x == 1 do continue(); y = ...y, x }; x, y`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toEqual([3, [2, 3]]);
     });
 
     it('while loop break', async () => {
@@ -747,16 +746,10 @@ describe('expressions', () => {
       expect(result).toBe(1);
     });
 
-    it.todo('while loop continue', async () => {
-      const input = `while true do continue _`;
+    it('while loop', async () => {
+      const input = `mut x := 0; while x < 10 do x++; x`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
-    });
-
-    it.todo('while loop continue value', async () => {
-      const input = `while true do continue 1`;
-      const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(10);
     });
 
     it('return', async () => {
@@ -771,16 +764,61 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it.todo('block mutable variable declaration', async () => {
+    it('block mutable variable declaration', async () => {
       const input = `{ mut x := 123 }`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
-    it.todo('block variable assignment', async () => {
-      const input = `{ x = 123 }`;
+    it('block variable assignment', async () => {
+      const input = `mut x := 1; { x = 123 }; x`;
       const result = await evaluate(input);
       expect(result).toBe(123);
+    });
+
+    describe('resource handling', () => {
+      it.todo('rest', async () => {
+        const input = `
+          import "std/io" as { open };
+
+          // file closed at the end of file
+          open "file.txt" file ->
+          file.write("hello")
+
+          123
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe('hello');
+      });
+
+      it.todo('block', async () => {
+        const input = `
+          import "std/io" as { open };
+
+          // file closed at the end of block
+          open "file.txt" fn file {
+            file.write("hello")
+          }
+
+          123
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe('hello');
+      });
+
+      it.todo('do', async () => {
+        const input = `
+          import "std/io" as { open };
+
+          // file closed at the end of statement
+          open "file.txt" fn file do
+            file.write("hello")
+
+          123
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe('hello');
+      });
     });
 
     describe('error handling', () => {
@@ -844,26 +882,10 @@ describe('expressions', () => {
         expect(result).toBe(null);
       });
     });
-
-    it.todo('resource handling', async () => {
-      const input = `
-          import "std/io" as { open };
-          import "std/concurrency" as concurrency;
-
-          {
-            open "file.txt" fn file ->
-            file.write("hello")
-          }
-
-          123
-        `;
-      const result = await evaluate(input);
-      expect(result).toBe('hello');
-    });
   });
 
   describe('concurrent programming', () => {
-    it('evaluate parallel all', async () => {
+    it('parallel all', async () => {
       const input = `
           import "std/concurrency" as { all };
           all(1 | 2)
@@ -872,7 +894,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it.todo('evaluate parallel some', async () => {
+    it.todo('parallel some', async () => {
       const input = `
           import "std/concurrency" as { some };
           some(1 | 2)
@@ -881,7 +903,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it('evaluate parallel all multiline', async () => {
+    it('parallel all multiline', async () => {
       const input = `
           import "std/concurrency" as { all };
           all(
@@ -893,7 +915,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it('evaluate channels sync', async () => {
+    it('channels sync', async () => {
       const input = `
           lines := channel "lines"
     
@@ -913,7 +935,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('evaluate channels sync 2', async () => {
+    it('channels sync 2', async () => {
       const input = `
           lines := channel "lines"
     
