@@ -1,14 +1,14 @@
 import "std/iter" as { range };
 
-bubble_sort := fn mut list -> {
+bubble_sort := fn mut list {
   len := length list;
-  for i in range 0 len {
-    for j in range 0 (len - i - 1) {
-      if list[j] > list[j+1]:
-        list[j], list[j+1] = list[j+1], list[j];
-    };
-  };
 
+  for i in range 0 len do
+  for j in range 0 (len - i - 1) do
+  if list[j] > list[j+1] {
+    list[j], list[j+1] = list[j+1], list[j]
+  }
+  
   list
 };
 

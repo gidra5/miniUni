@@ -443,13 +443,15 @@ export const getPatternPrecedence = (operator: string): Precedence => {
   return patternPrecedences[operator] ?? [null, null];
 };
 
+type NodeOptions = {
+  data?: any;
+  position?: Position;
+  children?: Tree[];
+};
+
 export const node = (
   type: string,
-  {
-    data = {},
-    position,
-    children = [],
-  }: { data?: any; position?: Position; children?: Tree[] } = {}
+  { data = {}, position, children = [] }: NodeOptions = {}
 ): Tree => {
   const id = nextId();
   if (position) inject(Injectable.ASTNodePositionMap).set(id, position);
@@ -524,3 +526,15 @@ export const fn = (
 
 export const tuple = (children: Tree[]): TupleNode =>
   node(NodeType.TUPLE, { children }) as TupleNode;
+
+export const loop = (body: Tree, position?: Position) =>
+  node(NodeType.LOOP, { children: [body], position });
+export const ifElse = (
+  condition: Tree,
+  ifTrue: Tree,
+  ifFalse: Tree,
+  position?: Position
+) =>
+  node(NodeType.IF_ELSE, { children: [condition, ifTrue, ifFalse], position });
+export const application = (fn: Tree, arg: Tree) =>
+  node(NodeType.APPLICATION, { children: [fn, arg] });

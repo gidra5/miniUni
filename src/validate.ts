@@ -89,7 +89,7 @@ export const validate = (
         errored = true;
       }
 
-      if (!rhs) {
+      if (!rhs && ast.type !== NodeType.TUPLE) {
         errors.push(
           SystemError.evaluationError(
             'Expected right hand side for operator',
@@ -98,9 +98,11 @@ export const validate = (
           ).withFileId(fileId)
         );
         errored = true;
-      }
-
-      if (rhs.type === NodeType.ERROR && rhs.children.length === 0) {
+      } else if (
+        rhs &&
+        rhs.type === NodeType.ERROR &&
+        rhs.children.length === 0
+      ) {
         errors.push(
           SystemError.evaluationError(
             'Expected right hand side for operator',

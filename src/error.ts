@@ -44,6 +44,7 @@ type Options = {
 
 type ErrorLabel = LabelInfo & {
   kind: 'primary' | 'secondary';
+  fileId?: number;
 };
 
 export class SystemError extends Error {
@@ -82,6 +83,29 @@ export class SystemError extends Error {
     return this;
   }
 
+  withLabel(
+    kind: 'secondary' | 'primary',
+    message: string,
+    position: Position,
+    fileId?: number
+  ) {
+    this.labels.push({ ...position, message, kind, fileId });
+    return this;
+  }
+
+  withPrimaryLabel(message: string, position: Position, fileId?: number) {
+    return this.withLabel('primary', message, position, fileId);
+  }
+
+  withSecondaryLabel(message: string, position: Position, fileId?: number) {
+    return this.withLabel('secondary', message, position, fileId);
+  }
+
+  withNote(message: string) {
+    this.notes.push(message);
+    return this;
+  }
+
   print(): SystemError {
     const fileMap = inject(Injectable.FileMap);
     const diag = this.diagnostic();
@@ -93,10 +117,10 @@ export class SystemError extends Error {
     assert(this.fileId !== undefined, 'fileId is not set for SystemError');
     const id = this.fileId;
     const diag = Diagnostic.error();
-    const labels = this.labels.map(({ kind, ...label }) =>
+    const labels = this.labels.map(({ kind, fileId, ...label }) =>
       kind === 'primary'
-        ? primaryDiagnosticLabel(id, label)
-        : secondaryDiagnosticLabel(id, label)
+        ? primaryDiagnosticLabel(fileId ?? id, label)
+        : secondaryDiagnosticLabel(fileId ?? id, label)
     );
 
     diag.withMessage(this.message);
@@ -114,17 +138,9 @@ export class SystemError extends Error {
 
   static endOfSource(pos: Position): SystemError {
     const msg = 'Unexpected end of source';
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
 
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'here',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.END_OF_SOURCE, msg, options);
+    const error = new SystemError(ErrorType.END_OF_SOURCE, msg);
+    return error.withPrimaryLabel('here', pos);
   }
 
   static unterminatedString(pos: Position): SystemError {

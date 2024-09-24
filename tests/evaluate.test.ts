@@ -620,6 +620,12 @@ describe('expressions', () => {
       expect(result).toBe(true);
     });
 
+    it("default value using current pattern's variable", async () => {
+      const input = `if (1,) is (a, b = (a + 1), c = (b + 1)) do (a, b, c)`;
+      const result = await evaluate(input);
+      expect(result).toEqual([1, 2, 3]);
+    });
+
     it('switch', async () => {
       const input = `switch 1 { 1 -> 2, 3 -> 4 }`;
       const result = await evaluate(input);
