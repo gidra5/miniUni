@@ -257,3 +257,26 @@ export const fileHandle = (file: EvalRecord): EvalRecord => {
     },
   };
 };
+
+export const createSet = (values: EvalValue[]): EvalRecord => {
+  const set = new Set(values);
+  return {
+    record: {
+      add: fn(1, (cs, value) => {
+        const [position, fileId] = cs;
+        const addErrorFactory = SystemError.invalidArgumentType(
+          'add',
+          { args: [['value', 'a']], returns: 'void' },
+          position
+        );
+        assert(
+          typeof value === 'string',
+          addErrorFactory(0).withFileId(fileId)
+        );
+        set.add(value);
+        return null;
+      }),
+      values: fn(1, () => [...set.values()]),
+    },
+  };
+};

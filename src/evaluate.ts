@@ -30,6 +30,7 @@ import {
 import {
   atom,
   awaitTask,
+  createChannel,
   createTask,
   EvalFunction,
   EvalValue,
@@ -910,15 +911,22 @@ const operators = {
   [NodeType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
     let sum = head;
     assert(
-      typeof sum === 'number' || typeof sum === 'string',
-      'expected number or string on lhs'
+      typeof sum === 'number' || typeof sum === 'string' || isChannel(sum),
+      'expected number, channel or string on lhs'
     );
     for (const v of rest) {
       assert(
         typeof v === typeof sum,
-        'expected number or string on both lhs and rhs'
+        'expected both lhs and rhs have the same type'
       );
-      sum += v as string;
+      if (isChannel(v)) {
+        assert(isChannel(sum));
+        const c = createChannel('select');
+        Promise.race([receive(v.channel), receive(sum.channel)]).then((v) =>
+          send(c.channel, v)
+        );
+        sum = c;
+      } else sum += v as string;
     }
     return sum;
   },
@@ -1311,6 +1319,11 @@ const lazyOperators = {
 
   [NodeType.DECLARE]: async ([pattern, expr]: Tree[], context: Context) => {
     const value = await evaluateStatement(expr, context);
+    inspect({
+      tag: 'evaluateExpr declare',
+      value,
+      context,
+    });
     const result = await testPattern(pattern, value, context);
     assert(result.matched, 'expected pattern to match');
     await bind(result.envs, context);

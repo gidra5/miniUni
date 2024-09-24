@@ -1033,13 +1033,13 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it.todo('parallel some', async () => {
+    it('parallel some', async () => {
       const input = `
           import "std/concurrency" as { some };
           some(1 | 2)
         `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual([1, 2]);
+      expect(result === 1 || result === 2).toBe(true);
     });
 
     it('parallel all multiline', async () => {
@@ -1095,61 +1095,61 @@ describe('expressions', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it.todo('channel send', async () => {
-      const input = `c <- 123`;
+    it('channel send receive', async () => {
+      const input = `c := channel "test"; c <- 123; <- c`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
-    it.todo('channel receive', async () => {
-      const input = `<- c`;
+    it('parallel value', async () => {
+      const input = `tasks := 123 | 456; await tasks[0], await tasks[1]`;
+      const result = await evaluate(input);
+      expect(result).toEqual([123, 456]);
+    });
+
+    it('parallel with channels', async () => {
+      const input = `c := channel "test"; tasks := c <- 123 | <- c; await tasks[1]`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
-    it.todo('parallel value', async () => {
-      const input = `123 | 456`;
+    it('fork', async () => {
+      const input = `f := fn x do x + 1; await fork f 1`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
-    });
-
-    it.todo('parallel with channels', async () => {
-      const input = `c <- 123 | <- c`;
-      const result = await evaluate(input);
-      expect(result).toBe(123);
-    });
-
-    it.todo('fork', async () => {
-      const input = `fork f x`;
-      const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(2);
     });
 
     it.todo('async', async () => {
-      const input = `async f x`;
+      const input = `f := async fn x do x + 1; await f 1`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toBe(2);
     });
 
     it.todo('await async', async () => {
-      const input = `await async f x`;
+      const input = `f := fn x do x + 1; await async f 1`;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
+    it('await', async () => {
+      const input = `x := fork 1; await x + 1`;
+      const result = await evaluate(input);
+      expect(result).toBe(2);
+    });
+
+    it('select', async () => {
+      const input = `c1 := channel "test"; c2 := channel "test"; c1 <- 123; c2 <- 456; <- c2 + c1`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
 
-    it.todo('await', async () => {
-      const input = `await x + 1`;
+    it('select concurrent', async () => {
+      const input = `c1 := channel "test"; c2 := channel "test"; c1 <- 123 | c2 <- 456; <- c2 + c1`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result === 123 || result === 456).toBe(true);
     });
 
-    it.todo('select', async () => {
-      const input = `c1 + c2`;
-      const result = await evaluate(input);
-      expect(result).toBe(123);
-    });
-
-    it.todo('wait', async () => {
+    it('wait', async () => {
       const input = `
         import "std/concurrency" as { wait };
         
@@ -1173,28 +1173,29 @@ describe('expressions', () => {
     });
 
     describe('structured concurrency', () => {
-      it.todo('cancelling', async () => {
+      it('cancelling', async () => {
         const input = `
           import "std/concurrency" as { wait };
 
-          task := async {
-            wait 1000;
+          task := fork {
+            wait 1000
             123
-          };
+          }
           
-          task.cancel();
+          cancel task
           await task
         `;
         const result = await evaluate(input);
-        expect(result).toStrictEqual([1, 2]);
+        expect(result).toStrictEqual(null);
       });
 
       it.todo('cancel propagation', async () => {
         const input = `
           import "std/concurrency" as { wait };
 
-          task := async {
-            wait 1000;
+          task := fork {
+            fork { wait 2000 }
+            wait 1000
             123
           };
           
@@ -1370,18 +1371,22 @@ describe('expressions', () => {
 
     it.todo('logger example', async () => {
       const input = `
-        import "std/effects" as { return_handler };
+        import "std/effects" as { return_handler, handler };
         logger :=
-          log: fn msg, continuation {
-            result, logs := continuation()
+          log: handler fn callback, msg {
+            result, logs := callback()
             result, (msg, ...logs)
           },
-          [return_handler]: fn x, continuation -> x, ()
+          [return_handler]: handler fn _, x do x, ()
+
+        log := fn msg {
+          { log } := injected
+          log msg
+        }
 
         inject logger {
-          { log } := injected;
-          log 123;
-          log 456;
+          log 123
+          log 456
           123
         }
       `;
@@ -1427,10 +1432,10 @@ describe('expressions', () => {
       expect(result).toStrictEqual({ record: { a: 1, b: 2 } });
     });
 
-    it.todo('set', async () => {
-      const input = `set (1, 2, 2)`;
+    it('set', async () => {
+      const input = `set(1, 2, 2).values()`;
       const result = await evaluate(input);
-      expect(result).toBe(123);
+      expect(result).toEqual([1, 2]);
     });
 
     it('dictionary', async () => {

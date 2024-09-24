@@ -10,6 +10,7 @@ import {
   cancelTask,
   closeChannel,
   createChannel,
+  createSet,
   EvalValue,
   fileHandle,
   fn,
@@ -51,15 +52,6 @@ export const addFile = (fileName: string, source: string) => {
 };
 
 export const prelude: Record<string, EvalValue> = {
-  await: fn(1, async ([position, fileId], value) => {
-    const awaitErrorFactory = SystemError.invalidArgumentType(
-      'await',
-      { args: [['target', 'task a']], returns: 'a' },
-      position
-    );
-    assert(isTask(value), awaitErrorFactory(0).withFileId(fileId));
-    return await awaitTask(value);
-  }),
   cancel: fn(1, ([position, fileId], value) => {
     const cancelErrorFactory = SystemError.invalidArgumentType(
       'cancel',
@@ -118,6 +110,10 @@ export const prelude: Record<string, EvalValue> = {
   }),
   continue: fn(1, (_, value) => {
     throw { continue: value };
+  }),
+  set: fn(1, (_, value) => {
+    if (!Array.isArray(value)) value = [value];
+    return createSet(value);
   }),
 };
 
@@ -341,9 +337,9 @@ export const modules: Dictionary = {
         position
       );
       assert(Array.isArray(list), someErrorFactory(0).withFileId(fileId));
-      const x = list.map(async (channel) => {
-        assert(isChannel(channel), someErrorFactory(0).withFileId(fileId));
-        return await receive(channel.channel);
+      const x = list.map(async (task) => {
+        assert(isTask(task), someErrorFactory(0).withFileId(fileId));
+        return await awaitTask(task);
       });
       return await Promise.race(x);
     }),
@@ -380,7 +376,10 @@ export const modules: Dictionary = {
         typeof callback === 'function',
         openErrorFactory(1).withFileId(fileId)
       );
-      assert(_path.startsWith('.') || _path.startsWith('/'), 'expected path to be absolute or relative');
+      assert(
+        _path.startsWith('.') || _path.startsWith('/'),
+        'expected path to be absolute or relative'
+      );
       const resolved = await resolvePath(_path, context.file);
       const ioHandler = context.handlers[PreludeIO];
       assert(isRecord(ioHandler), 'expected io handler to be record');
@@ -418,6 +417,7 @@ export const stringMethods = (() => {
   const strmod = modules['std/string'];
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
+    length: prelude.length,
     split: module.split,
     char_at: module.char_at,
     slice: module.slice,
@@ -445,6 +445,7 @@ export const listMethods = (() => {
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
     slice: module.slice,
+    length: prelude.length,
     map: fn(2, async ([pos, fileId, context], list, fn) => {
       const mapErrorFactory = SystemError.invalidArgumentType(
         'map',
