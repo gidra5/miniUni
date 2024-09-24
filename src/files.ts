@@ -1,4 +1,3 @@
-import { FileMap } from 'codespan-napi';
 import {
   evaluateModuleString,
   evaluateScriptString,
@@ -12,6 +11,7 @@ import {
   closeChannel,
   createChannel,
   EvalValue,
+  fileHandle,
   fn,
   isChannel,
   isRecord,
@@ -119,6 +119,24 @@ export const prelude: Record<string, EvalValue> = {
   continue: fn(1, (_, value) => {
     throw { continue: value };
   }),
+};
+
+export const PreludeIO = Symbol('prelude io');
+export const preludeHandlers: Record<string | symbol, EvalValue> = {
+  [PreludeIO]: {
+    record: {
+      open: fn(2, async (cs, _path, callback) => {
+        assert(typeof _path === 'string');
+        const file = {
+          record: { write: fn(1, () => null), close: fn(0, () => null) },
+        };
+
+        assert(typeof callback === 'function');
+        callback(file, cs);
+        return null;
+      }),
+    },
+  },
 };
 
 export const modules: Dictionary = {
@@ -341,6 +359,57 @@ export const modules: Dictionary = {
       assert(typeof time === 'number', waitErrorFactory(0).withFileId(fileId));
       await new Promise((resolve) => setTimeout(resolve, time));
       return null;
+    }),
+  }),
+  'std/io': module({
+    open: fn(2, async (cs, _path, callback) => {
+      const [position, fileId, context] = cs;
+      const openErrorFactory = SystemError.invalidArgumentType(
+        'all',
+        {
+          args: [
+            ['filepath', 'string'],
+            ['callback', 'fileHandle -> a'],
+          ],
+          returns: 'a',
+        },
+        position
+      );
+      assert(typeof _path === 'string', openErrorFactory(0).withFileId(fileId));
+      assert(
+        typeof callback === 'function',
+        openErrorFactory(1).withFileId(fileId)
+      );
+      assert(_path.startsWith('.') || _path.startsWith('/'), 'expected path to be absolute or relative');
+      const resolved = await resolvePath(_path, context.file);
+      const ioHandler = context.handlers[PreludeIO];
+      assert(isRecord(ioHandler), 'expected io handler to be record');
+
+      const file = await new Promise<EvalValue>(async (resolve) => {
+        assert(
+          typeof ioHandler.record.open === 'function',
+          'expected open to be a function'
+        );
+        const curried = await ioHandler.record.open(resolved, cs);
+
+        assert(typeof curried === 'function', 'expected open to take callback');
+        curried(
+          fn(1, (_cs, file) => {
+            resolve(file);
+            return null;
+          }),
+          cs
+        );
+      });
+      assert(isRecord(file), 'expected file handle to be record');
+      assert(
+        typeof file.record.close === 'function',
+        'expected close to be a function'
+      );
+      const result = await callback(fileHandle(file), cs);
+      await file.record.close([], cs);
+
+      return result;
     }),
   }),
 };

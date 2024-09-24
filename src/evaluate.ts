@@ -5,6 +5,7 @@ import {
   listMethods,
   ModuleDefault,
   prelude,
+  preludeHandlers,
   stringMethods,
 } from './files.js';
 import { getPosition, parseModule, parseScript } from './parser.js';
@@ -117,7 +118,7 @@ export const newContext = (fileId: number, file: string): Context => {
     fileId,
     readonly: forkEnv(prelude),
     env: forkEnv(prelude),
-    handlers: {},
+    handlers: forkEnv(preludeHandlers),
   };
 };
 

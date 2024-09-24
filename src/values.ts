@@ -1,5 +1,7 @@
 import type { Context } from './evaluate.js';
 import { Position } from './position.js';
+import { assert } from './utils.js';
+import { SystemError } from './error.js';
 
 export type EvalFunction = (
   arg: EvalValue,
@@ -229,4 +231,29 @@ export const cancelTask = (task: EvalTask) => {
 export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
   const taskAwait = task[0];
   return await receive(taskAwait.channel);
+};
+
+export const fileHandle = (file: EvalRecord): EvalRecord => {
+  return {
+    record: {
+      write: fn(1, async (cs, data) => {
+        const [position, fileId] = cs;
+        const writeErrorFactory = SystemError.invalidArgumentType(
+          'all',
+          { args: [['data', 'string']], returns: 'void' },
+          position
+        );
+        assert(
+          typeof data === 'string',
+          writeErrorFactory(0).withFileId(fileId)
+        );
+        assert(
+          typeof file.record.write === 'function',
+          'expected write to be a function'
+        );
+        await file.record.write(data, cs);
+        return null;
+      }),
+    },
+  };
 };

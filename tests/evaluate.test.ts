@@ -1,23 +1,33 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
 import { assert, inspect } from '../src/utils.ts';
 import { atom, EvalValue, fn, isChannel, isSymbol } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
-import { addFile } from '../src/files.ts';
+import { addFile, PreludeIO } from '../src/files.ts';
+import { Injectable, register } from '../src/injector.ts';
+import { FileMap } from 'codespan-napi';
 
+const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
   input: string,
-  env?: Context['env']
+  env?: Context['env'],
+  handlers?: Context['handlers']
 ): Promise<EvalValue> => {
-  const name = 'test';
+  const name = ROOT_DIR + '/index.uni';
   const fileId = addFile(name, input);
   const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
   if (env) Object.assign(context.env, env);
+  if (handlers) Object.assign(context.handlers, handlers);
   return await evaluateScript(ast, context);
 };
+
+beforeEach(() => {
+  register(Injectable.FileMap, new FileMap());
+  register(Injectable.RootDir, ROOT_DIR);
+});
 
 describe('advent of code 2023 day 1 single', () => {
   it('variable', async () => {
@@ -655,7 +665,7 @@ describe('expressions', () => {
         mut x := 4 
         mut res := () 
         block::{
-          if print (x <= 0) { res = ...res, x; block.break res }
+          if x <= 0 { res = ...res, x; block.break res }
           else {
             y := x--
             if y == 2 { res = ...res, 69; block.continue() }
@@ -777,44 +787,173 @@ describe('expressions', () => {
     });
 
     describe('resource handling', () => {
-      it.todo('rest', async () => {
+      it('rest', async () => {
         const input = `
-          import "std/io" as { open };
+          import "std/io" as io
 
           // file closed at the end of file
-          open "file.txt" file ->
+          io.open "./file.txt" file ->
           file.write("hello")
 
           123
         `;
-        const result = await evaluate(input);
-        expect(result).toBe('hello');
+        const written: unknown[] = [];
+        let closed = false;
+        let opened = false;
+        const ioHandler = {
+          record: {
+            open: fn(2, async (cs, _path, continuation) => {
+              opened = true;
+              assert(typeof _path === 'string');
+              const file = {
+                record: {
+                  write: fn(1, (_cs, data) => (written.push(data), null)),
+                  close: fn(1, () => ((closed = true), null)),
+                },
+              };
+
+              assert(typeof continuation === 'function');
+              continuation(file, cs);
+              return null;
+            }),
+          },
+        };
+
+        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        expect(result).toBe(123);
+        expect(written).toEqual(['hello']);
+        expect(opened).toBe(true);
+        expect(closed).toBe(true);
       });
 
-      it.todo('block', async () => {
+      it('block', async () => {
         const input = `
-          import "std/io" as { open };
+          import "std/io" as io
 
           // file closed at the end of block
-          open "file.txt" fn file {
+          io.open "./file.txt" fn file {
             file.write("hello")
           }
 
           123
         `;
+        const written: unknown[] = [];
+        let closed = false;
+        let opened = false;
+        const ioHandler = {
+          record: {
+            open: fn(2, async (cs, _path, continuation) => {
+              opened = true;
+              assert(typeof _path === 'string');
+              const file = {
+                record: {
+                  write: fn(1, (_cs, data) => (written.push(data), null)),
+                  close: fn(1, () => ((closed = true), null)),
+                },
+              };
+
+              assert(typeof continuation === 'function');
+              continuation(file, cs);
+              return null;
+            }),
+          },
+        };
+
+        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        expect(result).toBe(123);
+        expect(written).toEqual(['hello']);
+        expect(opened).toBe(true);
+        expect(closed).toBe(true);
+      });
+
+      it('do', async () => {
+        const input = `
+          import "std/io" as io
+
+          // file closed at the end of statement
+          io.open "./file.txt" fn file do
+            file.write("hello")
+
+          123
+        `;
+        const written: unknown[] = [];
+        let closed = false;
+        let opened = false;
+        const ioHandler = {
+          record: {
+            open: fn(2, async (cs, _path, continuation) => {
+              assert(typeof _path === 'string');
+              opened = true;
+              const file = {
+                record: {
+                  write: fn(1, (_cs, data) => (written.push(data), null)),
+                  close: fn(1, () => ((closed = true), null)),
+                },
+              };
+
+              assert(typeof continuation === 'function');
+              continuation(file, cs);
+              return null;
+            }),
+          },
+        };
+
+        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        expect(result).toBe(123);
+        expect(written).toEqual(['hello']);
+        expect(opened).toBe(true);
+        expect(closed).toBe(true);
+      });
+    });
+
+    describe('dangling resources', () => {
+      it.todo('through mutation', async () => {
+        const input = `
+          import "std/io" as { open };
+
+          handle := ()
+
+          // file closed at the end of block
+          open "file.txt" fn file {
+            file.write("hello")
+            handle = file
+          }
+
+          handle.write("world")
+        `;
         const result = await evaluate(input);
         expect(result).toBe('hello');
       });
 
-      it.todo('do', async () => {
+      it.todo('through closure', async () => {
         const input = `
           import "std/io" as { open };
 
-          // file closed at the end of statement
-          open "file.txt" fn file do
+          // file closed at the end of block
+          handle := open "file.txt" fn file {
             file.write("hello")
+            
+            fn do file.write("world")
+          }
 
-          123
+          handle()
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe('hello');
+      });
+
+      it.todo('through data', async () => {
+        const input = `
+          import "std/io" as { open };
+
+          // file closed at the end of block
+          status, handle := open "file.txt" fn file {
+            file.write("hello")
+            
+            :done, file
+          }
+
+          handle.write("world")
         `;
         const result = await evaluate(input);
         expect(result).toBe('hello');
@@ -976,6 +1115,12 @@ describe('expressions', () => {
 
     it.todo('parallel with channels', async () => {
       const input = `c <- 123 | <- c`;
+      const result = await evaluate(input);
+      expect(result).toBe(123);
+    });
+
+    it.todo('fork', async () => {
+      const input = `fork f x`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
