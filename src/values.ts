@@ -4,8 +4,8 @@ import { assert, inspect } from './utils.js';
 import { SystemError } from './error.js';
 
 export type EvalFunction = (
-  arg: EvalValue,
-  callSite: [Position, number, Context]
+  callSite: [Position, number, Context],
+  arg: EvalValue
 ) => Promise<EvalValue>;
 type EvalSymbol = symbol;
 
@@ -47,7 +47,7 @@ export const fn = (
     ...args: EvalValue[]
   ) => EvalValue | Promise<EvalValue>
 ): EvalFunction => {
-  return async (arg, callSite) => {
+  return async (callSite, arg) => {
     if (n === 1) return await f(callSite, arg);
     return fn(n - 1, async (callSite, ...args) => f(callSite, arg, ...args));
   };
@@ -244,7 +244,7 @@ export const fileHandle = (file: EvalRecord): EvalRecord => {
           typeof file.record.write === 'function',
           'expected write to be a function'
         );
-        await file.record.write(data, cs);
+        await file.record.write(cs, data);
         return null;
       }),
     },

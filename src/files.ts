@@ -122,7 +122,7 @@ export const preludeHandlers: Record<string | symbol, EvalValue> = {
         };
 
         assert(typeof callback === 'function');
-        callback(file, cs);
+        callback(cs, file);
         return null;
       }),
     },
@@ -383,15 +383,15 @@ export const modules: Dictionary = {
           typeof ioHandler.record.open === 'function',
           'expected open to be a function'
         );
-        const curried = await ioHandler.record.open(resolved, cs);
+        const curried = await ioHandler.record.open(cs, resolved);
 
         assert(typeof curried === 'function', 'expected open to take callback');
         curried(
+          cs,
           fn(1, (_cs, file) => {
             resolve(file);
             return null;
-          }),
-          cs
+          })
         );
       });
       assert(isRecord(file), 'expected file handle to be record');
@@ -399,8 +399,8 @@ export const modules: Dictionary = {
         typeof file.record.close === 'function',
         'expected close to be a function'
       );
-      const result = await callback(fileHandle(file), cs);
-      await file.record.close([], cs);
+      const result = await callback(cs, fileHandle(file));
+      await file.record.close(cs, []);
 
       return result;
     }),
@@ -418,18 +418,18 @@ export const stringMethods = (() => {
     replace: fn(3, async (callSite, target, pattern, replacement) => {
       const method = module.replace;
       assert(typeof method === 'function', 'expected method');
-      const x1 = await method(pattern, callSite);
+      const x1 = await method(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
-      const x2 = await x1(replacement, callSite);
+      const x2 = await x1(callSite, replacement);
       assert(typeof x2 === 'function', 'expected method');
-      return await x2(target, callSite);
+      return await x2(callSite, target);
     }),
     match: fn(2, async (callSite, target, pattern) => {
       const method = module.match;
       assert(typeof method === 'function', 'expected method');
-      const x1 = await method(pattern, callSite);
+      const x1 = await method(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
-      return await x1(target, callSite);
+      return await x1(callSite, target);
     }),
   };
 })();
@@ -456,7 +456,7 @@ export const listMethods = (() => {
       assert(typeof fn === 'function', mapErrorFactory(1).withFileId(fileId));
       const mapped: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(item, [pos, fileId, context]);
+        const x = await fn([pos, fileId, context], item);
         mapped.push(x);
       }
       return mapped;
@@ -480,7 +480,7 @@ export const listMethods = (() => {
       );
       const filtered: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(item, [pos, fileId, context]);
+        const x = await fn([pos, fileId, context], item);
         if (x) filtered.push(item);
       }
       return filtered;

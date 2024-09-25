@@ -1538,8 +1538,8 @@ export const evaluateStatement = async (
 
       const _context = forkContext(context);
       const self: EvalFunction = async (
-        arg,
-        [position, fileId, callerContext]
+        [position, fileId, callerContext],
+        arg
       ) => {
         await eventLoopYield();
         const __context = forkContext(_context);
@@ -1584,11 +1584,10 @@ export const evaluateStatement = async (
         ).withFileId(context.fileId)
       );
 
-      return await fnValue(argValue, [
-        getPosition(ast),
-        context.fileId,
-        context,
-      ]);
+      return await fnValue(
+        [getPosition(ast), context.fileId, context],
+        argValue
+      );
     }
 
     case NodeType.ATOM: {
@@ -1778,11 +1777,10 @@ export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
       'default export from runnable module must be a function'
     );
     const fileId = inject(Injectable.FileMap).getFileId(file);
-    const value = await main(argv, [
-      { start: 0, end: 0 },
-      0,
-      newContext(fileId, file),
-    ]);
+    const value = await main(
+      [{ start: 0, end: 0 }, 0, newContext(fileId, file)],
+      argv
+    );
     return value;
   }
 
