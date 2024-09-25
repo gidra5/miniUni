@@ -10,6 +10,7 @@ import {
   cancelTask,
   closeChannel,
   createChannel,
+  createRecord,
   createSet,
   EvalValue,
   fileHandle,
@@ -18,6 +19,7 @@ import {
   isRecord,
   isTask,
   receive,
+  recordGet,
 } from './values.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -113,20 +115,19 @@ export const prelude: Record<string, EvalValue> = {
 
 export const PreludeIO = Symbol('prelude io');
 export const preludeHandlers: Record<string | symbol, EvalValue> = {
-  [PreludeIO]: {
-    record: {
-      open: fn(2, async (cs, _path, callback) => {
-        assert(typeof _path === 'string');
-        const file = {
-          record: { write: fn(1, () => null), close: fn(0, () => null) },
-        };
+  [PreludeIO]: createRecord({
+    open: fn(2, async (cs, _path, callback) => {
+      assert(typeof _path === 'string');
+      const file = createRecord({
+        write: fn(1, () => null),
+        close: fn(0, () => null),
+      });
 
-        assert(typeof callback === 'function');
-        callback(cs, file);
-        return null;
-      }),
-    },
-  },
+      assert(typeof callback === 'function');
+      callback(cs, file);
+      return null;
+    }),
+  }),
 };
 
 export const modules: Dictionary = {
@@ -379,11 +380,9 @@ export const modules: Dictionary = {
       assert(isRecord(ioHandler), 'expected io handler to be record');
 
       const file = await new Promise<EvalValue>(async (resolve) => {
-        assert(
-          typeof ioHandler.record.open === 'function',
-          'expected open to be a function'
-        );
-        const curried = await ioHandler.record.open(cs, resolved);
+        const open = recordGet(ioHandler, 'open');
+        assert(typeof open === 'function', 'expected open to be a function');
+        const curried = await open(cs, resolved);
 
         assert(typeof curried === 'function', 'expected open to take callback');
         curried(
@@ -395,12 +394,10 @@ export const modules: Dictionary = {
         );
       });
       assert(isRecord(file), 'expected file handle to be record');
-      assert(
-        typeof file.record.close === 'function',
-        'expected close to be a function'
-      );
+      const close = recordGet(file, 'close');
+      assert(typeof close === 'function', 'expected close to be a function');
       const result = await callback(cs, fileHandle(file));
-      await file.record.close(cs, []);
+      await close(cs, []);
 
       return result;
     }),
@@ -536,7 +533,7 @@ export const getModule = async ({
     if (isModule) {
       const _module = await evaluateModuleString(source, context);
       assert(isRecord(_module), 'expected module to be a record');
-      return module(_module.record, _module.record[ModuleDefault]);
+      return module(_module.record, recordGet(_module, ModuleDefault));
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);

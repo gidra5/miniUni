@@ -1,6 +1,6 @@
 import type { Context } from './evaluate.js';
 import { Position } from './position.js';
-import { assert, inspect } from './utils.js';
+import { assert, inspect, omit, unreachable } from './utils.js';
 import { SystemError } from './error.js';
 
 export type EvalFunction = (
@@ -9,7 +9,7 @@ export type EvalFunction = (
 ) => Promise<EvalValue>;
 type EvalSymbol = symbol;
 
-type EvalRecord = { record: Record<string | symbol, EvalValue> };
+export type EvalRecord = { record: Record<string | symbol, EvalValue> };
 
 type EvalChannel = EvalSymbol;
 
@@ -71,9 +71,7 @@ export function isChannel(
   );
 }
 
-export function isRecord(
-  recordValue: EvalValue
-): recordValue is { record: Record<string, EvalValue> } {
+export function isRecord(recordValue: EvalValue): recordValue is EvalRecord {
   return (
     !!recordValue && typeof recordValue === 'object' && 'record' in recordValue
   );
@@ -227,49 +225,73 @@ export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
 };
 
 export const fileHandle = (file: EvalRecord): EvalRecord => {
-  return {
-    record: {
-      write: fn(1, async (cs, data) => {
-        const [position, fileId] = cs;
-        const writeErrorFactory = SystemError.invalidArgumentType(
-          'all',
-          { args: [['data', 'string']], returns: 'void' },
-          position
-        );
-        assert(
-          typeof data === 'string',
-          writeErrorFactory(0).withFileId(fileId)
-        );
-        assert(
-          typeof file.record.write === 'function',
-          'expected write to be a function'
-        );
-        await file.record.write(cs, data);
-        return null;
-      }),
-    },
-  };
+  return createRecord({
+    write: fn(1, async (cs, data) => {
+      const [position, fileId] = cs;
+      const writeErrorFactory = SystemError.invalidArgumentType(
+        'all',
+        { args: [['data', 'string']], returns: 'void' },
+        position
+      );
+      assert(typeof data === 'string', writeErrorFactory(0).withFileId(fileId));
+      const write = recordGet(file, 'write');
+      assert(typeof write === 'function', 'expected write to be a function');
+      await write(cs, data);
+      return null;
+    }),
+  });
 };
 
 export const createSet = (values: EvalValue[]): EvalRecord => {
   const set = new Set(values);
-  return {
-    record: {
-      add: fn(1, (cs, value) => {
-        const [position, fileId] = cs;
-        const addErrorFactory = SystemError.invalidArgumentType(
-          'add',
-          { args: [['value', 'a']], returns: 'void' },
-          position
-        );
-        assert(
-          typeof value === 'string',
-          addErrorFactory(0).withFileId(fileId)
-        );
-        set.add(value);
-        return null;
-      }),
-      values: fn(1, () => [...set.values()]),
-    },
-  };
+  return createRecord({
+    add: fn(1, (cs, value) => {
+      const [position, fileId] = cs;
+      const addErrorFactory = SystemError.invalidArgumentType(
+        'add',
+        { args: [['value', 'a']], returns: 'void' },
+        position
+      );
+      assert(typeof value === 'string', addErrorFactory(0).withFileId(fileId));
+      set.add(value);
+      return null;
+    }),
+    values: fn(1, () => [...set.values()]),
+  });
+};
+
+export const createRecord = (
+  values: Record<PropertyKey, EvalValue> = {}
+): EvalRecord => {
+  return { record: values };
+};
+
+export const recordGet = (record: EvalRecord, key: EvalValue): EvalValue => {
+  if (typeof key === 'number') {
+    return record.record[key] ?? null;
+  }
+  if (typeof key === 'string') {
+    return record.record[key] ?? null;
+  }
+  if (isSymbol(key)) {
+    return record.record[key] ?? null;
+  }
+  return null;
+};
+
+export const recordOmit = (
+  record: EvalRecord,
+  keys: (symbol | string)[]
+): EvalRecord => {
+  return createRecord(omit(record.record, keys));
+};
+
+export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
+  if (typeof key === 'string') {
+    return key in record.record;
+  }
+  if (isSymbol(key)) {
+    return key in record.record;
+  }
+  return false;
 };

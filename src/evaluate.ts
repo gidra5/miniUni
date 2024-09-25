@@ -35,8 +35,10 @@ import {
   atom,
   awaitTask,
   createChannel,
+  createRecord,
   createTask,
   EvalFunction,
+  EvalRecord,
   EvalValue,
   fn,
   getChannel,
@@ -45,6 +47,9 @@ import {
   isSymbol,
   isTask,
   receive,
+  recordGet,
+  recordHas,
+  recordOmit,
   send,
   tryReceive,
 } from './values.js';
@@ -428,17 +433,16 @@ const testPattern = async (
   if (patternAst.type === NodeType.RECORD) {
     if (!isRecord(value)) return { matched: false, envs, notEnvs };
 
-    const record = value.record;
     const patterns = patternAst.children;
     const consumedNames: string[] = [];
 
     for (const pattern of patterns) {
       if (pattern.type === NodeType.NAME) {
         const name = pattern.data.value;
-        const value = record[name] ?? null;
-        if (value === null && flags.strict)
+        const _value = recordGet(value, name);
+        if (_value === null && flags.strict)
           return { matched: false, envs, notEnvs };
-        if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+        if (_value !== null) updatePatternTestEnv(envs, flags, name, _value);
 
         consumedNames.push(name);
         continue;
@@ -451,13 +455,13 @@ const testPattern = async (
             ? key.data.value
             : null;
         if (name === null) return { matched: false, envs, notEnvs };
-        const value = record[name] ?? null;
-        if (value === null && flags.strict)
+        const _value = recordGet(value, name);
+        if (_value === null && flags.strict)
           return { matched: false, envs, notEnvs };
         consumedNames.push(name);
         const result = await testPattern(
           valuePattern,
-          value,
+          _value,
           context,
           envs,
           notEnvs,
@@ -467,10 +471,10 @@ const testPattern = async (
         if (!result.matched) return { matched: false, envs, notEnvs };
         continue;
       } else if (pattern.type === NodeType.SPREAD) {
-        const rest = omit(record, consumedNames);
+        const rest = recordOmit(value, consumedNames);
         const result = await testPattern(
           pattern.children[0],
-          { record: rest },
+          rest,
           context,
           envs,
           notEnvs,
@@ -483,13 +487,13 @@ const testPattern = async (
         const _pattern = pattern.children[0];
         assert(_pattern.type === NodeType.NAME, 'expected name');
         const name = _pattern.data.value;
-        const value =
-          record[name] ??
+        const _value =
+          recordGet(value, name) ??
           (await evaluateExpr(pattern.children[1], await bind(envs, context)));
 
-        if (value === null && flags.strict)
+        if (_value === null && flags.strict)
           return { matched: false, envs, notEnvs };
-        if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+        if (_value !== null) updatePatternTestEnv(envs, flags, name, _value);
 
         consumedNames.push(name);
         continue;
@@ -959,11 +963,8 @@ const operators = {
       const v = value[key];
       return v !== null && v !== undefined;
     }
-    if (isRecord(value) && isSymbol(key)) {
-      return key in value.record;
-    }
-    if (isRecord(value) && typeof key === 'string') {
-      return key in value.record;
+    if (isRecord(value)) {
+      return recordHas(value, key);
     }
     unreachable('expected record or tuple');
   },
@@ -1283,11 +1284,11 @@ const lazyOperators = {
         ? _key.data.value
         : await evaluateExpr(_key, context);
 
-    return { record: { [key]: value } };
+    return createRecord({ [key]: value });
   },
   [NodeType.TUPLE]: async (children: Tree[], context: Context) => {
     const list: EvalValue[] = [];
-    const record = {};
+    const record: EvalRecord['record'] = {};
 
     for (const child of children) {
       if (child.type === NodeType.SPREAD) {
@@ -1322,7 +1323,7 @@ const lazyOperators = {
       //   context,
       // });
 
-      return { record };
+      return createRecord(record);
     }
 
     // inspect({
@@ -1350,14 +1351,14 @@ const lazyOperators = {
           context.fileId,
         ]);
       }
-      return target[index as number];
+      return target[index as number] ?? null;
     } else if (isRecord(target)) {
-      const record = target.record;
+      const v = recordGet(target, index);
       assert(
-        typeof index === 'string',
+        v !== null,
         SystemError.invalidIndex(getPosition(_index)).withFileId(context.fileId)
       );
-      return record[index];
+      return v;
     }
 
     if (typeof target === 'string') {
@@ -1433,7 +1434,7 @@ export const evaluateStatement = async (
         'script' in module
           ? module.script
           : 'module' in module
-          ? { record: module.module }
+          ? createRecord(module.module)
           : (module.buffer as unknown as EvalValue);
       const pattern = ast.children[0];
       if (pattern) {
@@ -1456,9 +1457,10 @@ export const evaluateStatement = async (
       });
 
       const forked = forkContext(context);
-      context.readonly[ast.data.name] = {
-        record: { break: labelBreak, continue: labelContinue },
-      };
+      context.readonly[ast.data.name] = createRecord({
+        break: labelBreak,
+        continue: labelContinue,
+      });
       try {
         return await evaluateStatement(expr, forked);
       } catch (e) {
@@ -1598,7 +1600,7 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      if (name === 'injected') return { record: context.handlers };
+      if (name === 'injected') return createRecord(context.handlers);
       assert(
         name in context.env || name in context.readonly,
         SystemError.undeclaredName(name, getPosition(ast)).withFileId(
@@ -1680,9 +1682,9 @@ export const evaluateScript = async (
 export const evaluateModule = async (
   ast: Tree,
   context: Context
-): Promise<Extract<EvalValue, { record: unknown }>> => {
+): Promise<EvalRecord> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
-  const record: Record<string | symbol, EvalValue> = {};
+  const record: EvalRecord['record'] = {};
 
   for (const child of ast.children) {
     if (child.type === NodeType.EXPORT) {
@@ -1712,7 +1714,7 @@ export const evaluateModule = async (
     }
   }
 
-  return { record };
+  return createRecord(record);
 };
 
 export const evaluateScriptString = async (
@@ -1741,14 +1743,14 @@ export const evaluateScriptString = async (
 export const evaluateModuleString = async (
   input: string,
   context: Context
-): Promise<Extract<EvalValue, { record: unknown }>> => {
+): Promise<EvalRecord> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
   const [errors, validated] = validate(ast, context.fileId);
 
   if (errors.length > 0) {
     errors.forEach((e) => e.print());
-    return { record: {} };
+    return createRecord();
   }
 
   try {
@@ -1757,7 +1759,7 @@ export const evaluateModuleString = async (
     console.error(e);
     if (e instanceof SystemError) e.print();
 
-    return { record: {} };
+    return createRecord();
   }
 };
 

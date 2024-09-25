@@ -1,7 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
 import { assert, inspect } from '../src/utils.ts';
-import { atom, EvalValue, fn, isChannel, isSymbol } from '../src/values.ts';
+import {
+  atom,
+  createRecord,
+  EvalValue,
+  fn,
+  isChannel,
+  isSymbol,
+} from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
 import { addFile, PreludeIO } from '../src/files.ts';
@@ -761,12 +768,12 @@ describe('expressions', () => {
     });
 
     it('assign', async () => {
-      expect(await evaluate(`mut x := (a: 1, b: 2); x.a = 3; x`)).toEqual({
-        record: { a: 3, b: 2 },
-      });
-      expect(await evaluate(`mut x := (a: 1, b: 2); x["b"] = 4; x`)).toEqual({
-        record: { a: 1, b: 4 },
-      });
+      expect(await evaluate(`mut x := (a: 1, b: 2); x.a = 3; x`)).toEqual(
+        createRecord({ a: 3, b: 2 })
+      );
+      expect(await evaluate(`mut x := (a: 1, b: 2); x["b"] = 4; x`)).toEqual(
+        createRecord({ a: 1, b: 4 })
+      );
       expect(await evaluate(`mut x := (1, 2); x[0] = 3; x`)).toEqual([3, 2]);
     });
   });
@@ -918,24 +925,20 @@ describe('expressions', () => {
         const written: unknown[] = [];
         let closed = false;
         let opened = false;
-        const ioHandler = {
-          record: {
-            open: fn(2, async (cs, _path, continuation) => {
-              opened = true;
-              assert(typeof _path === 'string');
-              const file = {
-                record: {
-                  write: fn(1, (_cs, data) => (written.push(data), null)),
-                  close: fn(1, () => ((closed = true), null)),
-                },
-              };
+        const ioHandler = createRecord({
+          open: fn(2, async (cs, _path, continuation) => {
+            assert(typeof _path === 'string');
+            opened = true;
+            const file = createRecord({
+              write: fn(1, (_cs, data) => (written.push(data), null)),
+              close: fn(1, () => ((closed = true), null)),
+            });
 
-              assert(typeof continuation === 'function');
-              continuation(cs, file);
-              return null;
-            }),
-          },
-        };
+            assert(typeof continuation === 'function');
+            continuation(cs, file);
+            return null;
+          }),
+        });
 
         const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
         expect(result).toBe(123);
@@ -958,24 +961,20 @@ describe('expressions', () => {
         const written: unknown[] = [];
         let closed = false;
         let opened = false;
-        const ioHandler = {
-          record: {
-            open: fn(2, async (cs, _path, continuation) => {
-              opened = true;
-              assert(typeof _path === 'string');
-              const file = {
-                record: {
-                  write: fn(1, (_cs, data) => (written.push(data), null)),
-                  close: fn(1, () => ((closed = true), null)),
-                },
-              };
+        const ioHandler = createRecord({
+          open: fn(2, async (cs, _path, continuation) => {
+            assert(typeof _path === 'string');
+            opened = true;
+            const file = createRecord({
+              write: fn(1, (_cs, data) => (written.push(data), null)),
+              close: fn(1, () => ((closed = true), null)),
+            });
 
-              assert(typeof continuation === 'function');
-              continuation(cs, file);
-              return null;
-            }),
-          },
-        };
+            assert(typeof continuation === 'function');
+            continuation(cs, file);
+            return null;
+          }),
+        });
 
         const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
         expect(result).toBe(123);
@@ -997,24 +996,20 @@ describe('expressions', () => {
         const written: unknown[] = [];
         let closed = false;
         let opened = false;
-        const ioHandler = {
-          record: {
-            open: fn(2, async (cs, _path, continuation) => {
-              assert(typeof _path === 'string');
-              opened = true;
-              const file = {
-                record: {
-                  write: fn(1, (_cs, data) => (written.push(data), null)),
-                  close: fn(1, () => ((closed = true), null)),
-                },
-              };
+        const ioHandler = createRecord({
+          open: fn(2, async (cs, _path, continuation) => {
+            assert(typeof _path === 'string');
+            opened = true;
+            const file = createRecord({
+              write: fn(1, (_cs, data) => (written.push(data), null)),
+              close: fn(1, () => ((closed = true), null)),
+            });
 
-              assert(typeof continuation === 'function');
-              continuation(cs, file);
-              return null;
-            }),
-          },
-        };
+            assert(typeof continuation === 'function');
+            continuation(cs, file);
+            return null;
+          }),
+        });
 
         const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
         expect(result).toBe(123);
@@ -1383,7 +1378,7 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual({ record: { a: 1, b: 2 } });
+      expect(result).toEqual(createRecord({ a: 1, b: 2 }));
     });
 
     it('inject twice', async () => {
@@ -1397,7 +1392,7 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual({ record: { a: 2, b: 4 } });
+      expect(result).toEqual(createRecord({ a: 2, b: 4 }));
     });
 
     it('mask', async () => {
@@ -1413,7 +1408,7 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual({ record: { a: 1, b: 4 } });
+      expect(result).toEqual(createRecord({ a: 1, b: 4 }));
     });
 
     it('without', async () => {
@@ -1429,7 +1424,7 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual({ record: { b: 4 } });
+      expect(result).toEqual(createRecord({ b: 4 }));
     });
 
     it('parallel', async () => {
@@ -1547,7 +1542,7 @@ describe('expressions', () => {
     it('record', async () => {
       const input = `a: 1, b: 2`;
       const result = await evaluate(input);
-      expect(result).toStrictEqual({ record: { a: 1, b: 2 } });
+      expect(result).toStrictEqual(createRecord({ a: 1, b: 2 }));
     });
 
     it('set', async () => {
@@ -1559,13 +1554,13 @@ describe('expressions', () => {
     it('dictionary', async () => {
       const input = `[1]: 2, [3]: 4`;
       const result = await evaluate(input);
-      expect(result).toStrictEqual({ record: { 1: 2, 3: 4 } });
+      expect(result).toStrictEqual(createRecord({ 1: 2, 3: 4 }));
     });
 
     it('map without braces', async () => {
       const input = `1+2: 3, 4+5: 6`;
       const result = await evaluate(input);
-      expect(result).toStrictEqual({ record: { [3]: 3, [9]: 6 } });
+      expect(result).toStrictEqual(createRecord({ [3]: 3, [9]: 6 }));
     });
 
     it('field access static', async () => {
