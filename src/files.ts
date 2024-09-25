@@ -105,12 +105,6 @@ export const prelude: Record<string, EvalValue> = {
   return: fn(1, (_, value) => {
     throw { return: value };
   }),
-  break: fn(1, (_, value) => {
-    throw { break: value };
-  }),
-  continue: fn(1, (_, value) => {
-    throw { continue: value };
-  }),
   set: fn(1, (_, value) => {
     if (!Array.isArray(value)) value = [value];
     return createSet(value);

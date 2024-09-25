@@ -17,9 +17,10 @@ import {
   fn as fnAST,
   tuple as tupleAST,
   type Tree,
-  loop,
   ifElse,
   application,
+  sequence,
+  ExpressionNode,
 } from './ast.js';
 import { parseTokens } from './tokens.js';
 import {
@@ -667,46 +668,60 @@ const assign = async (
   assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
 
   // inspect({
-  //   tag: 'assign',
+  //   tag: 'assign 2',
   //   matched,
   //   envs,
   //   context,
   // });
 
-  for (const [key, value] of envs.readonly.entries()) {
-    if (typeof key === 'string') {
-      assert(!(key in context.readonly), 'expected mutable name');
+  for (const [patternKey, value] of envs.readonly.entries()) {
+    let target: any = context.env;
+    let key: any = patternKey;
+    if (typeof patternKey === 'string') {
+      assert(!(patternKey in context.readonly), 'expected mutable name');
       assert(
-        key in context.env,
+        patternKey in context.env,
         SystemError.invalidAssignment(
-          key,
+          patternKey,
           getPosition(patternAst),
-          getClosestName(key, Object.keys(context.env))
+          getClosestName(patternKey, Object.keys(context.env))
         ).withFileId(context.fileId)
       );
 
-      const enclosing = Object.getPrototypeOf(context.env);
-      if (value === null) delete context.env[key];
-      else if (key in enclosing) {
-        await assign(patternAst, value, { ...context, env: enclosing });
-      } else context.env[key] = value;
+      let enclosing = Object.getPrototypeOf(target);
+      while (patternKey in enclosing) {
+        target = enclosing;
+        enclosing = Object.getPrototypeOf(target);
+      }
     } else {
-      const [ref, _key] = key;
-      assert(isRecord(ref) || Array.isArray(ref));
-      assert(
-        typeof _key === 'number' || typeof _key === 'string' || isSymbol(_key),
-        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
-          context.fileId
-        )
-      );
-      const target = isRecord(ref) ? ref.record : ref;
-      if (value === null) delete target[isSymbol(_key) ? _key.symbol : _key];
-      else target[isSymbol(_key) ? _key.symbol : _key] = value;
+      const [patternTarget, patternKeyValue] = patternKey;
+      if (Array.isArray(patternTarget)) {
+        assert(
+          typeof patternKeyValue === 'number',
+          SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+            context.fileId
+          )
+        );
+      } else if (isRecord(patternTarget)) {
+        assert(
+          typeof patternKeyValue === 'string' || isSymbol(patternKeyValue),
+          SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+            context.fileId
+          )
+        );
+      }
+      target = isRecord(patternTarget) ? patternTarget.record : patternTarget;
+      key = isSymbol(patternKeyValue)
+        ? patternKeyValue.symbol
+        : patternKeyValue;
     }
+
+    if (value === null) delete target[key];
+    else target[key] = value;
   }
 
   // inspect({
-  //   tag: 'assign 2',
+  //   tag: 'assign 3',
   //   matched,
   //   envs,
   //   context,
@@ -1132,10 +1147,21 @@ const lazyOperators = {
         getPosition(expr)
       )
     );
+    const blockBreak = fn(1, async (cs, value) => {
+      throw { break: value };
+    });
+    const blockContinue = fn(1, async (cs, value) => {
+      await eventLoopYield();
+      throw { continue: value };
+    });
+
+    const forked = forkContext(context);
+    context.readonly.break = blockBreak;
+    context.readonly.continue = blockContinue;
 
     const mapped: EvalValue[] = [];
     for (const item of list) {
-      const _context = forkContext(context);
+      const _context = forkContext(forked);
       try {
         const result = await testPattern(pattern, item, _context);
         assert(result.matched, 'expected pattern to match');
@@ -1164,33 +1190,39 @@ const lazyOperators = {
     if (body.type === NodeType.BLOCK) {
       body = body.children[0];
     }
-
-    while (true) {
-      // yield control to macrotask queue
-      await eventLoopYield();
-      try {
-        await evaluateBlock(body, context);
-      } catch (e) {
-        if (typeof e === 'object' && e !== null && 'break' in e) {
-          const value = e.break as EvalValue;
-          return value;
-        }
-        if (typeof e === 'object' && e !== null && 'continue' in e) {
-          const _value = e.continue as EvalValue;
-          continue;
-        }
-        throw e;
-      }
-    }
+    const _continue = application(
+      nameAST('continue', getPosition(body)),
+      placeholder(getPosition(body))
+    );
+    return await lazyOperators[NodeType.BLOCK](
+      [sequence([body, _continue] as ExpressionNode[])],
+      context
+    );
   },
 
   [NodeType.BLOCK]: async ([expr]: Tree[], context: Context) => {
+    const blockBreak = fn(1, async (cs, value) => {
+      throw { break: value };
+    });
+    const blockContinue = fn(1, async (cs, value) => {
+      await eventLoopYield();
+      throw { continue: value };
+    });
+
+    const forked = forkContext(context);
+    context.readonly.break = blockBreak;
+    context.readonly.continue = blockContinue;
     try {
-      return await evaluateBlock(expr, context);
+      return await evaluateBlock(expr, forked);
     } catch (e) {
-      if (typeof e === 'object' && e !== null && 'break' in e)
-        return e.break as EvalValue;
-      else throw e;
+      if (typeof e !== 'object' || e === null) throw e;
+      if ('label' in e) throw e;
+      if ('break' in e) {
+        const value = e.break as EvalValue;
+        return value;
+      } else if ('continue' in e) {
+        return await lazyOperators[NodeType.BLOCK]([expr], context);
+      } else throw e;
     }
   },
   [NodeType.SEQUENCE]: async ([expr, ...rest]: Tree[], context: Context) => {
@@ -1567,19 +1599,11 @@ export const evaluateStatement = async (
       ]);
     }
 
-    case NodeType.SPREAD: {
-      unreachable(
-        SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
-          context.fileId
-        )
-      );
-    }
-
     case NodeType.ATOM: {
       return atom(ast.data.name);
     }
 
-    case NodeType.NAME:
+    case NodeType.NAME: {
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
@@ -1597,6 +1621,7 @@ export const evaluateStatement = async (
       //   readonly: context.readonly,
       // });
       return context.readonly[name] ?? context.env[name];
+    }
     case NodeType.NUMBER:
     case NodeType.STRING:
       return ast.data.value;
@@ -1610,6 +1635,14 @@ export const evaluateStatement = async (
       );
     case NodeType.ERROR:
       unreachable(ast.data.cause.withFileId(context.fileId));
+
+    case NodeType.SPREAD: {
+      unreachable(
+        SystemError.invalidUseOfSpread(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
+    }
     default:
       return null;
   }
