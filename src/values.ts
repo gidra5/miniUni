@@ -1,17 +1,17 @@
 import type { Context } from './evaluate.js';
 import { Position } from './position.js';
-import { assert } from './utils.js';
+import { assert, inspect } from './utils.js';
 import { SystemError } from './error.js';
 
 export type EvalFunction = (
   arg: EvalValue,
   callSite: [Position, number, Context]
 ) => Promise<EvalValue>;
-type EvalSymbol = { symbol: symbol };
+type EvalSymbol = symbol;
 
 type EvalRecord = { record: Record<string | symbol, EvalValue> };
 
-type EvalChannel = { channel: symbol };
+type EvalChannel = EvalSymbol;
 
 export type EvalValue =
   | number
@@ -56,18 +56,18 @@ export const fn = (
 const atoms = new Map<string, symbol>();
 
 export const symbol = (): { symbol: symbol } => ({ symbol: Symbol() });
-export const atom = (name: string): { symbol: symbol } => {
+export const atom = (name: string): EvalSymbol => {
   if (!atoms.has(name)) atoms.set(name, Symbol(name));
-  return { symbol: atoms.get(name)! };
+  return atoms.get(name)!;
 };
 
 export function isChannel(
   channelValue: EvalValue
-): channelValue is { channel: symbol } {
+): channelValue is EvalChannel {
   return (
     !!channelValue &&
-    typeof channelValue === 'object' &&
-    'channel' in channelValue
+    typeof channelValue === 'symbol' &&
+    channelValue in channels
   );
 }
 
@@ -79,12 +79,8 @@ export function isRecord(
   );
 }
 
-export function isSymbol(
-  symbolValue: EvalValue
-): symbolValue is { symbol: symbol } {
-  return (
-    !!symbolValue && typeof symbolValue === 'object' && 'symbol' in symbolValue
-  );
+export function isSymbol(symbolValue: EvalValue): symbolValue is EvalSymbol {
+  return !!symbolValue && typeof symbolValue === 'symbol';
 }
 
 const channels: Record<symbol, Channel> = {};
@@ -121,24 +117,21 @@ const channelStatus = (c: symbol): ChannelStatus => {
   return ChannelStatus.Empty;
 };
 
-export const createChannel = (name?: string) => {
+export const createChannel = (name?: string): EvalChannel => {
   const channel = Symbol(name);
   channels[channel] = {
     closed: false,
     queue: [],
     onReceive: [],
   };
-  return { channel };
+  return channel;
 };
 
 export const closeChannel = (c: symbol) => {
   const channel = channels[c];
-  if (!channel || channel.closed) throw 'channel closed';
-  if (channel.queue.length === 0 && channel.onReceive.length === 0) {
-    delete channels[c];
-  } else {
-    channel.closed = true;
-  }
+  if (channel.closed) throw 'channel closed';
+
+  channel.closed = true;
 };
 
 export const getChannel = (c: symbol) => {
@@ -208,29 +201,29 @@ export const createTask = (
 
   f()
     .then(
-      (value) => send(awaitChannel.channel, value),
-      (e) => (send(awaitChannel.channel, e), onError?.(e))
+      (value) => send(awaitChannel, value),
+      (e) => (send(awaitChannel, e), onError?.(e))
     )
     .finally(() => {
-      closeChannel(awaitChannel.channel);
-      closeChannel(cancelChannel.channel);
+      closeChannel(awaitChannel);
+      closeChannel(cancelChannel);
     });
 
   return [awaitChannel, cancelChannel];
 };
 
 export const cancelTask = (task: EvalTask) => {
-  send(task[0].channel, null);
-  send(task[1].channel, null);
-  closeChannel(task[0].channel);
-  closeChannel(task[1].channel);
+  send(task[0], null);
+  send(task[1], null);
+  closeChannel(task[0]);
+  closeChannel(task[1]);
 
   return null;
 };
 
 export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
   const taskAwait = task[0];
-  return await receive(taskAwait.channel);
+  return await receive(taskAwait);
 };
 
 export const fileHandle = (file: EvalRecord): EvalRecord => {

@@ -256,7 +256,7 @@ const testPattern = async (
   if (patternAst.type === NodeType.ATOM) {
     if (!isSymbol(value)) return { matched: false, envs, notEnvs };
     return {
-      matched: value.symbol === atom(patternAst.data.name).symbol,
+      matched: value === atom(patternAst.data.name),
       envs,
       notEnvs,
     };
@@ -451,7 +451,7 @@ const testPattern = async (
             ? key.data.value
             : null;
         if (name === null) return { matched: false, envs, notEnvs };
-        const value = record[isSymbol(name) ? name.symbol : name] ?? null;
+        const value = record[name] ?? null;
         if (value === null && flags.strict)
           return { matched: false, envs, notEnvs };
         consumedNames.push(name);
@@ -618,7 +618,7 @@ const incAssign = async (
           context.fileId
         )
       );
-      const __key = isSymbol(_key) ? _key.symbol : _key;
+      const __key = _key;
       const target = isRecord(ref) ? ref.record : ref;
       assert(
         typeof value === 'number',
@@ -711,9 +711,7 @@ const assign = async (
         );
       }
       target = isRecord(patternTarget) ? patternTarget.record : patternTarget;
-      key = isSymbol(patternKeyValue)
-        ? patternKeyValue.symbol
-        : patternKeyValue;
+      key = patternKeyValue;
     }
 
     if (value === null) delete target[key];
@@ -857,11 +855,9 @@ const operators = {
       if (isChannel(v)) {
         assert(isChannel(sum));
         const c = createChannel('select');
-        Promise.race([receive(v.channel), receive(sum.channel)]).then((v) =>
-          send(c.channel, v)
-        );
+        Promise.race([receive(v), receive(sum)]).then((v) => send(c, v));
         sum = c;
-      } else sum += v as string;
+      } else sum = (sum as string) + (v as string);
     }
     return sum;
   },
@@ -920,11 +916,7 @@ const operators = {
   },
 
   [NodeType.EQUAL]: (left: EvalValue, right: EvalValue) => {
-    if (isSymbol(left) && isSymbol(right)) {
-      return left.symbol === right.symbol;
-    } else if (isChannel(left) && isChannel(right)) {
-      return left.channel === right.channel;
-    } else if (isRecord(left) && isRecord(right)) {
+    if (isRecord(left) && isRecord(right)) {
       return left.record === right.record;
     } else return left === right;
   },
@@ -968,7 +960,7 @@ const operators = {
       return v !== null && v !== undefined;
     }
     if (isRecord(value) && isSymbol(key)) {
-      return key.symbol in value.record;
+      return key in value.record;
     }
     if (isRecord(value) && typeof key === 'string') {
       return key in value.record;
@@ -1036,7 +1028,7 @@ const lazyOperators = {
       'expected strings or symbols'
     );
 
-    const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+    const handlerNames = value;
     const handlers = omitHandlers(context.handlers, handlerNames);
     return await evaluateBlock(body, { ...context, handlers });
   },
@@ -1048,7 +1040,7 @@ const lazyOperators = {
       'expected strings or symbols'
     );
 
-    const handlerNames = value.map((v) => (isSymbol(v) ? v.symbol : v));
+    const handlerNames = value;
     const handlers = maskHandlers(context.handlers, handlerNames);
     return await evaluateBlock(body, { ...context, handlers });
   },
@@ -1397,7 +1389,7 @@ const lazyOperators = {
       )
     );
 
-    const channel = getChannel(channelValue.channel);
+    const channel = getChannel(channelValue);
 
     assert(
       channel,
@@ -1491,7 +1483,7 @@ export const evaluateStatement = async (
         )
       );
 
-      return receive(channelValue.channel).catch((e) => {
+      return receive(channelValue).catch((e) => {
         assert(
           e !== 'channel closed',
           SystemError.channelClosed(getPosition(ast)).withFileId(context.fileId)
@@ -1512,7 +1504,7 @@ export const evaluateStatement = async (
         )
       );
 
-      const status = send(channelValue.channel, value);
+      const status = send(channelValue, value);
       return atom(status);
     }
     case NodeType.RECEIVE_STATUS: {
@@ -1525,7 +1517,7 @@ export const evaluateStatement = async (
         )
       );
 
-      const [value, status] = tryReceive(channelValue.channel);
+      const [value, status] = tryReceive(channelValue);
 
       if (value instanceof Error) throw value;
 

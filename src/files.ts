@@ -73,12 +73,12 @@ export const prelude: Record<string, EvalValue> = {
     );
     assert(value !== null, closeErrorFactory(0).withFileId(fileId));
     assert(isChannel(value), closeErrorFactory(0).withFileId(fileId));
-    closeChannel(value.channel);
+    closeChannel(value);
     return null;
   }),
   symbol: fn(1, (_, name) => {
-    if (typeof name === 'string') return { symbol: Symbol(name) };
-    else return { symbol: Symbol() };
+    if (typeof name === 'string') return Symbol(name);
+    else return Symbol();
   }),
   length: fn(1, ([position, fileId], list) => {
     const lengthErrorFactory = SystemError.invalidArgumentType(
