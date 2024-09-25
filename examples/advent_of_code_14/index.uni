@@ -5,13 +5,13 @@ matrix := content
   .split("\n")
   .filter(line -> length line)
   .map(line -> line.split("").filter(char -> char != "\r"))
-sum := 0
+mut sum := 0
 
 col_height := length matrix
 
 for columnIndex in range 0 (length matrix[0]) {
-  handle := -1
-  count := 0
+  mut handle := -1
+  mut count := 0
 
   for rowIndex in range 0 col_height {
     char := matrix[rowIndex][columnIndex]

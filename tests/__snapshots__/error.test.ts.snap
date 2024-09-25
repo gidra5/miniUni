@@ -28,7 +28,6 @@ exports[`finds all errors in example '"1" 2' 2`] = `
         {
           "children": [],
           "data": {},
-          "id": "8",
           "type": "implicit_placeholder",
         },
         {
@@ -36,17 +35,14 @@ exports[`finds all errors in example '"1" 2' 2`] = `
           "data": {
             "value": 2,
           },
-          "id": "6",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -85,17 +81,14 @@ exports[`finds all errors in example '(' 2`] = `
         {
           "children": [],
           "data": {},
-          "id": "3",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -132,22 +125,18 @@ exports[`finds all errors in example '({ 1 )' 2`] = `
               "data": {
                 "value": 1,
               },
-              "id": "13",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "15",
           "type": "block",
         },
       ],
       "data": {},
-      "id": "17",
       "type": "parens",
     },
   ],
   "data": {},
-  "id": "18",
   "type": "script",
 }
 `;
@@ -314,22 +303,18 @@ exports[`finds all errors in example '{ (1 }' 2`] = `
               "data": {
                 "value": 1,
               },
-              "id": "13",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "15",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "17",
       "type": "block",
     },
   ],
   "data": {},
-  "id": "18",
   "type": "script",
 }
 `;
@@ -445,23 +430,19 @@ exports[`finds all errors in example '1 *' 2`] = `
           "data": {
             "value": 1,
           },
-          "id": "2",
           "type": "number",
         },
         {
           "children": [],
           "data": {},
-          "id": "7",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "*",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -498,23 +479,19 @@ exports[`finds all errors in example '1 +' 2`] = `
           "data": {
             "value": 1,
           },
-          "id": "2",
           "type": "number",
         },
         {
           "children": [],
           "data": {},
-          "id": "7",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "add",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -547,7 +524,6 @@ exports[`finds all errors in example '1 2' 2`] = `
         {
           "children": [],
           "data": {},
-          "id": "8",
           "type": "implicit_placeholder",
         },
         {
@@ -555,17 +531,14 @@ exports[`finds all errors in example '1 2' 2`] = `
           "data": {
             "value": 2,
           },
-          "id": "6",
           "type": "number",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "application",
     },
   ],
   "data": {},
-  "id": "7",
   "type": "script",
 }
 `;
@@ -600,7 +573,6 @@ exports[`finds all errors in example 'x[(1]' 2`] = `
           "data": {
             "value": "x",
           },
-          "id": "13",
           "type": "name",
         },
         {
@@ -610,22 +582,18 @@ exports[`finds all errors in example 'x[(1]' 2`] = `
               "data": {
                 "value": 1,
               },
-              "id": "33",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "35",
           "type": "parens",
         },
       ],
       "data": {},
-      "id": "37",
       "type": "index",
     },
   ],
   "data": {},
-  "id": "38",
   "type": "script",
 }
 `;
@@ -660,7 +628,6 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
           "data": {
             "value": "x",
           },
-          "id": "13",
           "type": "name",
         },
         {
@@ -670,22 +637,18 @@ exports[`finds all errors in example 'x[{ 1 ]' 2`] = `
               "data": {
                 "value": 1,
               },
-              "id": "33",
               "type": "number",
             },
           ],
           "data": {},
-          "id": "35",
           "type": "block",
         },
       ],
       "data": {},
-      "id": "37",
       "type": "index",
     },
   ],
   "data": {},
-  "id": "38",
   "type": "script",
 }
 `;

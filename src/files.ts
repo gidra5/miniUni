@@ -19,8 +19,8 @@ import {
   isTask,
   receive,
 } from './values.js';
-import path from 'path';
-import fs from 'fs/promises';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import { inject, Injectable } from './injector.js';
 
 const MODULE_FILE_EXTENSION = '.unim';

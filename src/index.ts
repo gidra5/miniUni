@@ -1,6 +1,6 @@
 import { program } from 'commander';
-import readline from 'readline';
-import { stdin as input, stdout as output } from 'process';
+import readline from 'node:readline';
+import { stdin as input, stdout as output } from 'node:process';
 import {
   evaluateEntryFile,
   evaluateScriptString,

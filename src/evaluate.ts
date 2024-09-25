@@ -49,7 +49,7 @@ import {
 } from './values.js';
 import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
-import path from 'path';
+import path from 'node:path';
 
 type Environment = Record<string, EvalValue>;
 
@@ -1160,7 +1160,6 @@ const lazyOperators = {
     while (true) {
       try {
         await evaluateBlock(body, context);
-        continue;
       } catch (e) {
         if (typeof e === 'object' && e !== null && 'break' in e) {
           const value = e.break as EvalValue;
