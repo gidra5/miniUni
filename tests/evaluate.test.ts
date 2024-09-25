@@ -15,11 +15,7 @@ import { parseScript } from '../src/parser.ts';
 import { addFile, preludeHandlers, PreludeIO } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import {
-  newEnvironment,
-  newHandlers,
-  resolveHandlers,
-} from '../src/environment.ts';
+import { newEnvironment, newHandlers } from '../src/environment.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
@@ -741,6 +737,12 @@ describe('expressions', () => {
       ]);
     });
 
+    it.todo('with dynamic variable name', async () => {
+      const input = `1 is ["dynamic" + "name"] and x == ["dynamic" + "name"]`;
+      const result = await evaluate(input);
+      expect(result).toEqual([1, 2, 3]);
+    });
+
     it('is binding visible in scope where it is true', async () => {
       const input = `(2, 1) is (a, b) and a == b + 1`;
       const result = await evaluate(input);
@@ -917,6 +919,13 @@ describe('expressions', () => {
       const input = `mut x := 1; { x = 123 }; x`;
       const result = await evaluate(input);
       expect(result).toBe(123);
+    });
+
+    it.todo('dynamic variable name', async () => {
+      expect(await evaluate(`x := 1; [:x]`)).toBe(1);
+      expect(await evaluate(`[:x] := 1; [:x]`)).toBe(1);
+      expect(await evaluate(`[:x] := 1; x`)).toBe(1);
+      expect(await evaluate(`[2] := 1; [2]`)).toBe(1);
     });
 
     describe('resource handling', () => {

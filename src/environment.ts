@@ -62,56 +62,10 @@ export const newHandlers = (
   };
 };
 
-export const handlersGet = (env: Handlers, key: EvalValue): EvalValue => {
-  return env.get(key);
-  // if (env.entries.has(key)) return env.entries.get(key)!;
-  // if (env.parent) return environmentGet(env.parent, key);
-  // return null;
-};
-
-export const handlersSet = (
-  env: Handlers,
-  key: EvalValue,
-  value: EvalValue
-): boolean => {
-  return env.set(key, value);
-  // if (env.entries.has(key)) {
-  //   if (value === null) env.entries.delete(key);
-  //   else env.entries.set(key, value);
-  //   return true;
-  // }
-  // if (env.parent) return environmentSet(env.parent, key, value);
-  // else return false;
-};
-
 export const handlersHas = (env: Handlers, key: EvalValue): boolean => {
   if (env.own(key)) return true;
   if (env[envParent]) return handlersHas(env[envParent], key);
   return false;
-};
-
-export const handlersAdd = (
-  env: Handlers,
-  key: EvalValue,
-  value: EvalValue = null
-) => {
-  return env.add(key, value);
-};
-
-export const handlersKeys = (env: Handlers): EvalValue[] => {
-  return env.keys();
-  // const keys: EvalValue[] = [...env.entries.keys()];
-  // if (env.parent) keys.push(...environmentKeys(env.parent));
-  // return keys;
-};
-
-const entries = (env: Handlers): EvalRecord => {
-  const keys = env.keys();
-  return new Map(keys.map((k) => [k, env.get(k)]));
-};
-
-export const resolveHandlers = (env: Handlers): EvalRecord => {
-  return env.resolve();
 };
 
 export const maskHandlers = (env: Handlers, keys: EvalValue[]): Handlers => {

@@ -20,18 +20,12 @@ import {
   isChannel,
   isRecord,
   isTask,
-  receive,
   recordGet,
 } from './values.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { inject, Injectable } from './injector.js';
-import {
-  environmentGet,
-  handlersGet,
-  newEnvironment,
-  newHandlers,
-} from './environment.js';
+import { environmentGet, newEnvironment, newHandlers } from './environment.js';
 
 const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
@@ -383,7 +377,7 @@ export const modules: Dictionary = {
         'expected path to be absolute or relative'
       );
       const resolved = await resolvePath(_path, context.file);
-      const ioHandler = handlersGet(context.handlers, PreludeIO);
+      const ioHandler = context.handlers.get(PreludeIO);
       assert(isRecord(ioHandler), 'expected io handler to be record');
 
       const file = await new Promise<EvalValue>(async (resolve) => {

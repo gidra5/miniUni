@@ -63,7 +63,6 @@ import {
   Handlers,
   maskHandlers,
   newHandlers,
-  resolveHandlers,
   withoutHandlers,
   Environment,
   newEnvironment,
@@ -517,6 +516,17 @@ const testPattern = async (
     if (value === null && flags.strict)
       return { matched: false, envs, notEnvs };
     if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+    return { matched: true, envs, notEnvs };
+  }
+
+  if (patternAst.type === NodeType.SQUARE_BRACKETS) {
+    const name = await evaluateExpr(
+      patternAst.children[0],
+      await bind(envs, context)
+    );
+    if (value === null && flags.strict)
+      return { matched: false, envs, notEnvs };
+    if (value !== null) updatePatternTestEnv(envs, flags, [name], value);
     return { matched: true, envs, notEnvs };
   }
 
@@ -1582,7 +1592,7 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      if (name === 'injected') return resolveHandlers(context.handlers);
+      if (name === 'injected') return context.handlers.resolve();
       assert(
         environmentHas(context.env, name) ||
           environmentHas(context.readonly, name),
