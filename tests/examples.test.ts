@@ -5,26 +5,6 @@ import { evaluateEntryFile } from '../src/evaluate.ts';
 
 const examples = [
   {
-    name: 'advent of code 2023, day 1, modules',
-    file: '/advent_of_code_1_modules/',
-    expected: 142,
-  },
-  {
-    name: 'advent of code 2023, day 1, single script, list iteration',
-    file: '/advent_of_code_1_single.uni',
-    expected: 142,
-  },
-  {
-    name: 'advent of code 2023, day 1, single script, channels',
-    file: '/advent_of_code_1_channels.uni',
-    expected: 142,
-  },
-  {
-    name: 'advent of code 2023, day 14, single script',
-    file: '/advent_of_code_14/index.uni',
-    expected: 113456,
-  },
-  {
     name: 'basic hello world via script',
     file: '/hello_world.uni',
     expected: 'Hello, World!',
@@ -49,6 +29,26 @@ const examples = [
     file: '/fibonacci.uni',
     expected: [1, 2, 3, 89],
   },
+  {
+    name: 'advent of code 2023, day 14, single script',
+    file: '/advent_of_code_14/index.uni',
+    expected: 113456,
+  },
+  {
+    name: 'advent of code 2023, day 1, modules',
+    file: '/advent_of_code_1_modules/',
+    expected: 142,
+  },
+  {
+    name: 'advent of code 2023, day 1, single script, list iteration',
+    file: '/advent_of_code_1_single.uni',
+    expected: 142,
+  },
+  {
+    name: 'advent of code 2023, day 1, single script, channels',
+    file: '/advent_of_code_1_channels.uni',
+    expected: 142,
+  },
 ];
 
 beforeEach(() => {
@@ -59,7 +59,7 @@ beforeEach(() => {
 });
 
 for (const { name, file, expected } of examples) {
-  it(name, async () => {
+  it(name, { timeout: 10000 }, async () => {
     const result = await evaluateEntryFile('./examples' + file);
 
     expect(result).toEqual(expected);

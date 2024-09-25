@@ -50,6 +50,14 @@ import {
 import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'node:path';
+import { setTimeout } from 'node:timers/promises';
+
+let eventLoopYieldCounter = 0;
+const eventLoopYieldMax = 1000;
+const eventLoopYield = async () => {
+  eventLoopYieldCounter = (eventLoopYieldCounter + 1) % eventLoopYieldMax;
+  if (eventLoopYieldCounter === 0) await setTimeout(0);
+};
 
 type Environment = Record<string, EvalValue>;
 
@@ -1158,6 +1166,8 @@ const lazyOperators = {
     }
 
     while (true) {
+      // yield control to macrotask queue
+      await eventLoopYield();
       try {
         await evaluateBlock(body, context);
       } catch (e) {
@@ -1417,6 +1427,7 @@ export const evaluateStatement = async (
         throw { break: value, label: ast.data.name };
       });
       const labelContinue = fn(1, async (cs, value) => {
+        await eventLoopYield();
         throw { continue: value, label: ast.data.name };
       });
 
@@ -1506,6 +1517,7 @@ export const evaluateStatement = async (
         arg,
         [position, fileId, callerContext]
       ) => {
+        await eventLoopYield();
         const __context = forkContext(_context);
         const result = await testPattern(pattern, arg, __context);
         assert(
