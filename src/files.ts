@@ -12,6 +12,7 @@ import {
   createChannel,
   createRecord,
   createSet,
+  EvalRecord,
   EvalValue,
   fileHandle,
   fn,
@@ -31,19 +32,18 @@ const LOCAL_DEPENDENCIES_PATH = 'dependencies';
 const DIRECTORY_INDEX_FILE_NAME = 'index' + SCRIPT_FILE_EXTENSION;
 
 type Module =
-  | { module: Record<string, EvalValue>; default?: EvalValue }
+  | { module: EvalRecord; default?: EvalValue }
   | { script: EvalValue }
   | { buffer: Buffer };
 
 type Dictionary = Record<string, Module>;
 
-const module = (
-  entries: Record<string, EvalValue>,
-  _default?: EvalValue
-): Module => ({
-  module: entries,
-  default: _default,
-});
+export const ModuleDefault = Symbol('module default');
+
+const module = (module: EvalRecord | Record<string, EvalValue>): Module => {
+  module = module instanceof Map ? module : createRecord(module);
+  return { module, default: recordGet(module, ModuleDefault) };
+};
 const script = (value: EvalValue): Module => ({ script: value });
 const buffer = (value: Buffer): Module => ({ buffer: value });
 
@@ -409,11 +409,11 @@ export const stringMethods = (() => {
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
     length: prelude.length,
-    split: module.split,
-    char_at: module.char_at,
-    slice: module.slice,
+    split: recordGet(module, 'split'),
+    char_at: recordGet(module, 'char_at'),
+    slice: recordGet(module, 'slice'),
     replace: fn(3, async (callSite, target, pattern, replacement) => {
-      const method = module.replace;
+      const method = recordGet(module, 'replace');
       assert(typeof method === 'function', 'expected method');
       const x1 = await method(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
@@ -422,7 +422,7 @@ export const stringMethods = (() => {
       return await x2(callSite, target);
     }),
     match: fn(2, async (callSite, target, pattern) => {
-      const method = module.match;
+      const method = recordGet(module, 'match');
       assert(typeof method === 'function', 'expected method');
       const x1 = await method(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
@@ -435,7 +435,7 @@ export const listMethods = (() => {
   const strmod = modules['std/string'];
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
-    slice: module.slice,
+    slice: recordGet(module, 'slice'),
     length: prelude.length,
     map: fn(2, async ([pos, fileId, context], list, fn) => {
       const mapErrorFactory = SystemError.invalidArgumentType(
@@ -485,8 +485,6 @@ export const listMethods = (() => {
   };
 })();
 
-export const ModuleDefault = Symbol('module default');
-
 export const getModule = async ({
   name,
   from,
@@ -533,7 +531,7 @@ export const getModule = async ({
     if (isModule) {
       const _module = await evaluateModuleString(source, context);
       assert(isRecord(_module), 'expected module to be a record');
-      return module(_module.record, recordGet(_module, ModuleDefault));
+      return module(_module);
     }
     if (isScript) {
       const result = await evaluateScriptString(source, context);

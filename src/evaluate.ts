@@ -47,9 +47,12 @@ import {
   isSymbol,
   isTask,
   receive,
+  recordDelete,
   recordGet,
   recordHas,
+  recordMerge,
   recordOmit,
+  recordSet,
   send,
   tryReceive,
 } from './values.js';
@@ -583,65 +586,55 @@ const incAssign = async (
   //   context,
   // });
 
-  for (const [key, value] of envs.readonly.entries()) {
-    if (typeof key === 'string') {
-      assert(!(key in context.readonly), 'expected mutable name');
+  for (const [patternKey, value] of envs.readonly.entries()) {
+    let target: any = context.env;
+    let key: any = patternKey;
+    if (typeof patternKey === 'string') {
+      assert(!(patternKey in context.readonly), 'expected mutable name');
       assert(
-        key in context.env,
+        patternKey in context.env,
         SystemError.invalidAssignment(
-          key,
+          patternKey,
           getPosition(patternAst),
-          getClosestName(key, Object.keys(context.env))
+          getClosestName(patternKey, Object.keys(context.env))
         ).withFileId(context.fileId)
       );
-      assert(
-        typeof value === 'number',
-        SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
-          context.fileId
-        )
-      );
 
-      const v = context.env[key];
-      assert(
-        typeof v === 'number',
-        SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
-          context.fileId
-        )
-      );
-
-      const enclosing = Object.getPrototypeOf(context.env);
-      if (key in enclosing) {
-        await incAssign(patternAst, value, { ...context, env: enclosing });
-      } else context.env[key] = v + value;
+      let enclosing = Object.getPrototypeOf(target);
+      while (patternKey in enclosing) {
+        target = enclosing;
+        enclosing = Object.getPrototypeOf(target);
+      }
     } else {
-      const [ref, _key] = key;
-      assert(isRecord(ref) || Array.isArray(ref));
-      assert(
-        typeof _key === 'number' || typeof _key === 'string' || isSymbol(_key),
-        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
-          context.fileId
-        )
-      );
-      const __key = _key;
-      const target = isRecord(ref) ? ref.record : ref;
-      assert(
-        typeof value === 'number',
-        SystemError.invalidIncrement(
-          String(__key),
-          getPosition(patternAst)
-        ).withFileId(context.fileId)
-      );
-
-      const v = target[__key];
-      assert(
-        typeof v === 'number',
-        SystemError.invalidIncrement(
-          String(__key),
-          getPosition(patternAst)
-        ).withFileId(context.fileId)
-      );
-      target[__key] = v + value;
+      const [patternTarget, patternKeyValue] = patternKey;
+      if (Array.isArray(patternTarget)) {
+        assert(
+          typeof patternKeyValue === 'number',
+          SystemError.invalidIndex(getPosition(patternAst)).withFileId(
+            context.fileId
+          )
+        );
+      }
+      target = patternTarget;
+      key = patternKeyValue;
     }
+
+    const v = isRecord(target) ? recordGet(target, key) : target[key];
+    assert(
+      typeof v === 'number',
+      SystemError.invalidIncrement(
+        String(key),
+        getPosition(patternAst)
+      ).withFileId(context.fileId)
+    );
+    assert(
+      typeof value === 'number',
+      SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
+        context.fileId
+      )
+    );
+    if (isRecord(target)) recordSet(target, key, v + value);
+    else target[key] = v + value;
   }
 
   // inspect({
@@ -706,20 +699,18 @@ const assign = async (
             context.fileId
           )
         );
-      } else if (isRecord(patternTarget)) {
-        assert(
-          typeof patternKeyValue === 'string' || isSymbol(patternKeyValue),
-          SystemError.invalidIndex(getPosition(patternAst)).withFileId(
-            context.fileId
-          )
-        );
       }
-      target = isRecord(patternTarget) ? patternTarget.record : patternTarget;
+      target = patternTarget;
       key = patternKeyValue;
     }
 
-    if (value === null) delete target[key];
-    else target[key] = value;
+    if (isRecord(target)) {
+      if (value === null) recordDelete(target, key);
+      else recordSet(target, key, value);
+    } else {
+      if (value === null) delete target[key];
+      else target[key] = value;
+    }
   }
 
   // inspect({
@@ -785,9 +776,9 @@ const bind = async (
 async function bindExport(
   patternAst: Tree,
   value: EvalValue,
-  exports: Record<string, EvalValue>,
+  exports: EvalRecord,
   context: Context
-): Promise<Record<string, EvalValue>> {
+): Promise<EvalRecord> {
   const { matched, envs } = await testPattern(patternAst, value, context);
 
   assert(matched, 'expected pattern to match');
@@ -823,7 +814,7 @@ async function bindExport(
     assert(typeof key === 'string', 'can only declare names');
 
     if (value === null) continue;
-    exports[key] = value;
+    recordSet(exports, key, value);
   }
 
   return exports;
@@ -920,9 +911,7 @@ const operators = {
   },
 
   [NodeType.EQUAL]: (left: EvalValue, right: EvalValue) => {
-    if (isRecord(left) && isRecord(right)) {
-      return left.record === right.record;
-    } else return left === right;
+    return left === right;
   },
   [NodeType.NOT_EQUAL]: (left: EvalValue, right: EvalValue) => {
     return !operators[NodeType.EQUAL](left, right);
@@ -1017,7 +1006,8 @@ const lazyOperators = {
     const value = await evaluateExpr(expr, context);
     assert(isRecord(value), 'expected record');
 
-    const handlers = { ...context.handlers, ...value.record };
+    const injected = Object.fromEntries(value.entries());
+    const handlers = { ...context.handlers, ...injected };
     Object.setPrototypeOf(handlers, context.handlers);
     return await evaluateBlock(body, { ...context, handlers });
   },
@@ -1288,13 +1278,13 @@ const lazyOperators = {
   },
   [NodeType.TUPLE]: async (children: Tree[], context: Context) => {
     const list: EvalValue[] = [];
-    const record: EvalRecord['record'] = {};
+    let record: EvalRecord = createRecord();
 
     for (const child of children) {
       if (child.type === NodeType.SPREAD) {
         const rest = await evaluateExpr(child.children[0], context);
         if (Array.isArray(rest)) list.push(...rest);
-        else if (isRecord(rest)) Object.assign(record, rest.record);
+        else if (isRecord(rest)) record = recordMerge(record, rest);
         else {
           unreachable(
             SystemError.invalidTuplePattern(getPosition(child)).withFileId(
@@ -1309,12 +1299,12 @@ const lazyOperators = {
             ? _key.data.value
             : await evaluateExpr(_key, context);
         const value = await evaluateExpr(child.children[1], context);
-        record[key] = value;
+        recordSet(record, key, value);
       } else if (child.type === NodeType.IMPLICIT_PLACEHOLDER) continue;
       else list.push(await evaluateExpr(child, context));
     }
 
-    if (Object.keys(record).length > 0) {
+    if (record.size > 0) {
       Object.assign(record, list);
       // inspect({
       //   tag: 'evaluateExpr tuple record',
@@ -1323,7 +1313,7 @@ const lazyOperators = {
       //   context,
       // });
 
-      return createRecord(record);
+      return record;
     }
 
     // inspect({
@@ -1434,7 +1424,7 @@ export const evaluateStatement = async (
         'script' in module
           ? module.script
           : 'module' in module
-          ? createRecord(module.module)
+          ? module.module
           : (module.buffer as unknown as EvalValue);
       const pattern = ast.children[0];
       if (pattern) {
@@ -1684,7 +1674,7 @@ export const evaluateModule = async (
   context: Context
 ): Promise<EvalRecord> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
-  const record: EvalRecord['record'] = {};
+  const record: EvalRecord = createRecord();
 
   for (const child of ast.children) {
     if (child.type === NodeType.EXPORT) {
@@ -1701,20 +1691,20 @@ export const evaluateModule = async (
         const value = await evaluateExpr(exportNode, context);
 
         assert(
-          !(ModuleDefault in record),
+          !recordHas(record, ModuleDefault),
           SystemError.duplicateDefaultExport(
             getPosition(exportNode)
           ).withFileId(context.fileId)
         );
 
-        record[ModuleDefault] = value;
+        recordSet(record, ModuleDefault, value);
       }
     } else {
       await evaluateStatement(child, context);
     }
   }
 
-  return createRecord(record);
+  return record;
 };
 
 export const evaluateScriptString = async (

@@ -1554,13 +1554,23 @@ describe('expressions', () => {
     it('dictionary', async () => {
       const input = `[1]: 2, [3]: 4`;
       const result = await evaluate(input);
-      expect(result).toStrictEqual(createRecord({ 1: 2, 3: 4 }));
+      expect(result).toStrictEqual(
+        createRecord([
+          [1, 2],
+          [3, 4],
+        ])
+      );
     });
 
     it('map without braces', async () => {
       const input = `1+2: 3, 4+5: 6`;
       const result = await evaluate(input);
-      expect(result).toStrictEqual(createRecord({ [3]: 3, [9]: 6 }));
+      expect(result).toStrictEqual(
+        createRecord([
+          [3, 3],
+          [9, 6],
+        ])
+      );
     });
 
     it('field access static', async () => {

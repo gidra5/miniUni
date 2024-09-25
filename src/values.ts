@@ -9,7 +9,7 @@ export type EvalFunction = (
 ) => Promise<EvalValue>;
 type EvalSymbol = symbol;
 
-export type EvalRecord = { record: Record<string | symbol, EvalValue> };
+export type EvalRecord = Map<EvalValue, EvalValue>;
 
 type EvalChannel = EvalSymbol;
 
@@ -73,7 +73,9 @@ export function isChannel(
 
 export function isRecord(recordValue: EvalValue): recordValue is EvalRecord {
   return (
-    !!recordValue && typeof recordValue === 'object' && 'record' in recordValue
+    !!recordValue &&
+    typeof recordValue === 'object' &&
+    recordValue instanceof Map
   );
 }
 
@@ -261,37 +263,41 @@ export const createSet = (values: EvalValue[]): EvalRecord => {
 };
 
 export const createRecord = (
-  values: Record<PropertyKey, EvalValue> = {}
+  values: Record<PropertyKey, EvalValue> | Array<[EvalValue, EvalValue]> = {}
 ): EvalRecord => {
-  return { record: values };
+  return new Map(Array.isArray(values) ? values : Object.entries(values));
 };
 
 export const recordGet = (record: EvalRecord, key: EvalValue): EvalValue => {
-  if (typeof key === 'number') {
-    return record.record[key] ?? null;
-  }
-  if (typeof key === 'string') {
-    return record.record[key] ?? null;
-  }
-  if (isSymbol(key)) {
-    return record.record[key] ?? null;
-  }
-  return null;
+  return record.get(key) ?? null;
+};
+
+export const recordSet = (
+  record: EvalRecord,
+  key: EvalValue,
+  value: EvalValue
+) => {
+  record.set(key, value);
+};
+
+export const recordDelete = (record: EvalRecord, key: EvalValue) => {
+  record.delete(key);
+};
+
+export const recordMerge = (
+  record: EvalRecord,
+  other: EvalRecord
+): EvalRecord => {
+  return new Map([...record, ...other]);
 };
 
 export const recordOmit = (
   record: EvalRecord,
-  keys: (symbol | string)[]
+  keys: EvalValue[]
 ): EvalRecord => {
-  return createRecord(omit(record.record, keys));
+  return new Map([...record.entries()].filter(([key]) => !keys.includes(key)));
 };
 
 export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
-  if (typeof key === 'string') {
-    return key in record.record;
-  }
-  if (isSymbol(key)) {
-    return key in record.record;
-  }
-  return false;
+  return record.has(key);
 };
