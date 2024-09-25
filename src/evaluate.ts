@@ -1684,9 +1684,8 @@ export const evaluateModule = async (
         const [pattern, expr] = exportNode.children;
         const value = await evaluateExpr(expr, context);
         const result = await testPattern(pattern, value, context);
-        await bindExport(pattern, value, record, context);
         assert(result.matched, 'expected pattern to match');
-        await bind(result.envs, context);
+        await bindExport(pattern, value, record, context);
       } else {
         const value = await evaluateExpr(exportNode, context);
 
