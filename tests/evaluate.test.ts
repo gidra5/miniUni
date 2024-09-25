@@ -193,7 +193,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   describe('split list', () => {
-    it.todo('fuck 5', async () => {
+    it('5', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           {
@@ -208,7 +208,7 @@ describe('advent of code 2023 day 1 single', () => {
       expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
 
-    it.todo('fuck 4', async () => {
+    it('4', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           {
@@ -223,7 +223,7 @@ describe('advent of code 2023 day 1 single', () => {
       expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
 
-    it.todo('fuck 3', async () => {
+    it('3', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           start--
@@ -236,7 +236,7 @@ describe('advent of code 2023 day 1 single', () => {
       expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
 
-    it.todo('fuck 7', async () => {
+    it('7', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           start--
@@ -248,7 +248,7 @@ describe('advent of code 2023 day 1 single', () => {
       expect(result).toEqual([3, 5]);
     });
 
-    it('fuck', async () => {
+    it('0', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           start--
@@ -261,7 +261,7 @@ describe('advent of code 2023 day 1 single', () => {
       expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
 
-    it.todo('fuck 2', async () => {
+    it('2', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           while start != 0 {
@@ -279,10 +279,10 @@ describe('advent of code 2023 day 1 single', () => {
           list, start, end
         } ((6,5,4,3,2,1), 4)`;
       const result = await evaluate(input);
-      expect(result).toBe([[5, 4, 3, 2, 1], 3, 5]);
+      expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
 
-    it.todo('fuck 6', async () => {
+    it('6', async () => {
       const input = `
         fn (mut list, mut start = 0, mut end = (length list)) {
           while start != 0 {
@@ -300,7 +300,7 @@ describe('advent of code 2023 day 1 single', () => {
           list, start, end
         } ((6,5,4,3,2,1), 4, 6)`;
       const result = await evaluate(input);
-      expect(result).toBe([[5, 4, 3, 2, 1], 3, 5]);
+      expect(result).toEqual([[5, 4, 3, 2, 1], 3, 5]);
     });
   });
 });
@@ -613,6 +613,12 @@ describe('expressions', () => {
       const input = `(fn x, y -> x + y) 1 2`;
       const result = await evaluate(input);
       expect(result).toBe(3);
+    });
+
+    it('pipe', async () => {
+      const input = `1 |> fn x { x + 1 } |> fn y { y * 2 }`;
+      const result = await evaluate(input);
+      expect(result).toBe(4);
     });
   });
 

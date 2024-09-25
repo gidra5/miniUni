@@ -80,6 +80,7 @@ export const OperatorNodeType = {
   MASK: 'mask',
   WITHOUT: 'without',
   CODE_LABEL: '::',
+  PIPE: '|>',
 
   SPREAD: '...',
   MUTABLE: 'mut',
@@ -370,6 +371,7 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.INC_ASSIGN, Fixity.PREFIX],
 
   [NodeType.PARALLEL, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
+  [NodeType.PIPE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.TUPLE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.LABEL, Fixity.INFIX, Associativity.RIGHT],
   [NodeType.SPREAD, Fixity.PREFIX],

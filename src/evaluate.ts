@@ -88,14 +88,11 @@ export type Context = {
   handlers: Handlers;
 };
 
-const forkEnv = (env: Context['env']): Context['env'] => {
-  return newEnvironment({}, env);
-};
 const forkContext = (context: Context): Context => {
   return {
     ...context,
-    env: forkEnv(context.env),
-    readonly: forkEnv(context.readonly),
+    env: newEnvironment({}, context.env),
+    readonly: newEnvironment({}, context.readonly),
   };
 };
 
@@ -103,8 +100,8 @@ export const newContext = (fileId: number, file: string): Context => {
   return {
     file,
     fileId,
-    readonly: forkEnv(prelude),
-    env: forkEnv(prelude),
+    env: newEnvironment(),
+    readonly: newEnvironment({}, prelude),
     handlers: newHandlers({}, preludeHandlers),
   };
 };
@@ -1334,10 +1331,10 @@ const lazyOperators = {
             context.fileId
           )
         );
-        return await listMethods[index](target, [
-          getPosition(_index),
-          context.fileId,
-        ]);
+        return await listMethods[index](
+          [getPosition(_index), context.fileId],
+          target
+        );
       }
       return target[index as number] ?? null;
     } else if (isRecord(target)) {
@@ -1354,10 +1351,10 @@ const lazyOperators = {
         typeof index === 'string' && index in stringMethods,
         SystemError.invalidIndex(getPosition(_index)).withFileId(context.fileId)
       );
-      return await stringMethods[index](target, [
-        getPosition(_index),
-        context.fileId,
-      ]);
+      return await stringMethods[index](
+        [getPosition(_index), context.fileId],
+        target
+      );
     }
 
     unreachable(
@@ -1367,6 +1364,15 @@ const lazyOperators = {
     );
   },
 
+  [NodeType.PIPE]: async ([arg, ...fns]: Tree[], context: Context) => {
+    let value = await evaluateStatement(arg, context);
+    for (const fn of fns) {
+      const fnValue = await evaluateExpr(fn, context);
+      assert(typeof fnValue === 'function', 'expected function');
+      value = await fnValue([getPosition(fn), context.fileId, context], value);
+    }
+    return value;
+  },
   [NodeType.SEND]: async ([chanAst, valueAst]: Tree[], context: Context) => {
     const channelValue = await evaluateExpr(chanAst, context);
     const value = await evaluateExpr(valueAst, context);
@@ -1398,7 +1404,7 @@ const lazyOperators = {
   },
 };
 
-export const evaluateStatement = async (
+const evaluateStatement = async (
   ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
@@ -1637,7 +1643,7 @@ export const evaluateStatement = async (
   }
 };
 
-export const evaluateBlock = async (
+const evaluateBlock = async (
   ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
@@ -1645,7 +1651,7 @@ export const evaluateBlock = async (
   return await evaluateStatement(ast, _context);
 };
 
-export const evaluateExpr = async (
+const evaluateExpr = async (
   ast: Tree,
   context: Context
 ): Promise<Exclude<EvalValue, null>> => {

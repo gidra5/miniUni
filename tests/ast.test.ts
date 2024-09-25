@@ -157,6 +157,7 @@ describe('expressions', () => {
       it('methods chaining', () => testCase(`math.floor(1).multiply(2)`));
       it('function as last arg', () =>
         testCase(`open "file" file -> write file "yolo"`));
+      it('pipe', () => testCase(`1 |> fn x { x + 1 } |> fn y { y * 2 }`));
     });
 
     describe('function forms', () => {
@@ -324,4 +325,5 @@ describe('newline handling', () => {
     testCase(`{ a := 1;\n b := 2;\n }`));
   it('variable', () => testCase(`1\n`));
   it('empty switch with newline', () => testCase(`switch a { \n }`));
+  it.todo('pipe', () => testCase(`1 \n|> fn x { x + 1 } \n|> fn y { y * 2 }`));
 });

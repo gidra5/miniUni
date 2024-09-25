@@ -85,6 +85,7 @@ const idToExprOp = {
   '<-': NodeType.SEND,
   '?<-': NodeType.SEND_STATUS,
   '|': NodeType.PARALLEL,
+  '|>': NodeType.PIPE,
   and: NodeType.AND,
   or: NodeType.OR,
   in: NodeType.IN,
