@@ -1245,8 +1245,12 @@ export const parseModule = (src: TokenPos[]) => {
     } else children.push(node);
   }
 
-  if (lastExport) return module([...children, lastExport]);
-  return module(children);
+  if (lastExport) children.push(lastExport as any);
+  return module(
+    children.flatMap((node) =>
+      (node as Tree).type === 'sequence' ? node.children : [node]
+    ) as any
+  );
 };
 
 if (import.meta.vitest) {
@@ -1283,6 +1287,28 @@ if (import.meta.vitest) {
         const msg = e instanceof Error ? e.stack : e;
         expect.unreachable(msg as string);
       }
+    }
+  );
+
+  it.prop([fc.array(tokenArbitrary)])(
+    'module is always flat sequence',
+    (tokens) => {
+      tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
+      let ast = parseModule(tokens as TokenPos[]);
+      expect(
+        ast.children.every((node) => (node as Tree).type !== 'sequence')
+      ).toBe(true);
+    }
+  );
+
+  it.prop([fc.array(tokenArbitrary)])(
+    'script is always flat sequence',
+    (tokens) => {
+      tokens = tokens.map((t) => ({ ...t, ...zeroPos }));
+      let ast = parseScript(tokens as TokenPos[]);
+      expect(
+        ast.children.every((node) => (node as Tree).type !== 'sequence')
+      ).toBe(true);
     }
   );
 

@@ -32,6 +32,7 @@ export enum ErrorType {
   DUPLICATE_DEFAULT_EXPORT,
   INVALID_DEFAULT_PATTERN,
   INVALID_PIN_PATTERN,
+  IMMUTABLE_VARIABLE_ASSIGNMENT,
 }
 
 type Options = {
@@ -605,6 +606,16 @@ export class SystemError extends Error {
     });
 
     return new SystemError(ErrorType.INVALID_PIN_PATTERN, msg, options);
+  }
+
+  static immutableVariableAssignment(patternKey: string, pos: Position) {
+    return new SystemError(
+      ErrorType.IMMUTABLE_VARIABLE_ASSIGNMENT,
+      'expected mutable name'
+    ).withPrimaryLabel(
+      `variable "${patternKey}" is not declared as mutable`,
+      pos
+    );
   }
 
   static testError(type: ErrorType) {

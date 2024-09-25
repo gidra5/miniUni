@@ -1,5 +1,5 @@
-import "std/concurrency" as { all };
-import "std/math" as math;
+import "std/concurrency" as { all }
+import "std/math" as math
 
 slice := fn (list, start, end) {
   if !start do start = 0

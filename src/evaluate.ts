@@ -558,7 +558,11 @@ const incAssign = async (
     if (typeof patternKey === 'string') {
       assert(
         !environmentHas(context.readonly, patternKey),
-        'expected mutable name'
+
+        SystemError.immutableVariableAssignment(
+          patternKey,
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
       );
       assert(
         environmentHas(context.env, patternKey),
@@ -674,7 +678,10 @@ const assign = async (
     if (typeof patternKey === 'string') {
       assert(
         !environmentHas(context.readonly, patternKey),
-        'expected mutable name'
+        SystemError.immutableVariableAssignment(
+          patternKey,
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
       );
       assert(
         environmentSet(context.env, patternKey, value),
@@ -751,7 +758,10 @@ const bind = async (
     context.env = newEnvironment(env, context.env);
   }
 
-  assert(envs.exports.size === 0, 'cant do exports in scripts');
+  assert(
+    envs.exports.size === 0,
+    'cant do exports not at the top level of a module'
+  );
 
   // inspect({
   //   tag: 'bind 2',
@@ -764,43 +774,28 @@ const bind = async (
 };
 
 async function bindExport(
-  patternAst: Tree,
-  value: EvalValue,
+  envs: PatternTestEnvs,
   exports: EvalRecord,
   context: Context
-): Promise<EvalRecord> {
-  const { matched, envs } = await testPattern(patternAst, value, context);
-
-  assert(matched, 'expected pattern to match');
+) {
+  const readonly = {};
+  const env = {};
 
   for (const [key, value] of envs.readonly.entries()) {
     assert(typeof key === 'string', 'can only declare names');
-    assert(
-      !context.readonly.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
-    assert(
-      !context.env.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
 
     if (value === null) continue;
-    environmentSet(context.readonly, key, value);
+    if (context.readonly.entries.has(key)) readonly[key] = value;
+    else if (context.env.entries.has(key)) readonly[key] = value;
+    else environmentAdd(context.readonly, key, value);
   }
   for (const [key, value] of envs.env.entries()) {
     assert(typeof key === 'string', 'can only declare names');
-    // TODO: fork scope on duplicate declaration.
-    assert(
-      !context.readonly.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
-    assert(
-      !context.env.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
 
     if (value === null) continue;
-    environmentSet(context.env, key, value);
+    if (context.readonly.entries.has(key)) env[key] = value;
+    else if (context.env.entries.has(key)) env[key] = value;
+    else environmentAdd(context.env, key, value);
   }
   for (const [key, value] of envs.exports.entries()) {
     assert(typeof key === 'string', 'can only declare names');
@@ -816,15 +811,13 @@ async function bindExport(
 
     if (value === null) continue;
     environmentSet(context.readonly, key, value);
-  }
-  for (const [key, value] of envs.exports.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
-
-    if (value === null) continue;
     recordSet(exports, key, value);
   }
 
-  return exports;
+  if (Object.keys(readonly).length > 0 || Object.keys(env).length > 0) {
+    context.readonly = newEnvironment(readonly, context.readonly);
+    context.env = newEnvironment(env, context.env);
+  }
 }
 
 const showNode = (node: Tree, context: Context, msg: string = '') => {
@@ -1556,9 +1549,18 @@ const evaluateStatement = async (
         );
         const bound = await bind(result.envs, __context);
         if (isTopFunction) {
-          environmentAdd(bound.env, 'self', self);
+          environmentAdd(bound.readonly, 'self', self);
           bound.handlers = callerContext.handlers;
         }
+
+        // inspect({
+        //   tag: 'evaluateExpr function',
+        //   bound,
+        //   __context,
+        //   _context,
+        //   context,
+        //   callerContext,
+        // });
 
         try {
           return await evaluateStatement(body, bound);
@@ -1599,6 +1601,12 @@ const evaluateStatement = async (
       if (name === 'true') return true;
       if (name === 'false') return false;
       if (name === 'injected') return context.handlers.resolve();
+      inspect({
+        tag: 'evaluateExpr name',
+        name,
+        // env: context.env,
+        readonly: context.readonly,
+      });
       assert(
         environmentHas(context.env, name) ||
           environmentHas(context.readonly, name),
@@ -1606,12 +1614,6 @@ const evaluateStatement = async (
           context.fileId
         )
       );
-      // inspect({
-      //   tag: 'evaluateExpr name',
-      //   name,
-      //   env: context.env,
-      //   readonly: context.readonly,
-      // });
       return (
         environmentGet(context.readonly, name) ??
         environmentGet(context.env, name)
@@ -1688,17 +1690,26 @@ export const evaluateModule = async (
   assert(ast.type === NodeType.MODULE, 'expected module');
   const record: EvalRecord = createRecord();
 
-  for (const child of ast.children) {
-    if (child.type === NodeType.EXPORT) {
-      const exportNode = child.children[0];
+  // inspect({
+  //   tag: 'evaluateModule',
+  //   ast,
+  //   // context,
+  // });
 
-      if (exportNode.type === NodeType.DECLARE) {
-        const [pattern, expr] = exportNode.children;
-        const value = await evaluateExpr(expr, context);
-        const result = await testPattern(pattern, value, context);
-        assert(result.matched, 'expected pattern to match');
-        await bindExport(pattern, value, record, context);
-      } else {
+  for (const child of ast.children) {
+    if (child.type === NodeType.DECLARE) {
+      const [pattern, expr] = child.children;
+      const value = await evaluateExpr(expr, context);
+      const { matched, envs } = await testPattern(pattern, value, context);
+      // inspect({
+      //   tag: 'evaluateModule declare',
+      //   result,
+      // });
+      assert(matched, 'expected pattern to match');
+      await bindExport(envs, record, context);
+    } else if (child.type === NodeType.EXPORT) {
+      const exportNode = child.children[0];
+      {
         const value = await evaluateExpr(exportNode, context);
 
         assert(

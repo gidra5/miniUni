@@ -1,6 +1,6 @@
-import "std/string" as { split, replace, match, char_at, ...strings };
-import "std/math" as math;
-import "std/concurrency" as { all };
+import "std/string" as { split, replace, match, char_at, ...strings }
+import "std/math" as math
+import "std/concurrency" as { all }
 
 slice := fn (mut list, mut start = 0, mut end = (length list)) {
   while start != 0 {
@@ -55,25 +55,25 @@ document := "
   pqr3stu8vwx\
   a1b2c3d4e5f\
   treb7uchet\
-";
+"
 
 lines := {
-  lines := split document "\n"
+  mut lines := split document "\n"
   lines = map lines (replace "\\s+" "")
   filter lines fn line do line != ""
-};
+}
 
-numbers := flat_map lines fn line {
-  digits := ();
+numbers := flat_map lines fn mut line {
+  digits := ()
 
   while line != "" {
     if match "\\d" (char_at line 0) {
-      digit := number (char_at line 0);
-      if !digits[0] do digits[0] = digit;
-      digits[1] = digit;
+      digit := number (char_at line 0)
+      if !(0 in digits) do digits[0] = digit
+      digits[1] = digit
     }
     line = strings.slice line (1,)
-  };
+  }
 
   digits[0] * 10, digits[1]
 }
