@@ -1,4 +1,5 @@
 import {
+  Context,
   evaluateModuleString,
   evaluateScriptString,
   newContext,
@@ -25,6 +26,12 @@ import {
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import { inject, Injectable } from './injector.js';
+import {
+  environmentGet,
+  handlersGet,
+  newEnvironment,
+  newHandlers,
+} from './environment.js';
 
 const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
@@ -53,7 +60,7 @@ export const addFile = (fileName: string, source: string) => {
   return fileMap.getFileId(fileName);
 };
 
-export const prelude: Record<string, EvalValue> = {
+export const prelude: Context['env'] = newEnvironment({
   cancel: fn(1, ([position, fileId], value) => {
     const cancelErrorFactory = SystemError.invalidArgumentType(
       'cancel',
@@ -111,10 +118,10 @@ export const prelude: Record<string, EvalValue> = {
     if (!Array.isArray(value)) value = [value];
     return createSet(value);
   }),
-};
+});
 
 export const PreludeIO = Symbol('prelude io');
-export const preludeHandlers: Record<string | symbol, EvalValue> = {
+export const preludeHandlers: Context['handlers'] = newHandlers({
   [PreludeIO]: createRecord({
     open: fn(2, async (cs, _path, callback) => {
       assert(typeof _path === 'string');
@@ -128,7 +135,7 @@ export const preludeHandlers: Record<string | symbol, EvalValue> = {
       return null;
     }),
   }),
-};
+});
 
 export const modules: Dictionary = {
   'std/math': module({
@@ -376,7 +383,7 @@ export const modules: Dictionary = {
         'expected path to be absolute or relative'
       );
       const resolved = await resolvePath(_path, context.file);
-      const ioHandler = context.handlers[PreludeIO];
+      const ioHandler = handlersGet(context.handlers, PreludeIO);
       assert(isRecord(ioHandler), 'expected io handler to be record');
 
       const file = await new Promise<EvalValue>(async (resolve) => {
@@ -408,7 +415,7 @@ export const stringMethods = (() => {
   const strmod = modules['std/string'];
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
-    length: prelude.length,
+    length: environmentGet(prelude, 'length'),
     split: recordGet(module, 'split'),
     char_at: recordGet(module, 'char_at'),
     slice: recordGet(module, 'slice'),
@@ -436,7 +443,7 @@ export const listMethods = (() => {
   const { module } = strmod as Extract<typeof strmod, { module: any }>;
   return {
     slice: recordGet(module, 'slice'),
-    length: prelude.length,
+    length: environmentGet(prelude, 'length'),
     map: fn(2, async ([pos, fileId, context], list, fn) => {
       const mapErrorFactory = SystemError.invalidArgumentType(
         'map',

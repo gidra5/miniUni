@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
-import { assert, inspect } from '../src/utils.ts';
+import { assert, inspect, isEqual } from '../src/utils.ts';
 import {
   atom,
   createRecord,
+  EvalRecord,
   EvalValue,
   fn,
   isChannel,
@@ -11,23 +12,30 @@ import {
 } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
-import { addFile, PreludeIO } from '../src/files.ts';
+import { addFile, preludeHandlers, PreludeIO } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
+import {
+  newEnvironment,
+  newHandlers,
+  resolveHandlers,
+} from '../src/environment.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
   input: string,
-  env?: Context['env'],
-  handlers?: Context['handlers']
+  env?: EvalRecord,
+  handlers?: EvalRecord
 ): Promise<EvalValue> => {
   const name = ROOT_DIR + '/index.uni';
   const fileId = addFile(name, input);
   const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  if (env) Object.assign(context.env, env);
-  if (handlers) Object.assign(context.handlers, handlers);
+  // if (env) Object.assign(context.env, env);
+  // if (handlers) Object.assign(context.handlers, handlers);
+  if (env) context.env = newEnvironment(env, context.env);
+  if (handlers) context.handlers = newHandlers(handlers, context.handlers);
   return await evaluateScript(ast, context);
 };
 
@@ -60,7 +68,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('split lines', async () => {
-    const env: Context['env'] = {
+    const env: EvalRecord = createRecord({
       document: `
           1abc2
           pqr3stu8vwx
@@ -88,7 +96,7 @@ describe('advent of code 2023 day 1 single', () => {
         }
         return result;
       }),
-    };
+    });
     const input = `
         import "std/string" as { split, replace };
         mut lines := split document "\\n";
@@ -105,7 +113,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('parse numbers', async () => {
-    const env: Context['env'] = {
+    const env: EvalRecord = createRecord({
       lines: ['1abc2', 'pqr3stu8vwx', 'a1b2c3d4e5f', 'treb7uchet'],
       flat_map: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
@@ -119,7 +127,7 @@ describe('advent of code 2023 day 1 single', () => {
         );
         return mapped.flat();
       }),
-    };
+    });
     const input = `
         import "std/string" as { char_at, match, slice }
 
@@ -939,8 +947,10 @@ describe('expressions', () => {
             return null;
           }),
         });
+        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const env = createRecord();
 
-        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        const result = await evaluate(input, env, handlers);
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -975,8 +985,10 @@ describe('expressions', () => {
             return null;
           }),
         });
+        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const env = createRecord();
 
-        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        const result = await evaluate(input, env, handlers);
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -1010,8 +1022,10 @@ describe('expressions', () => {
             return null;
           }),
         });
+        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const env = createRecord();
 
-        const result = await evaluate(input, {}, { [PreludeIO]: ioHandler });
+        const result = await evaluate(input, env, handlers);
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -1372,13 +1386,14 @@ describe('expressions', () => {
     });
 
     it('inject', async () => {
-      const input = `
-        inject a: 1, b: 2 {
-          injected
-        }
-      `;
+      const input = `inject a: 1, b: 2 { injected }`;
       const result = await evaluate(input);
-      expect(result).toEqual(createRecord({ a: 1, b: 2 }));
+      const handlers = newHandlers(
+        createRecord({ a: 1, b: 2 }),
+        preludeHandlers
+      );
+      const expected = handlers.resolve();
+      expect(isEqual(expected, result)).toBe(true);
     });
 
     it('inject twice', async () => {
@@ -1386,13 +1401,16 @@ describe('expressions', () => {
         inject a: 1, b: 2 {
           { a, b } := injected;
           
-          inject a: a+1, b: b+2 {
-            injected
-          }  
+          inject a: a+1, b: b+2 { injected }  
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual(createRecord({ a: 2, b: 4 }));
+      const handlers = newHandlers(
+        createRecord({ a: 2, b: 4 }),
+        preludeHandlers
+      );
+      const expected = handlers.resolve();
+      expect(isEqual(expected, result)).toBe(true);
     });
 
     it('mask', async () => {
@@ -1401,14 +1419,17 @@ describe('expressions', () => {
           { a, b } := injected;
           
           inject a: a+1, b: b+2 {
-            mask "a" {
-              injected
-            }
+            mask "a" { injected }
           }  
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual(createRecord({ a: 1, b: 4 }));
+      const handlers = newHandlers(
+        createRecord({ a: 1, b: 4 }),
+        preludeHandlers
+      );
+      const expected = handlers.resolve();
+      expect(isEqual(expected, result)).toBe(true);
     });
 
     it('without', async () => {
@@ -1424,7 +1445,9 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      expect(result).toEqual(createRecord({ b: 4 }));
+      const handlers = newHandlers(createRecord({ b: 4 }), preludeHandlers);
+      const expected = handlers.resolve();
+      expect(isEqual(expected, result)).toBe(true);
     });
 
     it('parallel', async () => {

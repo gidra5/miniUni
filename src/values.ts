@@ -71,7 +71,7 @@ export function isChannel(
   );
 }
 
-export function isRecord(recordValue: EvalValue): recordValue is EvalRecord {
+export function isRecord(recordValue: unknown): recordValue is EvalRecord {
   return (
     !!recordValue &&
     typeof recordValue === 'object' &&
@@ -265,7 +265,13 @@ export const createSet = (values: EvalValue[]): EvalRecord => {
 export const createRecord = (
   values: Record<PropertyKey, EvalValue> | Array<[EvalValue, EvalValue]> = {}
 ): EvalRecord => {
-  return new Map(Array.isArray(values) ? values : Object.entries(values));
+  if (Array.isArray(values)) return new Map(values);
+  const keys = [
+    ...Object.getOwnPropertyNames(values),
+    ...Object.getOwnPropertySymbols(values),
+  ];
+  const entries: [EvalValue, EvalValue][] = keys.map((k) => [k, values[k]]);
+  return new Map(entries);
 };
 
 export const recordGet = (record: EvalRecord, key: EvalValue): EvalValue => {

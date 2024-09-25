@@ -28,7 +28,6 @@ import {
   getClosestName,
   inspect,
   isEqual,
-  omit,
   unreachable,
 } from './utils.js';
 import {
@@ -60,6 +59,20 @@ import { validate } from './validate.js';
 import { inject, Injectable, register } from './injector.js';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
+import {
+  Handlers,
+  maskHandlers,
+  newHandlers,
+  resolveHandlers,
+  withoutHandlers,
+  Environment,
+  newEnvironment,
+  environmentHas,
+  environmentKeys,
+  environmentGet,
+  environmentSet,
+  environmentAdd,
+} from './environment.js';
 
 let eventLoopYieldCounter = 0;
 const eventLoopYieldMax = 1000;
@@ -68,20 +81,16 @@ const eventLoopYield = async () => {
   if (eventLoopYieldCounter === 0) await setTimeout(0);
 };
 
-type Environment = Record<string, EvalValue>;
-
 export type Context = {
   file: string;
   fileId: number;
   readonly: Environment;
   env: Environment;
-  handlers: Record<string | symbol, EvalValue>;
+  handlers: Handlers;
 };
 
 const forkEnv = (env: Context['env']): Context['env'] => {
-  const forked: Context['env'] = {};
-  Object.setPrototypeOf(forked, env);
-  return forked;
+  return newEnvironment({}, env);
 };
 const forkContext = (context: Context): Context => {
   return {
@@ -91,55 +100,13 @@ const forkContext = (context: Context): Context => {
   };
 };
 
-const maskHandlers = (
-  handlers: Context['handlers'],
-  names: (string | symbol)[]
-) => {
-  const prototypes = [handlers];
-  while (true) {
-    const head = prototypes[prototypes.length - 1];
-    const prototype = Object.getPrototypeOf(head);
-    if (prototype === null) break;
-    prototypes.push(prototype);
-  }
-  return new Proxy(handlers, {
-    get(target, prop, receiver) {
-      if (!names.includes(prop)) return Reflect.get(target, prop, receiver);
-      const proto = prototypes.find((proto) => Object.hasOwn(proto, prop));
-      if (proto) return Object.getPrototypeOf(proto)[prop];
-      return Reflect.get(target, prop, receiver);
-    },
-  });
-};
-
-const omitHandlers = (
-  handlers: Context['handlers'],
-  names: (string | symbol)[]
-) => {
-  return new Proxy(handlers, {
-    has(target, prop) {
-      if (names.includes(prop)) return false;
-      return Reflect.has(target, prop);
-    },
-
-    get(target, prop, receiver) {
-      if (names.includes(prop)) return undefined;
-      return Reflect.get(target, prop, receiver);
-    },
-
-    ownKeys(target) {
-      return Reflect.ownKeys(target).filter((key) => !names.includes(key));
-    },
-  });
-};
-
 export const newContext = (fileId: number, file: string): Context => {
   return {
     file,
     fileId,
     readonly: forkEnv(prelude),
     env: forkEnv(prelude),
-    handlers: forkEnv(preludeHandlers),
+    handlers: newHandlers({}, preludeHandlers),
   };
 };
 
@@ -534,12 +501,6 @@ const testPattern = async (
       updatePatternTestEnv(envs, flags, [list, index], value);
       return { matched: true, envs, notEnvs };
     } else if (isRecord(list)) {
-      assert(
-        typeof index === 'string' || isSymbol(index),
-        SystemError.invalidIndex(getPosition(patternAst)).withFileId(
-          context.fileId
-        )
-      );
       updatePatternTestEnv(envs, flags, [list, index], value);
       return { matched: true, envs, notEnvs };
     }
@@ -587,24 +548,39 @@ const incAssign = async (
   // });
 
   for (const [patternKey, value] of envs.readonly.entries()) {
-    let target: any = context.env;
-    let key: any = patternKey;
     if (typeof patternKey === 'string') {
-      assert(!(patternKey in context.readonly), 'expected mutable name');
       assert(
-        patternKey in context.env,
+        !environmentHas(context.readonly, patternKey),
+        'expected mutable name'
+      );
+      assert(
+        environmentHas(context.env, patternKey),
         SystemError.invalidAssignment(
           patternKey,
           getPosition(patternAst),
-          getClosestName(patternKey, Object.keys(context.env))
+          getClosestName(
+            patternKey,
+            environmentKeys(context.env).filter((k) => typeof k === 'string')
+          )
         ).withFileId(context.fileId)
       );
 
-      let enclosing = Object.getPrototypeOf(target);
-      while (patternKey in enclosing) {
-        target = enclosing;
-        enclosing = Object.getPrototypeOf(target);
-      }
+      const v = environmentGet(context.env, patternKey);
+      assert(
+        typeof v === 'number',
+        SystemError.invalidIncrement(
+          String(patternKey),
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
+      );
+      assert(
+        typeof value === 'number',
+        SystemError.invalidIncrement(
+          String(patternKey),
+          getPosition(patternAst)
+        ).withFileId(context.fileId)
+      );
+      environmentSet(context.env, patternKey, v + value);
     } else {
       const [patternTarget, patternKeyValue] = patternKey;
       if (Array.isArray(patternTarget)) {
@@ -614,27 +590,43 @@ const incAssign = async (
             context.fileId
           )
         );
-      }
-      target = patternTarget;
-      key = patternKeyValue;
-    }
+        const v = patternTarget[patternKeyValue];
+        assert(
+          typeof v === 'number',
+          SystemError.invalidIncrement(
+            String(patternKeyValue),
+            getPosition(patternAst)
+          ).withFileId(context.fileId)
+        );
+        assert(
+          typeof value === 'number',
+          SystemError.invalidIncrement(
+            String(patternKeyValue),
+            getPosition(patternAst)
+          ).withFileId(context.fileId)
+        );
+        patternTarget[patternKeyValue] = v + value;
+      } else {
+        assert(isRecord(patternTarget), 'expected record');
 
-    const v = isRecord(target) ? recordGet(target, key) : target[key];
-    assert(
-      typeof v === 'number',
-      SystemError.invalidIncrement(
-        String(key),
-        getPosition(patternAst)
-      ).withFileId(context.fileId)
-    );
-    assert(
-      typeof value === 'number',
-      SystemError.invalidIncrement(key, getPosition(patternAst)).withFileId(
-        context.fileId
-      )
-    );
-    if (isRecord(target)) recordSet(target, key, v + value);
-    else target[key] = v + value;
+        const v = recordGet(patternTarget, patternKeyValue);
+        assert(
+          typeof v === 'number',
+          SystemError.invalidIncrement(
+            String(patternKeyValue),
+            getPosition(patternAst)
+          ).withFileId(context.fileId)
+        );
+        assert(
+          typeof value === 'number',
+          SystemError.invalidIncrement(
+            String(patternKeyValue),
+            getPosition(patternAst)
+          ).withFileId(context.fileId)
+        );
+        recordSet(patternTarget, patternKeyValue, v + value);
+      }
+    }
   }
 
   // inspect({
@@ -672,44 +664,37 @@ const assign = async (
   // });
 
   for (const [patternKey, value] of envs.readonly.entries()) {
-    let target: any = context.env;
-    let key: any = patternKey;
     if (typeof patternKey === 'string') {
-      assert(!(patternKey in context.readonly), 'expected mutable name');
       assert(
-        patternKey in context.env,
+        !environmentHas(context.readonly, patternKey),
+        'expected mutable name'
+      );
+      assert(
+        environmentSet(context.env, patternKey, value),
         SystemError.invalidAssignment(
           patternKey,
           getPosition(patternAst),
-          getClosestName(patternKey, Object.keys(context.env))
+          getClosestName(
+            patternKey,
+            environmentKeys(context.env).filter((k) => typeof k === 'string')
+          )
         ).withFileId(context.fileId)
       );
-
-      let enclosing = Object.getPrototypeOf(target);
-      while (patternKey in enclosing) {
-        target = enclosing;
-        enclosing = Object.getPrototypeOf(target);
-      }
     } else {
-      const [patternTarget, patternKeyValue] = patternKey;
+      const [patternTarget, key] = patternKey;
       if (Array.isArray(patternTarget)) {
         assert(
-          typeof patternKeyValue === 'number',
+          typeof key === 'number',
           SystemError.invalidIndex(getPosition(patternAst)).withFileId(
             context.fileId
           )
         );
+        patternTarget[key] = value;
+      } else {
+        assert(isRecord(patternTarget), 'expected record');
+        if (value === null) recordDelete(patternTarget, key);
+        else recordSet(patternTarget, key, value);
       }
-      target = patternTarget;
-      key = patternKeyValue;
-    }
-
-    if (isRecord(target)) {
-      if (value === null) recordDelete(target, key);
-      else recordSet(target, key, value);
-    } else {
-      if (value === null) delete target[key];
-      else target[key] = value;
     }
   }
 
@@ -741,24 +726,22 @@ const bind = async (
     assert(typeof key === 'string', 'can only declare names');
 
     if (value === null) continue;
-    if (Object.hasOwn(context.readonly, key)) readonly[key] = value;
-    else if (Object.hasOwn(context.env, key)) readonly[key] = value;
-    else context.readonly[key] = value;
+    if (context.readonly.entries.has(key)) readonly[key] = value;
+    else if (context.env.entries.has(key)) readonly[key] = value;
+    else environmentAdd(context.readonly, key, value);
   }
   for (const [key, value] of envs.env.entries()) {
     assert(typeof key === 'string', 'can only declare names');
 
     if (value === null) continue;
-    if (Object.hasOwn(context.readonly, key)) env[key] = value;
-    else if (Object.hasOwn(context.env, key)) env[key] = value;
-    else context.env[key] = value;
+    if (context.readonly.entries.has(key)) env[key] = value;
+    else if (context.env.entries.has(key)) env[key] = value;
+    else environmentAdd(context.env, key, value);
   }
 
   if (Object.keys(readonly).length > 0 || Object.keys(env).length > 0) {
-    context.readonly = forkEnv(context.readonly);
-    context.env = forkEnv(context.env);
-    Object.assign(context.readonly, readonly);
-    Object.assign(context.env, env);
+    context.readonly = newEnvironment(readonly, context.readonly);
+    context.env = newEnvironment(env, context.env);
   }
 
   assert(envs.exports.size === 0, 'cant do exports in scripts');
@@ -785,30 +768,47 @@ async function bindExport(
 
   for (const [key, value] of envs.readonly.entries()) {
     assert(typeof key === 'string', 'can only declare names');
-    // TODO: fork scope on duplicate declaration.
-    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
-    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+    assert(
+      !context.readonly.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
+    assert(
+      !context.env.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
 
     if (value === null) continue;
-    context.readonly[key] = value;
+    environmentSet(context.readonly, key, value);
   }
   for (const [key, value] of envs.env.entries()) {
     assert(typeof key === 'string', 'can only declare names');
     // TODO: fork scope on duplicate declaration.
-    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
-    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+    assert(
+      !context.readonly.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
+    assert(
+      !context.env.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
 
     if (value === null) continue;
-    context.env[key] = value;
+    environmentSet(context.env, key, value);
   }
   for (const [key, value] of envs.exports.entries()) {
     assert(typeof key === 'string', 'can only declare names');
     // TODO: fork scope on duplicate declaration.
-    assert(!Object.hasOwn(context.readonly, key), 'cannot redeclare name');
-    assert(!Object.hasOwn(context.env, key), 'cannot redeclare name');
+    assert(
+      !context.readonly.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
+    assert(
+      !context.env.entries.has(key),
+      'cannot declare name inside module more than once'
+    );
 
     if (value === null) continue;
-    context.readonly[key] = value;
+    environmentSet(context.readonly, key, value);
   }
   for (const [key, value] of envs.exports.entries()) {
     assert(typeof key === 'string', 'can only declare names');
@@ -1006,33 +1006,21 @@ const lazyOperators = {
     const value = await evaluateExpr(expr, context);
     assert(isRecord(value), 'expected record');
 
-    const injected = Object.fromEntries(value.entries());
-    const handlers = { ...context.handlers, ...injected };
-    Object.setPrototypeOf(handlers, context.handlers);
+    const handlers = newHandlers(value, context.handlers);
     return await evaluateBlock(body, { ...context, handlers });
   },
   [NodeType.WITHOUT]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
-    assert(
-      value.every((v) => typeof v === 'string' || isSymbol(v)),
-      'expected strings or symbols'
-    );
 
-    const handlerNames = value;
-    const handlers = omitHandlers(context.handlers, handlerNames);
+    const handlers = withoutHandlers(context.handlers, value);
     return await evaluateBlock(body, { ...context, handlers });
   },
   [NodeType.MASK]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
-    assert(
-      value.every((v) => typeof v === 'string' || isSymbol(v)),
-      'expected strings or symbols'
-    );
 
-    const handlerNames = value;
-    const handlers = maskHandlers(context.handlers, handlerNames);
+    const handlers = maskHandlers(context.handlers, value);
     return await evaluateBlock(body, { ...context, handlers });
   },
 
@@ -1139,8 +1127,8 @@ const lazyOperators = {
     });
 
     const forked = forkContext(context);
-    context.readonly.break = blockBreak;
-    context.readonly.continue = blockContinue;
+    environmentAdd(forked.readonly, 'break', blockBreak);
+    environmentAdd(forked.readonly, 'continue', blockContinue);
 
     const mapped: EvalValue[] = [];
     for (const item of list) {
@@ -1193,8 +1181,8 @@ const lazyOperators = {
     });
 
     const forked = forkContext(context);
-    context.readonly.break = blockBreak;
-    context.readonly.continue = blockContinue;
+    environmentAdd(forked.readonly, 'break', blockBreak);
+    environmentAdd(forked.readonly, 'continue', blockContinue);
     try {
       return await evaluateBlock(expr, forked);
     } catch (e) {
@@ -1447,10 +1435,14 @@ export const evaluateStatement = async (
       });
 
       const forked = forkContext(context);
-      context.readonly[ast.data.name] = createRecord({
-        break: labelBreak,
-        continue: labelContinue,
-      });
+      environmentAdd(
+        forked.readonly,
+        ast.data.name,
+        createRecord({
+          break: labelBreak,
+          continue: labelContinue,
+        })
+      );
       try {
         return await evaluateStatement(expr, forked);
       } catch (e) {
@@ -1548,7 +1540,7 @@ export const evaluateStatement = async (
         );
         const bound = await bind(result.envs, __context);
         if (isTopFunction) {
-          bound.env['self'] = self;
+          environmentAdd(bound.env, 'self', self);
           bound.handlers = callerContext.handlers;
         }
 
@@ -1590,9 +1582,10 @@ export const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      if (name === 'injected') return createRecord(context.handlers);
+      if (name === 'injected') return resolveHandlers(context.handlers);
       assert(
-        name in context.env || name in context.readonly,
+        environmentHas(context.env, name) ||
+          environmentHas(context.readonly, name),
         SystemError.undeclaredName(name, getPosition(ast)).withFileId(
           context.fileId
         )
@@ -1603,7 +1596,10 @@ export const evaluateStatement = async (
       //   env: context.env,
       //   readonly: context.readonly,
       // });
-      return context.readonly[name] ?? context.env[name];
+      return (
+        environmentGet(context.readonly, name) ??
+        environmentGet(context.env, name)
+      );
     }
     case NodeType.NUMBER:
     case NodeType.STRING:
