@@ -1503,13 +1503,13 @@ describe('expressions', () => {
         };
         
         false_branch_first :=
-          decide: fn x, continuation {
-            fail_handler := fail: fn -> continuation false
+          decide: fn (callback, x) {
+            fail_handler := fail: fn do continuation false
             inject fail_handler { continuation true }
           };
         true_branch_first :=
           decide: fn x, continuation {
-            fail_handler := fail: fn -> continuation true
+            fail_handler := fail: fn do continuation true
             inject fail_handler { continuation false }
           };
 
@@ -1522,27 +1522,34 @@ describe('expressions', () => {
 
     it.todo('logger example', async () => {
       const input = `
-        import "std/effects" as { return_handler, handler };
         logger :=
-          log: handler fn callback, msg {
+          log: handler fn (callback, msg) {
             result, logs := callback()
             result, (msg, ...logs)
           },
-          [return_handler]: handler fn _, x do x, ()
+          [return_handler]: handler fn x do x, ()
 
         log := fn msg {
           { log } := injected
           log msg
         }
 
+        f := fn {
+          log 789
+          234
+        }
+
         inject logger {
           log 123
           log 456
-          123
+          123, f()
         }
       `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual([123, [123, 456]]);
+      expect(result).toStrictEqual([
+        [123, 234],
+        [123, 456, 789],
+      ]);
     });
   });
 

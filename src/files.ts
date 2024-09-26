@@ -121,7 +121,7 @@ export const preludeHandlers: Context['handlers'] = newHandlers({
       assert(typeof _path === 'string');
       const file = createRecord({
         write: fn(1, () => null),
-        close: fn(0, () => null),
+        close: async () => null,
       });
 
       assert(typeof callback === 'function');

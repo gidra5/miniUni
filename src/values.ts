@@ -72,11 +72,7 @@ export function isChannel(
 }
 
 export function isRecord(recordValue: unknown): recordValue is EvalRecord {
-  return (
-    !!recordValue &&
-    typeof recordValue === 'object' &&
-    recordValue instanceof Map
-  );
+  return !!recordValue && recordValue instanceof Map;
 }
 
 export function isSymbol(symbolValue: EvalValue): symbolValue is EvalSymbol {
