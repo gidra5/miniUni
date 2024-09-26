@@ -186,28 +186,19 @@ exports[`finds all errors in example '[' 1`] = `
       {
         "end": 1,
         "kind": "primary",
-        "message": "somewhere here",
-        "start": 0,
+        "message": "must be closed with "]" by that point",
+        "start": 1,
       },
-    ],
-    "message": "Missing token, expected one of: "]"",
-    "notes": [],
-    "type": "MISSING_TOKEN",
-  },
-  {
-    "data": {},
-    "fileId": 0,
-    "labels": [
       {
         "end": 1,
         "kind": "primary",
-        "message": "here",
-        "start": 1,
+        "message": "opening token "[" here",
+        "start": 0,
       },
     ],
-    "message": "Unexpected end of source",
+    "message": "Missing closing token",
     "notes": [],
-    "type": "END_OF_SOURCE",
+    "type": "MISSING_TOKEN",
   },
 ]
 `;
@@ -220,17 +211,14 @@ exports[`finds all errors in example '[' 2`] = `
         {
           "children": [],
           "data": {},
-          "id": "7",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "square_brackets",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;
@@ -328,11 +316,17 @@ exports[`finds all errors in example '{' 1`] = `
       {
         "end": 1,
         "kind": "primary",
-        "message": "somewhere here",
+        "message": "must be closed with "}" by that point",
+        "start": 1,
+      },
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "opening token "{" here",
         "start": 0,
       },
     ],
-    "message": "Missing token, expected one of: "}"",
+    "message": "Missing closing token",
     "notes": [],
     "type": "MISSING_TOKEN",
   },
@@ -347,17 +341,14 @@ exports[`finds all errors in example '{' 2`] = `
         {
           "children": [],
           "data": {},
-          "id": "3",
           "type": "implicit_placeholder",
         },
       ],
       "data": {},
-      "id": "4",
       "type": "block",
     },
   ],
   "data": {},
-  "id": "6",
   "type": "script",
 }
 `;

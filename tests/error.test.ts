@@ -40,9 +40,9 @@ const testCase = (input, _?, _it: any = it) =>
 testCase(')', [], it.skip);
 testCase('(');
 testCase('}', [], it.skip);
-testCase('{', [], it.skip);
+testCase('{');
 testCase(']', [], it.skip);
-testCase('[', [], it.skip);
+testCase('[');
 testCase('({ 1 )');
 testCase('(x[1 )', [], it.todo);
 testCase('{ (1 }');
