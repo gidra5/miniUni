@@ -11,8 +11,11 @@ import {
   cancelTask,
   closeChannel,
   createChannel,
+  createEffect,
+  createHandler,
   createRecord,
   createSet,
+  EvalFunction,
   EvalRecord,
   EvalValue,
   fileHandle,
@@ -54,8 +57,17 @@ export const addFile = (fileName: string, source: string) => {
   return fileMap.getFileId(fileName);
 };
 
+export const ReturnHandler = Symbol('return_handler');
 export const prelude: Context['env'] = newEnvironment({
-  cancel: fn(1, ([position, fileId], value) => {
+  return_handler: ReturnHandler,
+  handle: fn(2, (callSite, effect, value) => {
+    return createEffect(effect, value, async (cs, v) => v);
+  }),
+  handler: async (_, handler) => {
+    assert(typeof handler === 'function', 'expected function');
+    return createHandler(handler);
+  },
+  cancel: async ([position, fileId], value) => {
     const cancelErrorFactory = SystemError.invalidArgumentType(
       'cancel',
       { args: [['target', 'task _']], returns: 'void' },
@@ -63,7 +75,7 @@ export const prelude: Context['env'] = newEnvironment({
     );
     assert(isTask(value), cancelErrorFactory(0).withFileId(fileId));
     return cancelTask(value);
-  }),
+  },
   channel: fn(1, (_, name) => {
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
@@ -129,6 +141,7 @@ export const preludeHandlers: Context['handlers'] = newHandlers({
       return null;
     }),
   }),
+  [ReturnHandler]: async (_, value) => value,
 });
 
 export const modules: Dictionary = {
@@ -141,6 +154,15 @@ export const modules: Dictionary = {
       );
       assert(typeof n === 'number', floorErrorFactory(0).withFileId(fileId));
       return Math.floor(n);
+    }),
+    sqrt: fn(1, ([position, fileId], n) => {
+      const sqrtErrorFactory = SystemError.invalidArgumentType(
+        'sqrt',
+        { args: [['target', 'number']], returns: 'number' },
+        position
+      );
+      assert(typeof n === 'number', sqrtErrorFactory(0).withFileId(fileId));
+      return Math.sqrt(n);
     }),
   }),
   'std/string': module({

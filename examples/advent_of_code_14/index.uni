@@ -10,23 +10,23 @@ mut sum := 0
 col_height := length matrix
 
 for columnIndex in range 0 (length matrix[0]) {
-  mut handle := -1
+  mut _handle := -1
   mut count := 0
 
   for rowIndex in range 0 col_height {
     char := matrix[rowIndex][columnIndex]
     
     if char == "#" {
-      load := col_height - handle - (1 + count)/2
+      load := col_height - _handle - (1 + count)/2
       sum += count * load
       count = 0
-      handle = rowIndex
+      _handle = rowIndex
     }
 
     if char == "O" do count++
   }
 
-  load := col_height - handle - (1 + count)/2
+  load := col_height - _handle - (1 + count)/2
   sum += count * load
 }
 

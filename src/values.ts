@@ -12,6 +12,14 @@ type EvalSymbol = symbol;
 export type EvalRecord = Map<EvalValue, EvalValue>;
 
 type EvalChannel = EvalSymbol;
+export type EvalEffect = {
+  effect: EvalValue;
+  value: EvalValue;
+  continuation: EvalFunction;
+};
+type EvalHandler = {
+  handler: EvalFunction;
+};
 
 export type EvalValue =
   | number
@@ -22,7 +30,9 @@ export type EvalValue =
   | EvalFunction
   | EvalSymbol
   | EvalRecord
-  | EvalChannel;
+  | EvalChannel
+  | EvalEffect
+  | EvalHandler;
 
 type ChannelReceiver = {
   resolve: (v: EvalValue | null) => void;
@@ -77,6 +87,14 @@ export function isRecord(recordValue: unknown): recordValue is EvalRecord {
 
 export function isSymbol(symbolValue: EvalValue): symbolValue is EvalSymbol {
   return !!symbolValue && typeof symbolValue === 'symbol';
+}
+
+export function isEffect(value: EvalValue): value is EvalEffect {
+  return !!value && typeof value === 'object' && 'effect' in value;
+}
+
+export function isHandler(value: EvalValue): value is EvalHandler {
+  return !!value && typeof value === 'object' && 'handler' in value;
 }
 
 const channels: Record<symbol, Channel> = {};
@@ -303,3 +321,13 @@ export const recordOmit = (
 export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
   return record.has(key);
 };
+
+export const createEffect = (
+  effect: EvalValue,
+  value: EvalValue,
+  continuation: EvalFunction
+): EvalEffect => ({ effect, value, continuation });
+
+export const createHandler = (handler: EvalFunction): EvalHandler => ({
+  handler,
+});

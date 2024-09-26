@@ -6,6 +6,7 @@ import {
   ModuleDefault,
   prelude,
   preludeHandlers,
+  ReturnHandler,
   stringMethods,
 } from './files.js';
 import { getPosition, parseModule, parseScript } from './parser.js';
@@ -34,14 +35,18 @@ import {
   atom,
   awaitTask,
   createChannel,
+  createEffect,
   createRecord,
   createTask,
+  EvalEffect,
   EvalFunction,
   EvalRecord,
   EvalValue,
   fn,
   getChannel,
   isChannel,
+  isEffect,
+  isHandler,
   isRecord,
   isSymbol,
   isTask,
@@ -72,6 +77,7 @@ import {
   environmentSet,
   environmentAdd,
 } from './environment.js';
+import { Position } from './position.js';
 
 let eventLoopYieldCounter = 0;
 const eventLoopYieldMax = 1000;
@@ -1007,7 +1013,9 @@ const lazyOperators = {
     assert(isRecord(value), 'expected record');
 
     const handlers = newHandlers(value, context.handlers);
-    return await evaluateBlock(body, { ...context, handlers });
+    const result = await evaluateBlock(body, { ...context, handlers });
+
+    return await evaluateHandlers(value, result, getPosition(body), context);
   },
   [NodeType.WITHOUT]: async ([expr, body]: Tree[], context: Context) => {
     let value = await evaluateExpr(expr, context);
@@ -1198,8 +1206,11 @@ const lazyOperators = {
   },
   [NodeType.SEQUENCE]: async ([expr, ...rest]: Tree[], context: Context) => {
     if (rest.length === 0) return await evaluateStatement(expr, context);
-    await evaluateStatement(expr, context);
-    return await lazyOperators[NodeType.SEQUENCE](rest, context);
+    return await evaluateStatementEffect(
+      expr,
+      context,
+      async () => await lazyOperators[NodeType.SEQUENCE](rest, context)
+    );
   },
 
   [NodeType.INCREMENT]: async ([arg]: Tree[], context: Context) => {
@@ -1265,52 +1276,71 @@ const lazyOperators = {
     return createRecord({ [key]: value });
   },
   [NodeType.TUPLE]: async (children: Tree[], context: Context) => {
-    const list: EvalValue[] = [];
-    let record: EvalRecord = createRecord();
-
-    for (const child of children) {
-      if (child.type === NodeType.SPREAD) {
-        const rest = await evaluateExpr(child.children[0], context);
-        if (Array.isArray(rest)) list.push(...rest);
-        else if (isRecord(rest)) record = recordMerge(record, rest);
-        else {
-          unreachable(
-            SystemError.invalidTuplePattern(getPosition(child)).withFileId(
-              context.fileId
-            )
-          );
+    if (children.length === 0) return [];
+    const [head, ...tail] = children;
+    if (head.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+    if (head.type === NodeType.PLACEHOLDER) return [];
+    if (head.type === NodeType.SPREAD) {
+      return await evaluateExprEffect(
+        head.children[0],
+        context,
+        async (cs, v) => {
+          const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
+          return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+            if (Array.isArray(_tail) && Array.isArray(v)) {
+              return [...v, ..._tail];
+            }
+            if (isRecord(_tail) && isRecord(v)) {
+              return recordMerge(v, _tail);
+            }
+            unreachable('inconsistent spread types');
+          });
         }
-      } else if (child.type === NodeType.LABEL) {
-        const _key = child.children[0];
-        const key =
-          _key.type === NodeType.NAME
-            ? _key.data.value
-            : await evaluateExpr(_key, context);
-        const value = await evaluateExpr(child.children[1], context);
-        recordSet(record, key, value);
-      } else if (child.type === NodeType.IMPLICIT_PLACEHOLDER) continue;
-      else list.push(await evaluateExpr(child, context));
+      );
     }
-
-    if (record.size > 0) {
-      Object.assign(record, list);
-      // inspect({
-      //   tag: 'evaluateExpr tuple record',
-      //   record,
-      //   children,
-      //   context,
-      // });
-
-      return record;
+    if (head.type === NodeType.LABEL) {
+      const _key = head.children[0];
+      if (_key.type === NodeType.NAME) {
+        const key = _key.data.value;
+        return await evaluateExprEffect(
+          head.children[1],
+          context,
+          async (cs, value) => {
+            const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
+            return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+              if (Array.isArray(_tail) && _tail.length === 0)
+                return createRecord([[key, value]]);
+              assert(isRecord(_tail), 'expected record');
+              recordSet(_tail, key, value);
+              return _tail;
+            });
+          }
+        );
+      }
+      return await evaluateExprEffect(_key, context, async (cs, key) => {
+        return await evaluateExprEffect(
+          head.children[1],
+          context,
+          async (cs, value) => {
+            const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
+            return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+              if (Array.isArray(_tail) && _tail.length === 0)
+                return createRecord([[key, value]]);
+              assert(isRecord(_tail), 'expected record');
+              recordSet(_tail, key, value);
+              return _tail;
+            });
+          }
+        );
+      });
     }
-
-    // inspect({
-    //   tag: 'evaluateExpr tuple list',
-    //   list,
-    //   children,
-    //   context,
-    // });
-    return list;
+    return await evaluateExprEffect(head, context, async (cs, v) => {
+      const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
+      return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+        assert(Array.isArray(_tail), 'expected array');
+        return [v, ..._tail];
+      });
+    });
   },
   [NodeType.INDEX]: async ([_target, _index]: Tree[], context: Context) => {
     const target = await evaluateExpr(_target, context);
@@ -1395,6 +1425,94 @@ const lazyOperators = {
 
     return null;
   },
+};
+
+const evaluateHandlers = async (
+  handlers: EvalRecord,
+  _value: EvalValue,
+  position: Position,
+  context: Context
+): Promise<EvalValue> => {
+  inspect({
+    tag: 'evaluateHandlers',
+    handlers,
+    _value,
+  });
+  const cs: [Position, number, Context] = [position, context.fileId, context];
+  if (isEffect(_value)) {
+    const { effect, value, continuation } = _value;
+    if (recordHas(handlers, effect)) {
+      const _handler = recordGet(handlers, effect);
+      if (isHandler(_handler)) {
+        const { handler } = _handler;
+        const callback: EvalFunction = async (cs, _value) => {
+          const value = await continuation(cs, _value);
+          return await evaluateHandlers(handlers, value, position, context);
+        };
+        return await handler(
+          [position, context.fileId, context],
+          [callback, value]
+        );
+      }
+
+      const __value = await continuation(cs, _handler);
+      return await evaluateHandlers(handlers, __value, position, context);
+    }
+    return createEffect(effect, value, async (cs, _value) => {
+      const value = await continuation(cs, _value);
+      return await evaluateHandlers(handlers, value, position, context);
+    });
+  }
+  const returnHandler = recordGet(handlers, ReturnHandler);
+  if (returnHandler === null) return _value;
+  assert(
+    typeof returnHandler === 'function',
+    'expected return handler to be a function'
+  );
+  return returnHandler(cs, _value);
+};
+
+const mapEffect = async (
+  value: EvalValue,
+  position: Position,
+  context: Context,
+  continuation: EvalFunction
+): Promise<EvalValue> => {
+  if (isEffect(value)) {
+    const { effect, value: v, continuation: c } = value;
+    const nextCont: EvalFunction = async (cs, v) => {
+      v = await c(cs, v);
+      return await continuation(cs, v);
+    };
+    return createEffect(effect, v, nextCont);
+  }
+  return continuation([position, context.fileId, context], value);
+};
+
+const evaluateStatementEffect = async (
+  ast: Tree,
+  context: Context,
+  continuation: EvalFunction
+): Promise<EvalValue> => {
+  return await mapEffect(
+    await evaluateStatement(ast, context),
+    getPosition(ast),
+    context,
+    continuation
+  );
+};
+
+const evaluateExprEffect = async (
+  ast: Tree,
+  context: Context,
+  continuation: EvalFunction
+): Promise<EvalValue> => {
+  return await mapEffect(
+    await evaluateExpr(ast, context),
+    getPosition(ast),
+    context,
+    continuation
+  );
 };
 
 const evaluateStatement = async (
@@ -1586,10 +1704,12 @@ const evaluateStatement = async (
         ).withFileId(context.fileId)
       );
 
-      return await fnValue(
+      const x = await fnValue(
         [getPosition(ast), context.fileId, context],
         argValue
       );
+      inspect({ x });
+      return x;
     }
 
     case NodeType.ATOM: {

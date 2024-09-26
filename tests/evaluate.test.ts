@@ -1482,34 +1482,34 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
-    it.todo('pythagorean triple example', async () => {
+    it.only('pythagorean triple example', async () => {
       const input = `
-        choose_int := fn m, n {
-          { decide, fail } := injected;
+        import "std/math" as { floor, sqrt }
 
-          if m > n: fail();
-          if decide(): m else self m+1, n
-        };
+        decide := :decide |> handle
+        fail := :fail |> handle
+        choose_int := fn (m, n) {
+          if m > n do fail()
+          if decide() do m else self(m+1, n)
+        }
 
         pythagorean_triple := fn m, n {
-          { fail } := injected;
-
-          a := chooseInt(m, n);
-          b := chooseInt(a + 1, n + 1);
+          a := choose_int(m, n);
+          b := choose_int(a + 1, n + 1);
           c := sqrt (a^2 + b^2);
-          if floor c != c: fail()
+          if floor c != c do fail()
 
           (a, b, c)
         };
         
         false_branch_first :=
-          decide: fn (callback, x) {
-            fail_handler := fail: fn do continuation false
+          [:decide]: fn (callback, x) {
+            fail_handler := [:fail]: fn do continuation false
             inject fail_handler { continuation true }
           };
         true_branch_first :=
-          decide: fn x, continuation {
-            fail_handler := fail: fn do continuation true
+          [:decide]: fn x, continuation {
+            fail_handler := [:fail]: fn do continuation true
             inject fail_handler { continuation false }
           };
 
@@ -1520,24 +1520,18 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it.todo('logger example', async () => {
+    it('logger example', async () => {
       const input = `
         logger :=
-          log: handler fn (callback, msg) {
-            result, logs := callback()
+          [:log]: handler fn (callback, msg) {
+            result, logs := callback msg
             result, (msg, ...logs)
           },
-          [return_handler]: handler fn x do x, ()
+          [return_handler]: fn x do x, ()
 
-        log := fn msg {
-          { log } := injected
-          log msg
-        }
+        log := handle (:log)
 
-        f := fn {
-          log 789
-          234
-        }
+        f := fn do log 234
 
         inject logger {
           log 123
@@ -1548,7 +1542,7 @@ describe('expressions', () => {
       const result = await evaluate(input);
       expect(result).toStrictEqual([
         [123, 234],
-        [123, 456, 789],
+        [123, 456, 234],
       ]);
     });
   });
