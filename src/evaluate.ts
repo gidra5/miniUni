@@ -810,7 +810,7 @@ async function bindExport(
     );
 
     if (value === null) continue;
-    environmentSet(context.readonly, key, value);
+    environmentAdd(context.readonly, key, value);
     recordSet(exports, key, value);
   }
 
@@ -1601,12 +1601,12 @@ const evaluateStatement = async (
       if (name === 'true') return true;
       if (name === 'false') return false;
       if (name === 'injected') return context.handlers.resolve();
-      inspect({
-        tag: 'evaluateExpr name',
-        name,
-        // env: context.env,
-        readonly: context.readonly,
-      });
+      // inspect({
+      //   tag: 'evaluateExpr name',
+      //   name,
+      //   // env: context.env,
+      //   readonly: context.readonly,
+      // });
       assert(
         environmentHas(context.env, name) ||
           environmentHas(context.readonly, name),
@@ -1707,20 +1707,23 @@ export const evaluateModule = async (
       // });
       assert(matched, 'expected pattern to match');
       await bindExport(envs, record, context);
+      // inspect({
+      //   tag: 'evaluateModule declare',
+      //   envs,
+      //   context,
+      //   record,
+      // });
     } else if (child.type === NodeType.EXPORT) {
-      const exportNode = child.children[0];
-      {
-        const value = await evaluateExpr(exportNode, context);
+      const value = await evaluateExpr(child.children[0], context);
 
-        assert(
-          !recordHas(record, ModuleDefault),
-          SystemError.duplicateDefaultExport(
-            getPosition(exportNode)
-          ).withFileId(context.fileId)
-        );
+      assert(
+        !recordHas(record, ModuleDefault),
+        SystemError.duplicateDefaultExport(
+          getPosition(child.children[0])
+        ).withFileId(context.fileId)
+      );
 
-        recordSet(record, ModuleDefault, value);
-      }
+      recordSet(record, ModuleDefault, value);
     } else {
       await evaluateStatement(child, context);
     }

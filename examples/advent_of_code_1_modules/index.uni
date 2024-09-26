@@ -13,18 +13,18 @@ document := "
 "
 
 lines := {
-  lines := split document "\n"
+  mut lines := split document "\n"
   lines = map lines (replace "\\s+" "")
-  filter lines fn line -> line != ""
+  filter lines fn line do line != ""
 }
 
-numbers := flat_map lines fn line {
+numbers := flat_map lines fn mut line {
   digits := ()
 
   while line != "" {
     if match "\\d" (char_at line 0) {
       digit := number (char_at line 0)
-      if !digits[0] do digits[0] = digit
+      if !(0 in digits) do digits[0] = digit 
       digits[1] = digit
     }
     line = slice line (1,)

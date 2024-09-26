@@ -1,10 +1,7 @@
 import "std/concurrency" as { all }
 import "std/math" as math
 
-slice := fn (list, start, end) {
-  if !start do start = 0
-  if !end and end != 0 do end = length list
-
+slice := fn (mut list, mut start = 0, mut end = (length list)) {
   while start != 0 {
     start--
     end--
