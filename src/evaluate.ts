@@ -34,11 +34,11 @@ import {
 import {
   atom,
   awaitTask,
+  CallSite,
   createChannel,
   createEffect,
   createRecord,
   createTask,
-  EvalEffect,
   EvalFunction,
   EvalRecord,
   EvalValue,
@@ -1286,7 +1286,7 @@ const lazyOperators = {
         context,
         async (cs, v) => {
           const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-          return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+          return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
             if (Array.isArray(_tail) && Array.isArray(v)) {
               return [...v, ..._tail];
             }
@@ -1307,7 +1307,7 @@ const lazyOperators = {
           context,
           async (cs, value) => {
             const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-            return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+            return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
               if (Array.isArray(_tail) && _tail.length === 0)
                 return createRecord([[key, value]]);
               assert(isRecord(_tail), 'expected record');
@@ -1323,7 +1323,7 @@ const lazyOperators = {
           context,
           async (cs, value) => {
             const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-            return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+            return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
               if (Array.isArray(_tail) && _tail.length === 0)
                 return createRecord([[key, value]]);
               assert(isRecord(_tail), 'expected record');
@@ -1336,7 +1336,7 @@ const lazyOperators = {
     }
     return await evaluateExprEffect(head, context, async (cs, v) => {
       const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-      return mapEffect(_tail, cs[0], cs[2], async (cs, _tail) => {
+      return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
         assert(Array.isArray(_tail), 'expected array');
         return [v, ..._tail];
       });
@@ -1392,7 +1392,7 @@ const lazyOperators = {
     for (const fn of fns) {
       const fnValue = await evaluateExpr(fn, context);
       assert(typeof fnValue === 'function', 'expected function');
-      value = await fnValue([getPosition(fn), context.fileId, context], value);
+      value = await fnValue([getPosition(fn), context], value);
     }
     return value;
   },
@@ -1433,12 +1433,12 @@ const evaluateHandlers = async (
   position: Position,
   context: Context
 ): Promise<EvalValue> => {
-  inspect({
-    tag: 'evaluateHandlers',
-    handlers,
-    _value,
-  });
-  const cs: [Position, number, Context] = [position, context.fileId, context];
+  // inspect({
+  //   tag: 'evaluateHandlers',
+  //   handlers,
+  //   _value,
+  // });
+  const cs: CallSite = [position, context];
   if (isEffect(_value)) {
     const { effect, value, continuation } = _value;
     if (recordHas(handlers, effect)) {
@@ -1449,10 +1449,7 @@ const evaluateHandlers = async (
           const value = await continuation(cs, _value);
           return await evaluateHandlers(handlers, value, position, context);
         };
-        return await handler(
-          [position, context.fileId, context],
-          [callback, value]
-        );
+        return await handler([position, context], [callback, value]);
       }
 
       const __value = await continuation(cs, _handler);
@@ -1486,7 +1483,7 @@ const mapEffect = async (
     };
     return createEffect(effect, v, nextCont);
   }
-  return continuation([position, context.fileId, context], value);
+  return continuation([position, context], value);
 };
 
 const evaluateStatementEffect = async (
@@ -1648,10 +1645,9 @@ const evaluateStatement = async (
           : fnAST(tupleAST(rest), _body, { isTopFunction: false });
 
       const _context = forkContext(context);
-      const self: EvalFunction = async (
-        [position, fileId, callerContext],
-        arg
-      ) => {
+      const self: EvalFunction = async (cs, arg) => {
+        const [position, callerContext] = cs;
+        const fileId = callerContext.fileId;
         await eventLoopYield();
         const __context = forkContext(_context);
         const result = await testPattern(pattern, arg, __context);
@@ -1704,11 +1700,8 @@ const evaluateStatement = async (
         ).withFileId(context.fileId)
       );
 
-      const x = await fnValue(
-        [getPosition(ast), context.fileId, context],
-        argValue
-      );
-      inspect({ x });
+      const x = await fnValue([getPosition(ast), context], argValue);
+      // inspect({ x });
       return x;
     }
 
@@ -1915,7 +1908,7 @@ export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
     );
     const fileId = inject(Injectable.FileMap).getFileId(file);
     const value = await main(
-      [{ start: 0, end: 0 }, 0, newContext(fileId, file)],
+      [{ start: 0, end: 0 }, newContext(fileId, file)],
       argv
     );
     return value;

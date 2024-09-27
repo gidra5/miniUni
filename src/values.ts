@@ -1,10 +1,11 @@
 import type { Context } from './evaluate.js';
 import { Position } from './position.js';
-import { assert, inspect, omit, unreachable } from './utils.js';
+import { assert, inspect } from './utils.js';
 import { SystemError } from './error.js';
 
+export type CallSite = [Position, Context];
 export type EvalFunction = (
-  callSite: [Position, number, Context],
+  callSite: CallSite,
   arg: EvalValue
 ) => Promise<EvalValue>;
 type EvalSymbol = symbol;
@@ -53,7 +54,7 @@ export enum ChannelStatus {
 export const fn = (
   n: number,
   f: (
-    callSite: [Position, number, Context],
+    callSite: CallSite,
     ...args: EvalValue[]
   ) => EvalValue | Promise<EvalValue>
 ): EvalFunction => {
@@ -243,7 +244,8 @@ export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
 export const fileHandle = (file: EvalRecord): EvalRecord => {
   return createRecord({
     write: fn(1, async (cs, data) => {
-      const [position, fileId] = cs;
+      const [position, context] = cs;
+      const fileId = context.fileId;
       const writeErrorFactory = SystemError.invalidArgumentType(
         'all',
         { args: [['data', 'string']], returns: 'void' },
@@ -262,7 +264,8 @@ export const createSet = (values: EvalValue[]): EvalRecord => {
   const set = new Set(values);
   return createRecord({
     add: fn(1, (cs, value) => {
-      const [position, fileId] = cs;
+      const [position, context] = cs;
+      const fileId = context.fileId;
       const addErrorFactory = SystemError.invalidArgumentType(
         'add',
         { args: [['value', 'a']], returns: 'void' },

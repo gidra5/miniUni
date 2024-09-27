@@ -67,7 +67,8 @@ export const prelude: Context['env'] = newEnvironment({
     assert(typeof handler === 'function', 'expected function');
     return createHandler(handler);
   },
-  cancel: async ([position, fileId], value) => {
+  cancel: async ([position, context], value) => {
+    const fileId = context.fileId;
     const cancelErrorFactory = SystemError.invalidArgumentType(
       'cancel',
       { args: [['target', 'task _']], returns: 'void' },
@@ -80,7 +81,8 @@ export const prelude: Context['env'] = newEnvironment({
     if (typeof name === 'string') return createChannel(name);
     else return createChannel();
   }),
-  close: fn(1, ([position, fileId], value) => {
+  close: fn(1, ([position, context], value) => {
+    const fileId = context.fileId;
     const closeErrorFactory = SystemError.invalidArgumentType(
       'cancel',
       { args: [['target', 'channel _']], returns: 'void' },
@@ -95,7 +97,8 @@ export const prelude: Context['env'] = newEnvironment({
     if (typeof name === 'string') return Symbol(name);
     else return Symbol();
   }),
-  length: fn(1, ([position, fileId], list) => {
+  length: fn(1, ([position, context], list) => {
+    const fileId = context.fileId;
     const lengthErrorFactory = SystemError.invalidArgumentType(
       'length',
       { args: [['list', 'list _ | string']], returns: 'number' },
@@ -146,7 +149,8 @@ export const preludeHandlers: Context['handlers'] = newHandlers({
 
 export const modules: Dictionary = {
   'std/math': module({
-    floor: fn(1, ([position, fileId], n) => {
+    floor: fn(1, ([position, context], n) => {
+      const fileId = context.fileId;
       const floorErrorFactory = SystemError.invalidArgumentType(
         'floor',
         { args: [['target', 'number']], returns: 'number' },
@@ -155,7 +159,8 @@ export const modules: Dictionary = {
       assert(typeof n === 'number', floorErrorFactory(0).withFileId(fileId));
       return Math.floor(n);
     }),
-    sqrt: fn(1, ([position, fileId], n) => {
+    sqrt: fn(1, ([position, context], n) => {
+      const fileId = context.fileId;
       const sqrtErrorFactory = SystemError.invalidArgumentType(
         'sqrt',
         { args: [['target', 'number']], returns: 'number' },
@@ -166,7 +171,8 @@ export const modules: Dictionary = {
     }),
   }),
   'std/string': module({
-    split: fn(2, ([position, fileId], target, separator) => {
+    split: fn(2, ([position, context], target, separator) => {
+      const fileId = context.fileId;
       const splitErrorFactory = SystemError.invalidArgumentType(
         'split',
         {
@@ -189,7 +195,8 @@ export const modules: Dictionary = {
       );
       return target.split(separator);
     }),
-    replace: fn(3, ([position, fileId], pattern, replacement, target) => {
+    replace: fn(3, ([position, context], pattern, replacement, target) => {
+      const fileId = context.fileId;
       const replaceErrorFactory = SystemError.invalidArgumentType(
         'replace',
         {
@@ -216,7 +223,8 @@ export const modules: Dictionary = {
       );
       return target.replace(new RegExp(pattern, 'g'), replacement);
     }),
-    match: fn(2, ([position, fileId], pattern, target) => {
+    match: fn(2, ([position, context], pattern, target) => {
+      const fileId = context.fileId;
       const matchErrorFactory = SystemError.invalidArgumentType(
         'match',
         {
@@ -238,7 +246,8 @@ export const modules: Dictionary = {
       );
       return new RegExp(pattern).test(target);
     }),
-    char_at: fn(2, ([position, fileId], target, index) => {
+    char_at: fn(2, ([position, context], target, index) => {
+      const fileId = context.fileId;
       const charAtErrorFactory = SystemError.invalidArgumentType(
         'char_at',
         {
@@ -260,7 +269,8 @@ export const modules: Dictionary = {
       );
       return target.charAt(index);
     }),
-    slice: fn(2, ([position, fileId], item, args) => {
+    slice: fn(2, ([position, context], item, args) => {
+      const fileId = context.fileId;
       const sliceErrorFactory = SystemError.invalidArgumentType(
         'slice',
         {
@@ -304,7 +314,8 @@ export const modules: Dictionary = {
     }),
   }),
   'std/iter': module({
-    range: fn(2, ([position, fileId], start, end) => {
+    range: fn(2, ([position, context], start, end) => {
+      const fileId = context.fileId;
       const rangeErrorFactory = SystemError.invalidArgumentType(
         'range',
         {
@@ -329,7 +340,8 @@ export const modules: Dictionary = {
     }),
   }),
   'std/concurrency': module({
-    all: fn(1, async ([position, fileId], list) => {
+    all: fn(1, async ([position, context], list) => {
+      const fileId = context.fileId;
       const allErrorFactory = SystemError.invalidArgumentType(
         'all',
         {
@@ -345,7 +357,8 @@ export const modules: Dictionary = {
       });
       return (await Promise.all(x)).filter((x) => x !== null);
     }),
-    some: fn(1, async ([position, fileId], list) => {
+    some: fn(1, async ([position, context], list) => {
+      const fileId = context.fileId;
       const someErrorFactory = SystemError.invalidArgumentType(
         'some',
         {
@@ -361,7 +374,8 @@ export const modules: Dictionary = {
       });
       return await Promise.race(x);
     }),
-    wait: fn(1, async ([position, fileId], time) => {
+    wait: fn(1, async ([position, context], time) => {
+      const fileId = context.fileId;
       const waitErrorFactory = SystemError.invalidArgumentType(
         'wait',
         {
@@ -377,7 +391,8 @@ export const modules: Dictionary = {
   }),
   'std/io': module({
     open: fn(2, async (cs, _path, callback) => {
-      const [position, fileId, context] = cs;
+      const [position, context] = cs;
+      const fileId = context.fileId;
       const openErrorFactory = SystemError.invalidArgumentType(
         'all',
         {
@@ -460,7 +475,9 @@ export const listMethods = (() => {
   return {
     slice: recordGet(module, 'slice'),
     length: environmentGet(prelude, 'length'),
-    map: fn(2, async ([pos, fileId, context], list, fn) => {
+    map: fn(2, async (cs, list, fn) => {
+      const [pos, context] = cs;
+      const fileId = context.fileId;
       const mapErrorFactory = SystemError.invalidArgumentType(
         'map',
         {
@@ -476,12 +493,14 @@ export const listMethods = (() => {
       assert(typeof fn === 'function', mapErrorFactory(1).withFileId(fileId));
       const mapped: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn([pos, fileId, context], item);
+        const x = await fn(cs, item);
         mapped.push(x);
       }
       return mapped;
     }),
-    filter: fn(2, async ([pos, fileId, context], list, fn) => {
+    filter: fn(2, async (cs, list, fn) => {
+      const [pos, context] = cs;
+      const fileId = context.fileId;
       const filterErrorFactory = SystemError.invalidArgumentType(
         'filter',
         {
@@ -500,7 +519,7 @@ export const listMethods = (() => {
       );
       const filtered: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn([pos, fileId, context], item);
+        const x = await fn(cs, item);
         if (x) filtered.push(item);
       }
       return filtered;

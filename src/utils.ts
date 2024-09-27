@@ -3,6 +3,12 @@ import { SystemError } from './error.js';
 export const identity = <T>(x: T): T => x;
 
 export const inspect = <T>(x: T): T => (console.dir(x, { depth: null }), x);
+export const promisify =
+  <V, A extends any[], T extends (...args: [...A, cb: (v: V) => void]) => void>(
+    fn: T
+  ) =>
+  (...args: A): Promise<V> =>
+    new Promise((resolve) => fn(...args, resolve));
 
 export function assert(
   condition: any,

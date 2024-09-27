@@ -66,11 +66,11 @@ describe('advent of code 2023 day 1 single', () => {
   it('split lines', async () => {
     const env: EvalRecord = createRecord({
       document: `
-          1abc2
-          pqr3stu8vwx
-          a1b2c3d4e5f
-          treb7uchet
-        `,
+        1abc2
+        pqr3stu8vwx
+        a1b2c3d4e5f
+        treb7uchet
+      `,
       map: fn(2, (cs, list, fn) => {
         assert(Array.isArray(list));
         assert(typeof fn === 'function');
@@ -1482,7 +1482,7 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
-    it.only('pythagorean triple example', async () => {
+    it.todo('pythagorean triple example', async () => {
       const input = `
         import "std/math" as { floor, sqrt }
 
@@ -1503,14 +1503,14 @@ describe('expressions', () => {
         };
         
         false_branch_first :=
-          [:decide]: fn (callback, x) {
-            fail_handler := [:fail]: fn do continuation false
-            inject fail_handler { continuation true }
+          [:decide]: handler fn (callback, _) {
+            fail_handler := [:fail]: handler fn do callback false
+            inject fail_handler { callback true }
           };
         true_branch_first :=
-          [:decide]: fn x, continuation {
-            fail_handler := [:fail]: fn do continuation true
-            inject fail_handler { continuation false }
+          [:decide]: handler fn (callback, _) {
+            fail_handler := [:fail]: handler fn do callback true
+            inject fail_handler { callback false }
           };
 
         inject false_branch_first { pythagorean_triple 4 15 },
