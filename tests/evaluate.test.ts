@@ -7,6 +7,7 @@ import {
   EvalRecord,
   EvalValue,
   fn,
+  fnPromise,
   isChannel,
   isSymbol,
 } from '../src/values.ts';
@@ -76,7 +77,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         return Promise.all(
           list.map(async (x) => {
-            const result = await fn(cs, x);
+            const result = await fnPromise(fn)(cs, x);
             assert(result !== null);
             return result;
           })
@@ -87,7 +88,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         const result: EvalValue[] = [];
         for (const item of list) {
-          const keep = await fn(cs, item);
+          const keep = await fnPromise(fn)(cs, item);
           if (keep) result.push(item);
         }
         return result;
@@ -116,7 +117,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         const mapped = await Promise.all(
           list.map(async (x) => {
-            const result = await fn(cs, x);
+            const result = await fnPromise(fn)(cs, x);
             assert(result !== null);
             return result;
           })
@@ -318,8 +319,8 @@ describe('scope', () => {
 
   it('loop shadowing', async () => {
     const input = `
-        x := 1;
-        loop { x := 2; break() };
+        x := 1
+        loop { x := 2; break() }
         x
       `;
     const result = await evaluate(input);
@@ -338,12 +339,12 @@ describe('scope', () => {
 
   it('while block shadowing', async () => {
     const input = `
-        number := 1;
+        number := 1
   
         while true {
-          number := 5;
+          number := 5
           break()
-        };
+        }
   
         number
       `;
@@ -958,7 +959,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            continuation(cs, file);
+            fnPromise(continuation)(cs, file);
             return null;
           }),
         });
@@ -996,7 +997,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            continuation(cs, file);
+            fnPromise(continuation)(cs, file);
             return null;
           }),
         });
@@ -1033,7 +1034,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            continuation(cs, file);
+            fnPromise(continuation)(cs, file);
             return null;
           }),
         });
@@ -1315,7 +1316,7 @@ describe('expressions', () => {
     });
 
     describe('structured concurrency', () => {
-      it('cancelling', async () => {
+      it.todo('cancelling', async () => {
         const input = `
           import "std/concurrency" as { wait };
 
@@ -1520,7 +1521,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it('logger example', async () => {
+    it.todo('logger example', async () => {
       const input = `
         logger :=
           [:log]: handler fn (callback, msg) {

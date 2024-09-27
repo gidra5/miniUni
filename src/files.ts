@@ -7,6 +7,7 @@ import {
 import { SystemError } from './error.js';
 import { assert, inspect, unreachable } from './utils.js';
 import {
+  atom,
   awaitTask,
   cancelTask,
   closeChannel,
@@ -15,11 +16,11 @@ import {
   createHandler,
   createRecord,
   createSet,
-  EvalFunction,
   EvalRecord,
   EvalValue,
   fileHandle,
   fn,
+  fnPromise,
   isChannel,
   isRecord,
   isTask,
@@ -61,7 +62,7 @@ export const ReturnHandler = Symbol('return_handler');
 export const prelude: Context['env'] = newEnvironment({
   return_handler: ReturnHandler,
   handle: fn(2, (callSite, effect, value) => {
-    return createEffect(effect, value, async (cs, v) => v);
+    return createEffect(effect, value);
   }),
   handler: async (_, handler) => {
     assert(typeof handler === 'function', 'expected function');
@@ -121,7 +122,13 @@ export const prelude: Context['env'] = newEnvironment({
     return value;
   }),
   return: fn(1, (_, value) => {
-    throw { return: value };
+    return createEffect(atom('return'), value);
+  }),
+  break: fn(1, (_, value) => {
+    return createEffect(atom('break'), value);
+  }),
+  continue: fn(1, (_, value) => {
+    return createEffect(atom('continue'), value);
   }),
   set: fn(1, (_, value) => {
     if (!Array.isArray(value)) value = [value];
@@ -140,7 +147,7 @@ export const preludeHandlers: Context['handlers'] = newHandlers({
       });
 
       assert(typeof callback === 'function');
-      callback(cs, file);
+      fnPromise(callback)(cs, file);
       return null;
     }),
   }),
@@ -420,10 +427,10 @@ export const modules: Dictionary = {
       const file = await new Promise<EvalValue>(async (resolve) => {
         const open = recordGet(ioHandler, 'open');
         assert(typeof open === 'function', 'expected open to be a function');
-        const curried = await open(cs, resolved);
+        const curried = await fnPromise(open)(cs, resolved);
 
         assert(typeof curried === 'function', 'expected open to take callback');
-        curried(
+        fnPromise(curried)(
           cs,
           fn(1, (_cs, file) => {
             resolve(file);
@@ -434,8 +441,8 @@ export const modules: Dictionary = {
       assert(isRecord(file), 'expected file handle to be record');
       const close = recordGet(file, 'close');
       assert(typeof close === 'function', 'expected close to be a function');
-      const result = await callback(cs, fileHandle(file));
-      await close(cs, []);
+      const result = await fnPromise(callback)(cs, fileHandle(file));
+      await fnPromise(close)(cs, []);
 
       return result;
     }),
@@ -453,18 +460,18 @@ export const stringMethods = (() => {
     replace: fn(3, async (callSite, target, pattern, replacement) => {
       const method = recordGet(module, 'replace');
       assert(typeof method === 'function', 'expected method');
-      const x1 = await method(callSite, pattern);
+      const x1 = await fnPromise(method)(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
-      const x2 = await x1(callSite, replacement);
+      const x2 = await fnPromise(x1)(callSite, replacement);
       assert(typeof x2 === 'function', 'expected method');
-      return await x2(callSite, target);
+      return await fnPromise(x2)(callSite, target);
     }),
     match: fn(2, async (callSite, target, pattern) => {
       const method = recordGet(module, 'match');
       assert(typeof method === 'function', 'expected method');
-      const x1 = await method(callSite, pattern);
+      const x1 = await fnPromise(method)(callSite, pattern);
       assert(typeof x1 === 'function', 'expected method');
-      return await x1(callSite, target);
+      return await fnPromise(x1)(callSite, target);
     }),
   };
 })();
@@ -493,7 +500,8 @@ export const listMethods = (() => {
       assert(typeof fn === 'function', mapErrorFactory(1).withFileId(fileId));
       const mapped: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(cs, item);
+        const x = await fnPromise(fn)(cs, item);
+
         mapped.push(x);
       }
       return mapped;
@@ -519,7 +527,7 @@ export const listMethods = (() => {
       );
       const filtered: EvalValue[] = [];
       for (const item of list) {
-        const x = await fn(cs, item);
+        const x = await fnPromise(fn)(cs, item);
         if (x) filtered.push(item);
       }
       return filtered;

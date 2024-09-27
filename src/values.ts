@@ -1,10 +1,15 @@
 import type { Context } from './evaluate/index.js';
 import { Position } from './position.js';
-import { assert, inspect } from './utils.js';
+import { assert, inspect, promisify } from './utils.js';
 import { SystemError } from './error.js';
 
 export type CallSite = [Position, Context];
 export type EvalFunction = (
+  callSite: CallSite,
+  arg: EvalValue,
+  continuation: (value: EvalValue) => void
+) => void;
+export type EvalFunctionPromise = (
   callSite: CallSite,
   arg: EvalValue
 ) => Promise<EvalValue>;
@@ -51,6 +56,14 @@ export enum ChannelStatus {
   Closed = 'closed',
 }
 
+export const fnPromise = (fn: EvalFunction): EvalFunctionPromise =>
+  promisify(fn);
+
+export const fnCont =
+  (fn: EvalFunctionPromise): EvalFunction =>
+  (callSite, arg, continuation) =>
+    fn(callSite, arg).then(continuation);
+
 export const fn = (
   n: number,
   f: (
@@ -58,10 +71,10 @@ export const fn = (
     ...args: EvalValue[]
   ) => EvalValue | Promise<EvalValue>
 ): EvalFunction => {
-  return async (callSite, arg) => {
+  return fnCont(async (callSite, arg) => {
     if (n === 1) return await f(callSite, arg);
     return fn(n - 1, async (callSite, ...args) => f(callSite, arg, ...args));
-  };
+  });
 };
 
 const atoms = new Map<string, symbol>();
@@ -102,9 +115,7 @@ const channels: Record<symbol, Channel> = {};
 
 const channelStatus = (c: symbol): ChannelStatus => {
   const channel = channels[c];
-  if (!channel) {
-    return ChannelStatus.Closed;
-  }
+  if (!channel) return ChannelStatus.Closed;
 
   while (channel.onReceive.length > 0 && channel.queue.length > 0) {
     const receiver = channel.onReceive.shift()!;
@@ -116,18 +127,9 @@ const channelStatus = (c: symbol): ChannelStatus => {
     }
   }
 
-  if (channel.queue.length > 0) {
-    return ChannelStatus.Pending;
-  }
-
-  if (channel.onReceive.length > 0) {
-    return ChannelStatus.Queued;
-  }
-
-  if (channel.closed) {
-    delete channels[c];
-    return ChannelStatus.Closed;
-  }
+  if (channel.queue.length > 0) return ChannelStatus.Pending;
+  if (channel.onReceive.length > 0) return ChannelStatus.Queued;
+  if (channel.closed) return ChannelStatus.Closed;
 
   return ChannelStatus.Empty;
 };
@@ -143,10 +145,9 @@ export const createChannel = (name?: string): EvalChannel => {
 };
 
 export const closeChannel = (c: symbol) => {
-  const channel = channels[c];
-  if (channel.closed) throw 'channel closed';
-
-  channel.closed = true;
+  const status = channelStatus(c);
+  if (status === ChannelStatus.Closed) throw 'channel closed';
+  channels[c].closed = true;
 };
 
 export const getChannel = (c: symbol) => {
@@ -254,7 +255,7 @@ export const fileHandle = (file: EvalRecord): EvalRecord => {
       assert(typeof data === 'string', writeErrorFactory(0).withFileId(fileId));
       const write = recordGet(file, 'write');
       assert(typeof write === 'function', 'expected write to be a function');
-      await write(cs, data);
+      await fnPromise(write)(cs, data);
       return null;
     }),
   });
@@ -328,7 +329,7 @@ export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
 export const createEffect = (
   effect: EvalValue,
   value: EvalValue,
-  continuation: EvalFunction
+  continuation: EvalFunction = async (_, v) => v
 ): EvalEffect => ({ effect, value, continuation });
 
 export const createHandler = (handler: EvalFunction): EvalHandler => ({

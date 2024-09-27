@@ -38,12 +38,16 @@ import {
   CallSite,
   createChannel,
   createEffect,
+  createHandler,
   createRecord,
   createTask,
   EvalFunction,
+  EvalFunctionPromise,
   EvalRecord,
   EvalValue,
   fn,
+  fnCont,
+  fnPromise,
   getChannel,
   isChannel,
   isEffect,
@@ -626,39 +630,43 @@ const lazyOperators = {
         getPosition(expr)
       )
     );
-    const blockBreak = fn(1, async (cs, value) => {
-      throw { break: value };
+    const breakHandler: EvalFunction = fn(1, async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return ['break', value];
     });
-    const blockContinue = fn(1, async (cs, value) => {
-      await eventLoopYield();
-      throw { continue: value };
+    const continueHandler: EvalFunction = fn(1, async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return ['continue', value];
     });
-
-    const forked = forkContext(context);
-    environmentAdd(forked.readonly, 'break', blockBreak);
-    environmentAdd(forked.readonly, 'continue', blockContinue);
+    const handlers = createRecord({
+      [atom('continue')]: createHandler(continueHandler),
+      [atom('break')]: createHandler(breakHandler),
+      [ReturnHandler]: (cs, v, cont) => cont(['continue', v]),
+    });
 
     const mapped: EvalValue[] = [];
     for (const item of list) {
-      try {
-        const result = await testPattern(pattern, item, forked);
-        assert(result.matched, 'expected pattern to match');
-        const bound = bindContext(result.envs, forked);
-        const value = await evaluateStatement(body, bound);
-        if (value === null) continue;
-        mapped.push(value);
-      } catch (e) {
-        if (typeof e === 'object' && e !== null && 'break' in e) {
-          const value = e.break as EvalValue;
-          if (value !== null) mapped.push(value);
-          break;
-        }
-        if (typeof e === 'object' && e !== null && 'continue' in e) {
-          const value = e.continue as EvalValue;
-          if (value !== null) mapped.push(value);
-          continue;
-        }
-        throw e;
+      const result = await testPattern(pattern, item, context);
+      assert(result.matched, 'expected pattern to match');
+      const bound = bindContext(result.envs, context);
+      const value = await evaluateHandlers(
+        handlers,
+        await evaluateStatement(body, bound),
+        getPosition(expr),
+        context
+      );
+      assert(Array.isArray(value), 'expected value to be an array');
+      const [status, _value] = value;
+
+      if (status === 'break') {
+        if (_value !== null) mapped.push(_value);
+        break;
+      }
+      if (status === 'continue') {
+        if (_value !== null) mapped.push(_value);
+        continue;
       }
     }
 
@@ -679,29 +687,26 @@ const lazyOperators = {
   },
 
   [NodeType.BLOCK]: async ([expr]: Tree[], context: Context) => {
-    const blockBreak = fn(1, async (cs, value) => {
-      throw { break: value };
+    const breakHandler: EvalFunction = fn(1, async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return value;
     });
-    const blockContinue = fn(1, async (cs, value) => {
+    const continueHandler: EvalFunction = fn(1, async (cs, _v) => {
       await eventLoopYield();
-      throw { continue: value };
+      return await lazyOperators[NodeType.BLOCK]([expr], context);
+    });
+    const handlers = createRecord({
+      [atom('continue')]: createHandler(continueHandler),
+      [atom('break')]: createHandler(breakHandler),
     });
 
-    const forked = forkContext(context);
-    environmentAdd(forked.readonly, 'break', blockBreak);
-    environmentAdd(forked.readonly, 'continue', blockContinue);
-    try {
-      return await evaluateBlock(expr, forked);
-    } catch (e) {
-      if (typeof e !== 'object' || e === null) throw e;
-      if ('label' in e) throw e;
-      if ('break' in e) {
-        const value = e.break as EvalValue;
-        return value;
-      } else if ('continue' in e) {
-        return await lazyOperators[NodeType.BLOCK]([expr], context);
-      } else throw e;
-    }
+    return await evaluateHandlers(
+      handlers,
+      await evaluateBlock(expr, context),
+      getPosition(expr),
+      context
+    );
   },
   [NodeType.SEQUENCE]: async ([expr, ...rest]: Tree[], context: Context) => {
     if (rest.length === 0) return await evaluateStatement(expr, context);
@@ -899,7 +904,7 @@ const lazyOperators = {
     for (const fn of fns) {
       const fnValue = await evaluateExpr(fn, context);
       assert(typeof fnValue === 'function', 'expected function');
-      value = await fnValue([getPosition(fn), context], value);
+      value = await fnPromise(fnValue)([getPosition(fn), context], value);
     }
     return value;
   },
@@ -953,17 +958,17 @@ const evaluateHandlers = async (
       if (isHandler(_handler)) {
         const { handler } = _handler;
         const callback: EvalFunction = async (cs, _value) => {
-          const value = await continuation(cs, _value);
+          const value = await fnPromise(continuation)(cs, _value);
           return await evaluateHandlers(handlers, value, position, context);
         };
-        return await handler([position, context], [callback, value]);
+        return await fnPromise(handler)([position, context], [callback, value]);
       }
 
-      const __value = await continuation(cs, _handler);
+      const __value = await fnPromise(continuation)(cs, _handler);
       return await evaluateHandlers(handlers, __value, position, context);
     }
     return createEffect(effect, value, async (cs, _value) => {
-      const value = await continuation(cs, _value);
+      const value = await fnPromise(continuation)(cs, _value);
       return await evaluateHandlers(handlers, value, position, context);
     });
   }
@@ -973,7 +978,7 @@ const evaluateHandlers = async (
     typeof returnHandler === 'function',
     'expected return handler to be a function'
   );
-  return returnHandler(cs, _value);
+  return fnPromise(returnHandler)(cs, _value);
 };
 
 const mapEffect = async (
@@ -981,9 +986,9 @@ const mapEffect = async (
   map: (v: EvalValue) => Promise<EvalValue>
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
-    const { effect, value: v, continuation: c } = value;
+    const { effect, value: v, continuation } = value;
     const nextCont: EvalFunction = async (cs, v) => {
-      return await c(cs, v).then(map);
+      return await fnPromise(continuation)(cs, v).then(map);
     };
     return createEffect(effect, v, nextCont);
   }
@@ -994,17 +999,13 @@ const evaluateStatementEffect = async (
   ast: Tree,
   context: Context,
   map: (v: EvalValue) => Promise<EvalValue>
-): Promise<EvalValue> => {
-  return await mapEffect(await evaluateStatement(ast, context), map);
-};
+) => evaluateStatement(ast, context).then((v) => mapEffect(v, map));
 
-const evaluateExprEffect = async (
+const evaluateExprEffect = (
   ast: Tree,
   context: Context,
   map: (v: EvalValue) => Promise<EvalValue>
-): Promise<EvalValue> => {
-  return await mapEffect(await evaluateExpr(ast, context), map);
-};
+) => evaluateExpr(ast, context).then((v) => mapEffect(v, map));
 
 const evaluateStatement = async (
   ast: Tree,
@@ -1044,14 +1045,28 @@ const evaluateStatement = async (
 
     case NodeType.CODE_LABEL: {
       const expr = ast.children[0];
+      const label = Symbol(ast.data.name);
+      const labelHandler: EvalFunction = fn(1, async (cs, v) => {
+        assert(Array.isArray(v), 'expected v to be an array');
+        const [_callback, value] = v;
+        assert(Array.isArray(value), 'expected value to be an array');
+        const [status, _value] = value;
+        if (status === 'break') return _value;
+        if (status === 'continue') {
+          return await evaluateStatement(ast, context);
+        }
+        return null;
+      });
+      const handlers = createRecord({
+        [label]: createHandler(labelHandler),
+      });
       const labelBreak = fn(1, async (cs, value) => {
-        throw { break: value, label: ast.data.name };
+        return createEffect(label, ['break', value]);
       });
       const labelContinue = fn(1, async (cs, value) => {
         await eventLoopYield();
-        throw { continue: value, label: ast.data.name };
+        return createEffect(label, ['continue', value]);
       });
-
       const forked = forkContext(context);
       environmentAdd(
         forked.readonly,
@@ -1061,18 +1076,13 @@ const evaluateStatement = async (
           continue: labelContinue,
         })
       );
-      try {
-        return await evaluateStatement(expr, forked);
-      } catch (e) {
-        if (typeof e !== 'object' || e === null) throw e;
-        if (!('label' in e && e.label === ast.data.name)) throw e;
-        if ('break' in e) {
-          const value = e.break as EvalValue;
-          return value;
-        } else if ('continue' in e) {
-          return await evaluateStatement(ast, context);
-        } else throw e;
-      }
+
+      return await evaluateHandlers(
+        handlers,
+        await evaluateStatement(expr, forked),
+        getPosition(expr),
+        context
+      );
     }
 
     case NodeType.RECEIVE: {
@@ -1139,7 +1149,7 @@ const evaluateStatement = async (
           : fnAST(tupleAST(rest), _body, { isTopFunction: false });
 
       const _context = forkContext(context);
-      const self: EvalFunction = async (cs, arg) => {
+      const self: EvalFunction = fnCont(async (cs, arg) => {
         const [position, callerContext] = cs;
         const fileId = callerContext.fileId;
         await eventLoopYield();
@@ -1169,14 +1179,19 @@ const evaluateStatement = async (
         //   callerContext,
         // });
 
-        try {
-          return await evaluateStatement(body, bound);
-        } catch (e) {
-          if (typeof e === 'object' && e !== null && 'return' in e) {
-            return e.return as EvalValue;
-          } else throw e;
-        }
-      };
+        const returnHandler: EvalFunction = fn(1, async (cs, v) => {
+          assert(Array.isArray(v), 'expected value to be an array');
+          const [_callback, value] = v;
+          return value;
+        });
+
+        return await evaluateHandlers(
+          createRecord({ [atom('return')]: createHandler(returnHandler) }),
+          await evaluateStatement(body, bound),
+          getPosition(body),
+          context
+        );
+      });
       return self;
     }
     case NodeType.APPLICATION: {
@@ -1193,7 +1208,7 @@ const evaluateStatement = async (
         ).withFileId(context.fileId)
       );
 
-      const x = await fnValue([getPosition(ast), context], argValue);
+      const x = await fnPromise(fnValue)([getPosition(ast), context], argValue);
       // inspect({ x });
       return x;
     }
@@ -1400,7 +1415,7 @@ export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
       'default export from runnable module must be a function'
     );
     const fileId = inject(Injectable.FileMap).getFileId(file);
-    const value = await main(
+    const value = await fnPromise(main)(
       [{ start: 0, end: 0 }, newContext(fileId, file)],
       argv
     );
