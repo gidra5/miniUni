@@ -1,7 +1,7 @@
 import { beforeEach, expect, it } from 'vitest';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { evaluateEntryFile } from '../src/evaluate.ts';
+import { evaluateEntryFile } from '../src/evaluate/index.ts';
 
 const examples = [
   {

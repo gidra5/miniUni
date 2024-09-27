@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Context, evaluateScript, newContext } from '../src/evaluate.ts';
+import { Context, evaluateScript, newContext } from '../src/evaluate/index.ts';
 import { assert, inspect, isEqual } from '../src/utils.ts';
 import {
   atom,

@@ -3,7 +3,7 @@ import {
   evaluateModuleString,
   evaluateScriptString,
   newContext,
-} from './evaluate.js';
+} from './evaluate/index.js';
 import { SystemError } from './error.js';
 import { assert, inspect, unreachable } from './utils.js';
 import {

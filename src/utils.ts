@@ -1,4 +1,5 @@
 import { SystemError } from './error.js';
+import { setTimeout } from 'node:timers/promises';
 
 export const identity = <T>(x: T): T => x;
 
@@ -9,6 +10,13 @@ export const promisify =
   ) =>
   (...args: A): Promise<V> =>
     new Promise((resolve) => fn(...args, resolve));
+
+let eventLoopYieldCounter = 0;
+const eventLoopYieldMax = 1000;
+export const eventLoopYield = async () => {
+  eventLoopYieldCounter = (eventLoopYieldCounter + 1) % eventLoopYieldMax;
+  if (eventLoopYieldCounter === 0) await setTimeout(0);
+};
 
 export function assert(
   condition: any,
