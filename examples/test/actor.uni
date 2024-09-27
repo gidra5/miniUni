@@ -1,0 +1,24 @@
+counter := 0
+
+message_box := channel "message_box"
+
+fork loop {
+  message_box <- :done, switch <- message_box {
+    :increment, _ -> counter++,
+    :decrement, _ -> counter--,
+    :reset, _ -> counter = 0,
+    :read, _ -> counter,
+  }
+}
+
+send := fn msg, arg {
+  message_box <- msg, arg
+  <- message_box
+}
+
+(
+  [:increment]: async (:increment |> send),
+  [:decrement]: async (:decrement |> send),
+  [:reset]: async (:reset |> send),
+  [:read]: async (:read |> send),
+)

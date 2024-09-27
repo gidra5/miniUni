@@ -1,0 +1,11 @@
+import "./actor.uni" as actor
+
+counter := await actor.read()
+
+actor.increment()
+actor.increment()
+actor.increment()
+actor.increment()
+actor.increment()
+
+counter, await actor.read()
