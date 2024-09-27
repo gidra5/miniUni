@@ -792,22 +792,18 @@ const lazyOperators = {
     if (head.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     if (head.type === NodeType.PLACEHOLDER) return [];
     if (head.type === NodeType.SPREAD) {
-      return await evaluateExprEffect(
-        head.children[0],
-        context,
-        async (cs, v) => {
-          const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-          return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
-            if (Array.isArray(_tail) && Array.isArray(v)) {
-              return [...v, ..._tail];
-            }
-            if (isRecord(_tail) && isRecord(v)) {
-              return recordMerge(v, _tail);
-            }
-            unreachable('inconsistent spread types');
-          });
-        }
-      );
+      return await evaluateExprEffect(head.children[0], context, async (v) => {
+        const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
+        return mapEffect(_tail, async (_tail) => {
+          if (Array.isArray(_tail) && Array.isArray(v)) {
+            return [...v, ..._tail];
+          }
+          if (isRecord(_tail) && isRecord(v)) {
+            return recordMerge(v, _tail);
+          }
+          unreachable('inconsistent spread types');
+        });
+      });
     }
     if (head.type === NodeType.LABEL) {
       const _key = head.children[0];
@@ -816,9 +812,9 @@ const lazyOperators = {
         return await evaluateExprEffect(
           head.children[1],
           context,
-          async (cs, value) => {
+          async (value) => {
             const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-            return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
+            return mapEffect(_tail, async (_tail) => {
               if (Array.isArray(_tail) && _tail.length === 0)
                 return createRecord([[key, value]]);
               assert(isRecord(_tail), 'expected record');
@@ -828,13 +824,13 @@ const lazyOperators = {
           }
         );
       }
-      return await evaluateExprEffect(_key, context, async (cs, key) => {
+      return await evaluateExprEffect(_key, context, async (key) => {
         return await evaluateExprEffect(
           head.children[1],
           context,
-          async (cs, value) => {
+          async (value) => {
             const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-            return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
+            return mapEffect(_tail, async (_tail) => {
               if (Array.isArray(_tail) && _tail.length === 0)
                 return createRecord([[key, value]]);
               assert(isRecord(_tail), 'expected record');
@@ -845,9 +841,9 @@ const lazyOperators = {
         );
       });
     }
-    return await evaluateExprEffect(head, context, async (cs, v) => {
+    return await evaluateExprEffect(head, context, async (v) => {
       const _tail = await lazyOperators[NodeType.TUPLE](tail, context);
-      return mapEffect(_tail, cs[0], cs[1], async (cs, _tail) => {
+      return mapEffect(_tail, async (_tail) => {
         assert(Array.isArray(_tail), 'expected array');
         return [v, ..._tail];
       });
@@ -982,45 +978,32 @@ const evaluateHandlers = async (
 
 const mapEffect = async (
   value: EvalValue,
-  position: Position,
-  context: Context,
-  continuation: EvalFunction
+  map: (v: EvalValue) => Promise<EvalValue>
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     const { effect, value: v, continuation: c } = value;
     const nextCont: EvalFunction = async (cs, v) => {
-      v = await c(cs, v);
-      return await continuation(cs, v);
+      return await c(cs, v).then(map);
     };
     return createEffect(effect, v, nextCont);
   }
-  return continuation([position, context], value);
+  return map(value);
 };
 
 const evaluateStatementEffect = async (
   ast: Tree,
   context: Context,
-  continuation: EvalFunction
+  map: (v: EvalValue) => Promise<EvalValue>
 ): Promise<EvalValue> => {
-  return await mapEffect(
-    await evaluateStatement(ast, context),
-    getPosition(ast),
-    context,
-    continuation
-  );
+  return await mapEffect(await evaluateStatement(ast, context), map);
 };
 
 const evaluateExprEffect = async (
   ast: Tree,
   context: Context,
-  continuation: EvalFunction
+  map: (v: EvalValue) => Promise<EvalValue>
 ): Promise<EvalValue> => {
-  return await mapEffect(
-    await evaluateExpr(ast, context),
-    getPosition(ast),
-    context,
-    continuation
-  );
+  return await mapEffect(await evaluateExpr(ast, context), map);
 };
 
 const evaluateStatement = async (
