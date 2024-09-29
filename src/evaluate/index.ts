@@ -33,6 +33,8 @@ import {
   getClosestName,
   inspect,
   isEqual,
+  promisify,
+  unpromisify,
   unreachable,
 } from '../utils.js';
 import {
@@ -471,7 +473,7 @@ const operators = {
 };
 
 const lazyOperators = {
-  [NodeType.IMPORT]: async (ast: Tree, context: Context) => {
+  [NodeType.IMPORT]: unpromisify(async (ast: Tree, context: Context) => {
     const name = ast.data.name;
     const module = await getModule({ name, from: context.file });
     const value =
@@ -488,8 +490,8 @@ const lazyOperators = {
     }
 
     return value;
-  },
-  [NodeType.FORK]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.FORK]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr] = ast.children;
     return createTask(
       async () => await evaluateBlock(expr, context),
@@ -499,40 +501,42 @@ const lazyOperators = {
         else showNode(expr, context, e.message);
       }
     );
-  },
-  [NodeType.PARALLEL]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.PARALLEL]: unpromisify(async (ast: Tree, context: Context) => {
     const tasks = ast.children.map((arg) =>
       evaluateStatement(node(NodeType.FORK, { children: [arg] }), context)
     );
     return await Promise.all(tasks);
-  },
-  [NodeType.AND]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.AND]: unpromisify(async (ast: Tree, context: Context) => {
     const [head, ...rest] = ast.children;
     const restAst =
       rest.length > 1 ? node(NodeType.AND, { children: rest }) : rest[0];
     const _node = ifElse(head, restAst, nameAST('false', getPosition(head)));
     return await evaluateStatement(_node, context);
-  },
-  [NodeType.OR]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.OR]: unpromisify(async (ast: Tree, context: Context) => {
     const [head, ...rest] = ast.children;
     const restAst =
       rest.length > 1 ? node(NodeType.OR, { children: rest }) : rest[0];
     const _node = ifElse(head, nameAST('true', getPosition(head)), restAst);
     return await evaluateStatement(_node, context);
-  },
+  }),
 
-  [NodeType.PARENS]: async (ast: Tree, context: Context) => {
+  [NodeType.PARENS]: unpromisify(async (ast: Tree, context: Context) => {
     const [arg] = ast.children;
     if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     return await evaluateStatement(arg, context);
-  },
-  [NodeType.SQUARE_BRACKETS]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-    return await evaluateStatement(arg, context);
-  },
+  }),
+  [NodeType.SQUARE_BRACKETS]: unpromisify(
+    async (ast: Tree, context: Context) => {
+      const [arg] = ast.children;
+      if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
+      return await evaluateStatement(arg, context);
+    }
+  ),
 
-  [NodeType.INJECT]: async (ast: Tree, context: Context) => {
+  [NodeType.INJECT]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     const value = await evaluateExpr(expr, context);
     assert(isRecord(value), 'expected record');
@@ -541,25 +545,25 @@ const lazyOperators = {
     const result = await evaluateBlock(body, { ...context, handlers });
 
     return await evaluateHandlers(value, result, getPosition(body), context);
-  },
-  [NodeType.WITHOUT]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.WITHOUT]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
 
     const handlers = withoutHandlers(context.handlers, value);
     return await evaluateBlock(body, { ...context, handlers });
-  },
-  [NodeType.MASK]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.MASK]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
     if (!Array.isArray(value)) value = [value];
 
     const handlers = maskHandlers(context.handlers, value);
     return await evaluateBlock(body, { ...context, handlers });
-  },
+  }),
 
-  [NodeType.IS]: async (ast: Tree, context: Context) => {
+  [NodeType.IS]: unpromisify(async (ast: Tree, context: Context) => {
     const [value, pattern] = ast.children;
     const v = await evaluateStatement(value, context);
     const result = await testPattern(pattern, v, context);
@@ -568,8 +572,8 @@ const lazyOperators = {
     //   result,
     // });
     return result.matched;
-  },
-  [NodeType.MATCH]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.MATCH]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, ...branches] = ast.children;
     const value = await evaluateExpr(expr, context);
 
@@ -584,14 +588,14 @@ const lazyOperators = {
     }
 
     return null;
-  },
-  [NodeType.IF]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.IF]: unpromisify(async (ast: Tree, context: Context) => {
     const [condition, branch] = ast.children;
     const falseBranch = placeholder(getPosition(branch));
     const _node = ifElse(condition, branch, falseBranch);
     return await evaluateStatement(_node, context);
-  },
-  [NodeType.IF_ELSE]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.IF_ELSE]: unpromisify(async (ast: Tree, context: Context) => {
     const [condition, trueBranch, falseBranch] = ast.children;
     // inspect({
     //   tag: 'evaluateExpr if else 1',
@@ -631,8 +635,8 @@ const lazyOperators = {
     // });
     if (result) return await evaluateBlock(trueBranch, context);
     else return await evaluateBlock(falseBranch, context);
-  },
-  [NodeType.WHILE]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.WHILE]: unpromisify(async (ast: Tree, context: Context) => {
     const [condition, body] = ast.children;
     const _break = application(
       nameAST('break', getPosition(condition)),
@@ -640,8 +644,8 @@ const lazyOperators = {
     );
     const _node = loop(ifElse(condition, body, _break));
     return await evaluateStatement(_node, context);
-  },
-  [NodeType.FOR]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.FOR]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr, body] = ast.children;
     const list = await evaluateExpr(expr, context);
 
@@ -694,8 +698,8 @@ const lazyOperators = {
     }
 
     return mapped;
-  },
-  [NodeType.LOOP]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.LOOP]: unpromisify(async (ast: Tree, context: Context) => {
     let [body] = ast.children;
     if (body.type === NodeType.BLOCK) {
       body = body.children[0];
@@ -706,9 +710,9 @@ const lazyOperators = {
     );
     const _block = block(sequence([body, _continue]));
     return await evaluateStatement(_block, context);
-  },
+  }),
 
-  [NodeType.BLOCK]: async (ast: Tree, context: Context) => {
+  [NodeType.BLOCK]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr] = ast.children;
     const breakHandler: EvalFunction = fn(1, async (cs, v) => {
       assert(Array.isArray(v), 'expected value to be an array');
@@ -731,8 +735,8 @@ const lazyOperators = {
       getPosition(expr),
       context
     );
-  },
-  [NodeType.SEQUENCE]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.SEQUENCE]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, ...rest] = ast.children;
     if (rest.length === 0) return await evaluateStatement(expr, context);
     const x = await evaluateStatement(expr, context);
@@ -740,9 +744,9 @@ const lazyOperators = {
       x,
       async () => await evaluateStatement(sequence(rest), context)
     );
-  },
+  }),
 
-  [NodeType.INCREMENT]: async (ast: Tree, context: Context) => {
+  [NodeType.INCREMENT]: unpromisify(async (ast: Tree, context: Context) => {
     const [arg] = ast.children;
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
@@ -751,8 +755,8 @@ const lazyOperators = {
     assert(matched, 'expected pattern to match');
     assign(envs, context, getPosition(arg));
     return value + 1;
-  },
-  [NodeType.DECREMENT]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.DECREMENT]: unpromisify(async (ast: Tree, context: Context) => {
     const [arg] = ast.children;
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
@@ -761,29 +765,33 @@ const lazyOperators = {
     assert(matched, 'expected pattern to match');
     assign(envs, context, getPosition(arg));
     return value - 1;
-  },
-  [NodeType.POST_DECREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    assert(typeof value === 'number', 'expected number');
-    const { matched, envs } = await testPattern(arg, value - 1, context);
-    assert(matched, 'expected pattern to match');
-    assign(envs, context, getPosition(arg));
-    return value;
-  },
-  [NodeType.POST_INCREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    assert(typeof value === 'number', 'expected number');
-    const { matched, envs } = await testPattern(arg, value + 1, context);
-    assert(matched, 'expected pattern to match');
-    assign(envs, context, getPosition(arg));
-    return value;
-  },
+  }),
+  [NodeType.POST_DECREMENT]: unpromisify(
+    async (ast: Tree, context: Context) => {
+      const [arg] = ast.children;
+      assert(arg.type === NodeType.NAME, 'expected name');
+      const value = await evaluateExpr(arg, context);
+      assert(typeof value === 'number', 'expected number');
+      const { matched, envs } = await testPattern(arg, value - 1, context);
+      assert(matched, 'expected pattern to match');
+      assign(envs, context, getPosition(arg));
+      return value;
+    }
+  ),
+  [NodeType.POST_INCREMENT]: unpromisify(
+    async (ast: Tree, context: Context) => {
+      const [arg] = ast.children;
+      assert(arg.type === NodeType.NAME, 'expected name');
+      const value = await evaluateExpr(arg, context);
+      assert(typeof value === 'number', 'expected number');
+      const { matched, envs } = await testPattern(arg, value + 1, context);
+      assert(matched, 'expected pattern to match');
+      assign(envs, context, getPosition(arg));
+      return value;
+    }
+  ),
 
-  [NodeType.DECLARE]: async (ast: Tree, context: Context) => {
+  [NodeType.DECLARE]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateStatement(expr, context);
     // inspect({
@@ -795,16 +803,16 @@ const lazyOperators = {
     assert(result.matched, 'expected pattern to match');
     bind(result.envs, context);
     return value;
-  },
-  [NodeType.ASSIGN]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateStatement(expr, context);
     const { matched, envs } = await testPattern(pattern, value, context);
     assert(matched, 'expected pattern to match');
     assign(envs, context, getPosition(pattern));
     return value;
-  },
-  [NodeType.INC_ASSIGN]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.INC_ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateExpr(expr, context);
     assert(typeof value === 'number' || Array.isArray(value));
@@ -812,12 +820,12 @@ const lazyOperators = {
     assert(matched, 'expected pattern to match');
     incAssign(envs, context, getPosition(pattern));
     return value;
-  },
+  }),
 
-  [NodeType.LABEL]: async (ast: Tree, context: Context) => {
+  [NodeType.LABEL]: unpromisify(async (ast: Tree, context: Context) => {
     return await evaluateStatement(tuple([ast]), context);
-  },
-  [NodeType.TUPLE]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.TUPLE]: unpromisify(async (ast: Tree, context: Context) => {
     const children = ast.children.slice();
     if (children.length === 0) return [];
     const head = children.pop()!;
@@ -832,8 +840,8 @@ const lazyOperators = {
       tupleOperators[head.type as keyof typeof tupleOperators] ??
       tupleOperators[NodeType.TUPLE];
     return await op(head, _tail, context);
-  },
-  [NodeType.INDEX]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.INDEX]: unpromisify(async (ast: Tree, context: Context) => {
     const [_target, _index] = ast.children;
     const target = await evaluateExpr(_target, context);
     const index = await evaluateExpr(_index, context);
@@ -877,9 +885,9 @@ const lazyOperators = {
         context.fileId
       )
     );
-  },
+  }),
 
-  [NodeType.PIPE]: async (ast: Tree, context: Context) => {
+  [NodeType.PIPE]: unpromisify(async (ast: Tree, context: Context) => {
     const [arg, ...fns] = ast.children;
     let value = await evaluateStatement(arg, context);
     for (const fn of fns) {
@@ -888,8 +896,8 @@ const lazyOperators = {
       value = await fnPromise(fnValue)([getPosition(fn), context], value);
     }
     return value;
-  },
-  [NodeType.SEND]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.SEND]: unpromisify(async (ast: Tree, context: Context) => {
     const [chanAst, valueAst] = ast.children;
     const channelValue = await evaluateExpr(chanAst, context);
     const value = await evaluateExpr(valueAst, context);
@@ -918,8 +926,8 @@ const lazyOperators = {
     else resolve(value);
 
     return null;
-  },
-  [NodeType.CODE_LABEL]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.CODE_LABEL]: unpromisify(async (ast: Tree, context: Context) => {
     const expr = ast.children[0];
     const label = Symbol(ast.data.name);
     const labelHandler: EvalFunction = fn(1, async (cs, v) => {
@@ -959,8 +967,8 @@ const lazyOperators = {
       getPosition(expr),
       context
     );
-  },
-  [NodeType.RECEIVE]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.RECEIVE]: unpromisify(async (ast: Tree, context: Context) => {
     const channelValue = await evaluateExpr(ast.children[0], context);
 
     assert(
@@ -977,8 +985,8 @@ const lazyOperators = {
       );
       throw e;
     });
-  },
-  [NodeType.SEND_STATUS]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.SEND_STATUS]: unpromisify(async (ast: Tree, context: Context) => {
     const [channelValue, value] = [
       await evaluateExpr(ast.children[0], context),
       await evaluateExpr(ast.children[1], context),
@@ -993,25 +1001,27 @@ const lazyOperators = {
 
     const status = send(channelValue, value);
     return atom(status);
-  },
-  [NodeType.RECEIVE_STATUS]: async (ast: Tree, context: Context) => {
-    const channelValue = await evaluateExpr(ast.children[0], context);
+  }),
+  [NodeType.RECEIVE_STATUS]: unpromisify(
+    async (ast: Tree, context: Context) => {
+      const channelValue = await evaluateExpr(ast.children[0], context);
 
-    assert(
-      isChannel(channelValue),
-      SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
-        context.fileId
-      )
-    );
+      assert(
+        isChannel(channelValue),
+        SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
+          context.fileId
+        )
+      );
 
-    const [value, status] = tryReceive(channelValue);
+      const [value, status] = tryReceive(channelValue);
 
-    if (value instanceof Error) throw value;
+      if (value instanceof Error) throw value;
 
-    return [value ?? [], atom(status)];
-  },
+      return [value ?? [], atom(status)];
+    }
+  ),
 
-  [NodeType.FUNCTION]: async (ast: Tree, context: Context) => {
+  [NodeType.FUNCTION]: unpromisify(async (ast: Tree, context: Context) => {
     const [_patterns, _body] = ast.children;
     const isTopFunction = ast.data.isTopFunction ?? true;
     const patterns =
@@ -1068,9 +1078,8 @@ const lazyOperators = {
       );
     });
     return self;
-  },
-
-  [NodeType.APPLICATION]: async (ast: Tree, context: Context) => {
+  }),
+  [NodeType.APPLICATION]: unpromisify(async (ast: Tree, context: Context) => {
     const [fnExpr, argStmt] = ast.children;
     const [fnValue, argValue] = [
       await evaluateExpr(fnExpr, context),
@@ -1087,10 +1096,10 @@ const lazyOperators = {
     const x = await fnPromise(fnValue)([getPosition(ast), context], argValue);
     // inspect({ x });
     return x;
-  },
+  }),
 } satisfies Record<
   PropertyKey,
-  (ast: Tree, context: Context) => Promise<EvalValue>
+  (ast: Tree, context: Context, cont: (v: EvalValue) => void) => void
 >;
 
 const tupleOperators = {
@@ -1212,7 +1221,9 @@ const evaluateStatement = async (
 ): Promise<EvalValue> => {
   if (ast.type in lazyOperators) {
     const op = lazyOperators[ast.type as keyof typeof lazyOperators];
-    return await op(ast, context);
+    const v = await promisify(op)(ast, context);
+    if (v instanceof Error) throw v;
+    return v;
   }
 
   if (ast.type in operators) {

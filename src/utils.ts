@@ -12,7 +12,9 @@ export const unpromisify =
   <V, A extends unknown[]>(fn: (...args: A) => Promise<V>) =>
   (...args: [...A, cb: (v: V) => void]): void => {
     const cb = args.pop() as (v: V) => void;
-    fn(...(args as unknown as A)).then(cb);
+    fn(...(args as unknown as A))
+      .then(cb)
+      .catch(cb);
   };
 
 let eventLoopYieldCounter = 0;
