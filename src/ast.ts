@@ -506,10 +506,10 @@ export const script = (expr: ExpressionNode): ScriptNode =>
     children: expr.type === NodeType.SEQUENCE ? expr.children : [expr],
   }) as ScriptNode;
 
-export const block = (expr: Tree, position: Position): BlockNode =>
+export const block = (expr: Tree, position?: Position): BlockNode =>
   node(NodeType.BLOCK, { position, children: [expr] }) as BlockNode;
 
-export const sequence = (children: ExpressionNode[]): SequenceNode =>
+export const sequence = (children: Tree[]): SequenceNode =>
   node(NodeType.SEQUENCE, { children }) as SequenceNode;
 
 export const fn = (
