@@ -348,70 +348,69 @@ function bindExport(
 }
 
 const operators = {
-  [NodeType.ADD]: (head: EvalValue, ...rest: EvalValue[]) => {
-    let sum = head;
+  [NodeType.ADD]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
     assert(
-      typeof sum === 'number' || typeof sum === 'string' || isChannel(sum),
+      typeof lhs === 'number' || typeof lhs === 'string' || isChannel(lhs),
       'expected number, channel or string on lhs'
     );
-    for (const v of rest) {
-      assert(
-        typeof v === typeof sum,
-        'expected both lhs and rhs have the same type'
-      );
-      if (isChannel(v)) {
-        assert(isChannel(sum));
-        const c = createChannel('select');
-        Promise.race([receive(v), receive(sum)]).then((v) => send(c, v));
-        sum = c;
-      } else sum = (sum as string) + (v as string);
+    assert(
+      typeof lhs === typeof rhs,
+      'expected both lhs and rhs have the same type'
+    );
+
+    let sum = lhs;
+    if (isChannel(rhs)) {
+      assert(isChannel(sum));
+      const c = createChannel('select');
+      Promise.race([receive(rhs), receive(sum)]).then((v) => send(c, v));
+      sum = c;
+    } else {
+      sum = (sum as string) + (rhs as string);
     }
-    return sum;
+
+    if (rest.length === 0) return sum;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.ADD](sum, ..._rest);
   },
-  [NodeType.SUB]: (head: EvalValue, ...rest: EvalValue[]) => {
-    assert(typeof head === 'number', 'expected number');
-    let sum = head;
-    for (const v of rest) {
-      assert(typeof v === 'number', 'expected number');
-      sum -= v;
-    }
-    return sum;
+  [NodeType.SUB]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof lhs === 'number', 'expected number');
+    assert(typeof rhs === 'number', 'expected number');
+
+    if (rest.length === 0) return lhs - rhs;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.SUB](lhs - rhs, ..._rest);
   },
-  [NodeType.MULT]: (head: EvalValue, ...rest: EvalValue[]) => {
-    assert(typeof head === 'number', 'expected number');
-    let sum = head;
-    for (const v of rest) {
-      assert(typeof v === 'number', 'expected number');
-      sum *= v;
-    }
-    return sum;
+  [NodeType.MULT]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof lhs === 'number', 'expected number');
+    assert(typeof rhs === 'number', 'expected number');
+
+    if (rest.length === 0) return lhs * rhs;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.MULT](lhs * rhs, ..._rest);
   },
-  [NodeType.DIV]: (head: EvalValue, ...rest: EvalValue[]) => {
-    assert(typeof head === 'number', 'expected number');
-    let sum = head;
-    for (const v of rest) {
-      assert(typeof v === 'number', 'expected number');
-      sum /= v;
-    }
-    return sum;
+  [NodeType.DIV]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof lhs === 'number', 'expected number');
+    assert(typeof rhs === 'number', 'expected number');
+
+    if (rest.length === 0) return lhs / rhs;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.DIV](lhs / rhs, ..._rest);
   },
-  [NodeType.MOD]: (head: EvalValue, ...rest: EvalValue[]) => {
-    assert(typeof head === 'number', 'expected number');
-    let sum = head;
-    for (const v of rest) {
-      assert(typeof v === 'number', 'expected number');
-      sum %= v;
-    }
-    return sum;
+  [NodeType.MOD]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof lhs === 'number', 'expected number');
+    assert(typeof rhs === 'number', 'expected number');
+
+    if (rest.length === 0) return lhs % rhs;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.MOD](lhs % rhs, ..._rest);
   },
-  [NodeType.POW]: (head: EvalValue, ...rest: EvalValue[]) => {
-    assert(typeof head === 'number', 'expected number');
-    let sum = head;
-    for (const v of rest) {
-      assert(typeof v === 'number', 'expected number');
-      sum **= v;
-    }
-    return sum;
+  [NodeType.POW]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+    assert(typeof lhs === 'number', 'expected number');
+    assert(typeof rhs === 'number', 'expected number');
+
+    if (rest.length === 0) return lhs ** rhs;
+    const _rest = rest as [EvalValue, ...EvalValue[]];
+    return operators[NodeType.POW](lhs ** rhs, ..._rest);
   },
   [NodeType.PLUS]: (arg: EvalValue) => {
     assert(typeof arg === 'number', 'expected number');
@@ -503,7 +502,7 @@ const lazyOperators = {
   },
   [NodeType.PARALLEL]: async (ast: Tree, context: Context) => {
     const tasks = ast.children.map((arg) =>
-      lazyOperators[NodeType.FORK](node('', { children: [arg] }), context)
+      evaluateStatement(node(NodeType.FORK, { children: [arg] }), context)
     );
     return await Promise.all(tasks);
   },
@@ -512,14 +511,14 @@ const lazyOperators = {
     const restAst =
       rest.length > 1 ? node(NodeType.AND, { children: rest }) : rest[0];
     const _node = ifElse(head, restAst, nameAST('false', getPosition(head)));
-    return await lazyOperators[NodeType.IF_ELSE](_node, context);
+    return await evaluateStatement(_node, context);
   },
   [NodeType.OR]: async (ast: Tree, context: Context) => {
     const [head, ...rest] = ast.children;
     const restAst =
       rest.length > 1 ? node(NodeType.OR, { children: rest }) : rest[0];
     const _node = ifElse(head, nameAST('true', getPosition(head)), restAst);
-    return await lazyOperators[NodeType.IF_ELSE](_node, context);
+    return await evaluateStatement(_node, context);
   },
 
   [NodeType.PARENS]: async (ast: Tree, context: Context) => {
@@ -590,7 +589,7 @@ const lazyOperators = {
     const [condition, branch] = ast.children;
     const falseBranch = placeholder(getPosition(branch));
     const _node = ifElse(condition, branch, falseBranch);
-    return await lazyOperators[NodeType.IF_ELSE](_node, context);
+    return await evaluateStatement(_node, context);
   },
   [NodeType.IF_ELSE]: async (ast: Tree, context: Context) => {
     const [condition, trueBranch, falseBranch] = ast.children;
@@ -640,7 +639,7 @@ const lazyOperators = {
       placeholder(getPosition(condition))
     );
     const _node = loop(ifElse(condition, body, _break));
-    return await lazyOperators[NodeType.LOOP](_node, context);
+    return await evaluateStatement(_node, context);
   },
   [NodeType.FOR]: async (ast: Tree, context: Context) => {
     const [pattern, expr, body] = ast.children;
@@ -706,7 +705,7 @@ const lazyOperators = {
       placeholder(getPosition(body))
     );
     const _block = block(sequence([body, _continue]));
-    return await lazyOperators[NodeType.BLOCK](_block, context);
+    return await evaluateStatement(_block, context);
   },
 
   [NodeType.BLOCK]: async (ast: Tree, context: Context) => {
@@ -719,7 +718,7 @@ const lazyOperators = {
     const continueHandler: EvalFunction = fn(1, async (cs, _v) => {
       await eventLoopYield();
       const _block = block(expr);
-      return await lazyOperators[NodeType.BLOCK](_block, context);
+      return await evaluateStatement(_block, context);
     });
     const handlers = createRecord({
       [atom('continue')]: createHandler(continueHandler),
@@ -736,11 +735,10 @@ const lazyOperators = {
   [NodeType.SEQUENCE]: async (ast: Tree, context: Context) => {
     const [expr, ...rest] = ast.children;
     if (rest.length === 0) return await evaluateStatement(expr, context);
-    return await evaluateStatementEffect(
-      expr,
-      context,
-      async () =>
-        await lazyOperators[NodeType.SEQUENCE](sequence(rest), context)
+    const x = await evaluateStatement(expr, context);
+    return await mapEffect(
+      x,
+      async () => await evaluateStatement(sequence(rest), context)
     );
   },
 
@@ -817,84 +815,23 @@ const lazyOperators = {
   },
 
   [NodeType.LABEL]: async (ast: Tree, context: Context) => {
-    const [_key, expr] = ast.children;
-    const value = await evaluateExpr(expr, context);
-    const key =
-      _key.type === NodeType.NAME
-        ? _key.data.value
-        : await evaluateExpr(_key, context);
-
-    return createRecord({ [key]: value });
+    return await evaluateStatement(tuple([ast]), context);
   },
   [NodeType.TUPLE]: async (ast: Tree, context: Context) => {
-    const children = ast.children;
+    const children = ast.children.slice();
     if (children.length === 0) return [];
-    const [head, ...tail] = children;
+    const head = children.pop()!;
+    const tail = children;
     if (head.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
     if (head.type === NodeType.PLACEHOLDER) return [];
-    if (head.type === NodeType.SPREAD) {
-      return await evaluateExprEffect(head.children[0], context, async (v) => {
-        const _tail = await lazyOperators[NodeType.TUPLE](tuple(tail), context);
-        return mapEffect(_tail, async (_tail) => {
-          if (Array.isArray(_tail) && Array.isArray(v)) {
-            return [...v, ..._tail];
-          }
-          if (isRecord(_tail) && isRecord(v)) {
-            return recordMerge(v, _tail);
-          }
-          unreachable('inconsistent spread types');
-        });
-      });
-    }
-    if (head.type === NodeType.LABEL) {
-      const _key = head.children[0];
-      if (_key.type === NodeType.NAME) {
-        const key = _key.data.value;
-        return await evaluateExprEffect(
-          head.children[1],
-          context,
-          async (value) => {
-            const _tail = await lazyOperators[NodeType.TUPLE](
-              tuple(tail),
-              context
-            );
-            return mapEffect(_tail, async (_tail) => {
-              if (Array.isArray(_tail) && _tail.length === 0)
-                return createRecord([[key, value]]);
-              assert(isRecord(_tail), 'expected record');
-              recordSet(_tail, key, value);
-              return _tail;
-            });
-          }
-        );
-      }
-      return await evaluateExprEffect(_key, context, async (key) => {
-        return await evaluateExprEffect(
-          head.children[1],
-          context,
-          async (value) => {
-            const _tail = await lazyOperators[NodeType.TUPLE](
-              tuple(tail),
-              context
-            );
-            return mapEffect(_tail, async (_tail) => {
-              if (Array.isArray(_tail) && _tail.length === 0)
-                return createRecord([[key, value]]);
-              assert(isRecord(_tail), 'expected record');
-              recordSet(_tail, key, value);
-              return _tail;
-            });
-          }
-        );
-      });
-    }
-    return await evaluateExprEffect(head, context, async (v) => {
-      const _tail = await lazyOperators[NodeType.TUPLE](tuple(tail), context);
-      return mapEffect(_tail, async (_tail) => {
-        assert(Array.isArray(_tail), 'expected array');
-        return [v, ..._tail];
-      });
-    });
+
+    const _tail = await evaluateStatement(tuple(tail), context);
+    assert(isRecord(_tail) || Array.isArray(_tail), 'expected record or tuple');
+
+    const op =
+      tupleOperators[head.type as keyof typeof tupleOperators] ??
+      tupleOperators[NodeType.TUPLE];
+    return await op(head, _tail, context);
   },
   [NodeType.INDEX]: async (ast: Tree, context: Context) => {
     const [_target, _index] = ast.children;
@@ -1153,12 +1090,64 @@ const lazyOperators = {
   },
 } satisfies Record<
   PropertyKey,
-  | ((
-      ast: Tree,
-      context: Context,
-      continuation: (v: EvalValue) => void
-    ) => void)
-  | ((ast: Tree, context: Context) => Promise<EvalValue>)
+  (ast: Tree, context: Context) => Promise<EvalValue>
+>;
+
+const tupleOperators = {
+  [NodeType.SPREAD]: async (
+    head: Tree,
+    _tuple: EvalValue[] | EvalRecord,
+    context: Context
+  ) => {
+    const v = await evaluateExpr(head.children[0], context);
+    return await mapEffect(v, async (v) => {
+      if (Array.isArray(_tuple) && Array.isArray(v)) {
+        return [..._tuple, ...v];
+      }
+      if (isRecord(_tuple) && isRecord(v)) {
+        return recordMerge(_tuple, v);
+      }
+      unreachable('inconsistent spread types');
+    });
+  },
+  [NodeType.LABEL]: async (
+    head: Tree,
+    _tuple: EvalValue[] | EvalRecord,
+    context: Context
+  ) => {
+    const _key = head.children[0];
+    const k =
+      _key.type === NodeType.NAME
+        ? _key.data.value
+        : await evaluateExpr(_key, context);
+
+    return await mapEffect(k, async (key) => {
+      const v = await evaluateExpr(head.children[1], context);
+      return await mapEffect(v, async (value) => {
+        if (Array.isArray(_tuple) && _tuple.length === 0)
+          return createRecord([[key, value]]);
+        assert(isRecord(_tuple), 'expected record');
+        recordSet(_tuple, key, value);
+        return _tuple;
+      });
+    });
+  },
+  [NodeType.TUPLE]: async (
+    head: Tree,
+    _tuple: EvalValue[] | EvalRecord,
+    context: Context
+  ) => {
+    const v = await evaluateExpr(head, context);
+    assert(Array.isArray(_tuple), 'expected array');
+    return await mapEffect(v, async (v) => [..._tuple, v]);
+  },
+} satisfies Record<
+  PropertyKey,
+  (
+    ast: Tree,
+    _tuple: EvalValue[] | EvalRecord,
+    context: Context
+  ) => Promise<EvalValue>
 >;
 
 const evaluateHandlers = async (
@@ -1216,18 +1205,6 @@ const mapEffect = async (
   }
   return await map(value);
 };
-
-const evaluateStatementEffect = async (
-  ast: Tree,
-  context: Context,
-  map: (v: EvalValue) => Promise<EvalValue>
-) => evaluateStatement(ast, context).then((v) => mapEffect(v, map));
-
-const evaluateExprEffect = (
-  ast: Tree,
-  context: Context,
-  map: (v: EvalValue) => Promise<EvalValue>
-) => evaluateExpr(ast, context).then((v) => mapEffect(v, map));
 
 const evaluateStatement = async (
   ast: Tree,
