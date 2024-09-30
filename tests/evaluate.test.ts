@@ -13,10 +13,11 @@ import {
 } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
 import { parseScript } from '../src/parser.ts';
-import { addFile, preludeHandlers, PreludeIO } from '../src/files.ts';
+import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
 import { newEnvironment, newHandlers } from '../src/environment.ts';
+import { preludeHandlers, PreludeIO } from '../src/std/prelude.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (

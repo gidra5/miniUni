@@ -1,14 +1,6 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from '../error.js';
-import {
-  getModule,
-  listMethods,
-  ModuleDefault,
-  prelude,
-  preludeHandlers,
-  ReturnHandler,
-  stringMethods,
-} from '../files.js';
+import { getModule } from '../files.js';
 import { getPosition, parseModule, parseScript } from '../parser.js';
 import {
   NodeType,
@@ -21,7 +13,6 @@ import {
   ifElse,
   application,
   sequence,
-  ExpressionNode,
   loop,
   block,
   tuple,
@@ -91,6 +82,10 @@ import {
   PatternTestEnvs,
   testPattern,
 } from './patternMatching.js';
+import { prelude, preludeHandlers, ReturnHandler } from '../std/prelude.js';
+import { ModuleDefault } from '../module.js';
+import { listMethods } from '../std/list.js';
+import { stringMethods } from '../std/string.js';
 
 export type Context = {
   file: string;
