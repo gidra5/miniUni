@@ -1495,7 +1495,18 @@ describe('expressions', () => {
       expect(result).toStrictEqual([123, 456]);
     });
 
-    it.todo('no continuation calls example', async () => {
+    it('no continuation calls sequential', async () => {
+      const input = `
+        decide := :decide |> handle
+        _handler := [:decide]: handler fn (callback, value) do 126
+        inject _handler ->
+        decide(); 123
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(126);
+    });
+
+    it('no continuation calls example', async () => {
       const input = `
         decide := :decide |> handle
         _handler := [:decide]: handler fn (callback, value) do 126

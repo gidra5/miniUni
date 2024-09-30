@@ -345,7 +345,7 @@ function bindExport(
 }
 
 const operators = {
-  [NodeType.ADD]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.ADD]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(
       typeof lhs === 'number' || typeof lhs === 'string' || isChannel(lhs),
       'expected number, channel or string on lhs'
@@ -355,59 +355,39 @@ const operators = {
       'expected both lhs and rhs have the same type'
     );
 
-    let sum = lhs;
     if (isChannel(rhs)) {
-      assert(isChannel(sum));
+      assert(isChannel(lhs));
       const c = createChannel('select');
-      Promise.race([receive(rhs), receive(sum)]).then((v) => send(c, v));
-      sum = c;
-    } else {
-      sum = (sum as string) + (rhs as string);
+      Promise.race([receive(rhs), receive(lhs)]).then((v) => send(c, v));
+      return c;
     }
 
-    if (rest.length === 0) return sum;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.ADD](sum, ..._rest);
+    return (lhs as string) + (rhs as string);
   },
-  [NodeType.SUB]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.SUB]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(typeof lhs === 'number', 'expected number');
     assert(typeof rhs === 'number', 'expected number');
-
-    if (rest.length === 0) return lhs - rhs;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.SUB](lhs - rhs, ..._rest);
+    return lhs - rhs;
   },
-  [NodeType.MULT]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.MULT]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(typeof lhs === 'number', 'expected number');
     assert(typeof rhs === 'number', 'expected number');
-
-    if (rest.length === 0) return lhs * rhs;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.MULT](lhs * rhs, ..._rest);
+    return lhs * rhs;
   },
-  [NodeType.DIV]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.DIV]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(typeof lhs === 'number', 'expected number');
     assert(typeof rhs === 'number', 'expected number');
-
-    if (rest.length === 0) return lhs / rhs;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.DIV](lhs / rhs, ..._rest);
+    return lhs / rhs;
   },
-  [NodeType.MOD]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.MOD]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(typeof lhs === 'number', 'expected number');
     assert(typeof rhs === 'number', 'expected number');
-
-    if (rest.length === 0) return lhs % rhs;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.MOD](lhs % rhs, ..._rest);
+    return lhs % rhs;
   },
-  [NodeType.POW]: (lhs: EvalValue, rhs: EvalValue, ...rest: EvalValue[]) => {
+  [NodeType.POW]: (lhs: EvalValue, rhs: EvalValue) => {
     assert(typeof lhs === 'number', 'expected number');
     assert(typeof rhs === 'number', 'expected number');
-
-    if (rest.length === 0) return lhs ** rhs;
-    const _rest = rest as [EvalValue, ...EvalValue[]];
-    return operators[NodeType.POW](lhs ** rhs, ..._rest);
+    return lhs ** rhs;
   },
   [NodeType.PLUS]: (arg: EvalValue) => {
     assert(typeof arg === 'number', 'expected number');
@@ -600,25 +580,27 @@ const lazyOperators = {
     if (condition.type === NodeType.IS) {
       const [value, pattern] = condition.children;
       const v = await evaluateStatement(value, context);
-      const result = await testPattern(pattern, v, context);
-      // inspect({
-      //   tag: 'evaluateExpr if else 2',
-      //   result,
-      //   condition,
-      //   context,
-      // });
 
-      if (result.matched) {
-        return await evaluateBlock(
-          trueBranch,
-          bindContext(result.envs, context)
-        );
-      } else {
-        return await evaluateBlock(
-          falseBranch,
-          bindContext(result.notEnvs, context)
-        );
-      }
+      return mapEffect(v, async (v) => {
+        const result = await testPattern(pattern, v, context);
+        // inspect({
+        //   tag: 'evaluateExpr if else 2',
+        //   result,
+        //   condition,
+        //   context,
+        // });
+        if (result.matched) {
+          return await evaluateBlock(
+            trueBranch,
+            bindContext(result.envs, context)
+          );
+        } else {
+          return await evaluateBlock(
+            falseBranch,
+            bindContext(result.notEnvs, context)
+          );
+        }
+      });
     }
 
     const result = await evaluateExpr(condition, context);
@@ -628,8 +610,10 @@ const lazyOperators = {
     //   condition,
     //   context,
     // });
-    if (result) return await evaluateBlock(trueBranch, context);
-    else return await evaluateBlock(falseBranch, context);
+    return mapEffect(result, async (result) => {
+      if (result) return await evaluateBlock(trueBranch, context);
+      else return await evaluateBlock(falseBranch, context);
+    });
   }),
   [NodeType.WHILE]: unpromisify(async (ast: Tree, context: Context) => {
     const [condition, body] = ast.children;
@@ -733,11 +717,11 @@ const lazyOperators = {
   }),
   [NodeType.SEQUENCE]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, ...rest] = ast.children;
-    if (rest.length === 0) return await evaluateStatement(expr, context);
-    const x = await evaluateStatement(expr, context);
-    return await mapEffect(
-      x,
-      async () => await evaluateStatement(sequence(rest), context)
+    const v = await evaluateStatement(expr, context);
+    if (rest.length === 0) return v;
+
+    return await mapEffect(v, (_) =>
+      evaluateStatement(sequence(rest), context)
     );
   }),
 
@@ -849,8 +833,8 @@ const lazyOperators = {
             context.fileId
           )
         );
-        return await listMethods[index](
-          [getPosition(_index), context.fileId],
+        return await fnPromise(listMethods[index])(
+          [getPosition(_index), context],
           target
         );
       }
@@ -869,8 +853,8 @@ const lazyOperators = {
         typeof index === 'string' && index in stringMethods,
         SystemError.invalidIndex(getPosition(_index)).withFileId(context.fileId)
       );
-      return await stringMethods[index](
-        [getPosition(_index), context.fileId],
+      return await fnPromise(stringMethods[index])(
+        [getPosition(_index), context],
         target
       );
     }
@@ -1223,11 +1207,36 @@ const evaluateStatement = async (
   }
 
   if (ast.type in operators) {
-    const args: EvalValue[] = [];
-    for (const child of ast.children) {
-      args.push(await evaluateExpr(child, context));
+    const children = ast.children.slice();
+    const fst = children.pop()!;
+
+    const fstValue = await evaluateExpr(fst, context);
+
+    if (children.length === 0) {
+      // return operators[ast.type](fstValue);
+      return await mapEffect(fstValue, async (fstValue) => {
+        return operators[ast.type](fstValue);
+      });
     }
-    return operators[ast.type](...args);
+
+    const snd = children.pop()!;
+
+    // return await mapEffectPromise(fstValue, async (fstValue) => {
+    if (children.length === 0) {
+      const sndValue = await evaluateExpr(snd, context);
+      return operators[ast.type](sndValue, fstValue);
+      // return await mapEffectPromise(sndValue, async (sndValue) => {
+      //   return operators[ast.type](fstValue, sndValue).catch((e) => e);
+      // });
+    }
+    const restAst = node(ast.type, { children: [...children, snd] });
+    const restValue = await evaluateExpr(restAst, context);
+    return operators[ast.type](restValue, fstValue);
+
+    // return await mapEffectPromise(restValue, async (restValue) => {
+    //   return operators[ast.type](fstValue, restValue).catch((e) => e);
+    // });
+    // });
   }
 
   switch (ast.type) {
@@ -1283,12 +1292,6 @@ const evaluateStatement = async (
       return null;
   }
 };
-
-// const evaluateStatementPromise = promisify<
-//   EvalValue,
-//   [ast: Tree, context: Context],
-//   typeof evaluateStatement
-//   >(evaluateStatement);
 
 const evaluateBlock = async (
   ast: Tree,
