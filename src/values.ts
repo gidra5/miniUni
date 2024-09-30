@@ -60,9 +60,13 @@ export const fnPromise = (fn: EvalFunction): EvalFunctionPromise =>
   promisify(fn);
 
 export const fnCont =
-  (fn: EvalFunctionPromise): EvalFunction =>
+  (
+    fn: (callSite: CallSite, arg: EvalValue) => EvalValue | Promise<EvalValue>
+  ): EvalFunction =>
   (callSite, arg, continuation) =>
-    fn(callSite, arg).then(continuation);
+    Promise.resolve()
+      .then(() => fn(callSite, arg))
+      .then(continuation);
 
 export const fn = (
   n: number,
@@ -329,7 +333,7 @@ export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
 export const createEffect = (
   effect: EvalValue,
   value: EvalValue,
-  continuation: EvalFunction = async (_, v) => v
+  continuation: EvalFunction = fnCont(async (_, v) => v)
 ): EvalEffect => ({ effect, value, continuation });
 
 export const createHandler = (handler: EvalFunction): EvalHandler => ({

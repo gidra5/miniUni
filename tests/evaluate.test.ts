@@ -1313,7 +1313,7 @@ describe('expressions', () => {
     });
 
     describe('structured concurrency', () => {
-      it.todo('cancelling', async () => {
+      it('cancelling', async () => {
         const input = `
           import "std/concurrency" as { wait };
 
@@ -1480,6 +1480,34 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
+    it.todo('multiple continuation calls example', async () => {
+      const input = `
+        decide := :decide |> handle
+        inject
+          [:decide]: handler fn (callback, value) {
+            x1 := callback(true)
+            x2 := callback(false)
+            x1, x2
+          }
+        ->
+        if decide() do 123 else 456
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([123, 456]);
+    });
+
+    it.todo('no continuation calls example', async () => {
+      const input = `
+        decide := :decide |> handle
+        inject
+          [:decide]: handler fn (callback, value) do 126
+        ->
+        if decide() do 123 else 456
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(126);
+    });
+
     it.todo('pythagorean triple example', async () => {
       const input = `
         import "std/math" as { floor, sqrt }
@@ -1527,7 +1555,7 @@ describe('expressions', () => {
           },
           [return_handler]: fn x do x, ()
 
-        log := handle (:log)
+        log := handle(:log)
 
         f := fn do log 234
 
@@ -1535,6 +1563,49 @@ describe('expressions', () => {
           log 123
           log 456
           123, f()
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([
+        [123, 234],
+        [123, 456, 234],
+      ]);
+    });
+
+    it.todo('transaction example', async () => {
+      const input = `
+        // can abstract db queries for example, instead of simple value state
+        state :=
+          [:get]: handler fn (callback, _) {
+            fn state do (callback state) state
+          },
+          [:set]: handler fn (callback, state) {
+            fn do (callback state) state
+          },
+          [return_handler]: fn x {
+            fn state do state, x
+          }
+        transaction :=
+          [:get]: handler fn (callback, _) {
+            fn state do (callback state) state
+          },
+          [:set]: handler fn (callback, state) {
+            fn do (callback state) state
+          },
+          [return_handler]: fn x {
+            fn state { set state; x }
+          }
+
+        set := :set |> handle
+        get := :get |> handle
+
+        inject state {
+          set 123
+          inject transaction {
+            set(get() + 1)
+            get()
+          }
+          get()
         }
       `;
       const result = await evaluate(input);
