@@ -1119,7 +1119,10 @@ const parsePratt =
         continue;
       }
 
-      if (opGroup.type === NodeType.SEQUENCE && !src[index]) break;
+      if (opGroup.type === NodeType.SEQUENCE) {
+        if (src[index]?.type === 'newline') index++;
+        if (!src[index]) break;
+      }
 
       let rhs: Tree;
       [index, rhs] = parsePratt(

@@ -7984,6 +7984,22 @@ exports[`newline handling > infix-prefix 1`] = `
 }
 `;
 
+exports[`newline handling > newline at the end 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "value": 1,
+      },
+      "type": "number",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`newline handling > no parens 1`] = `
 {
   "children": [
@@ -8141,6 +8157,22 @@ exports[`newline handling > prefix 1`] = `
       ],
       "data": {},
       "type": "not",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`newline handling > semicolon-newline at the end 1`] = `
+{
+  "children": [
+    {
+      "children": [],
+      "data": {
+        "value": 1,
+      },
+      "type": "number",
     },
   ],
   "data": {},

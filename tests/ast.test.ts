@@ -323,7 +323,8 @@ describe('newline handling', () => {
   it('block semicolon newline', () => testCase(`{ a := 1;\n b := 2 }`));
   it('block semicolon newline at the end', () =>
     testCase(`{ a := 1;\n b := 2;\n }`));
-  it('variable', () => testCase(`1\n`));
+  it('newline at the end', () => testCase(`1\n`));
+  it('semicolon-newline at the end', () => testCase(`1;\n`));
   it('empty switch with newline', () => testCase(`switch a { \n }`));
   it.todo('pipe', () => testCase(`1 \n|> fn x { x + 1 } \n|> fn y { y * 2 }`));
 });
