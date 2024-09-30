@@ -1480,7 +1480,7 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
-    it('multiple continuation calls example', async () => {
+    it('multiple continuation calls', async () => {
       const input = `
         decide := :decide |> handle
         _handler := [:decide]: handler fn (callback, value) {
@@ -1495,6 +1495,55 @@ describe('expressions', () => {
       expect(result).toStrictEqual([123, 456]);
     });
 
+    it.todo(
+      'multiple continuation calls with mutations and closure',
+      async () => {
+        const input = `        
+        _handler :=
+          [:do]: handler fn (callback, _) {
+            callback()
+            callback()
+          }
+        
+        mut n := 1
+        m, f := inject _handler {
+          mut m := 1
+          f := fn do m
+          handle (:do) ()
+          g := fn do m, f()
+          m = m + 1
+          n = n + 1
+          m, g
+        }
+
+        m, n, f()
+      `;
+        const result = await evaluate(input);
+        expect(result).toStrictEqual([2, 3, [2, 2]]);
+      }
+    );
+
+    it.todo('multiple continuation calls with mutations', async () => {
+      const input = `        
+        _handler :=
+          [:do]: handler fn (callback, _) {
+            callback()
+            callback()
+          }
+        
+        mut n := 1
+        inject _handler {
+          mut m := 1
+          handle (:do) ()
+          m = m + 1
+          n = n + 1
+          m, n
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([2, 3]);
+    });
+
     it('no continuation calls sequential', async () => {
       const input = `
         decide := :decide |> handle
@@ -1506,7 +1555,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual(126);
     });
 
-    it('no continuation calls example', async () => {
+    it('no continuation calls', async () => {
       const input = `
         decide := :decide |> handle
         _handler := [:decide]: handler fn (callback, value) do 126
@@ -1517,7 +1566,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual(126);
     });
 
-    it('single continuation call example', async () => {
+    it('single continuation call', async () => {
       const input = `
         decide := :decide |> handle
         _handler := [:decide]: handler fn (callback, value) do callback true
@@ -1528,34 +1577,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual(123);
     });
 
-    it.todo('pythagorean triple example 2', async () => {
-      const input = `
-        decide := :decide |> handle
-        fail := :fail |> handle
-        
-        false_branch_first :=
-          [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn do callback true
-            inject fail_handler { callback false }
-          }
-        
-        inject false_branch_first {
-          mut m, n := 1, 3
-          a := loop {
-            if m > n do fail()
-            if decide() do break m
-            m++
-          }
-          print(a)
-          if a == 2 do a
-          else fail()
-        }
-      `;
-      const result = await evaluate(input);
-      expect(result).toStrictEqual(2);
-    });
-
-    it.todo('pythagorean triple example', async () => {
+    it('pythagorean triple example', async () => {
       const input = `
         import "std/math" as { floor, sqrt }
 
@@ -1570,7 +1592,6 @@ describe('expressions', () => {
           a := choose_int(m, n);
           b := choose_int(a + 1, n + 1);
           c := sqrt (a^2 + b^2);
-          print(a, b, c)
           if floor c != c do fail()
 
           (a, b, c)
@@ -1591,7 +1612,10 @@ describe('expressions', () => {
         inject true_branch_first { pythagorean_triple 4 15 }
       `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual([1, 2]);
+      expect(result).toStrictEqual([
+        [5, 12, 13],
+        [12, 16, 20],
+      ]);
     });
 
     it('logger example', async () => {

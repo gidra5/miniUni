@@ -333,7 +333,7 @@ export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
 export const createEffect = (
   effect: EvalValue,
   value: EvalValue,
-  continuation: EvalFunction = fnCont(async (_, v) => v)
+  continuation: EvalFunction = fnCont((_, v) => v)
 ): EvalEffect => ({ effect, value, continuation });
 
 export const createHandler = (handler: EvalFunction): EvalHandler => ({
