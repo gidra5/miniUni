@@ -1203,9 +1203,9 @@ const mapEffect = async (
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     const { effect, value: v, continuation } = value;
-    const nextCont: EvalFunction = async (cs, v) => {
+    const nextCont: EvalFunction = fnCont(async (cs, v) => {
       return await fnPromise(continuation)(cs, v).then(map);
-    };
+    });
     return createEffect(effect, v, nextCont);
   }
   return await map(value);

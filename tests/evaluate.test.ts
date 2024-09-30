@@ -1483,13 +1483,12 @@ describe('expressions', () => {
     it.todo('multiple continuation calls example', async () => {
       const input = `
         decide := :decide |> handle
-        inject
-          [:decide]: handler fn (callback, value) {
+        _handler := [:decide]: handler fn (callback, value) {
             x1 := callback(true)
             x2 := callback(false)
             x1, x2
           }
-        ->
+        inject _handler ->
         if decide() do 123 else 456
       `;
       const result = await evaluate(input);
@@ -1499,13 +1498,23 @@ describe('expressions', () => {
     it.todo('no continuation calls example', async () => {
       const input = `
         decide := :decide |> handle
-        inject
-          [:decide]: handler fn (callback, value) do 126
-        ->
+        _handler := [:decide]: handler fn (callback, value) do 126
+        inject _handler ->
         if decide() do 123 else 456
       `;
       const result = await evaluate(input);
       expect(result).toStrictEqual(126);
+    });
+
+    it('single continuation call example', async () => {
+      const input = `
+        decide := :decide |> handle
+        _handler := [:decide]: handler fn (callback, value) do callback true
+        inject _handler ->
+        if decide() do 123 else 456
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(123);
     });
 
     it.todo('pythagorean triple example', async () => {
@@ -1546,7 +1555,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([1, 2]);
     });
 
-    it.todo('logger example', async () => {
+    it('logger example', async () => {
       const input = `
         logger :=
           [:log]: handler fn (callback, msg) {

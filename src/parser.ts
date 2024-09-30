@@ -308,7 +308,7 @@ const parseStatementForm =
     return [
       index,
       error(
-        SystemError.missingToken(nodePosition(), ':', 'newline', '{'),
+        SystemError.missingToken(nodePosition(), 'do', 'newline', '{'),
         node(inner)
       ),
     ];

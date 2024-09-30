@@ -21,7 +21,7 @@ import {
 export const ReturnHandler = Symbol('return_handler');
 export const prelude: Context['env'] = newEnvironment({
   return_handler: ReturnHandler,
-  handle: fn(2, (callSite, effect, value) => {
+  handle: fn(2, (_, effect, value) => {
     return createEffect(effect, value);
   }),
   handler: fnCont(async (_, handler) => {
