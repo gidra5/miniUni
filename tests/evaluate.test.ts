@@ -1480,7 +1480,7 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
-    it.todo('multiple continuation calls example', async () => {
+    it('multiple continuation calls example', async () => {
       const input = `
         decide := :decide |> handle
         _handler := [:decide]: handler fn (callback, value) {
@@ -1528,6 +1528,33 @@ describe('expressions', () => {
       expect(result).toStrictEqual(123);
     });
 
+    it.todo('pythagorean triple example 2', async () => {
+      const input = `
+        decide := :decide |> handle
+        fail := :fail |> handle
+        
+        false_branch_first :=
+          [:decide]: handler fn (callback, _) {
+            fail_handler := [:fail]: handler fn do callback true
+            inject fail_handler { callback false }
+          }
+        
+        inject false_branch_first {
+          mut m, n := 1, 3
+          a := loop {
+            if m > n do fail()
+            if decide() do break m
+            m++
+          }
+          print(a)
+          if a == 2 do a
+          else fail()
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(2);
+    });
+
     it.todo('pythagorean triple example', async () => {
       const input = `
         import "std/math" as { floor, sqrt }
@@ -1543,6 +1570,7 @@ describe('expressions', () => {
           a := choose_int(m, n);
           b := choose_int(a + 1, n + 1);
           c := sqrt (a^2 + b^2);
+          print(a, b, c)
           if floor c != c do fail()
 
           (a, b, c)
@@ -1592,7 +1620,7 @@ describe('expressions', () => {
       ]);
     });
 
-    it.todo('transaction example', async () => {
+    it('transaction example', async () => {
       const input = `
         // can abstract db queries for example, instead of simple value state
         state :=
@@ -1625,14 +1653,11 @@ describe('expressions', () => {
             set(get() + 1)
             get()
           }
-          get()
-        }
+          get() + 234
+        } 1
       `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual([
-        [123, 234],
-        [123, 456, 234],
-      ]);
+      expect(result).toStrictEqual([123, 357]);
     });
   });
 
