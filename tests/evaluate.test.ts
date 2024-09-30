@@ -96,9 +96,8 @@ describe('advent of code 2023 day 1 single', () => {
       }),
     });
     const input = `
-        import "std/string" as { split, replace };
-        mut lines := split document "\\n";
-        lines = map lines (replace "\\\\s+" "");
+        mut lines := document.split("\\n")
+        lines = map lines fn line do line.replace "\\\\s+" ""
         filter lines fn line -> line != ""
       `;
     const result = await evaluate(input, env);
@@ -127,17 +126,15 @@ describe('advent of code 2023 day 1 single', () => {
       }),
     });
     const input = `
-        import "std/string" as { char_at, match, slice }
-
         numbers := flat_map lines fn mut line {
           digits := ()
           while line != "" {
-            if match "\\\\d" (char_at line 0) {
-              digit := number (char_at line 0)
+            if line.char_at(0).match("\\\\d") {
+              digit := number (line.char_at(0))
               if !(0 in digits) do digits[0] = digit
               digits[1] = digit
             }
-            line = slice line (1,)
+            line = line.slice(1,)
           }
           digits[0] * 10, digits[1]
         }
@@ -160,7 +157,6 @@ describe('advent of code 2023 day 1 single', () => {
     const input = `
         import "std/concurrency" as { all }
         import "std/math" as { floor }
-        import "std/string" as { slice }
   
         reduce := fn list, reducer, merge, initial {
           len := length list
@@ -169,8 +165,8 @@ describe('advent of code 2023 day 1 single', () => {
           midpoint := floor(len / 2)
           item := list[midpoint]
           first, second := all(
-            | (self (slice list (0, midpoint)) reducer merge initial)
-            | (self (slice list (midpoint + 1,)) reducer merge initial)
+            | (self (list.slice(0, midpoint)) reducer merge initial)
+            | (self (list.slice(midpoint + 1,)) reducer merge initial)
           )
   
           merge (reducer first item) second

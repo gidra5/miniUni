@@ -1,4 +1,3 @@
-import "std/string" as { split, replace, match, char_at, slice }
 import "std/concurrency" as { all }
 
 // https://adventofcode.com/2023/day/1
@@ -15,8 +14,8 @@ document := "
 lines := channel "lines"
 
 fork {
-  for mut line in split document "\n" {
-    line = replace "\\s+" "" line
+  for mut line in document.split("\n") {
+    line = line.replace "\\s+" ""
     if line != "" do lines <- line
   }
 
@@ -43,8 +42,8 @@ fork loop {
     mut last_digit := 0
 
     while line != "" {
-      if match "\\d" (char_at line 0) {
-        digit := number (char_at line 0)
+      if line.char_at(0).match("\\d") {
+        digit := number(line.char_at(0))
         if !first_digit {
           numbers <- digit * 10
           first_digit = true
@@ -52,7 +51,7 @@ fork loop {
         last_digit = digit
       }
 
-      line = slice line (1,)
+      line = line.slice(1,)
     }
 
     numbers <- last_digit

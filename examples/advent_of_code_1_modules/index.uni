@@ -1,4 +1,3 @@
-import "std/string" as { split, replace, match, char_at, slice };
 import "./list.unim" as { map, filter, flat_map, sum };
 
 // https://adventofcode.com/2023/day/1
@@ -13,8 +12,8 @@ document := "
 "
 
 lines := {
-  mut lines := split document "\n"
-  lines = map lines (replace "\\s+" "")
+  mut lines := document.split("\n")
+  lines = map lines fn line do line.replace "\\s+" ""
   filter lines fn line do line != ""
 }
 
@@ -22,12 +21,12 @@ numbers := flat_map lines fn mut line {
   digits := ()
 
   while line != "" {
-    if match "\\d" (char_at line 0) {
-      digit := number (char_at line 0)
+    if line.char_at(0).match("\\d") {
+      digit := number(line.char_at(0))
       if !(0 in digits) do digits[0] = digit 
       digits[1] = digit
     }
-    line = slice line (1,)
+    line = line.slice(1,)
   }
 
   digits[0] * 10, digits[1]
