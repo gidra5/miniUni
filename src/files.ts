@@ -147,8 +147,7 @@ export const preludeHandlers: Context['handlers'] = newHandlers({
       });
 
       assert(typeof callback === 'function');
-      fnPromise(callback)(cs, file);
-      return null;
+      return await fnPromise(callback)(cs, file);
     }),
   }),
   [ReturnHandler]: async (_, value) => value,

@@ -1171,34 +1171,35 @@ const evaluateHandlers = async (
   //   _value,
   // });
   const cs: CallSite = [position, context];
-  if (isEffect(_value)) {
-    const { effect, value, continuation } = _value;
-    if (recordHas(handlers, effect)) {
-      const _handler = recordGet(handlers, effect);
-      if (isHandler(_handler)) {
-        const { handler } = _handler;
-        const callback: EvalFunction = async (cs, _value) => {
-          const value = await fnPromise(continuation)(cs, _value);
-          return await evaluateHandlers(handlers, value, position, context);
-        };
-        return await fnPromise(handler)([position, context], [callback, value]);
-      }
 
-      const __value = await fnPromise(continuation)(cs, _handler);
-      return await evaluateHandlers(handlers, __value, position, context);
-    }
-    return createEffect(effect, value, async (cs, _value) => {
-      const value = await fnPromise(continuation)(cs, _value);
-      return await evaluateHandlers(handlers, value, position, context);
-    });
+  if (!isEffect(_value)) {
+    const returnHandler = recordGet(handlers, ReturnHandler);
+    if (returnHandler === null) return _value;
+    assert(
+      typeof returnHandler === 'function',
+      'expected return handler to be a function'
+    );
+    return fnPromise(returnHandler)(cs, _value);
   }
-  const returnHandler = recordGet(handlers, ReturnHandler);
-  if (returnHandler === null) return _value;
-  assert(
-    typeof returnHandler === 'function',
-    'expected return handler to be a function'
+
+  const { effect, value, continuation } = _value;
+  const callback: EvalFunctionPromise = async (cs, _value) => {
+    const value = await fnPromise(continuation)(cs, _value);
+    return await evaluateHandlers(handlers, value, position, context);
+  };
+
+  if (!recordHas(handlers, effect)) {
+    return createEffect(effect, value, fnCont(callback));
+  }
+
+  const handlerValue = recordGet(handlers, effect);
+  if (!isHandler(handlerValue)) return await callback(cs, handlerValue);
+
+  const { handler } = handlerValue;
+  return await fnPromise(handler)(
+    [position, context],
+    [fnCont(callback), value]
   );
-  return fnPromise(returnHandler)(cs, _value);
 };
 
 const mapEffect = async (
