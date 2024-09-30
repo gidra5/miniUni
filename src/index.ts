@@ -5,7 +5,7 @@ import {
   evaluateEntryFile,
   evaluateScriptString,
   newContext,
-} from './evaluate.js';
+} from './evaluate/index.js';
 import { addFile } from './files.js';
 
 program
