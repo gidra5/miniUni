@@ -224,6 +224,8 @@ describe('expressions', () => {
     it('loop scope', () => testCase(`loop { x }`));
     it('labeled expression', () => testCase(`label::123`));
     it('semicolon at the end', () => testCase(`1;`));
+    it('increment', () => testCase(`++x`));
+    it('post increment', () => testCase(`x++`));
 
     describe('statement forms', () => {
       it('immediate form', () => testCase(`if true do 123; 456`));
@@ -326,5 +328,6 @@ describe('newline handling', () => {
   it('newline at the end', () => testCase(`1\n`));
   it('semicolon-newline at the end', () => testCase(`1;\n`));
   it('empty switch with newline', () => testCase(`switch a { \n }`));
+  it.todo('application-newline-increment', () => testCase(`f a\n ++b`));
   it.todo('pipe', () => testCase(`1 \n|> fn x { x + 1 } \n|> fn y { y * 2 }`));
 });

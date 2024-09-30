@@ -6932,6 +6932,28 @@ exports[`expressions > structured programming > if-then-elseif-then-else 1`] = `
 }
 `;
 
+exports[`expressions > structured programming > increment 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "++",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`expressions > structured programming > labeled expression 1`] = `
 {
   "children": [
@@ -7048,6 +7070,28 @@ exports[`expressions > structured programming > parens sequence 1`] = `
       ],
       "data": {},
       "type": "parens",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`expressions > structured programming > post increment 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "x",
+          },
+          "type": "name",
+        },
+      ],
+      "data": {},
+      "type": "post_increment",
     },
   ],
   "data": {},
