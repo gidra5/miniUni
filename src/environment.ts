@@ -77,4 +77,11 @@ export class Environment {
     if (this.parent) keys.push(...this.parent.keys());
     return [...new Set(keys)];
   }
+
+  shallowCopy(): Environment {
+    const copy = new Environment({ parent: this.parent });
+    copy.readonly = new Map(this.readonly);
+    copy.mutable = new Map(this.mutable);
+    return copy;
+  }
 }

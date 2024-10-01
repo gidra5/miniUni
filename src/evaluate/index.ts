@@ -20,7 +20,6 @@ import {
 import { parseTokens } from '../tokens.js';
 import {
   assert,
-  copyMap,
   eventLoopYield,
   getClosestName,
   inspect,
@@ -1278,10 +1277,7 @@ const mapEffect = async (
     const nextCont: EvalFunction = fnCont(async (cs, _v) => {
       const v = await fnPromise(continuation)(cs, _v);
       // const _context = { ...context };
-      // _context.env = { ..._context.env };
-      // _context.env.entries = copyMap(_context.env.entries);
-      // _context.readonly = { ..._context.readonly };
-      // _context.readonly.entries = copyMap(_context.readonly.entries);
+      // _context.env = _context.env.shallowCopy();
       // return await map(v, _context);
 
       return await map(v, context);
