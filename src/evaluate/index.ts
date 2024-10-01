@@ -515,7 +515,7 @@ const lazyOperators = {
     const [expr, body] = ast.children;
     const value = await evaluateExpr(expr, context);
 
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       assert(isRecord(value), 'expected record');
 
       const handlers = newHandlers(value, context.handlers);
@@ -527,7 +527,7 @@ const lazyOperators = {
   [NodeType.WITHOUT]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
       const handlers = withoutHandlers(context.handlers, value);
@@ -537,7 +537,7 @@ const lazyOperators = {
   [NodeType.MASK]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
       const handlers = maskHandlers(context.handlers, value);
@@ -548,7 +548,7 @@ const lazyOperators = {
   [NodeType.IS]: unpromisify(async (ast: Tree, context: Context) => {
     const [value, pattern] = ast.children;
     const v = await evaluateStatement(value, context);
-    return await mapEffect(v, context, async (v, context) => {
+    return await flatMapEffect(v, context, async (v, context) => {
       const result = await testPattern(pattern, v, context);
       // inspect({
       //   tag: 'evaluateExpr is',
@@ -560,7 +560,7 @@ const lazyOperators = {
   [NodeType.MATCH]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, ...branches] = ast.children;
     const value = await evaluateExpr(expr, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       for (const branch of branches) {
         assert(branch.type === NodeType.MATCH_CASE, 'expected match case');
         const [pattern, body] = branch.children;
@@ -591,7 +591,7 @@ const lazyOperators = {
       const [value, pattern] = condition.children;
       const v = await evaluateStatement(value, context);
 
-      return mapEffect(v, context, async (v, context) => {
+      return flatMapEffect(v, context, async (v, context) => {
         const result = await testPattern(pattern, v, context);
         // inspect({
         //   tag: 'evaluateExpr if else 2',
@@ -620,7 +620,7 @@ const lazyOperators = {
     //   condition,
     //   context,
     // });
-    return mapEffect(result, context, async (result, context) => {
+    return flatMapEffect(result, context, async (result, context) => {
       if (result) return await evaluateBlock(trueBranch, context);
       else return await evaluateBlock(falseBranch, context);
     });
@@ -637,7 +637,7 @@ const lazyOperators = {
   [NodeType.FOR]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr, body] = ast.children;
     const list = await evaluateExpr(expr, context);
-    return await mapEffect(list, context, async (list, context) => {
+    return await flatMapEffect(list, context, async (list, context) => {
       assert(
         Array.isArray(list),
         SystemError.evaluationError(
@@ -733,7 +733,7 @@ const lazyOperators = {
     const v = await evaluateStatement(expr, context);
     if (rest.length === 0) return v;
 
-    return await mapEffect(v, context, (_, context) =>
+    return await flatMapEffect(v, context, (_, context) =>
       evaluateStatement(sequence(rest), context)
     );
   }),
@@ -742,7 +742,7 @@ const lazyOperators = {
     const [arg] = ast.children;
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       assert(typeof value === 'number', 'expected number');
       const { matched, envs } = await testPattern(arg, value + 1, context);
       assert(matched, 'expected pattern to match');
@@ -754,7 +754,7 @@ const lazyOperators = {
     const [arg] = ast.children;
     assert(arg.type === NodeType.NAME, 'expected name');
     const value = await evaluateExpr(arg, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       assert(typeof value === 'number', 'expected number');
       const { matched, envs } = await testPattern(arg, value - 1, context);
       assert(matched, 'expected pattern to match');
@@ -767,7 +767,7 @@ const lazyOperators = {
       const [arg] = ast.children;
       assert(arg.type === NodeType.NAME, 'expected name');
       const value = await evaluateExpr(arg, context);
-      return await mapEffect(value, context, async (value, context) => {
+      return await flatMapEffect(value, context, async (value, context) => {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await testPattern(arg, value - 1, context);
         assert(matched, 'expected pattern to match');
@@ -781,7 +781,7 @@ const lazyOperators = {
       const [arg] = ast.children;
       assert(arg.type === NodeType.NAME, 'expected name');
       const value = await evaluateExpr(arg, context);
-      return await mapEffect(value, context, async (value, context) => {
+      return await flatMapEffect(value, context, async (value, context) => {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await testPattern(arg, value + 1, context);
         assert(matched, 'expected pattern to match');
@@ -794,7 +794,7 @@ const lazyOperators = {
   [NodeType.DECLARE]: unpromisify(async (ast: Tree, _context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateStatement(expr, _context);
-    return await mapEffect(value, _context, async (value, context) => {
+    return await flatMapEffect(value, _context, async (value, context) => {
       // inspect({
       //   tag: 'evaluateExpr declare',
       //   value,
@@ -817,7 +817,7 @@ const lazyOperators = {
   [NodeType.ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateStatement(expr, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       const { matched, envs } = await testPattern(pattern, value, context);
       assert(matched, 'expected pattern to match');
       assign(envs, context, getPosition(pattern));
@@ -827,7 +827,7 @@ const lazyOperators = {
   [NodeType.INC_ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateExpr(expr, context);
-    return await mapEffect(value, context, async (value, context) => {
+    return await flatMapEffect(value, context, async (value, context) => {
       assert(typeof value === 'number' || Array.isArray(value));
       const { matched, envs } = await testPattern(pattern, value, context);
       assert(matched, 'expected pattern to match');
@@ -847,7 +847,7 @@ const lazyOperators = {
     if (head.type === NodeType.PLACEHOLDER) return [];
 
     const _tail = await evaluateStatement(tuple(children), context);
-    return await mapEffect(_tail, context, async (_tail, context) => {
+    return await flatMapEffect(_tail, context, async (_tail, context) => {
       assert(
         isRecord(_tail) || Array.isArray(_tail),
         'expected record or tuple'
@@ -862,10 +862,10 @@ const lazyOperators = {
   [NodeType.INDEX]: unpromisify(async (ast: Tree, context: Context) => {
     const [_target, _index] = ast.children;
     const target = await evaluateExpr(_target, context);
-    return await mapEffect(target, context, async (target, context) => {
+    return await flatMapEffect(target, context, async (target, context) => {
       const index = await evaluateExpr(_index, context);
 
-      return await mapEffect(index, context, async (index, context) => {
+      return await flatMapEffect(index, context, async (index, context) => {
         if (Array.isArray(target)) {
           if (!Number.isInteger(index)) {
             assert(
@@ -923,9 +923,9 @@ const lazyOperators = {
         ? await evaluateExpr(args[0], context)
         : await evaluateExpr(node(NodeType.PIPE, { children: args }), context);
 
-    return await mapEffect(rest, context, async (rest, context) => {
+    return await flatMapEffect(rest, context, async (rest, context) => {
       let fn = await evaluateStatement(fnArg, context);
-      return await mapEffect(fn, context, async (fn, context) => {
+      return await flatMapEffect(fn, context, async (fn, context) => {
         assert(typeof fn === 'function', 'expected function');
         return await fnPromise(fn)([getPosition(fnArg), context], rest);
       });
@@ -934,7 +934,7 @@ const lazyOperators = {
   [NodeType.SEND]: unpromisify(async (ast: Tree, context: Context) => {
     const [chanAst, valueAst] = ast.children;
     const channelValue = await evaluateExpr(chanAst, context);
-    return await mapEffect(
+    return await flatMapEffect(
       channelValue,
       context,
       async (channelValue, context) => {
@@ -955,7 +955,7 @@ const lazyOperators = {
 
         const value = await evaluateExpr(valueAst, context);
 
-        return await mapEffect(value, context, async (value, context) => {
+        return await flatMapEffect(value, context, async (value, context) => {
           const promise = channel.onReceive.shift();
           if (!promise) {
             channel.queue.push(value);
@@ -1014,7 +1014,7 @@ const lazyOperators = {
   [NodeType.RECEIVE]: unpromisify(async (ast: Tree, context: Context) => {
     const channelValue = await evaluateExpr(ast.children[0], context);
 
-    return await mapEffect(
+    return await flatMapEffect(
       channelValue,
       context,
       async (channelValue, context) => {
@@ -1039,7 +1039,7 @@ const lazyOperators = {
   }),
   [NodeType.SEND_STATUS]: unpromisify(async (ast: Tree, context: Context) => {
     const channelValue = await evaluateExpr(ast.children[0], context);
-    return await mapEffect(
+    return await flatMapEffect(
       channelValue,
       context,
       async (channelValue, context) => {
@@ -1052,7 +1052,7 @@ const lazyOperators = {
 
         const value = await evaluateExpr(ast.children[1], context);
 
-        return await mapEffect(value, context, async (value, context) => {
+        return await flatMapEffect(value, context, async (value, context) => {
           const status = send(channelValue, value);
           return atom(status);
         });
@@ -1063,7 +1063,7 @@ const lazyOperators = {
     async (ast: Tree, context: Context) => {
       const channelValue = await evaluateExpr(ast.children[0], context);
 
-      return await mapEffect(
+      return await flatMapEffect(
         channelValue,
         context,
         async (channelValue, context) => {
@@ -1147,7 +1147,7 @@ const lazyOperators = {
     const [fnExpr, argStmt] = ast.children;
     const fnValue = await evaluateExpr(fnExpr, context);
 
-    return await mapEffect(fnValue, context, async (fnValue, context) => {
+    return await flatMapEffect(fnValue, context, async (fnValue, context) => {
       assert(
         typeof fnValue === 'function',
         SystemError.invalidApplicationExpression(
@@ -1156,14 +1156,18 @@ const lazyOperators = {
       );
 
       const argValue = await evaluateStatement(argStmt, context);
-      return await mapEffect(argValue, context, async (argValue, context) => {
-        const x = await fnPromise(fnValue)(
-          [getPosition(ast), context],
-          argValue
-        );
-        // inspect({ x });
-        return x;
-      });
+      return await flatMapEffect(
+        argValue,
+        context,
+        async (argValue, context) => {
+          const x = await fnPromise(fnValue)(
+            [getPosition(ast), context],
+            argValue
+          );
+          // inspect({ x });
+          return x;
+        }
+      );
     });
   }),
 } satisfies Record<
@@ -1178,7 +1182,7 @@ const tupleOperators = {
     context: Context
   ) => {
     const v = await evaluateExpr(head.children[0], context);
-    return await mapEffect(v, context, async (v, _context) => {
+    return await flatMapEffect(v, context, async (v, _context) => {
       if (Array.isArray(_tuple) && Array.isArray(v)) {
         return [..._tuple, ...v];
       }
@@ -1199,9 +1203,9 @@ const tupleOperators = {
         ? _key.data.value
         : await evaluateExpr(_key, context);
 
-    return await mapEffect(k, context, async (key, context) => {
+    return await flatMapEffect(k, context, async (key, context) => {
       const v = await evaluateExpr(head.children[1], context);
-      return await mapEffect(v, context, async (value, _context) => {
+      return await flatMapEffect(v, context, async (value, _context) => {
         if (Array.isArray(_tuple) && _tuple.length === 0)
           return createRecord([[key, value]]);
         assert(isRecord(_tuple), 'expected record');
@@ -1217,7 +1221,10 @@ const tupleOperators = {
   ) => {
     const v = await evaluateExpr(head, context);
     assert(Array.isArray(_tuple), 'expected array');
-    return await mapEffect(v, context, async (v, _context) => [..._tuple, v]);
+    return await flatMapEffect(v, context, async (v, _context) => [
+      ..._tuple,
+      v,
+    ]);
   },
 } satisfies Record<
   PropertyKey,
@@ -1251,15 +1258,17 @@ const evaluateHandlers = async (
     return fnPromise(returnHandler)(cs, value);
   }
 
+  if (!recordHas(handlers, value.effect)) {
+    return await mapEffect(value, context, async (value, context) => {
+      return await evaluateHandlers(handlers, value, position, context);
+    });
+  }
+
   const continuation = value.continuation;
   const callback: EvalFunctionPromise = async (cs, _value) => {
     const value = await fnPromise(continuation)(cs, _value);
     return await evaluateHandlers(handlers, value, position, context);
   };
-
-  if (!recordHas(handlers, value.effect)) {
-    return createEffect(value.effect, value.value, fnCont(callback));
-  }
 
   const handlerValue = recordGet(handlers, value.effect);
   if (!isHandler(handlerValue)) return await callback(cs, handlerValue);
@@ -1278,12 +1287,24 @@ const mapEffect = async (
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     const { effect, value: v, continuation } = value;
-    const nextCont: EvalFunction = fnCont(async (cs, v) => {
-      return await fnPromise(continuation)(cs, v).then((v) =>
-        mapEffect(v, context, map)
-      );
+    const nextCont: EvalFunction = fnCont(async (cs, _v) => {
+      const v = await fnPromise(continuation)(cs, _v);
+      return await map(v, context);
     });
     return createEffect(effect, v, nextCont);
+  }
+  return await map(value, context);
+};
+
+const flatMapEffect = async (
+  value: EvalValue,
+  context: Context,
+  map: (v: EvalValue, context: Context) => Promise<EvalValue>
+): Promise<EvalValue> => {
+  if (isEffect(value)) {
+    return await mapEffect(value, context, async (value, context) => {
+      return await flatMapEffect(value, context, map);
+    });
   }
   return await map(value, context);
 };
@@ -1306,16 +1327,20 @@ const evaluateStatement = async (
     const fstValue = await evaluateExpr(fst, context);
 
     if (children.length === 0) {
-      return await mapEffect(fstValue, context, async (fstValue, _context) => {
-        return operators[ast.type](fstValue);
-      });
+      return await flatMapEffect(
+        fstValue,
+        context,
+        async (fstValue, _context) => {
+          return operators[ast.type](fstValue);
+        }
+      );
     }
 
-    return await mapEffect(fstValue, context, async (fstValue, context) => {
+    return await flatMapEffect(fstValue, context, async (fstValue, context) => {
       if (children.length === 1) {
         const snd = children.pop()!;
         const sndValue = await evaluateExpr(snd, context);
-        return await mapEffect(
+        return await flatMapEffect(
           sndValue,
           context,
           async (sndValue, _context) => {
@@ -1326,7 +1351,7 @@ const evaluateStatement = async (
 
       const restAst = node(ast.type, { children });
       const restValue = await evaluateExpr(restAst, context);
-      return await mapEffect(
+      return await flatMapEffect(
         restValue,
         context,
         async (restValue, _context) => {
@@ -1409,7 +1434,7 @@ export const evaluateExpr = async (
   //   ast,
   //   context,
   // });
-  return (await mapEffect(result, context, async (result, context) => {
+  return (await flatMapEffect(result, context, async (result, context) => {
     assert(
       result !== null,
       SystemError.evaluationError(
