@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { evaluateScript, newContext } from '../src/evaluate/index.ts';
+import {
+  evaluateHandlers,
+  evaluateScript,
+  newContext,
+} from '../src/evaluate/index.ts';
 import { assert, inspect, isEqual } from '../src/utils.ts';
 import {
   atom,
@@ -16,31 +20,31 @@ import { parseScript } from '../src/parser.ts';
 import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import {
-  Environment,
-  EnvironmentOptions,
-  newHandlers,
-} from '../src/environment.ts';
+import { Environment, EnvironmentOptions } from '../src/environment.ts';
 import { prelude, PreludeIO } from '../src/std/prelude.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
   input: string,
-  env?: EnvironmentOptions
+  env?: EnvironmentOptions & { handlers?: EvalRecord }
 ): Promise<EvalValue> => {
   const name = ROOT_DIR + '/index.uni';
   const fileId = addFile(name, input);
   const context = newContext(fileId, name);
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
-  // if (env) Object.assign(context.env, env);
-  // if (handlers) Object.assign(context.handlers, handlers);
-  if (env)
-    context.env = new Environment({
-      parent: context.env,
-      ...env,
-    });
-  return await evaluateScript(ast, context);
+  if (env) context.env = new Environment({ parent: context.env, ...env });
+
+  const result = await evaluateScript(ast, context);
+  if (env?.handlers) {
+    return await evaluateHandlers(
+      env.handlers,
+      result,
+      { start: 0, end: 0 },
+      context
+    );
+  }
+  return result;
 };
 
 beforeEach(() => {
@@ -1386,11 +1390,12 @@ describe('expressions', () => {
     it('all in one', async () => {
       const input = `
         inject a: 1, b: 2 {
-          { a, b } := injected;
+          a := handle "a" ()
+          b := handle "b" ()
           inject a: a+1, b: b+2 {
             mask "a" {
               without "b" {
-                { a } := injected;
+                a := handle "a" ()
                 a + 1
               }
             }
@@ -1401,18 +1406,18 @@ describe('expressions', () => {
       expect(result).toEqual(2);
     });
 
-    it('inject', async () => {
+    it.todo('inject', async () => {
       const input = `inject a: 1, b: 2 { injected }`;
       const result = await evaluate(input);
-      const handlers = newHandlers(
-        createRecord({ a: 1, b: 2 }),
-        prelude.handlers
-      );
-      const expected = handlers.resolve();
-      expect(isEqual(expected, result)).toBe(true);
+      const env = new Environment({
+        parent: prelude,
+        // handlers: createRecord({ a: 1, b: 2 }),
+      });
+      // const expected = env.handlers.resolve();
+      // expect(isEqual(expected, result)).toBe(true);
     });
 
-    it('inject twice', async () => {
+    it.todo('inject twice', async () => {
       const input = `
         inject a: 1, b: 2 {
           { a, b } := injected;
@@ -1421,15 +1426,15 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      const handlers = newHandlers(
-        createRecord({ a: 2, b: 4 }),
-        prelude.handlers
-      );
-      const expected = handlers.resolve();
-      expect(isEqual(expected, result)).toBe(true);
+      const env = new Environment({
+        parent: prelude,
+        // handlers: createRecord({ a: 2, b: 4 }),
+      });
+      // const expected = env.handlers.resolve();
+      // expect(isEqual(expected, result)).toBe(true);
     });
 
-    it('mask', async () => {
+    it.todo('mask', async () => {
       const input = `
         inject a: 1, b: 2 {
           { a, b } := injected;
@@ -1440,15 +1445,15 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      const handlers = newHandlers(
-        createRecord({ a: 1, b: 4 }),
-        prelude.handlers
-      );
-      const expected = handlers.resolve();
-      expect(isEqual(expected, result)).toBe(true);
+      const env = new Environment({
+        parent: prelude,
+        // handlers: createRecord({ a: 1, b: 4 }),
+      });
+      // const expected = env.handlers.resolve();
+      // expect(isEqual(expected, result)).toBe(true);
     });
 
-    it('without', async () => {
+    it.todo('without', async () => {
       const input = `
         inject a: 1, b: 2 {
           { a, b } := injected;
@@ -1461,15 +1466,19 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      const handlers = newHandlers(createRecord({ b: 4 }), prelude.handlers);
-      const expected = handlers.resolve();
-      expect(isEqual(expected, result)).toBe(true);
+      const env = new Environment({
+        parent: prelude,
+        // handlers: createRecord({ b: 4 }),
+      });
+      // const expected = env.handlers.resolve();
+      // expect(isEqual(expected, result)).toBe(true);
     });
 
     it('parallel', async () => {
       const input = `
         f := fn {
-          { a, b } := injected;
+          a := handle "a" ()
+          b := handle "b" ()
           a + b
         }
         

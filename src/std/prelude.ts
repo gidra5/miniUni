@@ -1,4 +1,4 @@
-import { Environment, newHandlers } from '../environment.js';
+import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { Context } from '../evaluate/index.js';
 import { assert, inspect } from '../utils.js';
@@ -97,19 +97,19 @@ export const prelude: Context['env'] = new Environment({
       return createSet(value);
     }),
   },
-  handlers: {
-    [PreludeIO]: createRecord({
-      open: fn(2, async (cs, _path, callback) => {
-        assert(typeof _path === 'string');
-        const file = createRecord({
-          write: fn(1, () => null),
-          close: async () => null,
-        });
+});
 
-        assert(typeof callback === 'function');
-        return await fnPromise(callback)(cs, file);
-      }),
+export const preludeHandlers = createRecord({
+  [PreludeIO]: createRecord({
+    open: fn(2, async (cs, _path, callback) => {
+      assert(typeof _path === 'string');
+      const file = createRecord({
+        write: fn(1, () => null),
+        close: async () => null,
+      });
+
+      assert(typeof callback === 'function');
+      return await fnPromise(callback)(cs, file);
     }),
-    [ReturnHandler]: async (_, value) => value,
-  },
+  }),
 });

@@ -419,6 +419,7 @@ const operators = {
   },
 };
 
+const MaskEffect = Symbol('effect mask');
 const lazyOperators = {
   [NodeType.IMPORT]: unpromisify(async (ast: Tree, context: Context) => {
     const name = ast.data.name;
@@ -490,7 +491,7 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       assert(isRecord(value), 'expected record');
 
-      const env = new Environment({ parent: context.env, handlers: value });
+      const env = new Environment({ parent: context.env });
       const result = await evaluateBlock(body, { ...context, env });
 
       return await evaluateHandlers(value, result, getPosition(body), context);
@@ -499,21 +500,33 @@ const lazyOperators = {
   [NodeType.WITHOUT]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      if (!Array.isArray(value)) value = [value];
+    return await flatMapEffect(value, context, async (without, context) => {
+      if (!Array.isArray(without)) without = [without];
 
-      const env = context.env.withoutHandlers(value);
-      return await evaluateBlock(body, { ...context, env });
+      const env = new Environment({ parent: context.env });
+      const result = await evaluateBlock(body, { ...context, env });
+      assert(
+        !isEffect(result) || !without.includes(result.effect),
+        `effects from ${without.map((x) => String(x))} were disallowed`
+      );
+      return result;
     });
   }),
   [NodeType.MASK]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr, body] = ast.children;
     let value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      if (!Array.isArray(value)) value = [value];
+    return await flatMapEffect(value, context, async (mask, context) => {
+      if (!Array.isArray(mask)) mask = [mask];
 
-      const env = context.env.maskHandlers(value);
-      return await evaluateBlock(body, { ...context, env });
+      const env = new Environment({ parent: context.env });
+      const result = await evaluateBlock(body, { ...context, env });
+      if (!isEffect(result) || !mask.includes(result.effect)) return result;
+
+      return createEffect(
+        MaskEffect,
+        result.effect,
+        fnCont(() => result)
+      );
     });
   }),
 
@@ -1086,7 +1099,6 @@ const lazyOperators = {
       const bound = bindContext(result.envs, _context);
       if (isTopFunction) {
         bound.env.addReadonly('self', self);
-        bound.env.handlers = callerContext.env.handlers;
       }
 
       // inspect({
@@ -1207,7 +1219,7 @@ const tupleOperators = {
   ) => Promise<EvalValue>
 >;
 
-const evaluateHandlers = async (
+export const evaluateHandlers = async (
   handlers: EvalRecord,
   value: EvalValue,
   position: Position,
@@ -1228,6 +1240,10 @@ const evaluateHandlers = async (
       'expected return handler to be a function'
     );
     return fnPromise(returnHandler)(cs, value);
+  }
+
+  if (value.effect === MaskEffect && recordHas(handlers, value.value)) {
+    return await fnPromise(value.continuation)(cs, null);
   }
 
   if (!recordHas(handlers, value.effect)) {
@@ -1349,7 +1365,7 @@ const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      if (name === 'injected') return context.env.handlers.resolve();
+      // if (name === 'injected') return context.env.handlers.resolve();
       // inspect({
       //   tag: 'evaluateExpr name',
       //   name,

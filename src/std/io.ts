@@ -1,8 +1,10 @@
 import { SystemError } from '../error.js';
 import {
+  createEffect,
   EvalValue,
   fileHandle,
   fn,
+  fnCont,
   fnPromise,
   isRecord,
   recordGet,
@@ -37,30 +39,38 @@ export default module({
       'expected path to be absolute or relative'
     );
     const resolved = await resolvePath(_path, context.file);
-    const ioHandler = context.env.handlers.get(PreludeIO);
-    // inspect
-    assert(isRecord(ioHandler), 'expected io handler to be record');
 
-    const file = await new Promise<EvalValue>(async (resolve) => {
-      const open = recordGet(ioHandler, 'open');
-      assert(typeof open === 'function', 'expected open to be a function');
-      const curried = await fnPromise(open)(cs, resolved);
+    return createEffect(
+      PreludeIO,
+      null,
+      fnCont(async (cs, ioHandler) => {
+        assert(isRecord(ioHandler), 'expected io handler to be record');
 
-      assert(typeof curried === 'function', 'expected open to take callback');
-      fnPromise(curried)(
-        cs,
-        fn(1, (_cs, file) => {
-          resolve(file);
-          return null;
-        })
-      );
-    });
-    assert(isRecord(file), 'expected file handle to be record');
-    const close = recordGet(file, 'close');
-    assert(typeof close === 'function', 'expected close to be a function');
-    const result = await fnPromise(callback)(cs, fileHandle(file));
-    await fnPromise(close)(cs, []);
+        const file = await new Promise<EvalValue>(async (resolve) => {
+          const open = recordGet(ioHandler, 'open');
+          assert(typeof open === 'function', 'expected open to be a function');
+          const curried = await fnPromise(open)(cs, resolved);
 
-    return result;
+          assert(
+            typeof curried === 'function',
+            'expected open to take callback'
+          );
+          fnPromise(curried)(
+            cs,
+            fn(1, (_cs, file) => {
+              resolve(file);
+              return null;
+            })
+          );
+        });
+        assert(isRecord(file), 'expected file handle to be record');
+        const close = recordGet(file, 'close');
+        assert(typeof close === 'function', 'expected close to be a function');
+        const result = await fnPromise(callback)(cs, fileHandle(file));
+        await fnPromise(close)(cs, []);
+
+        return result;
+      })
+    );
   }),
 });
