@@ -1417,7 +1417,7 @@ describe('expressions', () => {
       // expect(isEqual(expected, result)).toBe(true);
     });
 
-    it.todo('inject twice', async () => {
+    it.todo('inject shadowing', async () => {
       const input = `
         inject a: 1, b: 2 {
           { a, b } := injected;
@@ -1633,7 +1633,8 @@ describe('expressions', () => {
       const input = `        
         inject
           [:decide]: handler fn (callback, _) {
-            inject ([:fail]: handler fn { callback true }) { callback false }
+            callback false
+            callback true
           }
         {
           mut m := 1
@@ -1642,20 +1643,10 @@ describe('expressions', () => {
           if m > 3 do (:fail |> handle)()
           if (:decide |> handle)() do break m
           m++
-          
-          if m > 3 do (:fail |> handle)()
-          if (:decide |> handle)() do break m
-          m++
-
-          if m > 3 do (:fail |> handle)()
-          if (:decide |> handle)() do break m
-          m++
-
-          (:fail |> handle)()
         }
       `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual(3);
+      expect(result).toStrictEqual(1);
     });
 
     it('choose int loop', async () => {

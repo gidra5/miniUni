@@ -1,11 +1,5 @@
 import { assert, inspect } from './utils.js';
-import {
-  createRecord,
-  EvalRecord,
-  EvalValue,
-  isRecord,
-  recordOmit,
-} from './values.js';
+import { createRecord, EvalRecord, EvalValue, isRecord } from './values.js';
 
 export type EnvironmentOptions = {
   parent?: Environment | null;
