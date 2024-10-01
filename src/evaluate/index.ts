@@ -63,21 +63,7 @@ import {
 import { validate } from '../validate.js';
 import { inject, Injectable, register } from '../injector.js';
 import path from 'node:path';
-import {
-  Handlers,
-  maskHandlers,
-  newHandlers,
-  withoutHandlers,
-  Environment,
-  newEnvironment,
-  environmentHas,
-  environmentKeys,
-  environmentGet,
-  environmentSet,
-  environmentAdd,
-  environmentHasReadonly,
-  environmentAddReadonly,
-} from '../environment.js';
+import { Environment } from '../environment.js';
 import { Position } from '../position.js';
 import {
   bind,
@@ -99,7 +85,7 @@ export type Context = {
 export const forkContext = (context: Context): Context => {
   return {
     ...context,
-    env: newEnvironment({ parent: context.env }),
+    env: new Environment({ parent: context.env }),
   };
 };
 
@@ -107,7 +93,7 @@ export const newContext = (fileId: number, file: string): Context => {
   return {
     file,
     fileId,
-    env: newEnvironment({ parent: prelude }),
+    env: new Environment({ parent: prelude }),
   };
 };
 
@@ -144,7 +130,7 @@ const incAssign = (
   for (const [patternKey, value] of envs.readonly.entries()) {
     if (typeof patternKey === 'string') {
       assert(
-        !environmentHasReadonly(context.env, patternKey),
+        !context.env.hasReadonly(patternKey),
 
         SystemError.immutableVariableAssignment(
           patternKey,
@@ -152,18 +138,18 @@ const incAssign = (
         ).withFileId(context.fileId)
       );
       assert(
-        environmentHas(context.env, patternKey),
+        context.env.has(patternKey),
         SystemError.invalidAssignment(
           patternKey,
           position,
           getClosestName(
             patternKey,
-            environmentKeys(context.env).filter((k) => typeof k === 'string')
+            context.env.keys().filter((k) => typeof k === 'string')
           )
         ).withFileId(context.fileId)
       );
 
-      const v = environmentGet(context.env, patternKey);
+      const v = context.env.get(patternKey);
       assert(
         typeof v === 'number',
         SystemError.invalidIncrement(String(patternKey), position).withFileId(
@@ -176,7 +162,7 @@ const incAssign = (
           context.fileId
         )
       );
-      environmentSet(context.env, patternKey, v + value);
+      context.env.set(patternKey, v + value);
     } else {
       const [patternTarget, patternKeyValue] = patternKey;
       if (Array.isArray(patternTarget)) {
@@ -249,20 +235,20 @@ const assign = (
   for (const [patternKey, value] of envs.readonly.entries()) {
     if (typeof patternKey === 'string') {
       assert(
-        !environmentHasReadonly(context.env, patternKey),
+        !context.env.hasReadonly(patternKey),
         SystemError.immutableVariableAssignment(
           patternKey,
           position
         ).withFileId(context.fileId)
       );
       assert(
-        environmentSet(context.env, patternKey, value),
+        context.env.set(patternKey, value),
         SystemError.invalidAssignment(
           patternKey,
           position,
           getClosestName(
             patternKey,
-            environmentKeys(context.env).filter((k) => typeof k === 'string')
+            context.env.keys().filter((k) => typeof k === 'string')
           )
         ).withFileId(context.fileId)
       );
@@ -300,10 +286,10 @@ function bindExport(
 
     if (value === null) continue;
     assert(
-      !environmentHas(context.env, key),
+      !context.env.has(key),
       'cannot declare name inside module more than once'
     );
-    environmentAddReadonly(context.env, key, value);
+    context.env.addReadonly(key, value);
   }
 
   for (const [key, value] of envs.env.entries()) {
@@ -311,21 +297,21 @@ function bindExport(
 
     if (value === null) continue;
     assert(
-      !environmentHas(context.env, key),
+      !context.env.has(key),
       'cannot declare name inside module more than once'
     );
-    environmentAdd(context.env, key, value);
+    context.env.add(key, value);
   }
 
   for (const [key, value] of envs.exports.entries()) {
     assert(typeof key === 'string', 'can only declare names');
     assert(
-      !environmentHas(context.env, key),
+      !context.env.has(key),
       'cannot declare name inside module more than once'
     );
 
     if (value === null) continue;
-    environmentAddReadonly(context.env, key, value);
+    context.env.addReadonly(key, value);
     recordSet(exports, key, value);
   }
 }
@@ -504,7 +490,7 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       assert(isRecord(value), 'expected record');
 
-      const env = newEnvironment({ parent: context.env, handlers: value });
+      const env = new Environment({ parent: context.env, handlers: value });
       const result = await evaluateBlock(body, { ...context, env });
 
       return await evaluateHandlers(value, result, getPosition(body), context);
@@ -516,7 +502,7 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
-      const env = withoutHandlers(context.env, value);
+      const env = context.env.withoutHandlers(value);
       return await evaluateBlock(body, { ...context, env });
     });
   }),
@@ -526,7 +512,7 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
-      const env = maskHandlers(context.env, value);
+      const env = context.env.maskHandlers(value);
       return await evaluateBlock(body, { ...context, env });
     });
   }),
@@ -982,8 +968,7 @@ const lazyOperators = {
       return createEffect(label, ['continue', value]);
     });
     const forked = forkContext(context);
-    environmentAddReadonly(
-      forked.env,
+    forked.env.addReadonly(
       ast.data.name,
       createRecord({
         break: labelBreak,
@@ -1100,7 +1085,7 @@ const lazyOperators = {
       );
       const bound = bindContext(result.envs, _context);
       if (isTopFunction) {
-        environmentAddReadonly(bound.env, 'self', self);
+        bound.env.addReadonly('self', self);
         bound.env.handlers = callerContext.env.handlers;
       }
 
@@ -1372,12 +1357,12 @@ const evaluateStatement = async (
       //   readonly: context.readonly,
       // });
       assert(
-        environmentHas(context.env, name),
+        context.env.has(name),
         SystemError.undeclaredName(name, getPosition(ast)).withFileId(
           context.fileId
         )
       );
-      return environmentGet(context.env, name);
+      return context.env.get(name);
     }
     case NodeType.NUMBER:
     case NodeType.STRING:

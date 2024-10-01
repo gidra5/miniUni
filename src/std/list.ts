@@ -1,4 +1,3 @@
-import { environmentGet } from '../environment.js';
 import { SystemError } from '../error.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
@@ -9,7 +8,7 @@ const listModule = module({});
 
 export const listMethods = (() => {
   return {
-    length: environmentGet(prelude, 'length'),
+    length: prelude.get('length'),
     slice: fn(2, ([position, context], item, args) => {
       const fileId = context.fileId;
       const sliceErrorFactory = SystemError.invalidArgumentType(

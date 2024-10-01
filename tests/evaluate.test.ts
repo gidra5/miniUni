@@ -17,8 +17,8 @@ import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
 import {
+  Environment,
   EnvironmentOptions,
-  newEnvironment,
   newHandlers,
 } from '../src/environment.ts';
 import { prelude, PreludeIO } from '../src/std/prelude.ts';
@@ -36,7 +36,7 @@ const evaluate = async (
   // if (env) Object.assign(context.env, env);
   // if (handlers) Object.assign(context.handlers, handlers);
   if (env)
-    context.env = newEnvironment({
+    context.env = new Environment({
       parent: context.env,
       ...env,
     });
@@ -1062,7 +1062,7 @@ describe('expressions', () => {
             handle = file
           }
 
-          handle.write("world")
+          handle.write("world") // error
         `;
         const result = await evaluate(input);
         expect(result).toBe('hello');
@@ -1079,7 +1079,7 @@ describe('expressions', () => {
             fn do file.write("world")
           }
 
-          handle()
+          handle() // error
         `;
         const result = await evaluate(input);
         expect(result).toBe('hello');
@@ -1096,7 +1096,7 @@ describe('expressions', () => {
             :done, file
           }
 
-          handle.write("world")
+          handle.write("world") // error
         `;
         const result = await evaluate(input);
         expect(result).toBe('hello');

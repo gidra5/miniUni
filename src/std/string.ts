@@ -2,14 +2,13 @@ import { SystemError } from '../error.js';
 import { fn } from '../values.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { environmentGet } from '../environment.js';
 import { prelude } from './prelude.js';
 
 const stringModule = module({});
 
 export const stringMethods = (() => {
   return {
-    length: environmentGet(prelude, 'length'),
+    length: prelude.get('length'),
     split: fn(2, ([position, context], target, separator) => {
       const fileId = context.fileId;
       const splitErrorFactory = SystemError.invalidArgumentType(

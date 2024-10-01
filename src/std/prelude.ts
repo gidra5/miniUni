@@ -1,4 +1,4 @@
-import { newEnvironment, newHandlers } from '../environment.js';
+import { Environment, newHandlers } from '../environment.js';
 import { SystemError } from '../error.js';
 import { Context } from '../evaluate/index.js';
 import { assert, inspect } from '../utils.js';
@@ -20,7 +20,7 @@ import {
 
 export const ReturnHandler = Symbol('return_handler');
 export const PreludeIO = Symbol('prelude io');
-export const prelude: Context['env'] = newEnvironment({
+export const prelude: Context['env'] = new Environment({
   readonly: {
     return_handler: ReturnHandler,
     handle: fn(2, (_, effect, value) => {
@@ -97,7 +97,7 @@ export const prelude: Context['env'] = newEnvironment({
       return createSet(value);
     }),
   },
-  handlers: newHandlers({
+  handlers: {
     [PreludeIO]: createRecord({
       open: fn(2, async (cs, _path, callback) => {
         assert(typeof _path === 'string');
@@ -111,5 +111,5 @@ export const prelude: Context['env'] = newEnvironment({
       }),
     }),
     [ReturnHandler]: async (_, value) => value,
-  }),
+  },
 });

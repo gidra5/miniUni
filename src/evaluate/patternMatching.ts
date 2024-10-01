@@ -1,11 +1,5 @@
 import { NodeType, Tree } from '../ast.js';
-import {
-  environmentAdd,
-  environmentAddReadonly,
-  environmentHas,
-  environmentHasReadonly,
-  newEnvironment,
-} from '../environment.js';
+import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { getPosition } from '../parser.js';
 import { assert, isEqual, unreachable } from '../utils.js';
@@ -464,22 +458,22 @@ export const bind = (envs: PatternTestEnvs, context: Context) => {
     assert(typeof key === 'string', 'can only declare names');
 
     if (value === null) continue;
-    if (environmentHasReadonly(context.env, key)) readonly[key] = value;
-    else if (environmentHas(context.env, key)) readonly[key] = value;
-    else environmentAddReadonly(context.env, key, value);
+    if (context.env.hasReadonly(key)) readonly[key] = value;
+    else if (context.env.has(key)) readonly[key] = value;
+    else context.env.addReadonly(key, value);
   }
   for (const [key, value] of envs.env.entries()) {
     assert(typeof key === 'string', 'can only declare names');
 
     if (value === null) continue;
-    if (environmentHasReadonly(context.env, key)) mutable[key] = value;
-    else if (environmentHas(context.env, key)) mutable[key] = value;
-    else environmentAdd(context.env, key, value);
+    if (context.env.hasReadonly(key)) mutable[key] = value;
+    else if (context.env.has(key)) mutable[key] = value;
+    else context.env.add(key, value);
   }
 
   // spill redeclared names to forked environment
   if (Object.keys(readonly).length > 0 || Object.keys(mutable).length > 0) {
-    context.env = newEnvironment({ parent: context.env, mutable, readonly });
+    context.env = new Environment({ parent: context.env, mutable, readonly });
   }
 
   assert(
