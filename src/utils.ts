@@ -147,3 +147,7 @@ export const pick = <T extends Record<string, any>, K extends keyof T>(
   for (const key of keys) copy[key] = obj[key];
   return copy as Pick<T, K>;
 };
+
+export const copyMap = <T, U>(map: Map<T, U>): Map<T, U> => {
+  return new Map<T, U>([...map]);
+};

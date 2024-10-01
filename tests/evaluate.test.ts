@@ -1495,29 +1495,50 @@ describe('expressions', () => {
       expect(result).toStrictEqual([123, 456]);
     });
 
+    it('multiple continuation calls with mutations and refs', async () => {
+      const input = `        
+          _handler :=
+            [:do]: handler fn (callback, _) {
+              callback()
+              callback()
+            }
+          
+          m := inject _handler {
+            m := (1,)
+            handle (:do) ()
+            m[0] = m[0] + 1
+            m
+          }
+
+          m
+        `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([3]);
+    });
+
     it.todo(
       'multiple continuation calls with mutations and closure',
       async () => {
         const input = `        
-        _handler :=
-          [:do]: handler fn (callback, _) {
-            callback()
-            callback()
+          _handler :=
+            [:do]: handler fn (callback, _) {
+              callback()
+              callback()
+            }
+          
+          mut n := 1
+          m, f := inject _handler {
+            mut m := 1
+            f := fn do m
+            handle (:do) ()
+            g := fn do m, f()
+            m = m + 1
+            n = n + 1
+            m, g
           }
-        
-        mut n := 1
-        m, f := inject _handler {
-          mut m := 1
-          f := fn do m
-          handle (:do) ()
-          g := fn do m, f()
-          m = m + 1
-          n = n + 1
-          m, g
-        }
 
-        m, n, f()
-      `;
+          m, n, f()
+        `;
         const result = await evaluate(input);
         expect(result).toStrictEqual([2, 3, [2, 2]]);
       }
@@ -1542,6 +1563,25 @@ describe('expressions', () => {
       `;
       const result = await evaluate(input);
       expect(result).toStrictEqual([2, 3]);
+    });
+
+    it.todo('multiple continuation calls with inner mutation', async () => {
+      const input = `        
+        _handler :=
+          [:do]: handler fn (callback, _) {
+            callback()
+            callback()
+          }
+        
+        inject _handler {
+          mut m := 1
+          handle (:do) ()
+          m = m + 1
+          m
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(2);
     });
 
     it('no continuation calls sequential', async () => {
@@ -1575,6 +1615,73 @@ describe('expressions', () => {
       `;
       const result = await evaluate(input);
       expect(result).toStrictEqual(123);
+    });
+
+    it('pythagorean triple 3 example', async () => {
+      const input = `
+        decide := :decide |> handle
+        fail := :fail |> handle
+        
+        false_branch_first :=
+          [:decide]: handler fn (callback, _) {
+            fail_handler := [:fail]: handler fn {
+              // print("fail")
+              callback false
+            }
+            inject fail_handler { callback true }
+          };
+          
+        inject false_branch_first {
+          mut m, n := 1, 3
+          a := loop {
+            // print("m, n", m, n)
+            if m > n do fail()
+            // d := decide()
+            // print("d, m", d, m)
+            // if d do break m
+            if print(decide()) do break (print m)
+            m++
+          }
+          print("a", a)
+          if a != 2 do fail()
+          a
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(2);
+    });
+
+    it('pythagorean triple 2 example', async () => {
+      const input = `
+        decide := :decide |> handle
+        fail := :fail |> handle
+        choose_int := fn (m, n) {
+          print("m, n", m, n)
+          if m > n do fail()
+          d := decide()
+          r := if d do m else self(m+1, n)
+          // print("r, d", r, d)
+          r
+        }
+        
+        false_branch_first :=
+          [:decide]: handler fn (callback, _) {
+            fail_handler := [:fail]: handler fn {
+              // print("fail")
+              callback false
+            }
+            inject fail_handler { callback true }
+          };
+          
+        inject false_branch_first {
+          a := choose_int(1, 3)
+          // print("a", a)
+          if a != 2 do fail()
+          a
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(2);
     });
 
     it('pythagorean triple example', async () => {
