@@ -9,7 +9,9 @@ import {
 
 export type Environment = {
   parent: Environment | null;
-  entries: Map<EvalValue, EvalValue>;
+  readonly: Map<EvalValue, EvalValue>;
+  mutable: Map<EvalValue, EvalValue>;
+  handlers: Handlers;
 };
 
 const envParent = Symbol();
@@ -68,13 +70,17 @@ export const handlersHas = (env: Handlers, key: EvalValue): boolean => {
   return false;
 };
 
-export const maskHandlers = (env: Handlers, keys: EvalValue[]): Handlers => {
+export const maskHandlers = (
+  _env: Environment,
+  keys: EvalValue[]
+): Environment => {
+  const env = _env.handlers;
   const resolveKey = (key: EvalValue, _env = env) => {
     if (_env.own(key)) return _env;
     if (_env[envParent]) return resolveKey(key, _env[envParent]);
     return null;
   };
-  return {
+  const handlers = {
     get(key) {
       const _env = resolveKey(key);
       if (!_env) return null;
@@ -114,10 +120,21 @@ export const maskHandlers = (env: Handlers, keys: EvalValue[]): Handlers => {
 
     [envParent]: env,
   };
+
+  return {
+    parent: _env,
+    readonly: new Map(),
+    mutable: new Map(),
+    handlers,
+  };
 };
 
-export const withoutHandlers = (env: Handlers, keys: EvalValue[]): Handlers => {
-  return {
+export const withoutHandlers = (
+  _env: Environment,
+  keys: EvalValue[]
+): Environment => {
+  const env = _env.handlers;
+  const handlers: Handlers = {
     get(key) {
       if (keys.includes(key)) return null;
       return env.get(key);
@@ -142,18 +159,35 @@ export const withoutHandlers = (env: Handlers, keys: EvalValue[]): Handlers => {
 
     [envParent]: env,
   };
+  return {
+    parent: _env,
+    readonly: new Map(),
+    mutable: new Map(),
+    handlers,
+  };
 };
 
-export const newEnvironment = (
-  entries: Record<PropertyKey, EvalValue> | EvalRecord = new Map(),
-  parent: Environment | null = null
-): Environment => ({
+export type EnvironmentOptions = {
+  parent?: Environment | null;
+  readonly?: Record<PropertyKey, EvalValue> | EvalRecord;
+  mutable?: Record<PropertyKey, EvalValue> | EvalRecord;
+  handlers?: Record<PropertyKey, EvalValue> | EvalRecord;
+};
+export const newEnvironment = ({
+  parent = null,
+  readonly = new Map(),
+  mutable = new Map(),
+  handlers = new Map(),
+}: EnvironmentOptions = {}): Environment => ({
   parent,
-  entries: isRecord(entries) ? entries : createRecord(entries),
+  readonly: isRecord(readonly) ? readonly : createRecord(readonly),
+  mutable: isRecord(mutable) ? mutable : createRecord(mutable),
+  handlers: newHandlers(handlers, parent?.handlers),
 });
 
 export const environmentGet = (env: Environment, key: EvalValue): EvalValue => {
-  if (env.entries.has(key)) return env.entries.get(key)!;
+  if (env.readonly.has(key)) return env.readonly.get(key)!;
+  if (env.mutable.has(key)) return env.mutable.get(key)!;
   if (env.parent) return environmentGet(env.parent, key);
   return null;
 };
@@ -163,17 +197,29 @@ export const environmentSet = (
   key: EvalValue,
   value: EvalValue
 ): boolean => {
-  if (env.entries.has(key)) {
-    if (value === null) env.entries.delete(key);
-    else env.entries.set(key, value);
+  if (env.mutable.has(key)) {
+    if (value === null) env.mutable.delete(key);
+    else env.mutable.set(key, value);
     return true;
   }
-  if (env.parent) return environmentSet(env.parent, key, value);
-  else return false;
+  if (env.readonly.has(key)) return false;
+  else if (!env.parent) return false;
+  else return environmentSet(env.parent, key, value);
+};
+
+export const environmentHasReadonly = (
+  env: Environment,
+  key: EvalValue
+): boolean => {
+  if (env.readonly.has(key)) return true;
+  if (env.mutable.has(key)) return false;
+  if (!env.parent) return false;
+  return environmentHasReadonly(env.parent, key);
 };
 
 export const environmentHas = (env: Environment, key: EvalValue): boolean => {
-  if (env.entries.has(key)) return true;
+  if (env.mutable.has(key)) return true;
+  if (env.readonly.has(key)) return true;
   if (env.parent) return environmentHas(env.parent, key);
   return false;
 };
@@ -183,12 +229,23 @@ export const environmentAdd = (
   key: EvalValue,
   value: EvalValue = null
 ) => {
-  assert(!env.entries.has(key), 'expected key not to be in environment');
-  env.entries.set(key, value);
+  assert(!env.mutable.has(key), 'expected key not to be in environment');
+  assert(!env.readonly.has(key), 'expected key not to be in environment');
+  env.mutable.set(key, value);
+};
+
+export const environmentAddReadonly = (
+  env: Environment,
+  key: EvalValue,
+  value: EvalValue = null
+) => {
+  assert(!env.readonly.has(key), 'expected key not to be in environment');
+  assert(!env.mutable.has(key), 'expected key not to be in environment');
+  env.readonly.set(key, value);
 };
 
 export const environmentKeys = (env: Environment): EvalValue[] => {
-  const keys: EvalValue[] = [...env.entries.keys()];
+  const keys: EvalValue[] = [...env.readonly.keys(), ...env.mutable.keys()];
   if (env.parent) keys.push(...environmentKeys(env.parent));
   return [...new Set(keys)];
 };

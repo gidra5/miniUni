@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Context, evaluateScript, newContext } from '../src/evaluate/index.ts';
+import { evaluateScript, newContext } from '../src/evaluate/index.ts';
 import { assert, inspect, isEqual } from '../src/utils.ts';
 import {
   atom,
@@ -16,14 +16,17 @@ import { parseScript } from '../src/parser.ts';
 import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { newEnvironment, newHandlers } from '../src/environment.ts';
-import { preludeHandlers, PreludeIO } from '../src/std/prelude.ts';
+import {
+  EnvironmentOptions,
+  newEnvironment,
+  newHandlers,
+} from '../src/environment.ts';
+import { prelude, PreludeIO } from '../src/std/prelude.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
   input: string,
-  env?: EvalRecord,
-  handlers?: EvalRecord
+  env?: EnvironmentOptions
 ): Promise<EvalValue> => {
   const name = ROOT_DIR + '/index.uni';
   const fileId = addFile(name, input);
@@ -32,8 +35,11 @@ const evaluate = async (
   const ast = parseScript(tokens);
   // if (env) Object.assign(context.env, env);
   // if (handlers) Object.assign(context.handlers, handlers);
-  if (env) context.env = newEnvironment(env, context.env);
-  if (handlers) context.handlers = newHandlers(handlers, context.handlers);
+  if (env)
+    context.env = newEnvironment({
+      parent: context.env,
+      ...env,
+    });
   return await evaluateScript(ast, context);
 };
 
@@ -66,7 +72,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('split lines', async () => {
-    const env: EvalRecord = createRecord({
+    const mutable: EvalRecord = createRecord({
       document: `
         1abc2
         pqr3stu8vwx
@@ -100,7 +106,7 @@ describe('advent of code 2023 day 1 single', () => {
         lines = map lines fn line do line.replace "\\\\s+" ""
         filter lines fn line -> line != ""
       `;
-    const result = await evaluate(input, env);
+    const result = await evaluate(input, { mutable });
     expect(result).toEqual([
       '1abc2',
       'pqr3stu8vwx',
@@ -110,7 +116,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('parse numbers', async () => {
-    const env: EvalRecord = createRecord({
+    const mutable: EvalRecord = createRecord({
       lines: ['1abc2', 'pqr3stu8vwx', 'a1b2c3d4e5f', 'treb7uchet'],
       flat_map: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
@@ -139,7 +145,7 @@ describe('advent of code 2023 day 1 single', () => {
           digits[0] * 10, digits[1]
         }
       `;
-    const result = await evaluate(input, env);
+    const result = await evaluate(input, { mutable });
     expect(result).toEqual([10, 2, 30, 8, 10, 5, 70, 7]);
   });
 
@@ -961,9 +967,8 @@ describe('expressions', () => {
           }),
         });
         const handlers = createRecord({ [PreludeIO]: ioHandler });
-        const env = createRecord();
 
-        const result = await evaluate(input, env, handlers);
+        const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -999,9 +1004,8 @@ describe('expressions', () => {
           }),
         });
         const handlers = createRecord({ [PreludeIO]: ioHandler });
-        const env = createRecord();
 
-        const result = await evaluate(input, env, handlers);
+        const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -1036,9 +1040,8 @@ describe('expressions', () => {
           }),
         });
         const handlers = createRecord({ [PreludeIO]: ioHandler });
-        const env = createRecord();
 
-        const result = await evaluate(input, env, handlers);
+        const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
         expect(written).toEqual(['hello']);
         expect(opened).toBe(true);
@@ -1403,7 +1406,7 @@ describe('expressions', () => {
       const result = await evaluate(input);
       const handlers = newHandlers(
         createRecord({ a: 1, b: 2 }),
-        preludeHandlers
+        prelude.handlers
       );
       const expected = handlers.resolve();
       expect(isEqual(expected, result)).toBe(true);
@@ -1420,7 +1423,7 @@ describe('expressions', () => {
       const result = await evaluate(input);
       const handlers = newHandlers(
         createRecord({ a: 2, b: 4 }),
-        preludeHandlers
+        prelude.handlers
       );
       const expected = handlers.resolve();
       expect(isEqual(expected, result)).toBe(true);
@@ -1439,7 +1442,7 @@ describe('expressions', () => {
       const result = await evaluate(input);
       const handlers = newHandlers(
         createRecord({ a: 1, b: 4 }),
-        preludeHandlers
+        prelude.handlers
       );
       const expected = handlers.resolve();
       expect(isEqual(expected, result)).toBe(true);
@@ -1458,7 +1461,7 @@ describe('expressions', () => {
         }
       `;
       const result = await evaluate(input);
-      const handlers = newHandlers(createRecord({ b: 4 }), preludeHandlers);
+      const handlers = newHandlers(createRecord({ b: 4 }), prelude.handlers);
       const expected = handlers.resolve();
       expect(isEqual(expected, result)).toBe(true);
     });
@@ -1617,7 +1620,36 @@ describe('expressions', () => {
       expect(result).toStrictEqual(123);
     });
 
-    it('pythagorean triple 3 example', async () => {
+    it.todo('choose max int loop', async () => {
+      const input = `        
+        inject
+          [:decide]: handler fn (callback, _) {
+            inject ([:fail]: handler fn { callback true }) { callback false }
+          }
+        {
+          mut m := 1
+          inject ([:break]: handler fn (_, v) do v) ->
+
+          if m > 3 do (:fail |> handle)()
+          if (:decide |> handle)() do break m
+          m++
+          
+          if m > 3 do (:fail |> handle)()
+          if (:decide |> handle)() do break m
+          m++
+
+          if m > 3 do (:fail |> handle)()
+          if (:decide |> handle)() do break m
+          m++
+
+          (:fail |> handle)()
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(3);
+    });
+
+    it('choose int loop', async () => {
       const input = `
         decide := :decide |> handle
         fail := :fail |> handle
@@ -1625,7 +1657,6 @@ describe('expressions', () => {
         false_branch_first :=
           [:decide]: handler fn (callback, _) {
             fail_handler := [:fail]: handler fn {
-              // print("fail")
               callback false
             }
             inject fail_handler { callback true }
@@ -1634,15 +1665,10 @@ describe('expressions', () => {
         inject false_branch_first {
           mut m, n := 1, 3
           a := loop {
-            // print("m, n", m, n)
             if m > n do fail()
-            // d := decide()
-            // print("d, m", d, m)
-            // if d do break m
-            if print(decide()) do break (print m)
+            if decide() do break m
             m++
           }
-          print("a", a)
           if a != 2 do fail()
           a
         }
@@ -1651,23 +1677,18 @@ describe('expressions', () => {
       expect(result).toStrictEqual(2);
     });
 
-    it('pythagorean triple 2 example', async () => {
+    it('choose int recursion', async () => {
       const input = `
         decide := :decide |> handle
         fail := :fail |> handle
         choose_int := fn (m, n) {
-          print("m, n", m, n)
           if m > n do fail()
-          d := decide()
-          r := if d do m else self(m+1, n)
-          // print("r, d", r, d)
-          r
+          if decide() do m else self(m+1, n)
         }
         
         false_branch_first :=
           [:decide]: handler fn (callback, _) {
             fail_handler := [:fail]: handler fn {
-              // print("fail")
               callback false
             }
             inject fail_handler { callback true }
@@ -1675,7 +1696,6 @@ describe('expressions', () => {
           
         inject false_branch_first {
           a := choose_int(1, 3)
-          // print("a", a)
           if a != 2 do fail()
           a
         }

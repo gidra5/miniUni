@@ -20,6 +20,7 @@ import {
 import { parseTokens } from '../tokens.js';
 import {
   assert,
+  copyMap,
   eventLoopYield,
   getClosestName,
   inspect,
@@ -74,6 +75,8 @@ import {
   environmentGet,
   environmentSet,
   environmentAdd,
+  environmentHasReadonly,
+  environmentAddReadonly,
 } from '../environment.js';
 import { Position } from '../position.js';
 import {
@@ -82,7 +85,7 @@ import {
   PatternTestEnvs,
   testPattern,
 } from './patternMatching.js';
-import { prelude, preludeHandlers, ReturnHandler } from '../std/prelude.js';
+import { prelude, ReturnHandler } from '../std/prelude.js';
 import { ModuleDefault } from '../module.js';
 import { listMethods } from '../std/list.js';
 import { stringMethods } from '../std/string.js';
@@ -90,16 +93,13 @@ import { stringMethods } from '../std/string.js';
 export type Context = {
   file: string;
   fileId: number;
-  readonly: Environment;
   env: Environment;
-  handlers: Handlers;
 };
 
 export const forkContext = (context: Context): Context => {
   return {
     ...context,
-    env: newEnvironment({}, context.env),
-    readonly: newEnvironment({}, context.readonly),
+    env: newEnvironment({ parent: context.env }),
   };
 };
 
@@ -107,9 +107,7 @@ export const newContext = (fileId: number, file: string): Context => {
   return {
     file,
     fileId,
-    env: newEnvironment(),
-    readonly: newEnvironment({}, prelude),
-    handlers: newHandlers({}, preludeHandlers),
+    env: newEnvironment({ parent: prelude }),
   };
 };
 
@@ -146,7 +144,7 @@ const incAssign = (
   for (const [patternKey, value] of envs.readonly.entries()) {
     if (typeof patternKey === 'string') {
       assert(
-        !environmentHas(context.readonly, patternKey),
+        !environmentHasReadonly(context.env, patternKey),
 
         SystemError.immutableVariableAssignment(
           patternKey,
@@ -251,7 +249,7 @@ const assign = (
   for (const [patternKey, value] of envs.readonly.entries()) {
     if (typeof patternKey === 'string') {
       assert(
-        !environmentHas(context.readonly, patternKey),
+        !environmentHasReadonly(context.env, patternKey),
         SystemError.immutableVariableAssignment(
           patternKey,
           position
@@ -302,14 +300,10 @@ function bindExport(
 
     if (value === null) continue;
     assert(
-      !context.readonly.entries.has(key),
+      !environmentHas(context.env, key),
       'cannot declare name inside module more than once'
     );
-    assert(
-      !context.env.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
-    environmentAdd(context.readonly, key, value);
+    environmentAddReadonly(context.env, key, value);
   }
 
   for (const [key, value] of envs.env.entries()) {
@@ -317,11 +311,7 @@ function bindExport(
 
     if (value === null) continue;
     assert(
-      !context.readonly.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
-    assert(
-      !context.env.entries.has(key),
+      !environmentHas(context.env, key),
       'cannot declare name inside module more than once'
     );
     environmentAdd(context.env, key, value);
@@ -330,16 +320,12 @@ function bindExport(
   for (const [key, value] of envs.exports.entries()) {
     assert(typeof key === 'string', 'can only declare names');
     assert(
-      !context.readonly.entries.has(key),
-      'cannot declare name inside module more than once'
-    );
-    assert(
-      !context.env.entries.has(key),
+      !environmentHas(context.env, key),
       'cannot declare name inside module more than once'
     );
 
     if (value === null) continue;
-    environmentAdd(context.readonly, key, value);
+    environmentAddReadonly(context.env, key, value);
     recordSet(exports, key, value);
   }
 }
@@ -518,8 +504,8 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       assert(isRecord(value), 'expected record');
 
-      const handlers = newHandlers(value, context.handlers);
-      const result = await evaluateBlock(body, { ...context, handlers });
+      const env = newEnvironment({ parent: context.env, handlers: value });
+      const result = await evaluateBlock(body, { ...context, env });
 
       return await evaluateHandlers(value, result, getPosition(body), context);
     });
@@ -530,8 +516,8 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
-      const handlers = withoutHandlers(context.handlers, value);
-      return await evaluateBlock(body, { ...context, handlers });
+      const env = withoutHandlers(context.env, value);
+      return await evaluateBlock(body, { ...context, env });
     });
   }),
   [NodeType.MASK]: unpromisify(async (ast: Tree, context: Context) => {
@@ -540,8 +526,8 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (value, context) => {
       if (!Array.isArray(value)) value = [value];
 
-      const handlers = maskHandlers(context.handlers, value);
-      return await evaluateBlock(body, { ...context, handlers });
+      const env = maskHandlers(context.env, value);
+      return await evaluateBlock(body, { ...context, env });
     });
   }),
 
@@ -794,14 +780,15 @@ const lazyOperators = {
   [NodeType.DECLARE]: unpromisify(async (ast: Tree, _context: Context) => {
     const [pattern, expr] = ast.children;
     const value = await evaluateStatement(expr, _context);
+    // inspect({
+    //   tag: 'evaluateExpr declare',
+    //   pattern,
+    //   value,
+    // });
     return await flatMapEffect(value, _context, async (value, context) => {
-      // inspect({
-      //   tag: 'evaluateExpr declare',
-      //   value,
-      //   context,
-      // });
       const result = await testPattern(pattern, value, context);
       assert(result.matched, 'expected pattern to match');
+      // bind(result.envs, _context);
       bind(result.envs, context);
       // inspect({
       //   tag: 'fuck',
@@ -814,20 +801,20 @@ const lazyOperators = {
       return value;
     });
   }),
-  [NodeType.ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
+  [NodeType.ASSIGN]: unpromisify(async (ast: Tree, _context: Context) => {
     const [pattern, expr] = ast.children;
-    const value = await evaluateStatement(expr, context);
-    return await flatMapEffect(value, context, async (value, context) => {
+    const value = await evaluateStatement(expr, _context);
+    return await flatMapEffect(value, _context, async (value, context) => {
       const { matched, envs } = await testPattern(pattern, value, context);
       assert(matched, 'expected pattern to match');
       assign(envs, context, getPosition(pattern));
       return value;
     });
   }),
-  [NodeType.INC_ASSIGN]: unpromisify(async (ast: Tree, context: Context) => {
+  [NodeType.INC_ASSIGN]: unpromisify(async (ast: Tree, _context: Context) => {
     const [pattern, expr] = ast.children;
-    const value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (value, context) => {
+    const value = await evaluateExpr(expr, _context);
+    return await flatMapEffect(value, _context, async (value, context) => {
       assert(typeof value === 'number' || Array.isArray(value));
       const { matched, envs } = await testPattern(pattern, value, context);
       assert(matched, 'expected pattern to match');
@@ -995,8 +982,8 @@ const lazyOperators = {
       return createEffect(label, ['continue', value]);
     });
     const forked = forkContext(context);
-    environmentAdd(
-      forked.readonly,
+    environmentAddReadonly(
+      forked.env,
       ast.data.name,
       createRecord({
         break: labelBreak,
@@ -1113,8 +1100,8 @@ const lazyOperators = {
       );
       const bound = bindContext(result.envs, _context);
       if (isTopFunction) {
-        environmentAdd(bound.readonly, 'self', self);
-        bound.handlers = callerContext.handlers;
+        environmentAddReadonly(bound.env, 'self', self);
+        bound.env.handlers = callerContext.env.handlers;
       }
 
       // inspect({
@@ -1289,6 +1276,13 @@ const mapEffect = async (
     const { effect, value: v, continuation } = value;
     const nextCont: EvalFunction = fnCont(async (cs, _v) => {
       const v = await fnPromise(continuation)(cs, _v);
+      // const _context = { ...context };
+      // _context.env = { ..._context.env };
+      // _context.env.entries = copyMap(_context.env.entries);
+      // _context.readonly = { ..._context.readonly };
+      // _context.readonly.entries = copyMap(_context.readonly.entries);
+      // return await map(v, _context);
+
       return await map(v, context);
     });
     return createEffect(effect, v, nextCont);
@@ -1370,7 +1364,7 @@ const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      if (name === 'injected') return context.handlers.resolve();
+      if (name === 'injected') return context.env.handlers.resolve();
       // inspect({
       //   tag: 'evaluateExpr name',
       //   name,
@@ -1378,16 +1372,12 @@ const evaluateStatement = async (
       //   readonly: context.readonly,
       // });
       assert(
-        environmentHas(context.env, name) ||
-          environmentHas(context.readonly, name),
+        environmentHas(context.env, name),
         SystemError.undeclaredName(name, getPosition(ast)).withFileId(
           context.fileId
         )
       );
-      return (
-        environmentGet(context.readonly, name) ??
-        environmentGet(context.env, name)
-      );
+      return environmentGet(context.env, name);
     }
     case NodeType.NUMBER:
     case NodeType.STRING:

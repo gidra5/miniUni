@@ -7,7 +7,7 @@ import {
   isRecord,
   recordGet,
 } from '../values.js';
-import { assert } from '../utils.js';
+import { assert, inspect } from '../utils.js';
 import { module } from '../module.js';
 import { resolvePath } from '../files.js';
 import { PreludeIO } from './prelude.js';
@@ -37,7 +37,8 @@ export default module({
       'expected path to be absolute or relative'
     );
     const resolved = await resolvePath(_path, context.file);
-    const ioHandler = context.handlers.get(PreludeIO);
+    const ioHandler = context.env.handlers.get(PreludeIO);
+    // inspect
     assert(isRecord(ioHandler), 'expected io handler to be record');
 
     const file = await new Promise<EvalValue>(async (resolve) => {
