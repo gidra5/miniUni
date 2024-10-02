@@ -1406,72 +1406,50 @@ describe('expressions', () => {
       expect(result).toEqual(2);
     });
 
-    it.todo('inject', async () => {
-      const input = `inject a: 1, b: 2 { injected }`;
+    it('inject', async () => {
+      const input = `inject a: 1, b: 2 -> (handle "a" (), handle "b" ())`;
       const result = await evaluate(input);
-      const env = new Environment({
-        parent: prelude,
-        // handlers: createRecord({ a: 1, b: 2 }),
-      });
-      // const expected = env.handlers.resolve();
-      // expect(isEqual(expected, result)).toBe(true);
+      expect(result).toEqual([1, 2]);
     });
 
-    it.todo('inject shadowing', async () => {
+    it('inject shadowing', async () => {
       const input = `
-        inject a: 1, b: 2 {
-          { a, b } := injected;
+        inject a: 1, b: 2 ->
+        a := handle "a" ()
+        b := handle "b" ()
           
-          inject a: a+1, b: b+2 { injected }  
-        }
+        inject a: a+1, b: b+2 ->
+
+        handle "a" (),
+        handle "b" ()
       `;
       const result = await evaluate(input);
-      const env = new Environment({
-        parent: prelude,
-        // handlers: createRecord({ a: 2, b: 4 }),
-      });
-      // const expected = env.handlers.resolve();
-      // expect(isEqual(expected, result)).toBe(true);
+      expect(result).toEqual([2, 4]);
     });
 
     it.todo('mask', async () => {
       const input = `
-        inject a: 1, b: 2 {
-          { a, b } := injected;
-          
-          inject a: a+1, b: b+2 {
-            mask "a" { injected }
-          }  
-        }
+        inject a: 1, b: 2 ->
+        a := handle "a" ()
+        b := handle "b" ()
+        
+        inject a: a+1, b: b+2 ->
+        mask "a" ->
+
+        handle "a" (),
+        handle "b" ()
       `;
       const result = await evaluate(input);
-      const env = new Environment({
-        parent: prelude,
-        // handlers: createRecord({ a: 1, b: 4 }),
-      });
-      // const expected = env.handlers.resolve();
-      // expect(isEqual(expected, result)).toBe(true);
+      expect(result).toEqual([1, 4]);
     });
 
-    it.todo('without', async () => {
+    it('without', async () => {
       const input = `
-        inject a: 1, b: 2 {
-          { a, b } := injected;
-          
-          inject a: a+1, b: b+2 {
-            without "a" {
-              injected
-            }
-          }  
-        }
+        inject a: 1 ->
+        without "a" ->
+        ("a" |> handle) ()  
       `;
-      const result = await evaluate(input);
-      const env = new Environment({
-        parent: prelude,
-        // handlers: createRecord({ b: 4 }),
-      });
-      // const expected = env.handlers.resolve();
-      // expect(isEqual(expected, result)).toBe(true);
+      expect(async () => await evaluate(input)).rejects.toThrow();
     });
 
     it('parallel', async () => {
@@ -1492,6 +1470,28 @@ describe('expressions', () => {
       expect(result).toEqual([3, 5, 9]);
     });
 
+    it('block-inject-fn-handle twice backtracking', async () => {
+      const input = `
+        f := fn {
+          handle "a" ()
+          handle "a" ()
+        }
+        
+        { inject a: 3 do f() }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual(3);
+    });
+
+    it('block-inject-fn-handle backtracking', async () => {
+      const input = `
+        f := fn do handle "a" ()
+        { inject a: 3 do f() }
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual(3);
+    });
+
     it('multiple continuation calls', async () => {
       const input = `
         decide := :decide |> handle
@@ -1509,29 +1509,27 @@ describe('expressions', () => {
 
     it('multiple continuation calls with mutations and refs', async () => {
       const input = `        
-          _handler :=
-            [:do]: handler fn (callback, _) {
-              callback()
-              callback()
-            }
-          
-          m := inject _handler {
-            m := (1,)
-            handle (:do) ()
-            m[0] = m[0] + 1
-            m
+        _handler :=
+          [:do]: handler fn (callback, _) {
+            callback()
+            callback()
           }
-
+        
+        m := inject _handler {
+          m := (1,)
+          handle (:do) ()
+          m[0] = m[0] + 1
           m
-        `;
+        }
+
+        m
+      `;
       const result = await evaluate(input);
       expect(result).toStrictEqual([3]);
     });
 
-    it.todo(
-      'multiple continuation calls with mutations and closure',
-      async () => {
-        const input = `        
+    it('multiple continuation calls with mutations and closure', async () => {
+      const input = `        
           _handler :=
             [:do]: handler fn (callback, _) {
               callback()
@@ -1551,12 +1549,11 @@ describe('expressions', () => {
 
           m, n, f()
         `;
-        const result = await evaluate(input);
-        expect(result).toStrictEqual([2, 3, [2, 2]]);
-      }
-    );
+      const result = await evaluate(input);
+      expect(result).toStrictEqual([2, 3, [2, 2]]);
+    });
 
-    it.todo('multiple continuation calls with mutations', async () => {
+    it('multiple continuation calls with mutations', async () => {
       const input = `        
         _handler :=
           [:do]: handler fn (callback, _) {
@@ -1577,7 +1574,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual([2, 3]);
     });
 
-    it.todo('multiple continuation calls with inner mutation', async () => {
+    it('multiple continuation calls with inner mutation', async () => {
       const input = `        
         _handler :=
           [:do]: handler fn (callback, _) {
@@ -1629,37 +1626,49 @@ describe('expressions', () => {
       expect(result).toStrictEqual(123);
     });
 
-    it.todo('choose max int loop', async () => {
-      const input = `        
+    it('multi-level state backtracking', async () => {
+      const input = `
         inject
-          [:decide]: handler fn (callback, _) {
+          [:do]: handler fn (callback, _) {
             callback false
             callback true
           }
         {
           mut m := 1
-          inject ([:break]: handler fn (_, v) do v) ->
-
-          if m > 3 do (:fail |> handle)()
-          if (:decide |> handle)() do break m
-          m++
+          without () -> // just creates new scope
+          if (:do |> handle)() do m
+          else m++
         }
       `;
       const result = await evaluate(input);
       expect(result).toStrictEqual(1);
     });
 
-    it('choose int loop', async () => {
+    it('disjoint-level state backtracking', async () => {
+      const input = `
+        inject
+          [:do]: handler fn (callback, _) {
+            break_handler := [:break]: handler fn (_, v) { v }
+            inject break_handler { callback() }
+          }
+        {
+          (:do |> handle) ()
+          (:break |> handle) 1
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(1);
+    });
+
+    it.todo('choose int loop', async () => {
       const input = `
         decide := :decide |> handle
         fail := :fail |> handle
         
         false_branch_first :=
           [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn {
-              callback false
-            }
-            inject fail_handler { callback true }
+            fail_handler := [:fail]: handler fn { callback true }
+            inject fail_handler { callback false }
           };
           
         inject false_branch_first {
@@ -1671,6 +1680,20 @@ describe('expressions', () => {
           }
           if a != 2 do fail()
           a
+        }
+      `;
+      const result = await evaluate(input);
+      expect(result).toStrictEqual(2);
+    });
+
+    it.todo('choose int loop', async () => {
+      const input = `          
+        inject [:do]: handler fn (callback, _) { callback true } {
+          {
+            if (:do |> handle)() do break 1
+            2
+          }
+          (:fail |> handle)()
         }
       `;
       const result = await evaluate(input);

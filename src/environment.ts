@@ -79,11 +79,31 @@ export class Environment {
     return copy;
   }
 
-  copy(): Environment {
-    const parent = this.parent ? this.parent.copy() : null;
-    const copy = new Environment({ parent });
+  shallowReplace(withEnv: Environment): Environment {
+    const copy = new Environment({ parent: this.parent });
+    copy.readonly = new Map(withEnv.readonly);
+    copy.mutable = new Map(withEnv.mutable);
+    return copy;
+  }
+
+  copyUpTo(env: Environment): Environment {
+    if (this === env) return this;
+    // if (!this.parent) inspect({ this: this, env });
+    assert(this.parent);
+    const parentCopy = this.parent.copyUpTo(env);
+    const copy = new Environment({ parent: parentCopy });
     copy.readonly = new Map(this.readonly);
     copy.mutable = new Map(this.mutable);
     return copy;
+  }
+
+  replace(withEnv: Environment, upToEnv: Environment): Environment {
+    if (this === upToEnv) return this;
+    assert(this.parent);
+    assert(withEnv.parent);
+    this.readonly = new Map(withEnv.readonly);
+    this.mutable = new Map(withEnv.mutable);
+    this.parent.replace(withEnv.parent, upToEnv);
+    return this;
   }
 }

@@ -2,6 +2,7 @@ import type { Context } from './evaluate/index.js';
 import { Position } from './position.js';
 import { assert, inspect, promisify } from './utils.js';
 import { SystemError } from './error.js';
+import { Environment } from './environment.js';
 
 export type CallSite = [Position, Context];
 export type EvalFunction = (
@@ -21,6 +22,7 @@ type EvalChannel = EvalSymbol;
 export type EvalEffect = {
   effect: EvalValue;
   value: EvalValue;
+  env: Environment;
   continuation: EvalFunction;
 };
 type EvalHandler = {
@@ -333,8 +335,9 @@ export const recordHas = (record: EvalRecord, key: EvalValue): boolean => {
 export const createEffect = (
   effect: EvalValue,
   value: EvalValue,
+  env: Environment,
   continuation: EvalFunction = fnCont((_, v) => v)
-): EvalEffect => ({ effect, value, continuation });
+): EvalEffect => ({ effect, value, env, continuation });
 
 export const createHandler = (handler: EvalFunction): EvalHandler => ({
   handler,

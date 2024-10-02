@@ -521,6 +521,7 @@ const lazyOperators = {
       return createEffect(
         MaskEffect,
         result.effect,
+        context.env,
         fnCont(() => result)
       );
     });
@@ -652,7 +653,7 @@ const lazyOperators = {
           handlers,
           await evaluateStatement(body, bound),
           getPosition(expr),
-          context
+          bound
         );
         assert(Array.isArray(value), 'expected value to be an array');
         const [status, _value] = value;
@@ -973,11 +974,11 @@ const lazyOperators = {
       [label]: createHandler(labelHandler),
     });
     const labelBreak = fnCont(async (cs, value) => {
-      return createEffect(label, ['break', value]);
+      return createEffect(label, ['break', value], cs[1].env);
     });
     const labelContinue = fnCont(async (cs, value) => {
       await eventLoopYield();
-      return createEffect(label, ['continue', value]);
+      return createEffect(label, ['continue', value], cs[1].env);
     });
     const forked = forkContext(context);
     forked.env.addReadonly(
@@ -992,7 +993,7 @@ const lazyOperators = {
       handlers,
       await evaluateStatement(expr, forked),
       getPosition(expr),
-      context
+      forked
     );
   }),
   [NodeType.RECEIVE]: unpromisify(async (ast: Tree, context: Context) => {
@@ -1117,12 +1118,19 @@ const lazyOperators = {
         return value;
       });
 
-      return await evaluateHandlers(
+      const _result = await evaluateHandlers(
         createRecord({ [atom('return')]: createHandler(returnHandler) }),
         await evaluateStatement(body, bound),
         getPosition(body),
-        context
+        bound
       );
+
+      if (isEffect(_result)) {
+        _result.env = cs[1].env;
+        return _result;
+      }
+
+      return _result;
     });
     return self;
   }),
@@ -1252,9 +1260,47 @@ export const evaluateHandlers = async (
   }
 
   const continuation = value.continuation;
+  // inspect({ effect: value.effect });
+  // inspect({ value, contextEnv: context.env });
+
+  const env = value.env.copyUpTo(context.env);
+  // inspect({
+  //   t: 1,
+  //   z: context.env,
+  //   x: value.env,
+  //   y: env,
+  // });
   const callback: EvalFunctionPromise = async (cs, _value) => {
-    const value = await fnPromise(continuation)(cs, _value);
-    return await evaluateHandlers(handlers, value, position, context);
+    // inspect({
+    //   // t: 2,
+    //   effect: value.effect,
+    //   contextEnv: context.env,
+    //   valueEnv: value.env,
+    //   callerEnv: cs[1].env,
+    // });
+    value.env.replace(env, context.env);
+    // inspect({
+    //   t: 3,
+    //   z: context.env,
+    //   x: value.env,
+    //   y: env,
+    // });
+    const __value = await fnPromise(continuation)(cs, _value);
+    const result = await evaluateHandlers(handlers, __value, position, context);
+    // inspect({
+    //   // t: 2,
+    //   effect: value.effect,
+    //   // effect2: result.effect,
+    //   valueEnv: value.env,
+    //   // valueEnv2: result.env,
+    //   contextEnv: context.env,
+    //   callerEnv: cs[1].env,
+    // });
+    if (isEffect(result)) {
+      result.env = cs[1].env;
+      return result;
+    }
+    return result;
   };
 
   const handlerValue = recordGet(handlers, value.effect);
@@ -1273,9 +1319,10 @@ const mapEffect = async (
   map: (v: EvalValue, context: Context) => Promise<EvalValue>
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
-    const { effect, value: v, continuation } = value;
+    const { effect, value: v, env: c, continuation } = value;
+    const env = value.env.shallowCopy();
     // const _context = { ...context };
-    // _context.env = _context.env.shallowCopy();
+    // _context.env = _context.env.copy();
     // inspect({
     //   tag: 1,
     //   env: context.env,
@@ -1283,18 +1330,16 @@ const mapEffect = async (
     //   // f2: _context.env.readonly === context.env.readonly,
     // });
     const nextCont: EvalFunction = fnCont(async (cs, _v) => {
-      // inspect({
-      //   tag: 2,
-      //   value: v,
-      //   env: context.env,
-      //   // f1: _context.env.mutable === context.env.mutable,
-      //   // f2: _context.env.readonly === context.env.readonly,
-      // });
+      value.env.shallowReplace(env);
       const v = await fnPromise(continuation)(cs, _v);
-      // return await map(v, _context);
+
+      if (isEffect(v)) {
+        v.env = cs[1].env;
+      }
+
       return await map(v, context);
     });
-    return createEffect(effect, v, nextCont);
+    return createEffect(effect, v, c, nextCont);
   }
   return await map(value, context);
 };
@@ -1307,9 +1352,6 @@ const flatMapEffect = async (
   if (isEffect(value)) {
     return await mapEffect(value, context, async (value, context) => {
       return await flatMapEffect(value, context, async (value, context) => {
-        // const _context = { ...context };
-        // _context.env = _context.env.shallowCopy();
-        // return await map(value, _context);
         return await map(value, context);
       });
     });

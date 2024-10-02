@@ -43,6 +43,7 @@ export default module({
     return createEffect(
       PreludeIO,
       null,
+      cs[1].env,
       fnCont(async (cs, ioHandler) => {
         assert(isRecord(ioHandler), 'expected io handler to be record');
 

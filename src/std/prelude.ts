@@ -23,8 +23,8 @@ export const PreludeIO = Symbol('prelude io');
 export const prelude: Context['env'] = new Environment({
   readonly: {
     return_handler: ReturnHandler,
-    handle: fn(2, (_, effect, value) => {
-      return createEffect(effect, value);
+    handle: fn(2, (cs, effect, value) => {
+      return createEffect(effect, value, cs[1].env);
     }),
     handler: fnCont(async (_, handler) => {
       assert(typeof handler === 'function', 'expected function');
@@ -83,14 +83,14 @@ export const prelude: Context['env'] = new Environment({
       inspect(value);
       return value;
     }),
-    return: fnCont((_, value) => {
-      return createEffect(atom('return'), value);
+    return: fnCont((cs, value) => {
+      return createEffect(atom('return'), value, cs[1].env);
     }),
-    break: fnCont((_, value) => {
-      return createEffect(atom('break'), value);
+    break: fnCont((cs, value) => {
+      return createEffect(atom('break'), value, cs[1].env);
     }),
-    continue: fnCont((_, value) => {
-      return createEffect(atom('continue'), value);
+    continue: fnCont((cs, value) => {
+      return createEffect(atom('continue'), value, cs[1].env);
     }),
     set: fnCont((_, value) => {
       if (!Array.isArray(value)) value = [value];
