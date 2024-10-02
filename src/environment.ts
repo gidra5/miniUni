@@ -78,4 +78,12 @@ export class Environment {
     copy.mutable = new Map(this.mutable);
     return copy;
   }
+
+  copy(): Environment {
+    const parent = this.parent ? this.parent.copy() : null;
+    const copy = new Environment({ parent });
+    copy.readonly = new Map(this.readonly);
+    copy.mutable = new Map(this.mutable);
+    return copy;
+  }
 }
