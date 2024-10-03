@@ -479,7 +479,8 @@ const lazyOperators = {
     async (ast: Tree, context: Context) => {
       const [arg] = ast.children;
       if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-      return await evaluateStatement(arg, context);
+      const key = await evaluateStatement(arg, context);
+      return context.env.get(key);
     }
   ),
 
@@ -1191,6 +1192,8 @@ const tupleOperators = {
     const k =
       _key.type === NodeType.NAME
         ? _key.data.value
+        : _key.type === NodeType.SQUARE_BRACKETS
+        ? await evaluateExpr(_key.children[0], context)
         : await evaluateExpr(_key, context);
 
     return await flatMapEffect(k, context, async (key, context) => {
@@ -1430,12 +1433,10 @@ const evaluateStatement = async (
       const name = ast.data.value;
       if (name === 'true') return true;
       if (name === 'false') return false;
-      // if (name === 'injected') return context.env.handlers.resolve();
       // inspect({
       //   tag: 'evaluateExpr name',
       //   name,
       //   env: context.env,
-      //   readonly: context.readonly,
       // });
       assert(
         context.env.has(name),

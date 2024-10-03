@@ -753,10 +753,10 @@ describe('expressions', () => {
       ]);
     });
 
-    it.todo('with dynamic variable name', async () => {
-      const input = `1 is ["dynamic" + "name"] and x == ["dynamic" + "name"]`;
+    it('with dynamic variable name', async () => {
+      const input = `1 is ["dynamic" + "name"] and 1 == ["dynamic" + "name"]`;
       const result = await evaluate(input);
-      expect(result).toEqual([1, 2, 3]);
+      expect(result).toEqual(true);
     });
 
     it('is binding visible in scope where it is true', async () => {
@@ -937,10 +937,10 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it.todo('dynamic variable name', async () => {
-      expect(await evaluate(`x := 1; [:x]`)).toBe(1);
-      expect(await evaluate(`[:x] := 1; [:x]`)).toBe(1);
-      expect(await evaluate(`[:x] := 1; x`)).toBe(1);
+    it('dynamic variable name', async () => {
+      expect(await evaluate(`x := 1; ["x"]`)).toBe(1);
+      expect(await evaluate(`["x"] := 1; ["x"]`)).toBe(1);
+      expect(await evaluate(`["x"] := 1; x`)).toBe(1);
       expect(await evaluate(`[2] := 1; [2]`)).toBe(1);
     });
 

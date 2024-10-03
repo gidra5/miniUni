@@ -2,7 +2,7 @@ import { NodeType, Tree } from '../ast.js';
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { getPosition } from '../parser.js';
-import { assert, isEqual, unreachable } from '../utils.js';
+import { assert, inspect, isEqual, unreachable } from '../utils.js';
 import {
   atom,
   EvalValue,
@@ -444,35 +444,34 @@ export const testPattern = async (
 };
 
 export const bind = (envs: PatternTestEnvs, context: Context) => {
-  const readonly = {};
-  const mutable = {};
+  const readonly = new Map();
+  const mutable = new Map();
 
   // inspect({
   //   tag: 'bind',
-  //   matched,
   //   envs,
   //   context,
   // });
 
   for (const [key, value] of envs.readonly.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
+    const _key = typeof key === 'string' ? key : key[0];
 
     if (value === null) continue;
-    if (context.env.hasReadonly(key)) readonly[key] = value;
-    else if (context.env.has(key)) readonly[key] = value;
-    else context.env.addReadonly(key, value);
+    if (context.env.hasReadonly(_key)) readonly.set(_key, value);
+    else if (context.env.has(_key)) readonly.set(_key, value);
+    else context.env.addReadonly(_key, value);
   }
   for (const [key, value] of envs.env.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
+    const _key = typeof key === 'string' ? key : key[0];
 
     if (value === null) continue;
-    if (context.env.hasReadonly(key)) mutable[key] = value;
-    else if (context.env.has(key)) mutable[key] = value;
-    else context.env.add(key, value);
+    if (context.env.hasReadonly(_key)) mutable.set(_key, value);
+    else if (context.env.has(_key)) mutable.set(_key, value);
+    else context.env.add(_key, value);
   }
 
   // spill redeclared names to forked environment
-  if (Object.keys(readonly).length > 0 || Object.keys(mutable).length > 0) {
+  if (readonly.size > 0 || mutable.size > 0) {
     context.env = new Environment({ parent: context.env, mutable, readonly });
   }
 
@@ -483,7 +482,6 @@ export const bind = (envs: PatternTestEnvs, context: Context) => {
 
   // inspect({
   //   tag: 'bind 2',
-  //   matched,
   //   envs,
   //   context,
   // });
