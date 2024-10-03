@@ -515,15 +515,19 @@ const lazyOperators = {
     return await flatMapEffect(value, context, async (mask, context) => {
       if (!Array.isArray(mask)) mask = [mask];
 
-      const result = await evaluateBlock(body, context);
-      if (!isEffect(result) || !mask.includes(result.effect)) return result;
+      const _mask = async (result: EvalValue, context: Context) => {
+        if (!isEffect(result)) return result;
+        if (!mask.includes(result.effect)) return result;
 
-      return createEffect(
-        MaskEffect,
-        result.effect,
-        context.env,
-        fnCont(() => result)
-      );
+        return createEffect(
+          MaskEffect,
+          result.effect,
+          context.env,
+          fnCont(() => result)
+        );
+      };
+      let result = await evaluateBlock(body, context);
+      return await _mask(result, context);
     });
   }),
 
@@ -1125,11 +1129,6 @@ const lazyOperators = {
         bound
       );
 
-      if (isEffect(_result)) {
-        _result.env = cs[1].env;
-        return _result;
-      }
-
       return _result;
     });
     return self;
@@ -1155,8 +1154,8 @@ const lazyOperators = {
             [getPosition(ast), context],
             argValue
           );
-          // inspect({ x });
-          return x;
+
+          return await replaceEffectContext(x, context);
         }
       );
     });
@@ -1250,7 +1249,12 @@ export const evaluateHandlers = async (
   }
 
   if (value.effect === MaskEffect && recordHas(handlers, value.value)) {
-    return await fnPromise(value.continuation)(cs, null);
+    const r = await fnPromise(value.continuation)(cs, null);
+    // inspect({ r, handlers });
+    return await mapEffect(r, context, async (value, context) => {
+      // inspect({ tag: 'f', value, handlers, context });
+      return await evaluateHandlers(handlers, value, position, context);
+    });
   }
 
   if (!recordHas(handlers, value.effect)) {
@@ -1261,7 +1265,7 @@ export const evaluateHandlers = async (
 
   const continuation = value.continuation;
   // inspect({ effect: value.effect });
-  // inspect({ value, contextEnv: context.env });
+  // inspect({ handlers, value, contextEnv: context.env });
 
   const env = value.env.copyUpTo(context.env);
   // inspect({
@@ -1296,10 +1300,6 @@ export const evaluateHandlers = async (
     //   contextEnv: context.env,
     //   callerEnv: cs[1].env,
     // });
-    if (isEffect(result)) {
-      result.env = cs[1].env;
-      return result;
-    }
     return result;
   };
 
@@ -1311,6 +1311,20 @@ export const evaluateHandlers = async (
     [position, context],
     [fnCont(callback), value.value]
   );
+};
+
+const replaceEffectContext = async (
+  value: EvalValue,
+  context: Context
+): Promise<EvalValue> => {
+  if (!isEffect(value)) return value;
+  const updated = createEffect(
+    value.effect,
+    value.value,
+    context.env,
+    value.continuation
+  );
+  return await flatMapEffect(updated, context, replaceEffectContext);
 };
 
 const mapEffect = async (
@@ -1332,11 +1346,6 @@ const mapEffect = async (
     const nextCont: EvalFunction = fnCont(async (cs, _v) => {
       value.env.shallowReplace(env);
       const v = await fnPromise(continuation)(cs, _v);
-
-      if (isEffect(v)) {
-        v.env = cs[1].env;
-      }
-
       return await map(v, context);
     });
     return createEffect(effect, v, c, nextCont);
@@ -1351,6 +1360,7 @@ const flatMapEffect = async (
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     return await mapEffect(value, context, async (value, context) => {
+      value = await replaceEffectContext(value, context);
       return await flatMapEffect(value, context, async (value, context) => {
         return await map(value, context);
       });

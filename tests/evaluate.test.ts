@@ -4,15 +4,17 @@ import {
   evaluateScript,
   newContext,
 } from '../src/evaluate/index.ts';
-import { assert, inspect, isEqual } from '../src/utils.ts';
+import { assert, inspect } from '../src/utils.ts';
 import {
   atom,
   createRecord,
+  EvalEffect,
   EvalRecord,
   EvalValue,
   fn,
   fnPromise,
   isChannel,
+  isEffect,
   isSymbol,
 } from '../src/values.ts';
 import { parseTokens } from '../src/tokens.ts';
@@ -1407,7 +1409,7 @@ describe('expressions', () => {
     });
 
     it('inject', async () => {
-      const input = `inject a: 1, b: 2 -> (handle "a" (), handle "b" ())`;
+      const input = `inject a: 1, b: 2 -> handle "a" (), handle "b" ()`;
       const result = await evaluate(input);
       expect(result).toEqual([1, 2]);
     });
@@ -1427,7 +1429,7 @@ describe('expressions', () => {
       expect(result).toEqual([2, 4]);
     });
 
-    it.todo('mask', async () => {
+    it('mask', async () => {
       const input = `
         inject a: 1, b: 2 ->
         a := handle "a" ()
@@ -1435,9 +1437,9 @@ describe('expressions', () => {
         
         inject a: a+1, b: b+2 ->
         mask "a" ->
-
-        handle "a" (),
-        handle "b" ()
+        a := handle "a" ()
+        b := handle "b" ()
+        a, b
       `;
       const result = await evaluate(input);
       expect(result).toEqual([1, 4]);
@@ -1660,7 +1662,7 @@ describe('expressions', () => {
       expect(result).toStrictEqual(1);
     });
 
-    it.todo('choose int loop', async () => {
+    it('choose int loop', async () => {
       const input = `
         decide := :decide |> handle
         fail := :fail |> handle
@@ -1686,18 +1688,16 @@ describe('expressions', () => {
       expect(result).toStrictEqual(2);
     });
 
-    it.todo('choose int loop', async () => {
-      const input = `          
+    it('unhandled fail', async () => {
+      const input = `
         inject [:do]: handler fn (callback, _) { callback true } {
-          {
-            if (:do |> handle)() do break 1
-            2
-          }
+          { if (:do |> handle)() do break 1 else 2 }
           (:fail |> handle)()
         }
       `;
       const result = await evaluate(input);
-      expect(result).toStrictEqual(2);
+      expect(isEffect(result)).toBe(true);
+      expect((result as EvalEffect).effect).toStrictEqual(atom('fail'));
     });
 
     it('choose int recursion', async () => {
