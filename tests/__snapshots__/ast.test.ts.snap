@@ -2356,20 +2356,20 @@ exports[`expressions > concurrent programming > async 1`] = `
               },
               "type": "name",
             },
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "type": "name",
+            },
           ],
           "data": {},
-          "type": "async",
-        },
-        {
-          "children": [],
-          "data": {
-            "value": "x",
-          },
-          "type": "name",
+          "type": "application",
         },
       ],
       "data": {},
-      "type": "application",
+      "type": "async",
     },
   ],
   "data": {},
@@ -2463,20 +2463,20 @@ exports[`expressions > concurrent programming > await async 1`] = `
                   },
                   "type": "name",
                 },
+                {
+                  "children": [],
+                  "data": {
+                    "value": "x",
+                  },
+                  "type": "name",
+                },
               ],
               "data": {},
-              "type": "async",
-            },
-            {
-              "children": [],
-              "data": {
-                "value": "x",
-              },
-              "type": "name",
+              "type": "application",
             },
           ],
           "data": {},
-          "type": "application",
+          "type": "async",
         },
       ],
       "data": {},
@@ -2583,48 +2583,6 @@ exports[`expressions > concurrent programming > channel try send 1`] = `
       ],
       "data": {},
       "type": "?<-",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`expressions > concurrent programming > fork 1`] = `
-{
-  "children": [
-    {
-      "children": [
-        {
-          "children": [
-            {
-              "children": [],
-              "data": {
-                "value": "f",
-              },
-              "type": "name",
-            },
-            {
-              "children": [],
-              "data": {
-                "value": "x",
-              },
-              "type": "name",
-            },
-          ],
-          "data": {},
-          "type": "application",
-        },
-      ],
-      "data": {},
-      "type": "fork",
-    },
-    {
-      "children": [],
-      "data": {
-        "value": "y",
-      },
-      "type": "name",
     },
   ],
   "data": {},
@@ -8209,22 +8167,6 @@ exports[`newline handling > prefix 1`] = `
 `;
 
 exports[`newline handling > semicolon-newline at the end 1`] = `
-{
-  "children": [
-    {
-      "children": [],
-      "data": {
-        "value": 1,
-      },
-      "type": "number",
-    },
-  ],
-  "data": {},
-  "type": "script",
-}
-`;
-
-exports[`newline handling > variable 1`] = `
 {
   "children": [
     {

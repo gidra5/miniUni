@@ -438,7 +438,7 @@ const lazyOperators = {
 
     return value;
   }),
-  [NodeType.FORK]: unpromisify(async (ast: Tree, context: Context) => {
+  [NodeType.ASYNC]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr] = ast.children;
     return createTask(
       async () => await evaluateBlock(expr, context),
@@ -451,7 +451,7 @@ const lazyOperators = {
   }),
   [NodeType.PARALLEL]: unpromisify(async (ast: Tree, context: Context) => {
     const tasks = ast.children.map((arg) =>
-      evaluateStatement(node(NodeType.FORK, { children: [arg] }), context)
+      evaluateStatement(node(NodeType.ASYNC, { children: [arg] }), context)
     );
     return await Promise.all(tasks);
   }),

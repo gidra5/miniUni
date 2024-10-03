@@ -13,7 +13,7 @@ document := "
 
 lines := channel "lines"
 
-fork {
+async {
   for mut line in document.split("\n") {
     line = line.replace "\\s+" ""
     if line != "" do lines <- line
@@ -28,7 +28,7 @@ mut line_handled_count := 0
 mut lines_done := false
 inc := fn do line_handled_count++
 
-fork loop {
+async loop {
   mut line, status := <-?lines
   if status == :closed {
     lines_done = true
@@ -37,7 +37,7 @@ fork loop {
   if status == :empty do continue()
   line_count++
   
-  fork {
+  async {
     mut first_digit := false
     mut last_digit := 0
 

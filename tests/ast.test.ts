@@ -244,7 +244,6 @@ describe('expressions', () => {
     it('prefix parallel with code after', () =>
       testCase(`| { };numbers := channel()`));
     it('parallel with channels', () => testCase(`c <- 123 | <- c`));
-    it('fork', () => testCase(`fork f x; y`));
     it('async', () => testCase(`async f x`));
     it('async index', () => testCase(`async f.a`));
     it('await async', () => testCase(`await async f x`));

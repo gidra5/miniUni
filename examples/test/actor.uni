@@ -2,7 +2,7 @@ counter := 0
 
 message_box := channel "message_box"
 
-fork loop {
+async loop {
   message_box <- :done, switch <- message_box {
     :increment, _ -> counter++,
     :decrement, _ -> counter--,

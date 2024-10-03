@@ -101,7 +101,6 @@ const idToPrefixExprOp = {
   '<-': NodeType.RECEIVE,
   '<-?': NodeType.RECEIVE_STATUS,
   not: NodeType.NOT,
-  fork: NodeType.FORK,
   async: NodeType.ASYNC,
   await: NodeType.AWAIT,
   loop: NodeType.LOOP,

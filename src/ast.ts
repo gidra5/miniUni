@@ -71,7 +71,6 @@ export const OperatorNodeType = {
   INC_ASSIGN: '+=',
   LOOP: 'loop',
   FOR: 'for',
-  FORK: 'fork',
   ASYNC: 'async',
   AWAIT: 'await',
   MATCH: 'match',
@@ -356,7 +355,7 @@ const generatePrecedences = <T extends string>(
 const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.SEQUENCE, Fixity.INFIX, Associativity.LEFT_AND_RIGHT],
   [NodeType.FUNCTION, Fixity.PREFIX],
-  [NodeType.FORK, Fixity.PREFIX],
+  [NodeType.ASYNC, Fixity.PREFIX],
   [NodeType.IF, Fixity.PREFIX],
   [NodeType.IF_ELSE, Fixity.PREFIX],
   [NodeType.LOOP, Fixity.PREFIX],
@@ -414,7 +413,6 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.MUTABLE, Fixity.PREFIX],
   [NodeType.AWAIT, Fixity.PREFIX],
   [NodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
-  [NodeType.ASYNC, Fixity.PREFIX],
   [NodeType.INDEX, Fixity.POSTFIX],
 ] as const;
 

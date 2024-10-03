@@ -1207,7 +1207,7 @@ describe('expressions', () => {
       const input = `
           lines := channel "lines"
     
-          fork {
+          async {
             lines <- "1"
             close lines
           }
@@ -1227,7 +1227,7 @@ describe('expressions', () => {
       const input = `
           lines := channel "lines"
     
-          fork {
+          async {
             lines <- "1"
             lines <- "2"
             close lines
@@ -1262,26 +1262,14 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it('fork', async () => {
-      const input = `f := fn x do x + 1; await fork f 1`;
-      const result = await evaluate(input);
-      expect(result).toBe(2);
-    });
-
-    it.todo('async', async () => {
-      const input = `f := async fn x do x + 1; await f 1`;
-      const result = await evaluate(input);
-      expect(result).toBe(2);
-    });
-
-    it.todo('await async', async () => {
+    it('await async', async () => {
       const input = `f := fn x do x + 1; await async f 1`;
       const result = await evaluate(input);
       expect(result).toBe(2);
     });
 
     it('await', async () => {
-      const input = `x := fork 1; await x + 1`;
+      const input = `x := async 1; await x + 1`;
       const result = await evaluate(input);
       expect(result).toBe(2);
     });
@@ -1314,7 +1302,7 @@ describe('expressions', () => {
         import "std/concurrency" as { creating_task };
 
         without creating_task {
-          fork 123 // throws, since creating tasks is not allowed
+          async 123 // throws, since creating tasks is not allowed
         };
       `;
       const result = await evaluate(input);
@@ -1326,7 +1314,7 @@ describe('expressions', () => {
         const input = `
           import "std/concurrency" as { wait };
 
-          task := fork {
+          task := async {
             wait 1000
             123
           }
@@ -1342,8 +1330,8 @@ describe('expressions', () => {
         const input = `
           import "std/concurrency" as { wait };
 
-          task := fork {
-            fork { wait 2000 }
+          task := async {
+            async { wait 2000 }
             wait 1000
             123
           };
@@ -1464,8 +1452,8 @@ describe('expressions', () => {
         
         inject a: 1, b: 2 ->
         x1 := f()
-        x2 := fork { inject a: 3       do f() }
-        x3 := fork { inject a: 5, b: 4 do f() }
+        x2 := async { inject a: 3       do f() }
+        x3 := async { inject a: 5, b: 4 do f() }
         x1, await x2, await x3
       `;
       const result = await evaluate(input);
