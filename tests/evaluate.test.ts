@@ -24,7 +24,7 @@ import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
 import { Environment, EnvironmentOptions } from '../src/environment.ts';
-import { PreludeIO } from '../src/std/prelude.ts';
+import { IOEffect, ThrowEffect } from '../src/std/prelude.ts';
 import { sequence } from '../src/ast.ts';
 
 const ROOT_DIR = '/evaluate_tests';
@@ -975,7 +975,7 @@ describe('expressions', () => {
             return null;
           }),
         });
-        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const handlers = createRecord({ [IOEffect]: ioHandler });
 
         const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
@@ -1012,7 +1012,7 @@ describe('expressions', () => {
             return null;
           }),
         });
-        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const handlers = createRecord({ [IOEffect]: ioHandler });
 
         const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
@@ -1048,7 +1048,7 @@ describe('expressions', () => {
             return null;
           }),
         });
-        const handlers = createRecord({ [PreludeIO]: ioHandler });
+        const handlers = createRecord({ [IOEffect]: ioHandler });
 
         const result = await evaluate(input, { handlers });
         expect(result).toBe(123);
@@ -1113,31 +1113,25 @@ describe('expressions', () => {
     });
 
     describe('error handling', () => {
-      it.todo('try throw', async () => {
+      it('try throw', async () => {
         const input = `
-          f := fn {
-            throw 123
-          };
-
-          try f()
+          f := fn { throw 123 }
+          try fn { f() }
         `;
         const result = await evaluate(input);
-        expect(result).toBe([atom('error'), 123]);
+        expect(result).toEqual([atom('error'), 123]);
       });
 
-      it.todo('try', async () => {
+      it('try', async () => {
         const input = `
-          f := fn {
-            123
-          };
-
-          try f()
+          f := fn { 123 }
+          try fn { f() }
         `;
         const result = await evaluate(input);
-        expect(result).toBe([atom('ok'), 123]);
+        expect(result).toEqual([atom('ok'), 123]);
       });
 
-      it.todo('no try catch', async () => {
+      it('no try', async () => {
         const input = `
           f := fn {
             throw 123
@@ -1146,31 +1140,65 @@ describe('expressions', () => {
           f()
         `;
         const result = await evaluate(input);
-        expect(result).toBe(null);
+        expect(isEffect(result)).toBe(true);
+        expect((result as EvalEffect).effect).toStrictEqual(ThrowEffect);
+        expect((result as EvalEffect).value).toStrictEqual(123);
       });
 
-      it.todo('rethrow explicit result', async () => {
+      it('try unwrap ok result', async () => {
         const input = `
-          f := fn {
-            :ok, 123
-          };
+          f := fn { try fn do 123 }
+          g := fn { x := f()?; x + 1 }
 
-          f()?
+          g()?
         `;
         const result = await evaluate(input);
-        expect(result).toBe(null);
+        expect(result).toBe(124);
       });
 
-      it.todo('try map err', async () => {
+      it('try unwrap error result', async () => {
         const input = `
-          f := fn {
-            throw 123
-          };
+          f := fn { try fn do throw 123 }
+          g := fn { x := f()?; x + 1 }
 
-          try f().map_err(err -> "wha", err)?
+          g()
         `;
         const result = await evaluate(input);
-        expect(result).toBe(null);
+        expect(result).toStrictEqual([atom('error'), 123]);
+      });
+
+      it('unwrap ok result', async () => {
+        const input = `
+          f := fn { try fn do 123 }
+          g := fn { x := (f()).unwrap; x + 1 }
+
+          g()
+        `;
+        const result = await evaluate(input);
+        expect(result).toBe(124);
+      });
+
+      it('unwrap error result', async () => {
+        const input = `
+          f := fn { try fn do throw 123 }
+          g := fn { x := (f()).unwrap; x + 1 }
+
+          g()
+        `;
+        const result = await evaluate(input);
+        expect(isEffect(result)).toBe(true);
+        expect((result as EvalEffect).effect).toStrictEqual(ThrowEffect);
+        expect((result as EvalEffect).value).toStrictEqual(123);
+      });
+
+      it('try map err', async () => {
+        const input = `
+          f := fn { throw 123 }
+
+          (try fn { f() }).map_err(err -> "wha", err)
+        `;
+        const result = await evaluate(input);
+        expect(result).toEqual([atom('error'), ['wha', 123]]);
       });
     });
   });

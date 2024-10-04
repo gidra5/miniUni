@@ -1,6 +1,6 @@
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
-import { Context } from '../evaluate/index.js';
+import { Context, evaluateHandlers } from '../evaluate/index.js';
 import { showPos } from '../parser.js';
 import { assert, inspect } from '../utils.js';
 import {
@@ -21,7 +21,8 @@ import {
 import { CreateTaskEffect } from './concurrency.js';
 
 export const ReturnHandler = Symbol('return_handler');
-export const PreludeIO = Symbol('prelude io');
+export const IOEffect = Symbol('prelude io');
+export const ThrowEffect = Symbol('throw');
 export const prelude: Context['env'] = new Environment({
   readonly: {
     return_handler: ReturnHandler,
@@ -85,11 +86,30 @@ export const prelude: Context['env'] = new Environment({
       if (!Array.isArray(value)) value = [value];
       return createSet(value);
     }) satisfies EvalFunction,
+    throw: async (cs, value) => {
+      return createEffect(ThrowEffect, value, cs[1].env);
+    },
+    try: async (cs, fn) => {
+      const handlers = createRecord({
+        [ThrowEffect]: createHandler(async (cs, value) => {
+          assert(Array.isArray(value));
+          const [_, thrown] = value;
+          return [atom('error'), thrown];
+        }),
+        [ReturnHandler]: async (cs, value) => {
+          if (value instanceof Error) return [atom('error'), value];
+          return [atom('ok'), value];
+        },
+      });
+      assert(typeof fn === 'function');
+      const value = await fn(cs, null);
+      return await evaluateHandlers(handlers, value, cs[0], cs[1]);
+    },
   },
 });
 
 export const preludeHandlers = createRecord({
-  [PreludeIO]: createRecord({
+  [IOEffect]: createRecord({
     open: fn(2, async (cs, _path, callback) => {
       assert(typeof _path === 'string');
       const file = createRecord({

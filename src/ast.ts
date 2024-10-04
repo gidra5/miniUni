@@ -66,6 +66,7 @@ export const OperatorNodeType = {
   POST_DECREMENT: 'post_decrement',
   DECREMENT: '--',
   INCREMENT: '++',
+  TRY: '?',
   EXPORT: 'export',
   RECEIVE_STATUS: '<-?',
   INC_ASSIGN: '+=',
@@ -414,6 +415,7 @@ const exprPrecedenceList: [NodeType, Fixity, Associativity?][] = [
   [NodeType.AWAIT, Fixity.PREFIX],
   [NodeType.APPLICATION, Fixity.INFIX, Associativity.LEFT],
   [NodeType.INDEX, Fixity.POSTFIX],
+  [NodeType.TRY, Fixity.POSTFIX],
 ] as const;
 
 const patternPrecedenceList: [NodeType, Fixity, Associativity?][] = [

@@ -101,6 +101,7 @@ const idToExprOp = {
   '>=': NodeType.GREATER_EQUAL,
   '++': NodeType.POST_INCREMENT,
   '--': NodeType.POST_DECREMENT,
+  '?': NodeType.TRY,
   '->': NodeType.FUNCTION,
   ',': NodeType.TUPLE,
   ':': NodeType.LABEL,

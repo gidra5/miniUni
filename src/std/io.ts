@@ -10,7 +10,7 @@ import {
 import { assert, inspect } from '../utils.js';
 import { module } from '../module.js';
 import { resolvePath } from '../files.js';
-import { PreludeIO } from './prelude.js';
+import { IOEffect } from './prelude.js';
 
 export default module({
   open: fn(2, async (cs, _path, callback) => {
@@ -38,7 +38,7 @@ export default module({
     );
     const resolved = await resolvePath(_path, context.file);
 
-    return createEffect(PreludeIO, null, cs[1].env, [
+    return createEffect(IOEffect, null, cs[1].env, [
       async (cs, ioHandler) => {
         assert(isRecord(ioHandler), 'expected io handler to be record');
 

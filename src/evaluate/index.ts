@@ -74,6 +74,7 @@ import { ModuleDefault } from '../module.js';
 import { listMethods } from '../std/list.js';
 import { stringMethods } from '../std/string.js';
 import { CreateTaskEffect } from '../std/concurrency.js';
+import { isResult, resultMethods } from '../std/result.js';
 
 export type Context = {
   file: string;
@@ -849,6 +850,18 @@ const lazyOperators = {
       const index = await evaluateExpr(_index, context);
 
       return await flatMapEffect(index, context, async (index, context) => {
+        inspect({ target, index });
+        if (
+          isResult(target) &&
+          typeof index === 'string' &&
+          index in resultMethods
+        ) {
+          return await resultMethods[index](
+            [getPosition(_index), context],
+            target
+          );
+        }
+
         if (Array.isArray(target)) {
           if (!Number.isInteger(index)) {
             assert(
@@ -1148,6 +1161,20 @@ const lazyOperators = {
       );
     });
   },
+
+  [NodeType.TRY]: async (ast: Tree, context: Context) => {
+    const result = await evaluateExpr(ast.children[0], context);
+    return await flatMapEffect(result, context, async (value, context) => {
+      if (isResult(value)) {
+        const [status, result] = value;
+        if (status === atom('ok')) return result;
+        if (status === atom('error')) {
+          return createEffect(atom('return'), value, context.env);
+        }
+      }
+      return value;
+    });
+  },
 } satisfies Record<
   PropertyKey,
   (ast: Tree, context: Context) => Promise<EvalValue>
@@ -1222,6 +1249,7 @@ export const evaluateHandlers = async (
   context: Context
 ): Promise<EvalValue> => {
   const cs: CallSite = [position, context];
+  // inspect({ tag: 'evaluateHandlers', handlers });
 
   if (!isEffect(value)) {
     const returnHandler = recordGet(handlers, ReturnHandler);
@@ -1234,10 +1262,7 @@ export const evaluateHandlers = async (
   }
   if (value.effect === MaskEffect && recordHas(handlers, value.value)) {
     const r = await runEffectContinuations(value.continuations, cs, null);
-    // const r = await value.continuations(cs, null);
-    // inspect({ r, handlers });
     return await mapEffect(r, context, async (value, context) => {
-      // inspect({ tag: 'f', value, handlers, context });
       return await evaluateHandlers(handlers, value, position, context);
     });
   }
@@ -1448,6 +1473,10 @@ export const evaluateExpr = async (
   //   context,
   // });
   return (await flatMapEffect(result, context, async (result, context) => {
+    // inspect({
+    //   tag: 'evaluateExpr',
+    //   ast,
+    // });
     assert(
       result !== null,
       SystemError.evaluationError(
