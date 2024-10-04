@@ -1,16 +1,12 @@
 import type { Context } from './evaluate/index.js';
 import { Position } from './position.js';
-import { assert, inspect, promisify } from './utils.js';
+import { assert, inspect } from './utils.js';
 import { SystemError } from './error.js';
 import { Environment } from './environment.js';
+import { showPos } from './parser.js';
 
 export type CallSite = [Position, Context];
 export type EvalFunction = (
-  callSite: CallSite,
-  arg: EvalValue,
-  continuation: (value: EvalValue) => void
-) => void;
-export type EvalFunctionPromise = (
   callSite: CallSite,
   arg: EvalValue
 ) => Promise<EvalValue>;
@@ -23,7 +19,7 @@ export type EvalEffect = {
   effect: EvalValue;
   value: EvalValue;
   env: Environment;
-  continuation: EvalFunction;
+  continuations: EvalFunction[];
 };
 type EvalHandler = {
   handler: EvalFunction;
@@ -58,18 +54,6 @@ export enum ChannelStatus {
   Closed = 'closed',
 }
 
-export const fnPromise = (fn: EvalFunction): EvalFunctionPromise =>
-  promisify(fn);
-
-export const fnCont =
-  (
-    fn: (callSite: CallSite, arg: EvalValue) => EvalValue | Promise<EvalValue>
-  ): EvalFunction =>
-  (callSite, arg, continuation) =>
-    Promise.resolve()
-      .then(() => fn(callSite, arg))
-      .then(continuation);
-
 export const fn = (
   n: number,
   f: (
@@ -77,10 +61,10 @@ export const fn = (
     ...args: EvalValue[]
   ) => EvalValue | Promise<EvalValue>
 ): EvalFunction => {
-  return fnCont(async (callSite, arg) => {
+  return async (callSite, arg) => {
     if (n === 1) return await f(callSite, arg);
     return fn(n - 1, async (callSite, ...args) => f(callSite, arg, ...args));
-  });
+  };
 };
 
 const atoms = new Map<string, symbol>();
@@ -247,7 +231,7 @@ export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
 
 export const fileHandle = (file: EvalRecord): EvalRecord => {
   return createRecord({
-    write: fn(1, async (cs, data) => {
+    write: async (cs, data) => {
       const [position, context] = cs;
       const fileId = context.fileId;
       const writeErrorFactory = SystemError.invalidArgumentType(
@@ -258,16 +242,16 @@ export const fileHandle = (file: EvalRecord): EvalRecord => {
       assert(typeof data === 'string', writeErrorFactory(0).withFileId(fileId));
       const write = recordGet(file, 'write');
       assert(typeof write === 'function', 'expected write to be a function');
-      await fnPromise(write)(cs, data);
+      await write(cs, data);
       return null;
-    }),
+    },
   });
 };
 
 export const createSet = (values: EvalValue[]): EvalRecord => {
   const set = new Set(values);
   return createRecord({
-    add: fn(1, (cs, value) => {
+    add: async (cs, value) => {
       const [position, context] = cs;
       const fileId = context.fileId;
       const addErrorFactory = SystemError.invalidArgumentType(
@@ -278,8 +262,8 @@ export const createSet = (values: EvalValue[]): EvalRecord => {
       assert(typeof value === 'string', addErrorFactory(0).withFileId(fileId));
       set.add(value);
       return null;
-    }),
-    values: fn(1, () => [...set.values()]),
+    },
+    values: async () => [...set.values()],
   });
 };
 
@@ -333,8 +317,13 @@ export const createEffect = (
   effect: EvalValue,
   value: EvalValue,
   env: Environment,
-  continuation: EvalFunction = fnCont((_, v) => v)
-): EvalEffect => ({ effect, value, env, continuation });
+  continuations: EvalFunction[] = [
+    // async (cs, v) => {
+    //   showPos(cs[0], cs[1], `effect ${String(effect)} ${String(value)}`);
+    //   return v;
+    // },
+  ]
+): EvalEffect => ({ effect, value, env, continuations });
 
 export const createHandler = (handler: EvalFunction): EvalHandler => ({
   handler,

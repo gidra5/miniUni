@@ -4,18 +4,6 @@ import { setTimeout } from 'node:timers/promises';
 export const identity = <T>(x: T): T => x;
 
 export const inspect = <T>(x: T): T => (console.dir(x, { depth: null }), x);
-export const promisify =
-  <V, A extends unknown[]>(fn: (...args: [...A, cb: (v: V) => void]) => void) =>
-  (...args: A): Promise<V> =>
-    new Promise((resolve) => fn(...args, resolve));
-export const unpromisify =
-  <V, A extends unknown[]>(fn: (...args: A) => Promise<V>) =>
-  (...args: [...A, cb: (v: V) => void]): void => {
-    const cb = args.pop() as (v: V) => void;
-    fn(...(args as unknown as A))
-      .then(cb)
-      .catch(cb);
-  };
 
 let eventLoopYieldCounter = 0;
 const eventLoopYieldMax = 1000;

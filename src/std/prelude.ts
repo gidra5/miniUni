@@ -1,7 +1,7 @@
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { Context } from '../evaluate/index.js';
-import { showNode } from '../parser.js';
+import { showPos } from '../parser.js';
 import { assert, inspect } from '../utils.js';
 import {
   atom,
@@ -14,10 +14,9 @@ import {
   createSet,
   createTask,
   fn,
-  fnCont,
-  fnPromise,
   isChannel,
   isTask,
+  EvalFunction,
 } from '../values.js';
 import { CreateTaskEffect } from './concurrency.js';
 
@@ -29,11 +28,11 @@ export const prelude: Context['env'] = new Environment({
     handle: fn(2, (cs, effect, value) => {
       return createEffect(effect, value, cs[1].env);
     }),
-    handler: fnCont(async (_, handler) => {
+    handler: async (_, handler) => {
       assert(typeof handler === 'function', 'expected function');
       return createHandler(handler);
-    }),
-    cancel: fnCont(async ([position, context], value) => {
+    },
+    cancel: async ([position, context], value) => {
       const fileId = context.fileId;
       const cancelErrorFactory = SystemError.invalidArgumentType(
         'cancel',
@@ -42,12 +41,12 @@ export const prelude: Context['env'] = new Environment({
       );
       assert(isTask(value), cancelErrorFactory(0).withFileId(fileId));
       return cancelTask(value);
-    }),
-    channel: fnCont((_, name) => {
+    },
+    channel: async (_, name) => {
       if (typeof name === 'string') return createChannel(name);
       else return createChannel();
-    }),
-    close: fnCont(([position, context], value) => {
+    },
+    close: async ([position, context], value) => {
       const fileId = context.fileId;
       const closeErrorFactory = SystemError.invalidArgumentType(
         'cancel',
@@ -58,34 +57,34 @@ export const prelude: Context['env'] = new Environment({
       assert(isChannel(value), closeErrorFactory(0).withFileId(fileId));
       closeChannel(value);
       return null;
-    }),
-    symbol: fnCont((_, name) => {
+    },
+    symbol: async (_, name) => {
       if (typeof name === 'string') return Symbol(name);
       else return Symbol();
-    }),
-    number: fnCont((_, n) => {
+    },
+    number: async (_, n) => {
       return Number(n);
-    }),
-    string: fnCont((_, n) => {
+    },
+    string: async (_, n) => {
       return String(n);
-    }),
-    print: fnCont((_, value) => {
+    },
+    print: async (_, value) => {
       inspect(value);
       return value;
-    }),
-    return: fnCont((cs, value) => {
+    },
+    return: async (cs, value) => {
       return createEffect(atom('return'), value, cs[1].env);
-    }),
-    break: fnCont((cs, value) => {
+    },
+    break: async (cs, value) => {
       return createEffect(atom('break'), value, cs[1].env);
-    }),
-    continue: fnCont((cs, value) => {
+    },
+    continue: async (cs, value) => {
       return createEffect(atom('continue'), value, cs[1].env);
-    }),
-    set: fnCont((_, value) => {
+    },
+    set: (async (_, value) => {
       if (!Array.isArray(value)) value = [value];
       return createSet(value);
-    }),
+    }) satisfies EvalFunction,
   },
 });
 
@@ -99,17 +98,15 @@ export const preludeHandlers = createRecord({
       });
 
       assert(typeof callback === 'function');
-      return await fnPromise(callback)(cs, file);
+      return await callback(cs, file);
     }),
   }),
-  [CreateTaskEffect]: createHandler(
-    fnCont(async (cs, args) => {
-      assert(Array.isArray(args), 'expected array');
-      const [callback, taskFn] = args;
-      assert(typeof taskFn === 'function', 'expected function');
-      const task = createTask(async () => await fnPromise(taskFn)(cs, null));
-      assert(typeof callback === 'function', 'expected function');
-      return await fnPromise(callback)(cs, task);
-    })
-  ),
+  [CreateTaskEffect]: createHandler(async (cs, args) => {
+    assert(Array.isArray(args), 'expected array');
+    const [callback, taskFn] = args;
+    assert(typeof taskFn === 'function', 'expected function');
+    const task = createTask(async () => await taskFn(cs, null));
+    assert(typeof callback === 'function', 'expected function');
+    return await callback(cs, task);
+  }),
 });

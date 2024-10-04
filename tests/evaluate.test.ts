@@ -14,7 +14,6 @@ import {
   EvalRecord,
   EvalValue,
   fn,
-  fnPromise,
   isChannel,
   isEffect,
   isSymbol,
@@ -95,7 +94,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         return Promise.all(
           list.map(async (x) => {
-            const result = await fnPromise(fn)(cs, x);
+            const result = await fn(cs, x);
             assert(result !== null);
             return result;
           })
@@ -106,7 +105,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         const result: EvalValue[] = [];
         for (const item of list) {
-          const keep = await fnPromise(fn)(cs, item);
+          const keep = await fn(cs, item);
           if (keep) result.push(item);
         }
         return result;
@@ -134,7 +133,7 @@ describe('advent of code 2023 day 1 single', () => {
         assert(typeof fn === 'function');
         const mapped = await Promise.all(
           list.map(async (x) => {
-            const result = await fnPromise(fn)(cs, x);
+            const result = await fn(cs, x);
             assert(result !== null);
             return result;
           })
@@ -972,7 +971,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            fnPromise(continuation)(cs, file);
+            continuation(cs, file);
             return null;
           }),
         });
@@ -1009,7 +1008,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            fnPromise(continuation)(cs, file);
+            continuation(cs, file);
             return null;
           }),
         });
@@ -1045,7 +1044,7 @@ describe('expressions', () => {
             });
 
             assert(typeof continuation === 'function');
-            fnPromise(continuation)(cs, file);
+            continuation(cs, file);
             return null;
           }),
         });

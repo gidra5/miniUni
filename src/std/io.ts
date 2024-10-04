@@ -4,8 +4,6 @@ import {
   EvalValue,
   fileHandle,
   fn,
-  fnCont,
-  fnPromise,
   isRecord,
   recordGet,
 } from '../values.js';
@@ -40,23 +38,20 @@ export default module({
     );
     const resolved = await resolvePath(_path, context.file);
 
-    return createEffect(
-      PreludeIO,
-      null,
-      cs[1].env,
-      fnCont(async (cs, ioHandler) => {
+    return createEffect(PreludeIO, null, cs[1].env, [
+      async (cs, ioHandler) => {
         assert(isRecord(ioHandler), 'expected io handler to be record');
 
         const file = await new Promise<EvalValue>(async (resolve) => {
           const open = recordGet(ioHandler, 'open');
           assert(typeof open === 'function', 'expected open to be a function');
-          const curried = await fnPromise(open)(cs, resolved);
+          const curried = await open(cs, resolved);
 
           assert(
             typeof curried === 'function',
             'expected open to take callback'
           );
-          fnPromise(curried)(
+          curried(
             cs,
             fn(1, (_cs, file) => {
               resolve(file);
@@ -67,11 +62,11 @@ export default module({
         assert(isRecord(file), 'expected file handle to be record');
         const close = recordGet(file, 'close');
         assert(typeof close === 'function', 'expected close to be a function');
-        const result = await fnPromise(callback)(cs, fileHandle(file));
-        await fnPromise(close)(cs, []);
+        const result = await callback(cs, fileHandle(file));
+        await close(cs, []);
 
         return result;
-      })
-    );
+      },
+    ]);
   }),
 });

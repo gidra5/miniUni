@@ -63,12 +63,11 @@ const prefix = (group: Tree, rhs: Tree): Tree => {
   return { ...group, children: [...children, rhs] };
 };
 
-export const showNode = (
-  node: Tree,
+export const showPos = (
+  position: Position,
   context: EvalContext,
   msg: string = ''
 ) => {
-  const position = getPosition(node);
   const diag = Diagnostic.note();
 
   diag.withLabels([
@@ -81,6 +80,9 @@ export const showNode = (
   const fileMap = inject(Injectable.FileMap);
   diag.emitStd(fileMap);
 };
+
+export const showNode = (node: Tree, context: EvalContext, msg: string = '') =>
+  showPos(getPosition(node), context, msg);
 
 const idToExprOp = {
   '+': NodeType.ADD,
