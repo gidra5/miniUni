@@ -30,6 +30,8 @@ import {
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 import { inspect } from './utils.js';
+import { Context as EvalContext } from './evaluate/index.js';
+import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 
 export const getExprPrecedence = (node: Tree): Precedence =>
   inject(Injectable.ASTNodePrecedenceMap).get(node.id) ??
@@ -59,6 +61,25 @@ const postfix = (group: Tree, lhs: Tree): Tree => {
 const prefix = (group: Tree, rhs: Tree): Tree => {
   const { children } = group;
   return { ...group, children: [...children, rhs] };
+};
+
+export const showNode = (
+  node: Tree,
+  context: EvalContext,
+  msg: string = ''
+) => {
+  const position = getPosition(node);
+  const diag = Diagnostic.note();
+
+  diag.withLabels([
+    primaryDiagnosticLabel(context.fileId, {
+      message: msg,
+      start: position.start,
+      end: position.end,
+    }),
+  ]);
+  const fileMap = inject(Injectable.FileMap);
+  diag.emitStd(fileMap);
 };
 
 const idToExprOp = {

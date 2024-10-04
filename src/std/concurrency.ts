@@ -3,6 +3,8 @@ import { awaitTask, fn, isTask } from '../values.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
 
+export const CreateTaskEffect = Symbol('CreateTaskEffect');
+
 export default module({
   all: fn(1, async ([position, context], list) => {
     const fileId = context.fileId;
@@ -52,4 +54,5 @@ export default module({
     await new Promise((resolve) => setTimeout(resolve, time));
     return null;
   }),
+  creating_task: CreateTaskEffect,
 });

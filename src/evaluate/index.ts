@@ -1,7 +1,7 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from '../error.js';
 import { getModule } from '../files.js';
-import { getPosition, parseModule, parseScript } from '../parser.js';
+import { getPosition, parseModule, parseScript, showNode } from '../parser.js';
 import {
   NodeType,
   node,
@@ -70,10 +70,11 @@ import {
   PatternTestEnvs,
   testPattern,
 } from './patternMatching.js';
-import { prelude, ReturnHandler } from '../std/prelude.js';
+import { prelude, preludeHandlers, ReturnHandler } from '../std/prelude.js';
 import { ModuleDefault } from '../module.js';
 import { listMethods } from '../std/list.js';
 import { stringMethods } from '../std/string.js';
+import { CreateTaskEffect } from '../std/concurrency.js';
 
 export type Context = {
   file: string;
@@ -94,21 +95,6 @@ export const newContext = (fileId: number, file: string): Context => {
     fileId,
     env: new Environment({ parent: prelude }),
   };
-};
-
-const showNode = (node: Tree, context: Context, msg: string = '') => {
-  const position = getPosition(node);
-  const diag = Diagnostic.note();
-
-  diag.withLabels([
-    primaryDiagnosticLabel(context.fileId, {
-      message: msg,
-      start: position.start,
-      end: position.end,
-    }),
-  ]);
-  const fileMap = inject(Injectable.FileMap);
-  diag.emitStd(fileMap);
 };
 
 const incAssign = (
@@ -440,20 +426,46 @@ const lazyOperators = {
   }),
   [NodeType.ASYNC]: unpromisify(async (ast: Tree, context: Context) => {
     const [expr] = ast.children;
-    return createTask(
-      async () => await evaluateBlock(expr, context),
-      (e) => {
-        console.error(e);
-        if (e instanceof SystemError) e.print();
-        else showNode(expr, context, e.message);
-      }
+    const task = fnCont(
+      async () =>
+        await evaluateBlock(expr, context).catch((e) => {
+          console.error(e);
+          if (e instanceof SystemError) e.print();
+          else showNode(expr, context, e.message);
+          return null;
+        })
     );
+    return createEffect(CreateTaskEffect, task, context.env);
+    // return createTask(
+    //   async () => await evaluateBlock(expr, context),
+    //   (e) => {
+    //     console.error(e);
+    //     if (e instanceof SystemError) e.print();
+    //     else showNode(expr, context, e.message);
+    //   }
+    // );
   }),
   [NodeType.PARALLEL]: unpromisify(async (ast: Tree, context: Context) => {
-    const tasks = ast.children.map((arg) =>
-      evaluateStatement(node(NodeType.ASYNC, { children: [arg] }), context)
+    const arg = ast.children[0];
+    const task = await evaluateStatement(
+      node(NodeType.ASYNC, { children: [arg] }),
+      context
     );
-    return await Promise.all(tasks);
+    if (ast.children.length === 1) {
+      return flatMapEffect(task, context, async (task) => {
+        return [task];
+      });
+    }
+    return flatMapEffect(task, context, async (task, context) => {
+      const rest = await evaluateStatement(
+        node(NodeType.PARALLEL, { children: ast.children.slice(1) }),
+        context
+      );
+      return await flatMapEffect(rest, context, async (rest) => {
+        assert(Array.isArray(rest), 'expected array');
+        return [task, ...rest];
+      });
+    });
   }),
   [NodeType.AND]: unpromisify(async (ast: Tree, context: Context) => {
     const [head, ...rest] = ast.children;
@@ -1372,7 +1384,7 @@ const flatMapEffect = async (
   return await map(value, context);
 };
 
-const evaluateStatement = async (
+export const evaluateStatement = async (
   ast: Tree,
   context: Context
 ): Promise<EvalValue> => {
@@ -1509,7 +1521,12 @@ export const evaluateScript = async (
   context: Context
 ): Promise<EvalValue> => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
-  return await evaluateStatement(sequence(ast.children), context);
+  return evaluateHandlers(
+    preludeHandlers,
+    await evaluateStatement(sequence(ast.children), context),
+    getPosition(ast),
+    context
+  );
 };
 
 export const evaluateModule = async (

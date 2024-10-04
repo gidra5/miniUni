@@ -1,6 +1,7 @@
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { Context } from '../evaluate/index.js';
+import { showNode } from '../parser.js';
 import { assert, inspect } from '../utils.js';
 import {
   atom,
@@ -11,12 +12,14 @@ import {
   createHandler,
   createRecord,
   createSet,
+  createTask,
   fn,
   fnCont,
   fnPromise,
   isChannel,
   isTask,
 } from '../values.js';
+import { CreateTaskEffect } from './concurrency.js';
 
 export const ReturnHandler = Symbol('return_handler');
 export const PreludeIO = Symbol('prelude io');
@@ -112,4 +115,14 @@ export const preludeHandlers = createRecord({
       return await fnPromise(callback)(cs, file);
     }),
   }),
+  [CreateTaskEffect]: createHandler(
+    fnCont(async (cs, args) => {
+      assert(Array.isArray(args), 'expected array');
+      const [callback, taskFn] = args;
+      assert(typeof taskFn === 'function', 'expected function');
+      const task = createTask(async () => await fnPromise(taskFn)(cs, null));
+      assert(typeof callback === 'function', 'expected function');
+      return await fnPromise(callback)(cs, task);
+    })
+  ),
 });

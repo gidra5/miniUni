@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  Context,
   evaluateHandlers,
   evaluateScript,
+  evaluateStatement,
   newContext,
 } from '../src/evaluate/index.ts';
 import { assert, inspect } from '../src/utils.ts';
@@ -23,7 +25,8 @@ import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
 import { Environment, EnvironmentOptions } from '../src/environment.ts';
-import { prelude, PreludeIO } from '../src/std/prelude.ts';
+import { PreludeIO } from '../src/std/prelude.ts';
+import { sequence } from '../src/ast.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
@@ -37,8 +40,8 @@ const evaluate = async (
   const ast = parseScript(tokens);
   if (env) context.env = new Environment({ parent: context.env, ...env });
 
-  const result = await evaluateScript(ast, context);
   if (env?.handlers) {
+    const result = await evaluateStatement(sequence(ast.children), context);
     return await evaluateHandlers(
       env.handlers,
       result,
@@ -46,6 +49,8 @@ const evaluate = async (
       context
     );
   }
+
+  const result = await evaluateScript(ast, context);
   return result;
 };
 
@@ -1297,7 +1302,7 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
-    it.todo('force sync', async () => {
+    it('force sync', async () => {
       const input = `
         import "std/concurrency" as { creating_task };
 
@@ -1305,8 +1310,7 @@ describe('expressions', () => {
           async 123 // throws, since creating tasks is not allowed
         };
       `;
-      const result = await evaluate(input);
-      expect(result).toStrictEqual([1, 2]);
+      expect(async () => await evaluate(input)).rejects.toThrow();
     });
 
     describe('structured concurrency', () => {

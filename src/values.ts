@@ -214,17 +214,14 @@ export const isTask = (task: EvalValue): task is EvalTask => {
   );
 };
 
-export const createTask = (
-  f: () => Promise<EvalValue>,
-  onError?: (e: any) => void
-): EvalTask => {
+export const createTask = (f: () => Promise<EvalValue>): EvalTask => {
   const awaitChannel = createChannel('task await');
   const cancelChannel = createChannel('task cancel');
 
   f()
     .then(
       (value) => send(awaitChannel, value),
-      (e) => (send(awaitChannel, e), onError?.(e))
+      (e) => send(awaitChannel, e)
     )
     .finally(() => {
       closeChannel(awaitChannel);
