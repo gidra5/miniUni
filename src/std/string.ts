@@ -1,14 +1,16 @@
 import { SystemError } from '../error.js';
-import { fn } from '../values.js';
+import { fn, fnCont } from '../values.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { prelude } from './prelude.js';
 
 const stringModule = module({});
 
 export const stringMethods = (() => {
   return {
-    length: prelude.get('length'),
+    length: fnCont((_, target) => {
+      assert(typeof target === 'string');
+      return target.length;
+    }),
     split: fn(2, ([position, context], target, separator) => {
       const fileId = context.fileId;
       const splitErrorFactory = SystemError.invalidArgumentType(

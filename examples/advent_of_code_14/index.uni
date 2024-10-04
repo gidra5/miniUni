@@ -3,13 +3,13 @@ import "std/iter" as { range }
 content := string import "./input.txt"
 matrix := content
   .split("\n")
-  .filter(line -> length line)
+  .filter(line -> line.length != 0)
   .map(line -> line.split("").filter(char -> char != "\r"))
 mut sum := 0
 
-col_height := length matrix
+col_height := matrix.length
 
-for columnIndex in range 0 (length matrix[0]) {
+for columnIndex in range 0 (matrix[0].length) {
   mut _handle := -1
   mut count := 0
 

@@ -1,14 +1,16 @@
 import { SystemError } from '../error.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { EvalValue, fn, fnPromise } from '../values.js';
-import { prelude } from './prelude.js';
+import { EvalValue, fn, fnCont, fnPromise } from '../values.js';
 
 const listModule = module({});
 
 export const listMethods = (() => {
   return {
-    length: prelude.get('length'),
+    length: fnCont((_, target) => {
+      assert(Array.isArray(target));
+      return target.length;
+    }),
     slice: fn(2, ([position, context], item, args) => {
       const fileId = context.fileId;
       const sliceErrorFactory = SystemError.invalidArgumentType(

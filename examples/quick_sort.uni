@@ -1,5 +1,5 @@
 quick_sort := fn xs {
-  if length xs == 0 do return ()
+  if xs.length == 0 do return ()
   
   (pivot, ...rest) := xs;
   smaller := for x in rest do if x <  pivot do x

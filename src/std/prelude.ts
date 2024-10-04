@@ -63,19 +63,6 @@ export const prelude: Context['env'] = new Environment({
       if (typeof name === 'string') return Symbol(name);
       else return Symbol();
     }),
-    length: fnCont(([position, context], list) => {
-      const fileId = context.fileId;
-      const lengthErrorFactory = SystemError.invalidArgumentType(
-        'length',
-        { args: [['list', 'list _ | string']], returns: 'number' },
-        position
-      );
-      assert(
-        Array.isArray(list) || typeof list === 'string',
-        lengthErrorFactory(0).withFileId(fileId)
-      );
-      return list.length;
-    }),
     number: fnCont((_, n) => {
       return Number(n);
     }),

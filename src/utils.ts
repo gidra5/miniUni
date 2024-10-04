@@ -30,7 +30,10 @@ export function assert(
 ): asserts condition {
   if (condition) return;
   if (!msg) throw new Error('Assertion failed');
-  if (msg instanceof SystemError) throw msg;
+  if (msg instanceof SystemError) {
+    msg.print();
+    throw msg;
+  }
   throw new Error(`Assertion failed: ${msg}`);
 }
 

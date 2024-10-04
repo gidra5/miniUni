@@ -1,14 +1,14 @@
 import "std/math" as math
 import "std/concurrency" as { all }
 
-slice := fn (mut list, mut start = 0, mut end = (length list)) {
+slice := fn (mut list, mut start = 0, mut end = (list.length)) {
   while start != 0 {
     start--
     end--
     _, ...list = list
   }
 
-  while end != length list {
+  while end != list.length {
     ...list, _ = list
   }
 
@@ -16,7 +16,7 @@ slice := fn (mut list, mut start = 0, mut end = (length list)) {
 }
 
 reduce := fn list, reducer, merge, initial {
-  len := length list
+  len := list.length
   if len == 0 do return initial
 
   midpoint := math.floor(len / 2)

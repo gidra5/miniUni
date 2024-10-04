@@ -1,7 +1,7 @@
 import "std/iter" as { range };
 
 bubble_sort := fn mut list {
-  len := length list;
+  len := list.length;
 
   for i in range 0 len do
   for j in range 0 (len - i - 1) do

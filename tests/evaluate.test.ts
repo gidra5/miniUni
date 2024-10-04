@@ -176,10 +176,9 @@ describe('advent of code 2023 day 1 single', () => {
         import "std/math" as { floor }
   
         reduce := fn list, reducer, merge, initial {
-          len := length list
-          if len == 0 do return initial
+          if list.length == 0 do return initial
 
-          midpoint := floor(len / 2)
+          midpoint := floor(list.length / 2)
           item := list[midpoint]
           first, second := all(
             | (self (list.slice(0, midpoint)) reducer merge initial)
@@ -210,7 +209,7 @@ describe('advent of code 2023 day 1 single', () => {
   describe('split list', () => {
     it('5', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           {
             start--
             end--
@@ -225,7 +224,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('4', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           {
             start--
             end--
@@ -240,7 +239,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('3', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           start--
           end--
           _, ...list = list
@@ -253,7 +252,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('7', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           start--
           end--
             
@@ -265,7 +264,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('0', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           start--
           end--
           _, ...list = list
@@ -278,7 +277,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('2', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           while start != 0 {
             start--
             end--
@@ -286,7 +285,7 @@ describe('advent of code 2023 day 1 single', () => {
             break()
           }
 
-          while end != length list {
+          while end != list.length {
             ...list, _ = list
             break()
           }
@@ -299,7 +298,7 @@ describe('advent of code 2023 day 1 single', () => {
 
     it('6', async () => {
       const input = `
-        fn (mut list, mut start = 0, mut end = (length list)) {
+        fn (mut list, mut start = 0, mut end = (list.length)) {
           while start != 0 {
             start--
             end--
@@ -307,7 +306,7 @@ describe('advent of code 2023 day 1 single', () => {
             break()
           }
 
-          while end != length list {
+          while end != list.length {
             ...list, _ = list
             break()
           }
