@@ -80,12 +80,6 @@ export const testPattern = async (
   },
   flags: PatternTestFlags = { mutable: false, export: false, strict: true }
 ): Promise<PatternTestResult> => {
-  // inspect({
-  //   patternAst,
-  //   value,
-  //   envs,
-  // });
-
   if (patternAst.type === NodeType.PLACEHOLDER) {
     return { matched: true, envs, notEnvs };
   }
@@ -156,12 +150,6 @@ export const testPattern = async (
       notEnvs,
       flags
     );
-    // inspect({
-    //   tag: 'testPattern assign',
-    //   result,
-    //   value,
-    //   pattern,
-    // });
     if (!result.matched) {
       const bound = bindContext(envs, context);
       const _value = await evaluateExpr(patternAst.children[1], bound);
@@ -173,14 +161,6 @@ export const testPattern = async (
         notEnvs,
         flags
       );
-      // inspect({
-      //   tag: 'testPattern assign 2',
-      //   result,
-      //   value,
-      //   pattern,
-      //   _value,
-      //   _result,
-      // });
       return _result;
     }
     return result;
@@ -284,16 +264,6 @@ export const testPattern = async (
           notEnvs,
           flags
         );
-        // inspect({
-        //   tag: 'testPattern tuple',
-        //   result,
-        //   value,
-        //   v,
-        //   pattern,
-        //   consumed,
-        //   overconsumed: value.length < consumed,
-        //   flags,
-        // });
         envs = mergePatternTestEnvs(envs, result.envs);
         if (!result.matched) return { matched: false, envs, notEnvs };
         continue;
@@ -372,14 +342,6 @@ export const testPattern = async (
         continue;
       }
 
-      // inspect({
-      //   tag: 'testPattern record',
-      //   record,
-      //   pattern,
-      //   consumedNames,
-      //   flags,
-      // });
-
       unreachable(
         SystemError.invalidObjectPattern(getPosition(pattern)).withFileId(
           context.fileId
@@ -434,8 +396,6 @@ export const testPattern = async (
     return { matched: true, envs, notEnvs };
   }
 
-  // inspect(patternAst);
-
   unreachable(
     SystemError.invalidPattern(getPosition(patternAst)).withFileId(
       context.fileId
@@ -446,12 +406,6 @@ export const testPattern = async (
 export const bind = (envs: PatternTestEnvs, context: Context) => {
   const readonly = new Map();
   const mutable = new Map();
-
-  // inspect({
-  //   tag: 'bind',
-  //   envs,
-  //   context,
-  // });
 
   for (const [key, value] of envs.readonly.entries()) {
     const _key = typeof key === 'string' ? key : key[0];
@@ -480,11 +434,6 @@ export const bind = (envs: PatternTestEnvs, context: Context) => {
     'cant do exports not at the top level of a module'
   );
 
-  // inspect({
-  //   tag: 'bind 2',
-  //   envs,
-  //   context,
-  // });
 };
 
 export const bindContext = (

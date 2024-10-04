@@ -260,17 +260,6 @@ const parsePairGroup =
       followSet: [...context.followSet, right],
     })(src, index);
 
-    // inspect({
-    //   tag: 'parsePairGroup',
-    //   context,
-    //   head: src.slice(index, index + 10),
-    //   prev: src.slice(index - 10, index),
-    //   index,
-    //   pair: [left, right],
-    //   ast,
-    //   parseInner,
-    // });
-
     if (src[index]?.src !== right) {
       return [
         index,
@@ -342,13 +331,6 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
 
-  // inspect({
-  //   tag: 'parsePatternGroup',
-  //   context,
-  //   head: src.slice(index, index + 10),
-  //   prev: src.slice(index - 10, index),
-  //   index,
-  // });
 
   if (!context.lhs && Object.hasOwn(idToPrefixPatternOp, src[index].src)) {
     const op = idToPrefixPatternOp[src[index].src];
@@ -718,13 +700,6 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         index++;
         continue;
       }
-      // inspect({
-      //   tag: 'parseExprGroup switch',
-      //   context,
-      //   index,
-      //   head: src.slice(index, index + 10),
-      //   prev: src.slice(index - 10, index),
-      // });
       let pattern: Tree;
       [index, pattern] = parsePattern({ ...context, banned: ['->'] })(
         src,
@@ -1092,16 +1067,6 @@ const parsePratt =
   ): Parser =>
   (src, i) => {
     let index = i;
-    // if (groupParser === parseExprGroup)
-    //   inspect({
-    //     tag: 'parsePratt',
-    //     context,
-    //     precedence,
-    //     head: src.slice(index, index + 10),
-    //     prev: src.slice(index - 10, index),
-    //     index,
-    //     groupParser,
-    //   });
     let lhs: Tree;
     [index, lhs] = parsePrefix(context, groupParser, getPrecedence)(src, index);
     const until = () => {
@@ -1120,19 +1085,6 @@ const parsePratt =
         getPrecedence
       )(src, index);
       const [left, right] = getPrecedence(opGroup);
-      // if (groupParser === parseExprGroup)
-      // inspect({
-      //   tag: 'parsePratt 2',
-      //   context,
-      //   precedence,
-      //   head: src.slice(nextIndex, nextIndex + 10),
-      //   prev: src.slice(nextIndex - 10, nextIndex),
-      //   nextIndex,
-      //   groupParser,
-      //   opGroup,
-      //   op_precedences: [left, right],
-      //   lhs,
-      // });
       if (left === null) break;
       if (left <= precedence) break;
       index = nextIndex;
@@ -1161,22 +1113,7 @@ const parsePratt =
       const associative = left === right;
       const hasSameOperator = opGroup.type === lhs.type;
       const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
-      // if (groupParser === parseExprGroup)
-      //   inspect({
-      //     tag: 'parsePratt 5',
-      //     context,
-      //     precedence,
-      //     head: src.slice(nextIndex, nextIndex + 10),
-      //     prev: src.slice(nextIndex - 10, nextIndex),
-      //     nextIndex,
-      //     groupParser,
-      //     hasSameOperator,
-      //     isPlaceholder,
-      //     associative,
-      //     lhs,
-      //     rhs,
-      //   });
-
+      
       if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
       } else if (!isPlaceholder) {
@@ -1185,18 +1122,6 @@ const parsePratt =
         lhs = postfix(opGroup, lhs);
       }
     }
-
-    // if (groupParser === parseExprGroup)
-    // inspect({
-    //   tag: 'parsePratt 3',
-    //   context,
-    //   precedence,
-    //   head: src.slice(index, index + 10),
-    //   prev: src.slice(index - 10, index),
-    //   index,
-    //   groupParser,
-    //   lhs,
-    // });
 
     if (lhs.type === NodeType.SEQUENCE && lhs.children.length === 1) {
       return [index, lhs.children[0]];

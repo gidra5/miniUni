@@ -88,7 +88,6 @@ export class Environment {
 
   copyUpTo(env: Environment): Environment {
     if (this === env) return this;
-    // if (!this.parent) inspect({ this: this, env });
     assert(this.parent);
     const parentCopy = this.parent.copyUpTo(env);
     const copy = new Environment({ parent: parentCopy });
