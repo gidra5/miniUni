@@ -4,7 +4,7 @@ import {
   newContext,
 } from './evaluate/index.js';
 import { SystemError } from './error.js';
-import { assert, inspect, unreachable } from './utils.js';
+import { assert,  unreachable } from './utils.js';
 import { isRecord } from './values.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';

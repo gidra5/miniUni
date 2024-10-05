@@ -29,7 +29,6 @@ import {
   assert,
   eventLoopYield,
   getClosestName,
-  inspect,
   isEqual,
   unreachable,
 } from '../utils.js';
@@ -37,12 +36,15 @@ import {
   atom,
   awaitTask,
   CallSite,
+  cancelTask,
   createChannel,
   createEffect,
   createHandler,
   createRecord,
+  createTask,
   EvalFunction,
   EvalRecord,
+  EvalTask,
   EvalValue,
   getChannel,
   isChannel,
@@ -50,6 +52,7 @@ import {
   isHandler,
   isRecord,
   isTask,
+  onceEvent,
   receive,
   recordDelete,
   recordGet,
@@ -130,18 +133,18 @@ const incAssign = (
 
       const v = context.env.get(patternKey);
       assert(
-        typeof v === 'number',
+        typeof v === 'number' || typeof v === 'string',
         SystemError.invalidIncrement(String(patternKey), position).withFileId(
           context.fileId
         )
       );
       assert(
-        typeof value === 'number',
+        typeof value === typeof v,
         SystemError.invalidIncrement(String(patternKey), position).withFileId(
           context.fileId
         )
       );
-      context.env.set(patternKey, v + value);
+      context.env.set(patternKey, (v as string) + (value as string));
     } else {
       const [patternTarget, patternKeyValue] = patternKey;
       if (Array.isArray(patternTarget)) {
@@ -399,14 +402,43 @@ const lazyOperators = {
   },
   [NodeType.ASYNC]: async (ast: Tree, context: Context) => {
     const [expr] = ast.children;
-    const task = async () =>
-      await evaluateBlock(expr, context).catch((e) => {
+    const childrenTasks: EvalTask[] = [];
+    const task = async () => {
+      const handlers = createRecord({
+        [CreateTaskEffect]: createHandler(async (cs, value) => {
+          assert(Array.isArray(value), 'expected value to be an array');
+          const [callback, taskFn] = value;
+          assert(typeof taskFn === 'function', 'expected function');
+          const _task = createTask(cs, async () => await taskFn(cs, null));
+          childrenTasks.push(_task);
+          assert(typeof callback === 'function', 'expected callback');
+          return await callback(cs, _task);
+        }),
+      });
+      const value = await evaluateBlock(expr, context).catch((e) => {
         console.error(e);
         if (e instanceof SystemError) e.print();
         else showNode(expr, context, e.message);
         return null;
       });
-    return createEffect(CreateTaskEffect, task, context.env);
+
+      return await evaluateHandlers(
+        handlers,
+        value,
+        getPosition(expr),
+        context
+      );
+    };
+    const effect = createEffect(CreateTaskEffect, task, context.env);
+    return mapEffect(effect, context, async (task, context) => {
+      assert(isTask(task), 'expected task');
+      const cancelEvent = task[1];
+      onceEvent(cancelEvent, async (cs) => {
+        for (const childTask of childrenTasks) await cancelTask(cs, childTask);
+        return null;
+      });
+      return task;
+    });
   },
   [NodeType.PARALLEL]: async (ast: Tree, context: Context) => {
     const arg = ast.children[0];
@@ -745,7 +777,11 @@ const lazyOperators = {
     const [pattern, expr] = ast.children;
     const value = await evaluateExpr(expr, _context);
     return await flatMapEffect(value, _context, async (value, context) => {
-      assert(typeof value === 'number' || Array.isArray(value));
+      assert(
+        typeof value === 'number' ||
+          Array.isArray(value) ||
+          typeof value === 'string'
+      );
       const { matched, envs } = await testPattern(pattern, value, context);
       assert(matched, 'expected pattern to match');
       incAssign(envs, context, getPosition(pattern));

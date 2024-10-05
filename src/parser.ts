@@ -29,7 +29,6 @@ import {
   ErrorNode,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
-import { inspect } from './utils.js';
 import { Context as EvalContext } from './evaluate/index.js';
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 

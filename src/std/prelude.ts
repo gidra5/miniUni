@@ -1,7 +1,6 @@
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { Context, evaluateHandlers } from '../evaluate/index.js';
-import { showPos } from '../parser.js';
 import { assert, inspect } from '../utils.js';
 import {
   atom,
@@ -17,6 +16,11 @@ import {
   isChannel,
   isTask,
   EvalFunction,
+  createEvent,
+  isEvent,
+  onceEvent,
+  emitEvent,
+  subscribeEvent,
 } from '../values.js';
 import { CreateTaskEffect } from './concurrency.js';
 
@@ -33,7 +37,8 @@ export const prelude: Context['env'] = new Environment({
       assert(typeof handler === 'function', 'expected function');
       return createHandler(handler);
     },
-    cancel: async ([position, context], value) => {
+    cancel: async (cs, value) => {
+      const [position, context] = cs;
       const fileId = context.fileId;
       const cancelErrorFactory = SystemError.invalidArgumentType(
         'cancel',
@@ -41,12 +46,72 @@ export const prelude: Context['env'] = new Environment({
         position
       );
       assert(isTask(value), cancelErrorFactory(0).withFileId(fileId));
-      return cancelTask(value);
+      return cancelTask(cs, value);
     },
     channel: async (_, name) => {
       if (typeof name === 'string') return createChannel(name);
       else return createChannel();
     },
+    event: async () => {
+      return createEvent();
+    },
+    subscribe: fn(2, async (cs, event, fn) => {
+      const [position, context] = cs;
+      const fileId = context.fileId;
+      const subscribeErrorFactory = SystemError.invalidArgumentType(
+        'subscribe',
+        {
+          args: [
+            ['event', 'event a'],
+            ['listener', 'a -> void'],
+          ],
+          returns: '() -> void',
+        },
+        position
+      );
+      assert(isEvent(event), subscribeErrorFactory(0).withFileId(fileId));
+      assert(
+        typeof fn === 'function',
+        subscribeErrorFactory(1).withFileId(fileId)
+      );
+      return subscribeEvent(event, fn);
+    }),
+    once: fn(2, async (cs, event, fn) => {
+      const [position, context] = cs;
+      const fileId = context.fileId;
+      const onceErrorFactory = SystemError.invalidArgumentType(
+        'once',
+        {
+          args: [
+            ['event', 'event a'],
+            ['listener', 'a -> void'],
+          ],
+          returns: '() -> void',
+        },
+        position
+      );
+      assert(isEvent(event), onceErrorFactory(0).withFileId(fileId));
+      assert(typeof fn === 'function', onceErrorFactory(1).withFileId(fileId));
+      return onceEvent(event, fn);
+    }),
+    emit: fn(2, async (cs, event, value) => {
+      const [position, context] = cs;
+      const fileId = context.fileId;
+      const emitErrorFactory = SystemError.invalidArgumentType(
+        'emit',
+        {
+          args: [
+            ['event', 'event a'],
+            ['value', 'a'],
+          ],
+          returns: 'void',
+        },
+        position
+      );
+      assert(isEvent(event), emitErrorFactory(0).withFileId(fileId));
+      await emitEvent(cs, event, value);
+      return null;
+    }),
     close: async ([position, context], value) => {
       const fileId = context.fileId;
       const closeErrorFactory = SystemError.invalidArgumentType(
@@ -125,7 +190,7 @@ export const preludeHandlers = createRecord({
     assert(Array.isArray(args), 'expected array');
     const [callback, taskFn] = args;
     assert(typeof taskFn === 'function', 'expected function');
-    const task = createTask(async () => await taskFn(cs, null));
+    const task = createTask(cs, async () => await taskFn(cs, null));
     assert(typeof callback === 'function', 'expected function');
     return await callback(cs, task);
   }),

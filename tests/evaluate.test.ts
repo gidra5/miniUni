@@ -6,7 +6,7 @@ import {
   evaluateStatement,
   newContext,
 } from '../src/evaluate/index.ts';
-import { assert, inspect } from '../src/utils.ts';
+import { assert } from '../src/utils.ts';
 import {
   atom,
   createRecord,
@@ -1067,59 +1067,59 @@ describe('expressions', () => {
       });
     });
 
-    describe('dangling resources', () => {
-      it.todo('through mutation', async () => {
-        const input = `
-          import "std/io" as { open };
+    // describe('dangling resources', () => {
+    //   it.todo('through mutation', async () => {
+    //     const input = `
+    //       import "std/io" as { open };
 
-          handle := ()
+    //       handle := ()
 
-          // file closed at the end of block
-          open "file.txt" fn file {
-            file.write("hello")
-            handle = file
-          }
+    //       // file closed at the end of block
+    //       open "file.txt" fn file {
+    //         file.write("hello")
+    //         handle = file
+    //       }
 
-          handle.write("world") // error
-        `;
-        const result = await evaluate(input);
-        expect(result).toBe('hello');
-      });
+    //       handle.write("world") // error
+    //     `;
+    //     const result = await evaluate(input);
+    //     expect(result).toBe('hello');
+    //   });
 
-      it.todo('through closure', async () => {
-        const input = `
-          import "std/io" as { open };
+    //   it.todo('through closure', async () => {
+    //     const input = `
+    //       import "std/io" as { open };
 
-          // file closed at the end of block
-          handle := open "file.txt" fn file {
-            file.write("hello")
-            
-            fn do file.write("world")
-          }
+    //       // file closed at the end of block
+    //       handle := open "file.txt" fn file {
+    //         file.write("hello")
 
-          handle() // error
-        `;
-        const result = await evaluate(input);
-        expect(result).toBe('hello');
-      });
+    //         fn do file.write("world")
+    //       }
 
-      it.todo('through data', async () => {
-        const input = `
-          import "std/io" as { open };
+    //       handle() // error
+    //     `;
+    //     const result = await evaluate(input);
+    //     expect(result).toBe('hello');
+    //   });
 
-          // file closed at the end of block
-          status, handle := open "file.txt" fn file {
-            file.write("hello")
-            
-            :done, file
-          }
+    //   it.todo('through data', async () => {
+    //     const input = `
+    //       import "std/io" as { open };
 
-          handle.write("world") // error
-        `;
-        const result = await evaluate(input);
-        expect(result).toBe('hello');
-      });
-    });
+    //       // file closed at the end of block
+    //       status, handle := open "file.txt" fn file {
+    //         file.write("hello")
+
+    //         :done, file
+    //       }
+
+    //       handle.write("world") // error
+    //     `;
+    //     const result = await evaluate(input);
+    //     expect(result).toBe('hello');
+    //   });
+    // });
 
     describe('error handling', () => {
       it('try throw', async () => {
@@ -1345,6 +1345,21 @@ describe('expressions', () => {
       expect(async () => await evaluate(input)).rejects.toThrow();
     });
 
+    it('event emitter', async () => {
+      const input = `
+        emitter := event()
+        mut counter := ""
+        subscribe emitter fn x do counter += x + "1"
+        once emitter fn x do counter += x + "2"
+        
+        emit emitter "hello"
+
+        counter
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual('hello1hello2');
+    });
+
     describe('structured concurrency', () => {
       it('cancelling', async () => {
         const input = `
@@ -1362,56 +1377,61 @@ describe('expressions', () => {
         expect(result).toStrictEqual(null);
       });
 
-      it.todo('cancel propagation', async () => {
+      it('cancel propagation', async () => {
         const input = `
           import "std/concurrency" as { wait };
 
-          counter := 0;
+          mut counter := 0
           task := async {
-            async { wait 2000; counter += 1 }
-            wait 1000
+            async { wait 200; counter += 1 }
+            wait 50
             counter += 1
+            wait 200
             123
           };
-          
-          task.cancel()
-          await task, counter
+
+          wait 100
+          cancel task
+          counter
         `;
         const result = await evaluate(input);
-        expect(result).toStrictEqual([123, 0]);
+        expect(result).toStrictEqual(1);
       });
 
-      it.todo('cancel_on_error policy', async () => {
+      it('cancel_on_error policy', async () => {
         const input = `
-          import "std/concurrency" as { cancel_on_error }
+          import "std/concurrency" as { wait, cancel_on_error }
           
-          counter := 0
-          handled :=
-            cancel_on_error fn {
-              x1 := async { counter += 1 }
-              x2 := async { throw "error" }
-              x3 := async { counter += 1 }
+          mut counter := 0
+          handled := cancel_on_error {
+            async { wait 100; counter += 1 }
+            async { wait 300; counter += 1 }
+            
+            counter += 1
 
-              counter += 1
-
-              await x1, await x2, await x3
-            }
+            wait 200
+            throw "error"
+          }
 
           handled, counter
         `;
         const result = await evaluate(input);
-        expect(result).toStrictEqual([1, 2]);
+        expect(result).toStrictEqual(['error', 2]);
       });
 
-      it.todo('cancel_on_return policy', async () => {
+      it('cancel_on_return policy', async () => {
         const input = `
-          import "std/concurrency" as { cancel_on_return };
+          import "std/concurrency" as { wait, cancel_on_return, some };
           
-          race := fn list {
-            cancel_on_return fn {
-              list.reduce fn task, acc -> async task() + acc
-            }
+          mut counter := 1
+          handled := cancel_on_return {
+            some (
+              | { wait 100; counter += 1; 1 }
+              | { wait 200; counter += 2; 2 }
+            )
           }
+
+          handled, counter
         `;
         const result = await evaluate(input);
         expect(result).toStrictEqual([1, 2]);

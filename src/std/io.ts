@@ -7,7 +7,7 @@ import {
   isRecord,
   recordGet,
 } from '../values.js';
-import { assert, inspect } from '../utils.js';
+import { assert } from '../utils.js';
 import { module } from '../module.js';
 import { resolvePath } from '../files.js';
 import { IOEffect } from './prelude.js';

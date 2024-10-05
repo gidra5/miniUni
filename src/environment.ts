@@ -1,4 +1,4 @@
-import { assert, inspect } from './utils.js';
+import { assert } from './utils.js';
 import { createRecord, EvalRecord, EvalValue, isRecord } from './values.js';
 
 export type EnvironmentOptions = {

@@ -2,7 +2,7 @@ import { NodeType, Tree } from '../ast.js';
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { getPosition } from '../parser.js';
-import { assert, inspect, isEqual, unreachable } from '../utils.js';
+import { assert,  isEqual, unreachable } from '../utils.js';
 import {
   atom,
   EvalValue,

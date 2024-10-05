@@ -1,9 +1,8 @@
 import type { Context } from './evaluate/index.js';
 import { Position } from './position.js';
-import { assert, inspect } from './utils.js';
+import { assert, eventLoopYield, inspect } from './utils.js';
 import { SystemError } from './error.js';
 import { Environment } from './environment.js';
-import { showPos } from './parser.js';
 
 export type CallSite = [Position, Context];
 export type EvalFunction = (
@@ -15,6 +14,7 @@ type EvalSymbol = symbol;
 export type EvalRecord = Map<EvalValue, EvalValue>;
 
 type EvalChannel = EvalSymbol;
+type EvalEvent = EvalSymbol;
 export type EvalEffect = {
   effect: EvalValue;
   value: EvalValue;
@@ -35,6 +35,7 @@ export type EvalValue =
   | EvalSymbol
   | EvalRecord
   | EvalChannel
+  | EvalEvent
   | EvalEffect
   | EvalHandler;
 
@@ -69,7 +70,7 @@ export const fn = (
 
 const atoms = new Map<string, symbol>();
 
-export const symbol = (): { symbol: symbol } => ({ symbol: Symbol() });
+export const symbol = (): EvalSymbol => Symbol();
 export const atom = (name: string): EvalSymbol => {
   if (!atoms.has(name)) atoms.set(name, Symbol(name));
   return atoms.get(name)!;
@@ -124,7 +125,7 @@ const channelStatus = (c: symbol): ChannelStatus => {
   return ChannelStatus.Empty;
 };
 
-export const createChannel = (name?: string): EvalChannel => {
+export const createChannel = (name = 'channel'): EvalChannel => {
   const channel = Symbol(name);
   channels[channel] = {
     closed: false,
@@ -136,7 +137,7 @@ export const createChannel = (name?: string): EvalChannel => {
 
 export const closeChannel = (c: symbol) => {
   const status = channelStatus(c);
-  if (status === ChannelStatus.Closed) throw 'channel closed';
+  if (status === ChannelStatus.Closed) throw new Error('channel closed');
   channels[c].closed = true;
 };
 
@@ -156,7 +157,7 @@ export const send = (c: symbol, value: EvalValue | Error): ChannelStatus => {
   if (status !== ChannelStatus.Closed) {
     channels[c].queue.push(value);
   } else {
-    throw 'channel closed';
+    throw new Error('channel closed');
   }
 
   return status;
@@ -168,7 +169,7 @@ export const receive = async (c: symbol): Promise<EvalValue> => {
     if (value instanceof Error) throw value;
     return value;
   }
-  if (status === ChannelStatus.Closed) throw 'channel closed';
+  if (status === ChannelStatus.Closed) throw new Error('channel closed');
 
   return new Promise((resolve, reject) => {
     channels[c].onReceive.push({ resolve, reject });
@@ -186,7 +187,83 @@ export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   return [null, status];
 };
 
-type EvalTask = [taskAwait: EvalChannel, taskCancel: EvalChannel];
+type _Event = {
+  closed: boolean;
+  emit: (cs: CallSite, value: EvalValue) => Promise<void>;
+  subscribe: (listener: EvalFunction) => EvalFunction;
+};
+const events = new Map<symbol, _Event>();
+
+export const createEvent = (name: string = 'event'): EvalEvent => {
+  const listeners: Array<EvalFunction> = [];
+  const event = Symbol(name);
+  events.set(event, {
+    closed: false,
+    async emit(cs, v) {
+      for (const listener of listeners) await listener(cs, v);
+    },
+    subscribe(listener) {
+      assert(typeof listener === 'function', 'expected function');
+      listeners.push(listener);
+      return async () => {
+        listeners.filter((x) => x !== listener);
+        return null;
+      };
+    },
+  });
+  return event;
+};
+
+export const isEvent = (event: EvalValue): event is EvalEvent => {
+  return !!event && typeof event === 'symbol' && events.has(event);
+};
+
+export const isEventClosed = (event: EvalValue): boolean => {
+  if (!isEvent(event)) throw new Error('expected event');
+  return events.get(event)!.closed;
+};
+
+export const closeEvent = (event: EvalValue) => {
+  if (!isEvent(event)) throw new Error('expected event');
+  if (events.get(event)!.closed) throw new Error('event closed');
+  events.get(event)!.closed = true;
+};
+
+export const onceEvent = (event: EvalValue, f: EvalFunction) => {
+  const unsubscribe = subscribeEvent(event, async (cs, v) => {
+    await f(cs, v);
+    await unsubscribe(cs, null);
+    return null;
+  });
+  return unsubscribe;
+};
+
+export const emitEvent = async (
+  cs: CallSite,
+  event: EvalValue,
+  value: EvalValue
+) => {
+  if (!isEvent(event)) throw new Error('expected event');
+  if (events.get(event)!.closed) throw new Error('event closed');
+  await events.get(event)!.emit(cs, value);
+};
+
+export const subscribeEvent = (event: EvalValue, listener: EvalFunction) => {
+  if (!isEvent(event)) throw new Error('expected event');
+  if (events.get(event)!.closed) throw new Error('event closed');
+  return events.get(event)!.subscribe(listener);
+};
+
+export const nextEvent = (event: EvalValue) => {
+  return new Promise<EvalValue>((resolve) =>
+    onceEvent(event, async (ca, v) => {
+      resolve(v);
+      return null;
+    })
+  );
+};
+
+export type EvalTask = [taskAwait: EvalChannel, taskCancel: EvalEvent];
 
 export const isTask = (task: EvalValue): task is EvalTask => {
   return (
@@ -194,32 +271,49 @@ export const isTask = (task: EvalValue): task is EvalTask => {
     Array.isArray(task) &&
     task.length === 2 &&
     isChannel(task[0]) &&
-    isChannel(task[1])
+    isEvent(task[1])
   );
 };
 
-export const createTask = (f: () => Promise<EvalValue>): EvalTask => {
+export const createTask = (
+  cs: CallSite,
+  f: () => Promise<EvalValue>
+): EvalTask => {
   const awaitChannel = createChannel('task await');
-  const cancelChannel = createChannel('task cancel');
+  const cancelEvent = createEvent('task cancel');
+  let status = 'pending';
 
-  f()
-    .then(
-      (value) => send(awaitChannel, value),
-      (e) => send(awaitChannel, e)
-    )
-    .finally(() => {
+  const unsub = onceEvent(cancelEvent, async (cs) => {
+    if (status === 'resolved') return null;
+    status = 'cancelled';
+    send(awaitChannel, null);
+    closeChannel(awaitChannel);
+    closeEvent(cancelEvent);
+    return null;
+  });
+
+  f().then(
+    (value) => {
+      if (status === 'cancelled') return;
+      status = 'resolved';
+      unsub(cs, null);
+      send(awaitChannel, value);
       closeChannel(awaitChannel);
-      closeChannel(cancelChannel);
-    });
+    },
+    (e) => {
+      if (status === 'cancelled') return;
+      status = 'resolved';
+      unsub(cs, null);
+      send(awaitChannel, e);
+      closeChannel(awaitChannel);
+    }
+  );
 
-  return [awaitChannel, cancelChannel];
+  return [awaitChannel, cancelEvent];
 };
 
-export const cancelTask = (task: EvalTask) => {
-  send(task[0], null);
-  send(task[1], null);
-  closeChannel(task[0]);
-  closeChannel(task[1]);
+export const cancelTask = async (cs: CallSite, task: EvalTask) => {
+  await emitEvent(cs, task[1], null);
 
   return null;
 };
