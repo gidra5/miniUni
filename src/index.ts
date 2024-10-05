@@ -3,7 +3,7 @@ import readline from 'node:readline';
 import { stdin as input, stdout as output } from 'node:process';
 import {
   evaluateEntryFile,
-  evaluateScriptString,
+  compileScriptString,
   newContext,
 } from './evaluate/index.js';
 import { addFile } from './files.js';
@@ -40,7 +40,8 @@ program
         default: {
           const fileId = addFile(file, line);
           const context = newContext(fileId, file);
-          const result = await evaluateScriptString(line, context);
+          const compiled = compileScriptString(line, context);
+          const result = await compiled(context);
           console.dir(result, { depth: null });
           break;
         }

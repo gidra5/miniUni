@@ -29,6 +29,7 @@ import {
   assert,
   eventLoopYield,
   getClosestName,
+  inspect,
   isEqual,
   unreachable,
 } from '../utils.js';
@@ -70,8 +71,8 @@ import { Position } from '../position.js';
 import {
   bind,
   bindContext,
+  compilePattern,
   PatternTestEnvs,
-  testPattern,
 } from './patternMatching.js';
 import { prelude, preludeHandlers, ReturnHandler } from '../std/prelude.js';
 import { ModuleDefault } from '../module.js';
@@ -80,20 +81,24 @@ import { stringMethods } from '../std/string.js';
 import { CreateTaskEffect } from '../std/concurrency.js';
 import { isResult, resultMethods } from '../std/result.js';
 
-export type Context = {
+export type EvalContext = {
   file: string;
   fileId: number;
   env: Environment;
 };
+export type CompileContext = {
+  file: string;
+  fileId: number;
+};
 
-export const forkContext = (context: Context): Context => {
+export const forkContext = (context: EvalContext): EvalContext => {
   return {
     ...context,
     env: new Environment({ parent: context.env }),
   };
 };
 
-export const newContext = (fileId: number, file: string): Context => {
+export const newContext = (fileId: number, file: string): EvalContext => {
   return {
     file,
     fileId,
@@ -103,7 +108,7 @@ export const newContext = (fileId: number, file: string): Context => {
 
 const incAssign = (
   envs: PatternTestEnvs,
-  context: Context,
+  context: EvalContext,
   position: Position
 ) => {
   assert(envs.exports.size === 0, 'cant do exports at increment');
@@ -194,7 +199,7 @@ const incAssign = (
 
 const assign = (
   envs: PatternTestEnvs,
-  context: Context,
+  context: EvalContext,
   position: Position
 ) => {
   assert(envs.exports.size === 0, 'cant do exports in at assignment');
@@ -240,7 +245,7 @@ const assign = (
 function bindExport(
   envs: PatternTestEnvs,
   exports: EvalRecord,
-  context: Context
+  context: EvalContext
 ) {
   for (const [key, value] of envs.readonly.entries()) {
     assert(typeof key === 'string', 'can only declare names');
@@ -382,280 +387,339 @@ const operators = {
 
 const MaskEffect = Symbol('effect mask');
 const lazyOperators = {
-  [NodeType.IMPORT]: async (ast: Tree, context: Context) => {
+  [NodeType.IMPORT]: (ast, context) => {
     const name = ast.data.name;
-    const module = await getModule({ name, from: context.file });
-    const value =
-      'script' in module
-        ? module.script
-        : 'module' in module
-        ? module.module
-        : (module.buffer as unknown as EvalValue);
     const pattern = ast.children[0];
+    const importModule = async () => {
+      const module = await getModule({ name, from: context.file });
+      const value =
+        'script' in module
+          ? module.script
+          : 'module' in module
+          ? module.module
+          : (module.buffer as unknown as EvalValue);
+
+      return value;
+    };
+
     if (pattern) {
-      const result = await testPattern(pattern, value, context);
-      assert(result.matched, 'expected pattern to match');
-      bind(result.envs, context);
+      const compiledPattern = compilePattern(pattern, context);
+      return async (evalContext) => {
+        const value = await importModule();
+        const result = await compiledPattern(value, evalContext);
+        assert(result.matched, 'expected pattern to match');
+        bind(result.envs, evalContext);
+        return value;
+      };
     }
 
-    return value;
+    return importModule;
   },
-  [NodeType.ASYNC]: async (ast: Tree, context: Context) => {
+  [NodeType.ASYNC]: (ast, context) => {
     const [expr] = ast.children;
-    const childrenTasks: EvalTask[] = [];
-    const task = async () => {
-      const handlers = createRecord({
-        [CreateTaskEffect]: createHandler(async (cs, value) => {
-          assert(Array.isArray(value), 'expected value to be an array');
-          const [callback, taskFn] = value;
-          assert(typeof taskFn === 'function', 'expected function');
-          const _task = createTask(cs, async () => await taskFn(cs, null));
-          childrenTasks.push(_task);
-          assert(typeof callback === 'function', 'expected callback');
-          return await callback(cs, _task);
-        }),
-      });
-      const value = await evaluateBlock(expr, context).catch((e) => {
-        console.error(e);
-        if (e instanceof SystemError) e.print();
-        else showNode(expr, context, e.message);
-        return null;
-      });
+    const compiled = compileBlock(expr, context);
+    const exprPosition = getPosition(expr);
+    return async (context) => {
+      const childrenTasks: EvalTask[] = [];
+      const task = async () => {
+        const handlers = createRecord({
+          [CreateTaskEffect]: createHandler(async (cs, value) => {
+            assert(Array.isArray(value), 'expected value to be an array');
+            const [callback, taskFn] = value;
+            assert(typeof taskFn === 'function', 'expected function');
+            const _task = createTask(cs, async () => await taskFn(cs, null));
+            childrenTasks.push(_task);
+            assert(typeof callback === 'function', 'expected callback');
+            return await callback(cs, _task);
+          }),
+        });
+        const value = await compiled(context).catch((e) => {
+          console.error(e);
+          if (e instanceof SystemError) e.print();
+          else showNode(expr, context, e.message);
+          return null;
+        });
 
-      return await evaluateHandlers(
-        handlers,
-        value,
-        getPosition(expr),
-        context
-      );
-    };
-    const effect = createEffect(CreateTaskEffect, task, context.env);
-    return mapEffect(effect, context, async (task, context) => {
-      assert(isTask(task), 'expected task');
-      const cancelEvent = task[1];
-      onceEvent(cancelEvent, async (cs) => {
-        for (const childTask of childrenTasks) await cancelTask(cs, childTask);
-        return null;
+        return await evaluateHandlers(handlers, value, exprPosition, context);
+      };
+      const effect = createEffect(CreateTaskEffect, task, context.env);
+      return mapEffect(effect, context, async (task, context) => {
+        assert(isTask(task), 'expected task');
+        const cancelEvent = task[1];
+        onceEvent(cancelEvent, async (cs) => {
+          for (const childTask of childrenTasks)
+            await cancelTask(cs, childTask);
+          return null;
+        });
+        return task;
       });
-      return task;
-    });
+    };
   },
-  [NodeType.PARALLEL]: async (ast: Tree, context: Context) => {
+  [NodeType.PARALLEL]: (ast, context) => {
     const arg = ast.children[0];
-    const task = await evaluateStatement(
+    const compiled = compileStatement(
       node(NodeType.ASYNC, { children: [arg] }),
       context
     );
+
     if (ast.children.length === 1) {
-      return await mapEffect(task, context, async (task) => {
-        return [task];
-      });
+      return async (context) => {
+        const task = await compiled(context);
+        return await mapEffect(task, context, async (task) => {
+          return [task];
+        });
+      };
     }
-    return await flatMapEffect(task, context, async (task, context) => {
-      const rest = await evaluateStatement(
-        node(NodeType.PARALLEL, { children: ast.children.slice(1) }),
-        context
-      );
-      return await flatMapEffect(rest, context, async (rest) => {
-        assert(Array.isArray(rest), 'expected array');
-        return [task, ...rest];
+
+    const restCompiled = compileStatement(
+      node(NodeType.PARALLEL, { children: ast.children.slice(1) }),
+      context
+    );
+    return async (context) => {
+      const task = await compiled(context);
+      return await flatMapEffect(task, context, async (task, context) => {
+        const rest = await restCompiled(context);
+        return await flatMapEffect(rest, context, async (rest) => {
+          assert(Array.isArray(rest), 'expected array');
+          return [task, ...rest];
+        });
       });
-    });
+    };
   },
-  [NodeType.AND]: async (ast: Tree, context: Context) => {
+  [NodeType.AND]: (ast, context) => {
     const [head, ...rest] = ast.children;
     const restAst =
       rest.length > 1 ? node(NodeType.AND, { children: rest }) : rest[0];
     const _node = ifElse(head, restAst, nameAST('false', getPosition(head)));
-    return await evaluateStatement(_node, context);
+    return compileStatement(_node, context);
   },
-  [NodeType.OR]: async (ast: Tree, context: Context) => {
+  [NodeType.OR]: (ast, context) => {
     const [head, ...rest] = ast.children;
     const restAst =
       rest.length > 1 ? node(NodeType.OR, { children: rest }) : rest[0];
     const _node = ifElse(head, nameAST('true', getPosition(head)), restAst);
-    return await evaluateStatement(_node, context);
+    return compileStatement(_node, context);
   },
 
-  [NodeType.PARENS]: async (ast: Tree, context: Context) => {
+  [NodeType.PARENS]: (ast, context) => {
     const [arg] = ast.children;
-    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-    return await evaluateStatement(arg, context);
+    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return async () => [];
+    return compileStatement(arg, context);
   },
-  [NodeType.SQUARE_BRACKETS]: async (ast: Tree, context: Context) => {
+  [NodeType.SQUARE_BRACKETS]: (ast, context) => {
     const [arg] = ast.children;
-    if (arg.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-    const key = await evaluateStatement(arg, context);
-    return context.env.get(key);
+    assert(arg.type !== NodeType.IMPLICIT_PLACEHOLDER, 'expected expression');
+    const compiled = compileStatement(arg, context);
+    return async (context) => {
+      const key = await compiled(context);
+      return context.env.get(key);
+    };
   },
 
-  [NodeType.INJECT]: async (ast: Tree, context: Context) => {
+  [NodeType.INJECT]: (ast, context) => {
     const [expr, body] = ast.children;
-    const value = await evaluateExpr(expr, context);
+    const compiledExpr = compileExpr(expr, context);
+    const compiledBlock = compileBlock(body, context);
+    const bodyPosition = getPosition(body);
 
-    return await flatMapEffect(value, context, async (value, context) => {
-      assert(isRecord(value), 'expected record');
-      const result = await evaluateBlock(body, context);
-      return await evaluateHandlers(value, result, getPosition(body), context);
-    });
+    return async (context) => {
+      const value = await compiledExpr(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        assert(isRecord(value), 'expected record');
+        const result = await compiledBlock(context);
+        return await evaluateHandlers(value, result, bodyPosition, context);
+      });
+    };
   },
-  [NodeType.WITHOUT]: async (ast: Tree, context: Context) => {
+  [NodeType.WITHOUT]: (ast, context) => {
     const [expr, body] = ast.children;
-    let value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (without, context) => {
-      if (!Array.isArray(without)) without = [without];
+    const compiledExpr = compileExpr(expr, context);
+    const compiledBlock = compileBlock(body, context);
 
-      const result = await evaluateBlock(body, context);
-      assert(
-        !isEffect(result) || !without.includes(result.effect),
-        `effects from ${without.map((x) => String(x))} were disallowed`
-      );
-      return result;
-    });
+    return async (context) => {
+      let value = await compiledExpr(context);
+      return await flatMapEffect(value, context, async (without, context) => {
+        if (!Array.isArray(without)) without = [without];
+
+        const result = await compiledBlock(context);
+        assert(
+          !isEffect(result) || !without.includes(result.effect),
+          `effects from ${without.map((x) => String(x))} were disallowed`
+        );
+        return result;
+      });
+    };
   },
-  [NodeType.MASK]: async (ast: Tree, context: Context) => {
+  [NodeType.MASK]: (ast, context) => {
     const [expr, body] = ast.children;
-    let value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (mask, context) => {
-      if (!Array.isArray(mask)) mask = [mask];
+    const compiledExpr = compileExpr(expr, context);
+    const compiledBlock = compileBlock(body, context);
+    return async (context) => {
+      let value = await compiledExpr(context);
+      return await flatMapEffect(value, context, async (mask, context) => {
+        if (!Array.isArray(mask)) mask = [mask];
+        let result = await compiledBlock(context);
 
-      const _mask = async (result: EvalValue, context: Context) => {
-        if (!isEffect(result)) return result;
-        if (!mask.includes(result.effect)) return result;
+        const _mask = async (result: EvalValue, context: EvalContext) => {
+          if (!isEffect(result)) return result;
+          if (!mask.includes(result.effect)) return result;
 
-        return createEffect(MaskEffect, result.effect, context.env, [
-          async () => result,
-        ]);
-      };
-      let result = await evaluateBlock(body, context);
-      return await _mask(result, context);
-    });
+          return createEffect(MaskEffect, result.effect, context.env, [
+            async () => result,
+          ]);
+        };
+        return await _mask(result, context);
+      });
+    };
   },
 
-  [NodeType.IS]: async (ast: Tree, context: Context) => {
+  [NodeType.IS]: (ast, context) => {
     const [value, pattern] = ast.children;
-    const v = await evaluateStatement(value, context);
-    return await flatMapEffect(v, context, async (v, context) => {
-      const result = await testPattern(pattern, v, context);
-      return result.matched;
-    });
+    const compiled = compileStatement(value, context);
+    const compiledPattern = compilePattern(pattern, context);
+    return async (context) => {
+      const v = await compiled(context);
+      return await flatMapEffect(v, context, async (v, context) => {
+        const result = await compiledPattern(v, context);
+        return result.matched;
+      });
+    };
   },
-  [NodeType.MATCH]: async (ast: Tree, context: Context) => {
+  [NodeType.MATCH]: (ast, context) => {
     const [expr, ...branches] = ast.children;
-    const value = await evaluateExpr(expr, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      for (const branch of branches) {
-        assert(branch.type === NodeType.MATCH_CASE, 'expected match case');
-        const [pattern, body] = branch.children;
-
-        const result = await testPattern(pattern, value, context);
-        if (result.matched) {
-          return await evaluateBlock(body, bindContext(result.envs, context));
-        }
-      }
-
-      return null;
+    const compiled = compileExpr(expr, context);
+    const compiledBranches = branches.map((branch) => {
+      assert(branch.type === NodeType.MATCH_CASE, 'expected match case');
+      const [pattern, body] = branch.children;
+      const compiledBody = compileBlock(body, context);
+      const compiledPattern = compilePattern(pattern, context);
+      return [compiledPattern, compiledBody] as const;
     });
+
+    return async (context) => {
+      const value = await compiled(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        for (const branch of compiledBranches) {
+          const [pattern, body] = branch;
+          const result = await pattern(value, context);
+          if (result.matched) {
+            return await body(bindContext(result.envs, context));
+          }
+        }
+
+        return null;
+      });
+    };
   },
-  [NodeType.IF]: async (ast: Tree, context: Context) => {
+  [NodeType.IF]: (ast, context) => {
     const [condition, branch] = ast.children;
     const falseBranch = placeholder(getPosition(branch));
     const _node = ifElse(condition, branch, falseBranch);
-    return await evaluateStatement(_node, context);
+
+    return compileStatement(_node, context);
   },
-  [NodeType.IF_ELSE]: async (ast: Tree, context: Context) => {
+  [NodeType.IF_ELSE]: (ast, context) => {
     const [condition, trueBranch, falseBranch] = ast.children;
+    const compiledTrueBranch = compileBlock(trueBranch, context);
+    const compiledFalseBranch = compileBlock(falseBranch, context);
     if (condition.type === NodeType.IS) {
       const [value, pattern] = condition.children;
-      const v = await evaluateStatement(value, context);
+      const compiledValue = compileStatement(value, context);
+      const compiledPattern = compilePattern(pattern, context);
+      return async (context) => {
+        const v = await compiledValue(context);
 
-      return await flatMapEffect(v, context, async (v, context) => {
-        const result = await testPattern(pattern, v, context);
-        if (result.matched) {
-          return await evaluateBlock(
-            trueBranch,
-            bindContext(result.envs, context)
-          );
-        } else {
-          return await evaluateBlock(
-            falseBranch,
-            bindContext(result.notEnvs, context)
-          );
-        }
-      });
+        return await flatMapEffect(v, context, async (v, context) => {
+          const result = await compiledPattern(v, context);
+          if (result.matched) {
+            return await compiledTrueBranch(bindContext(result.envs, context));
+          } else {
+            return await compiledFalseBranch(
+              bindContext(result.notEnvs, context)
+            );
+          }
+        });
+      };
     }
+    const compiledCondition = compileExpr(condition, context);
 
-    const result = await evaluateExpr(condition, context);
-    return await flatMapEffect(result, context, async (result, context) => {
-      if (result) return await evaluateBlock(trueBranch, context);
-      else return await evaluateBlock(falseBranch, context);
-    });
+    return async (context) => {
+      const result = await compiledCondition(context);
+      return await flatMapEffect(result, context, async (result, context) => {
+        if (result) return await compiledTrueBranch(context);
+        else return await compiledFalseBranch(context);
+      });
+    };
   },
-  [NodeType.WHILE]: async (ast: Tree, context: Context) => {
+  [NodeType.WHILE]: (ast, context) => {
     const [condition, body] = ast.children;
     const _break = application(
       nameAST('break', getPosition(condition)),
       placeholder(getPosition(condition))
     );
     const _node = loop(ifElse(condition, body, _break));
-    return await evaluateStatement(_node, context);
+    return compileStatement(_node, context);
   },
-  [NodeType.FOR]: async (ast: Tree, context: Context) => {
+  [NodeType.FOR]: (ast, context) => {
     const [pattern, expr, body] = ast.children;
-    const list = await evaluateExpr(expr, context);
-    return await flatMapEffect(list, context, async (list, context) => {
-      assert(
-        Array.isArray(list),
-        SystemError.evaluationError(
-          'for loop iterates over lists only.',
-          [],
-          getPosition(expr)
-        )
-      );
-      const breakHandler: EvalFunction = async (cs, v) => {
-        assert(Array.isArray(v), 'expected value to be an array');
-        const [_callback, value] = v;
-        return ['break', value];
-      };
-      const continueHandler: EvalFunction = async (cs, v) => {
-        assert(Array.isArray(v), 'expected value to be an array');
-        const [_callback, value] = v;
-        return ['continue', value];
-      };
-      const handlers = createRecord({
-        [atom('continue')]: createHandler(continueHandler),
-        [atom('break')]: createHandler(breakHandler),
-        [ReturnHandler]: async (cs, v) => ['continue', v],
-      });
-
-      const mapped: EvalValue[] = [];
-      for (const item of list) {
-        const result = await testPattern(pattern, item, context);
-        assert(result.matched, 'expected pattern to match');
-        const bound = bindContext(result.envs, context);
-        const value = await evaluateHandlers(
-          handlers,
-          await evaluateStatement(body, bound),
-          getPosition(expr),
-          bound
-        );
-        assert(Array.isArray(value), 'expected value to be an array');
-        const [status, _value] = value;
-
-        if (status === 'break') {
-          if (_value !== null) mapped.push(_value);
-          break;
-        }
-        if (status === 'continue') {
-          if (_value !== null) mapped.push(_value);
-          continue;
-        }
-      }
-
-      return mapped;
+    const compiledExpr = compileExpr(expr, context);
+    const compiledBody = compileStatement(body, context);
+    const compiledPattern = compilePattern(pattern, context);
+    const bodyPosition = getPosition(body);
+    const listError = SystemError.evaluationError(
+      'for loop iterates over lists only.',
+      [],
+      getPosition(expr)
+    );
+    const breakHandler: EvalFunction = async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return ['break', value];
+    };
+    const continueHandler: EvalFunction = async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return ['continue', value];
+    };
+    const handlers = createRecord({
+      [atom('continue')]: createHandler(continueHandler),
+      [atom('break')]: createHandler(breakHandler),
+      [ReturnHandler]: async (cs, v) => ['continue', v],
     });
+    return async (context) => {
+      const list = await compiledExpr(context);
+      return await flatMapEffect(list, context, async (list, context) => {
+        assert(Array.isArray(list), listError);
+
+        const mapped: EvalValue[] = [];
+        for (const item of list) {
+          const result = await compiledPattern(item, context);
+          assert(result.matched, 'expected pattern to match');
+          const bound = bindContext(result.envs, context);
+          const value = await evaluateHandlers(
+            handlers,
+            await compiledBody(bound),
+            bodyPosition,
+            bound
+          );
+          assert(Array.isArray(value), 'expected value to be an array');
+          const [status, _value] = value;
+
+          if (status === 'break') {
+            if (_value !== null) mapped.push(_value);
+            break;
+          }
+          if (status === 'continue') {
+            if (_value !== null) mapped.push(_value);
+            continue;
+          }
+        }
+
+        return mapped;
+      });
+    };
   },
-  [NodeType.LOOP]: async (ast: Tree, context: Context) => {
+  [NodeType.LOOP]: (ast, context) => {
     let [body] = ast.children;
     if (body.type === NodeType.BLOCK) {
       body = body.children[0];
@@ -665,12 +729,16 @@ const lazyOperators = {
       placeholder(getPosition(body))
     );
     const _block = block(sequence([body, _continue]));
-    return await evaluateStatement(_block, context);
+
+    return compileStatement(_block, context);
   },
 
-  [NodeType.BLOCK]: async (ast: Tree, context: Context) => {
+  [NodeType.BLOCK]: (ast, context) => {
     const [expr] = ast.children;
-    if (expr.type === NodeType.IMPLICIT_PLACEHOLDER) return null;
+    if (expr.type === NodeType.IMPLICIT_PLACEHOLDER) return async () => null;
+
+    const compiledExpr = compileBlock(expr, context);
+    const exprPosition = getPosition(expr);
     const breakHandler: EvalFunction = async (cs, v) => {
       assert(Array.isArray(v), 'expected value to be an array');
       const [_callback, value] = v;
@@ -678,264 +746,303 @@ const lazyOperators = {
     };
     const continueHandler: EvalFunction = async (cs, _v) => {
       await eventLoopYield();
-      return await evaluateStatement(block(expr), context);
+      return await compiled(cs[1]);
     };
     const handlers = createRecord({
       [atom('continue')]: createHandler(continueHandler),
       [atom('break')]: createHandler(breakHandler),
     });
+    const compiled = async (context: EvalContext) => {
+      const value = await compiledExpr(context);
+      return await evaluateHandlers(handlers, value, exprPosition, context);
+    };
+    return compiled;
+  },
+  [NodeType.SEQUENCE]: (ast, context) => {
+    const [expr, ...rest] = ast.children;
+    if (expr.type === NodeType.IMPLICIT_PLACEHOLDER) return async () => null;
 
-    return await evaluateHandlers(
-      handlers,
-      await evaluateBlock(expr, context),
-      getPosition(expr),
+    const compiledExpr = compileStatement(expr, context);
+    if (rest.length === 0) return compiledExpr;
+
+    const compiledRest = compileStatement(sequence(rest), context);
+
+    return async (context) => {
+      const v = await compiledExpr(context);
+      return await flatMapEffect(v, context, (_, context) =>
+        compiledRest(context)
+      );
+    };
+  },
+
+  [NodeType.INCREMENT]: (ast, context) => {
+    const [arg] = ast.children;
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const compiledAsExpr = compileExpr(arg, context);
+    const compiledAsPattern = compilePattern(arg, context);
+    const argPosition = getPosition(arg);
+
+    return async (context) => {
+      const value = await compiledAsExpr(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        assert(typeof value === 'number', 'expected number');
+        const { matched, envs } = await compiledAsPattern(value + 1, context);
+        assert(matched, 'expected pattern to match');
+        assign(envs, context, argPosition);
+        return value + 1;
+      });
+    };
+  },
+  [NodeType.DECREMENT]: (ast, context) => {
+    const [arg] = ast.children;
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const compiledAsExpr = compileExpr(arg, context);
+    const compiledAsPattern = compilePattern(arg, context);
+    const argPosition = getPosition(arg);
+
+    return async (context) => {
+      const value = await compiledAsExpr(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        assert(typeof value === 'number', 'expected number');
+        const { matched, envs } = await compiledAsPattern(value - 1, context);
+        assert(matched, 'expected pattern to match');
+        assign(envs, context, argPosition);
+        return value - 1;
+      });
+    };
+  },
+  [NodeType.POST_DECREMENT]: (ast, context) => {
+    const [arg] = ast.children;
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const compiledAsExpr = compileExpr(arg, context);
+    const compiledAsPattern = compilePattern(arg, context);
+    const argPosition = getPosition(arg);
+
+    return async (context) => {
+      const value = await compiledAsExpr(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        assert(typeof value === 'number', 'expected number');
+        const { matched, envs } = await compiledAsPattern(value - 1, context);
+        assert(matched, 'expected pattern to match');
+        assign(envs, context, argPosition);
+        return value;
+      });
+    };
+  },
+  [NodeType.POST_INCREMENT]: (ast, context) => {
+    const [arg] = ast.children;
+    assert(arg.type === NodeType.NAME, 'expected name');
+    const compiledAsExpr = compileExpr(arg, context);
+    const compiledAsPattern = compilePattern(arg, context);
+    const argPosition = getPosition(arg);
+
+    return async (context) => {
+      const value = await compiledAsExpr(context);
+      return await flatMapEffect(value, context, async (value, context) => {
+        assert(typeof value === 'number', 'expected number');
+        const { matched, envs } = await compiledAsPattern(value + 1, context);
+        assert(matched, 'expected pattern to match');
+        assign(envs, context, argPosition);
+        return value;
+      });
+    };
+  },
+
+  [NodeType.DECLARE]: (ast, context) => {
+    const [pattern, expr] = ast.children;
+    const compiledExpr = compileStatement(expr, context);
+    const compiledPattern = compilePattern(pattern, context);
+
+    return async (_context) => {
+      const value = await compiledExpr(_context);
+      return await flatMapEffect(value, _context, async (value, context) => {
+        const result = await compiledPattern(value, context);
+        assert(result.matched, 'expected pattern to match');
+        bind(result.envs, context);
+        return value;
+      });
+    };
+  },
+  [NodeType.ASSIGN]: (ast, context) => {
+    const [pattern, expr] = ast.children;
+    const compiledExpr = compileStatement(expr, context);
+    const compiledPattern = compilePattern(pattern, context);
+
+    return async (_context) => {
+      const value = await compiledExpr(_context);
+      return await flatMapEffect(value, _context, async (value, context) => {
+        const { matched, envs } = await compiledPattern(value, context);
+        assert(matched, 'expected pattern to match');
+        assign(envs, context, getPosition(pattern));
+        return value;
+      });
+    };
+  },
+  [NodeType.INC_ASSIGN]: (ast, context) => {
+    const [pattern, expr] = ast.children;
+    const compiledExpr = compileExpr(expr, context);
+    const compiledPattern = compilePattern(pattern, context);
+    const patternPosition = getPosition(pattern);
+
+    return async (_context) => {
+      const value = await compiledExpr(_context);
+      return await flatMapEffect(value, _context, async (value, context) => {
+        assert(
+          typeof value === 'number' ||
+            Array.isArray(value) ||
+            typeof value === 'string'
+        );
+        const { matched, envs } = await compiledPattern(value, context);
+        assert(matched, 'expected pattern to match');
+        incAssign(envs, context, patternPosition);
+        return value;
+      });
+    };
+  },
+
+  [NodeType.LABEL]: (ast, context) => {
+    return compileStatement(tuple([ast]), context);
+  },
+  [NodeType.TUPLE]: (ast, context) => {
+    const children = ast.children.slice();
+    if (children.length === 0) return async () => [];
+    const head = children.pop()!;
+    if (head.type === NodeType.IMPLICIT_PLACEHOLDER) return async () => [];
+    if (head.type === NodeType.PLACEHOLDER) return async () => [];
+
+    const opCompiler =
+      tupleOperators[head.type as keyof typeof tupleOperators] ??
+      tupleOperators[NodeType.TUPLE];
+    const compiledOp = opCompiler(head, context);
+
+    if (children.length === 0) {
+      return async (context) => {
+        return await compiledOp([], context);
+      };
+    }
+
+    const compiledTail = compileExpr(tuple(children), context);
+
+    return async (context) => {
+      const _tail = await compiledTail(context);
+      return await flatMapEffect(_tail, context, async (_tail, context) => {
+        assert(
+          isRecord(_tail) || Array.isArray(_tail),
+          'expected record or tuple'
+        );
+        return await compiledOp(_tail, context);
+      });
+    };
+  },
+  [NodeType.INDEX]: (ast, context) => {
+    const [_target, _index] = ast.children;
+    const compiledTarget = compileExpr(_target, context);
+    const compiledIndex = compileExpr(_index, context);
+    const targetPosition = getPosition(_target);
+    const indexPosition = getPosition(_index);
+    const invalidIndexTargetError = SystemError.invalidIndexTarget(
+      targetPosition
+    ).withFileId(context.fileId);
+    const invalidIndexError = SystemError.invalidIndex(
+      indexPosition
+    ).withFileId(context.fileId);
+
+    return async (context) => {
+      const target = await compiledTarget(context);
+      return await flatMapEffect(target, context, async (target, context) => {
+        const index = await compiledIndex(context);
+
+        return await flatMapEffect(index, context, async (index, context) => {
+          if (
+            isResult(target) &&
+            typeof index === 'string' &&
+            index in resultMethods
+          ) {
+            return await resultMethods[index]([indexPosition, context], target);
+          }
+
+          if (Array.isArray(target)) {
+            if (!Number.isInteger(index)) {
+              assert(typeof index === 'string', invalidIndexError);
+              return await listMethods[index]([indexPosition, context], target);
+            }
+            return target[index as number] ?? null;
+          } else if (isRecord(target)) {
+            const v = recordGet(target, index);
+            assert(v !== null, invalidIndexError);
+            return v;
+          }
+
+          if (typeof target === 'string') {
+            assert(
+              typeof index === 'string' && index in stringMethods,
+              invalidIndexError
+            );
+            return await stringMethods[index]([indexPosition, context], target);
+          }
+
+          unreachable(invalidIndexTargetError);
+        });
+      });
+    };
+  },
+
+  [NodeType.PIPE]: (ast, context) => {
+    const args = ast.children.slice();
+    const fn = args.pop()!;
+    assert(args.length >= 1, 'expected at least one more argument');
+
+    return compileStatement(
+      application(
+        fn,
+        args.length === 1 ? args[0] : node(NodeType.PIPE, { children: args })
+      ),
       context
     );
   },
-  [NodeType.SEQUENCE]: async (ast: Tree, context: Context) => {
-    const [expr, ...rest] = ast.children;
-    if (expr.type === NodeType.IMPLICIT_PLACEHOLDER) return null;
-
-    const v = await evaluateStatement(expr, context);
-    if (rest.length === 0) return v;
-
-    return await flatMapEffect(v, context, (_, context) =>
-      evaluateStatement(sequence(rest), context)
-    );
-  },
-
-  [NodeType.INCREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      assert(typeof value === 'number', 'expected number');
-      const { matched, envs } = await testPattern(arg, value + 1, context);
-      assert(matched, 'expected pattern to match');
-      assign(envs, context, getPosition(arg));
-      return value + 1;
-    });
-  },
-  [NodeType.DECREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      assert(typeof value === 'number', 'expected number');
-      const { matched, envs } = await testPattern(arg, value - 1, context);
-      assert(matched, 'expected pattern to match');
-      assign(envs, context, getPosition(arg));
-      return value - 1;
-    });
-  },
-  [NodeType.POST_DECREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      assert(typeof value === 'number', 'expected number');
-      const { matched, envs } = await testPattern(arg, value - 1, context);
-      assert(matched, 'expected pattern to match');
-      assign(envs, context, getPosition(arg));
-      return value;
-    });
-  },
-  [NodeType.POST_INCREMENT]: async (ast: Tree, context: Context) => {
-    const [arg] = ast.children;
-    assert(arg.type === NodeType.NAME, 'expected name');
-    const value = await evaluateExpr(arg, context);
-    return await flatMapEffect(value, context, async (value, context) => {
-      assert(typeof value === 'number', 'expected number');
-      const { matched, envs } = await testPattern(arg, value + 1, context);
-      assert(matched, 'expected pattern to match');
-      assign(envs, context, getPosition(arg));
-      return value;
-    });
-  },
-
-  [NodeType.DECLARE]: async (ast: Tree, _context: Context) => {
-    const [pattern, expr] = ast.children;
-    const value = await evaluateStatement(expr, _context);
-    return await flatMapEffect(value, _context, async (value, context) => {
-      const result = await testPattern(pattern, value, context);
-      assert(result.matched, 'expected pattern to match');
-      bind(result.envs, context);
-      return value;
-    });
-  },
-  [NodeType.ASSIGN]: async (ast: Tree, _context: Context) => {
-    const [pattern, expr] = ast.children;
-    const value = await evaluateStatement(expr, _context);
-    return await flatMapEffect(value, _context, async (value, context) => {
-      const { matched, envs } = await testPattern(pattern, value, context);
-      assert(matched, 'expected pattern to match');
-      assign(envs, context, getPosition(pattern));
-      return value;
-    });
-  },
-  [NodeType.INC_ASSIGN]: async (ast: Tree, _context: Context) => {
-    const [pattern, expr] = ast.children;
-    const value = await evaluateExpr(expr, _context);
-    return await flatMapEffect(value, _context, async (value, context) => {
-      assert(
-        typeof value === 'number' ||
-          Array.isArray(value) ||
-          typeof value === 'string'
-      );
-      const { matched, envs } = await testPattern(pattern, value, context);
-      assert(matched, 'expected pattern to match');
-      incAssign(envs, context, getPosition(pattern));
-      return value;
-    });
-  },
-
-  [NodeType.LABEL]: async (ast: Tree, context: Context) => {
-    return await evaluateStatement(tuple([ast]), context);
-  },
-  [NodeType.TUPLE]: async (ast: Tree, context: Context) => {
-    const children = ast.children.slice();
-    if (children.length === 0) return [];
-    const head = children.pop()!;
-    if (head.type === NodeType.IMPLICIT_PLACEHOLDER) return [];
-    if (head.type === NodeType.PLACEHOLDER) return [];
-
-    const _tail = await evaluateStatement(tuple(children), context);
-    return await flatMapEffect(_tail, context, async (_tail, context) => {
-      assert(
-        isRecord(_tail) || Array.isArray(_tail),
-        'expected record or tuple'
-      );
-
-      const op =
-        tupleOperators[head.type as keyof typeof tupleOperators] ??
-        tupleOperators[NodeType.TUPLE];
-      return await op(head, _tail, context);
-    });
-  },
-  [NodeType.INDEX]: async (ast: Tree, context: Context) => {
-    const [_target, _index] = ast.children;
-    const target = await evaluateExpr(_target, context);
-    return await flatMapEffect(target, context, async (target, context) => {
-      const index = await evaluateExpr(_index, context);
-
-      return await flatMapEffect(index, context, async (index, context) => {
-        if (
-          isResult(target) &&
-          typeof index === 'string' &&
-          index in resultMethods
-        ) {
-          return await resultMethods[index](
-            [getPosition(_index), context],
-            target
-          );
-        }
-
-        if (Array.isArray(target)) {
-          if (!Number.isInteger(index)) {
-            assert(
-              typeof index === 'string',
-              SystemError.invalidIndex(getPosition(_index)).withFileId(
-                context.fileId
-              )
-            );
-            return await listMethods[index](
-              [getPosition(_index), context],
-              target
-            );
-          }
-          return target[index as number] ?? null;
-        } else if (isRecord(target)) {
-          const v = recordGet(target, index);
-          assert(
-            v !== null,
-            SystemError.invalidIndex(getPosition(_index)).withFileId(
-              context.fileId
-            )
-          );
-          return v;
-        }
-
-        if (typeof target === 'string') {
-          assert(
-            typeof index === 'string' && index in stringMethods,
-            SystemError.invalidIndex(getPosition(_index)).withFileId(
-              context.fileId
-            )
-          );
-          return await stringMethods[index](
-            [getPosition(_index), context],
-            target
-          );
-        }
-
-        unreachable(
-          SystemError.invalidIndexTarget(getPosition(_index)).withFileId(
-            context.fileId
-          )
-        );
-      });
-    });
-  },
-
-  [NodeType.PIPE]: async (ast: Tree, context: Context) => {
-    const args = ast.children.slice();
-    assert(args.length >= 2, 'expected at least one more argument');
-    const fnArg = args.pop()!;
-
-    const rest =
-      args.length === 1
-        ? await evaluateExpr(args[0], context)
-        : await evaluateExpr(node(NodeType.PIPE, { children: args }), context);
-
-    return await flatMapEffect(rest, context, async (rest, context) => {
-      let fn = await evaluateStatement(fnArg, context);
-      return await flatMapEffect(fn, context, async (fn, context) => {
-        assert(typeof fn === 'function', 'expected function');
-        return await fn([getPosition(fnArg), context], rest);
-      });
-    });
-  },
-  [NodeType.SEND]: async (ast: Tree, context: Context) => {
+  [NodeType.SEND]: (ast, context) => {
     const [chanAst, valueAst] = ast.children;
-    const channelValue = await evaluateExpr(chanAst, context);
-    return await flatMapEffect(
-      channelValue,
-      context,
-      async (channelValue, context) => {
-        assert(
-          isChannel(channelValue),
-          SystemError.invalidSendChannel(getPosition(chanAst)).withFileId(
-            context.fileId
-          )
-        );
-        const channel = getChannel(channelValue);
+    const compiledExpr = compileExpr(chanAst, context);
+    const compiledValue = compileExpr(valueAst, context);
+    const invalidSendChannelError = SystemError.invalidSendChannel(
+      getPosition(chanAst)
+    ).withFileId(context.fileId);
+    const channelClosedError = SystemError.channelClosed(
+      getPosition(chanAst)
+    ).withFileId(context.fileId);
 
-        assert(
-          channel,
-          SystemError.channelClosed(getPosition(chanAst)).withFileId(
-            context.fileId
-          )
-        );
+    return async (context) => {
+      const channelValue = await compiledExpr(context);
+      return await flatMapEffect(
+        channelValue,
+        context,
+        async (channelValue, context) => {
+          assert(isChannel(channelValue), invalidSendChannelError);
 
-        const value = await evaluateExpr(valueAst, context);
+          const channel = getChannel(channelValue);
+          assert(channel, channelClosedError);
 
-        return await flatMapEffect(value, context, async (value, context) => {
-          const promise = channel.onReceive.shift();
-          if (!promise) {
-            channel.queue.push(value);
+          const value = await compiledValue(context);
+
+          return await flatMapEffect(value, context, async (value, context) => {
+            const promise = channel.onReceive.shift();
+            if (!promise) {
+              channel.queue.push(value);
+              return null;
+            }
+            const { resolve, reject } = promise;
+            if (value instanceof Error) reject(value);
+            else resolve(value);
+
             return null;
-          }
-          const { resolve, reject } = promise;
-          if (value instanceof Error) reject(value);
-          else resolve(value);
-
-          return null;
-        });
-      }
-    );
+          });
+        }
+      );
+    };
   },
-  [NodeType.CODE_LABEL]: async (ast: Tree, context: Context) => {
-    const expr = ast.children[0];
+  [NodeType.CODE_LABEL]: (ast, context) => {
+    const compiledExpr = compileStatement(ast.children[0], context);
+    const exprPosition = getPosition(ast.children[0]);
     const label = Symbol(ast.data.name);
     const labelHandler: EvalFunction = async (cs, v) => {
       assert(Array.isArray(v), 'expected v to be an array');
@@ -944,7 +1051,7 @@ const lazyOperators = {
       const [status, _value] = value;
       if (status === 'break') return _value;
       if (status === 'continue') {
-        return await evaluateStatement(ast, context);
+        return await compiled(context);
       }
       return null;
     };
@@ -958,93 +1065,93 @@ const lazyOperators = {
       await eventLoopYield();
       return createEffect(label, ['continue', value], cs[1].env);
     };
-    const forked = forkContext(context);
-    forked.env.addReadonly(
-      ast.data.name,
-      createRecord({
-        break: labelBreak,
-        continue: labelContinue,
-      })
-    );
+    const labelRecord = createRecord({
+      break: labelBreak,
+      continue: labelContinue,
+    });
+    const compiled = async (context) => {
+      const forked = forkContext(context);
+      forked.env.addReadonly(ast.data.name, labelRecord);
 
-    return await evaluateHandlers(
-      handlers,
-      await evaluateStatement(expr, forked),
-      getPosition(expr),
-      forked
-    );
+      return await evaluateHandlers(
+        handlers,
+        await compiledExpr(forked),
+        exprPosition,
+        forked
+      );
+    };
+    return compiled;
   },
-  [NodeType.RECEIVE]: async (ast: Tree, context: Context) => {
-    const channelValue = await evaluateExpr(ast.children[0], context);
+  [NodeType.RECEIVE]: (ast, context) => {
+    const compiledExpr = compileExpr(ast.children[0], context);
+    const invalidReceiveChannelError = SystemError.invalidReceiveChannel(
+      getPosition(ast)
+    ).withFileId(context.fileId);
+    const channelClosedError = SystemError.channelClosed(
+      getPosition(ast)
+    ).withFileId(context.fileId);
+    return async (context) => {
+      const channelValue = await compiledExpr(context);
 
-    return await flatMapEffect(
-      channelValue,
-      context,
-      async (channelValue, context) => {
-        assert(
-          isChannel(channelValue),
-          SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
-            context.fileId
-          )
-        );
-
-        return await receive(channelValue).catch((e) => {
-          assert(
-            e !== 'channel closed',
-            SystemError.channelClosed(getPosition(ast)).withFileId(
-              context.fileId
-            )
-          );
-          throw e;
-        });
-      }
-    );
+      return await flatMapEffect(
+        channelValue,
+        context,
+        async (channelValue, context) => {
+          assert(isChannel(channelValue), invalidReceiveChannelError);
+          return await receive(channelValue).catch((e) => {
+            assert(e !== 'channel closed', channelClosedError);
+            throw e;
+          });
+        }
+      );
+    };
   },
-  [NodeType.SEND_STATUS]: async (ast: Tree, context: Context) => {
-    const channelValue = await evaluateExpr(ast.children[0], context);
-    return await flatMapEffect(
-      channelValue,
-      context,
-      async (channelValue, context) => {
-        assert(
-          isChannel(channelValue),
-          SystemError.invalidSendChannel(getPosition(ast)).withFileId(
-            context.fileId
-          )
-        );
+  [NodeType.SEND_STATUS]: (ast, context) => {
+    const compiledExpr = compileExpr(ast.children[0], context);
+    const compiledValue = compileExpr(ast.children[1], context);
+    const invalidSendChannelError = SystemError.invalidSendChannel(
+      getPosition(ast)
+    ).withFileId(context.fileId);
+    return async (context) => {
+      const channelValue = await compiledExpr(context);
+      return await flatMapEffect(
+        channelValue,
+        context,
+        async (channelValue, context) => {
+          assert(isChannel(channelValue), invalidSendChannelError);
 
-        const value = await evaluateExpr(ast.children[1], context);
-
-        return await flatMapEffect(value, context, async (value, context) => {
-          const status = send(channelValue, value);
-          return atom(status);
-        });
-      }
-    );
+          const value = await compiledValue(context);
+          return await flatMapEffect(value, context, async (value, context) => {
+            const status = send(channelValue, value);
+            return atom(status);
+          });
+        }
+      );
+    };
   },
-  [NodeType.RECEIVE_STATUS]: async (ast: Tree, context: Context) => {
-    const channelValue = await evaluateExpr(ast.children[0], context);
+  [NodeType.RECEIVE_STATUS]: (ast, context) => {
+    const compiledExpr = compileExpr(ast.children[0], context);
+    const invalidReceiveChannelError = SystemError.invalidReceiveChannel(
+      getPosition(ast)
+    ).withFileId(context.fileId);
+    return async (context) => {
+      const channelValue = await compiledExpr(context);
 
-    return await flatMapEffect(
-      channelValue,
-      context,
-      async (channelValue, context) => {
-        assert(
-          isChannel(channelValue),
-          SystemError.invalidReceiveChannel(getPosition(ast)).withFileId(
-            context.fileId
-          )
-        );
+      return await flatMapEffect(
+        channelValue,
+        context,
+        async (channelValue, context) => {
+          assert(isChannel(channelValue), invalidReceiveChannelError);
 
-        const [value, status] = tryReceive(channelValue);
-
-        if (value instanceof Error) throw value;
-        return [value ?? [], atom(status)];
-      }
-    );
+          const [value, status] = tryReceive(channelValue);
+          if (value instanceof Error) throw value;
+          return [value ?? [], atom(status)];
+        }
+      );
+    };
   },
 
-  [NodeType.FUNCTION]: async (ast: Tree, context: Context) => {
+  [NodeType.FUNCTION]: (ast, context) => {
     const [_patterns, _body] = ast.children;
     const isTopFunction = ast.data.isTopFunction ?? true;
     const patterns =
@@ -1055,155 +1162,184 @@ const lazyOperators = {
       rest.length === 0
         ? _body
         : fnAST(tupleAST(rest), _body, { isTopFunction: false });
+    const bodyPosition = getPosition(_body);
+    const compiledBody = compileStatement(body, context);
+    const compiledPattern = compilePattern(pattern, context);
+    const matchError = (position: Position, fileId: number) =>
+      SystemError.evaluationError(
+        'expected pattern to match',
+        [],
+        getPosition(pattern)
+      )
+        .withPrimaryLabel('called here', position, fileId)
+        .withFileId(context.fileId);
 
-    const _context = forkContext(context);
-    const self: EvalFunction = async (cs, arg) => {
-      const [position, callerContext] = cs;
-      const fileId = callerContext.fileId;
-      await eventLoopYield();
-      const result = await testPattern(pattern, arg, _context);
-      assert(
-        result.matched,
-        SystemError.evaluationError(
-          'expected pattern to match',
-          [],
-          getPosition(pattern)
-        )
-          .withPrimaryLabel('called here', position, fileId)
-          .withFileId(context.fileId)
-      );
-      const bound = bindContext(result.envs, _context);
-      if (isTopFunction) {
-        bound.env.addReadonly('self', self);
-      }
-
-      if (body.type === NodeType.IMPLICIT_PLACEHOLDER) return null;
-
-      const returnHandler: EvalFunction = async (cs, v) => {
-        assert(Array.isArray(v), 'expected value to be an array');
-        const [_callback, value] = v;
-        return value;
+    if (body.type === NodeType.IMPLICIT_PLACEHOLDER) {
+      return async (context) => {
+        const _context = forkContext(context);
+        return async (cs, arg) => {
+          const [position, callerContext] = cs;
+          const fileId = callerContext.fileId;
+          const result = await compiledPattern(arg, _context);
+          assert(result.matched, matchError(position, fileId));
+          return null;
+        };
       };
+    }
 
-      const _result = await evaluateHandlers(
-        createRecord({ [atom('return')]: createHandler(returnHandler) }),
-        await evaluateStatement(body, bound),
-        getPosition(body),
-        bound
-      );
-
-      return _result;
+    const returnHandler: EvalFunction = async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [_callback, value] = v;
+      return value;
     };
-    return self;
+    const handlers = createRecord({
+      [atom('return')]: createHandler(returnHandler),
+    });
+    return async (context) => {
+      const _context = forkContext(context);
+      const self: EvalFunction = async (cs, arg) => {
+        const [position, callerContext] = cs;
+        const fileId = callerContext.fileId;
+        await eventLoopYield();
+
+        const result = await compiledPattern(arg, _context);
+        assert(result.matched, matchError(position, fileId));
+
+        const bound = bindContext(result.envs, _context);
+        if (isTopFunction) bound.env.addReadonly('self', self);
+
+        return await evaluateHandlers(
+          handlers,
+          await compiledBody(bound),
+          bodyPosition,
+          bound
+        );
+      };
+      return self;
+    };
   },
-  [NodeType.APPLICATION]: async (ast: Tree, context: Context) => {
+  [NodeType.APPLICATION]: (ast, context) => {
+    const astPosition = getPosition(ast);
     const [fnExpr, argStmt] = ast.children;
-    const fnValue = await evaluateExpr(fnExpr, context);
+    const fnCompiled = compileExpr(fnExpr, context);
     const _argExpr =
       argStmt.type === NodeType.BLOCK
         ? fnAST(implicitPlaceholder(getPosition(argStmt)), argStmt, {
             isTopFunction: false,
           })
         : argStmt;
+    const argCompiled = compileStatement(_argExpr, context);
 
-    return await flatMapEffect(fnValue, context, async (fnValue, context) => {
-      assert(
-        typeof fnValue === 'function',
-        SystemError.invalidApplicationExpression(
-          getPosition(fnExpr)
-        ).withFileId(context.fileId)
-      );
+    const invalidApplicationError = SystemError.invalidApplicationExpression(
+      getPosition(fnExpr)
+    ).withFileId(context.fileId);
 
-      const argValue = await evaluateStatement(_argExpr, context);
+    return async (evalContext) => {
+      const fnValue = await fnCompiled(evalContext);
       return await flatMapEffect(
-        argValue,
-        context,
-        async (argValue, context) => {
-          const x = await fnValue([getPosition(ast), context], argValue);
+        fnValue,
+        evalContext,
+        async (fnValue, evalContext) => {
+          assert(typeof fnValue === 'function', invalidApplicationError);
 
-          return await replaceEffectContext(x, context);
+          const argValue = await argCompiled(evalContext);
+          return await flatMapEffect(
+            argValue,
+            evalContext,
+            async (argValue, evalContext) => {
+              const x = await fnValue([astPosition, evalContext], argValue);
+
+              return await replaceEffectContext(x, evalContext);
+            }
+          );
         }
       );
-    });
+    };
   },
 
-  [NodeType.TRY]: async (ast: Tree, context: Context) => {
-    const result = await evaluateExpr(ast.children[0], context);
-    return await flatMapEffect(result, context, async (value, context) => {
-      if (isResult(value)) {
-        const [status, result] = value;
-        if (status === atom('ok')) return result;
-        if (status === atom('error')) {
-          return createEffect(atom('return'), value, context.env);
+  [NodeType.TRY]: (ast, context) => {
+    const compiled = compileExpr(ast.children[0], context);
+    return async (context) => {
+      const result = await compiled(context);
+      return await flatMapEffect(result, context, async (value, context) => {
+        if (isResult(value)) {
+          const [status, result] = value;
+          if (status === atom('ok')) return result;
+          if (status === atom('error')) {
+            return createEffect(atom('return'), value, context.env);
+          }
         }
-      }
-      return value;
-    });
-  },
-} satisfies Record<
-  PropertyKey,
-  (ast: Tree, context: Context) => Promise<EvalValue>
->;
-
-const tupleOperators = {
-  [NodeType.SPREAD]: async (
-    head: Tree,
-    _tuple: EvalValue[] | EvalRecord,
-    context: Context
-  ) => {
-    const v = await evaluateExpr(head.children[0], context);
-    return await flatMapEffect(v, context, async (v, _context) => {
-      if (Array.isArray(_tuple) && Array.isArray(v)) {
-        return [..._tuple, ...v];
-      }
-      if (isRecord(_tuple) && isRecord(v)) {
-        return recordMerge(_tuple, v);
-      }
-      unreachable('inconsistent spread types');
-    });
-  },
-  [NodeType.LABEL]: async (
-    head: Tree,
-    _tuple: EvalValue[] | EvalRecord,
-    context: Context
-  ) => {
-    const _key = head.children[0];
-    const k =
-      _key.type === NodeType.NAME
-        ? _key.data.value
-        : _key.type === NodeType.SQUARE_BRACKETS
-        ? await evaluateExpr(_key.children[0], context)
-        : await evaluateExpr(_key, context);
-
-    return await flatMapEffect(k, context, async (key, context) => {
-      const v = await evaluateExpr(head.children[1], context);
-      return await flatMapEffect(v, context, async (value, _context) => {
-        if (Array.isArray(_tuple) && _tuple.length === 0)
-          return createRecord([[key, value]]);
-        assert(isRecord(_tuple), 'expected record');
-        recordSet(_tuple, key, value);
-        return _tuple;
+        return value;
       });
-    });
-  },
-  [NodeType.TUPLE]: async (
-    head: Tree,
-    _tuple: EvalValue[] | EvalRecord,
-    context: Context
-  ) => {
-    const v = await evaluateExpr(head, context);
-    assert(Array.isArray(_tuple), 'expected array');
-    return await flatMapEffect(v, context, async (v, _context) => [
-      ..._tuple,
-      v,
-    ]);
+    };
   },
 } satisfies Record<
   PropertyKey,
   (
     ast: Tree,
+    context: CompileContext
+  ) => (evalContext: EvalContext) => Promise<EvalValue>
+>;
+
+const tupleOperators = {
+  [NodeType.SPREAD]: (head, context) => {
+    const compiled = compileExpr(head.children[0], context);
+    return async (_tuple, context) => {
+      const v = await compiled(context);
+      return await flatMapEffect(v, context, async (v, _context) => {
+        if (Array.isArray(_tuple) && Array.isArray(v)) {
+          return [..._tuple, ...v];
+        }
+        if (isRecord(_tuple) && isRecord(v)) {
+          return recordMerge(_tuple, v);
+        }
+        unreachable('inconsistent spread types');
+      });
+    };
+  },
+  [NodeType.LABEL]: (head, context) => {
+    const _key = head.children[0];
+    const compiledKey =
+      _key.type === NodeType.NAME
+        ? async () => _key.data.value
+        : _key.type === NodeType.SQUARE_BRACKETS
+        ? compileExpr(_key.children[0], context)
+        : compileExpr(_key, context);
+    const compiledValue = compileExpr(head.children[1], context);
+
+    return async (_tuple, context) => {
+      const key = await compiledKey(context);
+      return await flatMapEffect(key, context, async (key, context) => {
+        const v = await compiledValue(context);
+        return await flatMapEffect(v, context, async (value, _context) => {
+          if (Array.isArray(_tuple) && _tuple.length === 0)
+            return createRecord([[key, value]]);
+          assert(isRecord(_tuple), 'expected record');
+          recordSet(_tuple, key, value);
+          return _tuple;
+        });
+      });
+    };
+  },
+  [NodeType.TUPLE]: (head, context) => {
+    const compiled = compileExpr(head, context);
+    return async (_tuple, context) => {
+      const v = await compiled(context);
+      assert(Array.isArray(_tuple), 'expected array');
+      return await flatMapEffect(v, context, async (v, _context) => [
+        ..._tuple,
+        v,
+      ]);
+    };
+  },
+} satisfies Record<
+  PropertyKey,
+  (
+    ast: Tree,
+    context: CompileContext
+  ) => (
     _tuple: EvalValue[] | EvalRecord,
-    context: Context
+    context: EvalContext
   ) => Promise<EvalValue>
 >;
 
@@ -1211,7 +1347,7 @@ export const evaluateHandlers = async (
   handlers: EvalRecord,
   value: EvalValue,
   position: Position,
-  context: Context
+  context: EvalContext
 ): Promise<EvalValue> => {
   const cs: CallSite = [position, context];
 
@@ -1258,7 +1394,7 @@ export const evaluateHandlers = async (
 
 const replaceEffectContext = async (
   value: EvalValue,
-  context: Context
+  context: EvalContext
 ): Promise<EvalValue> => {
   if (!isEffect(value)) return value;
   const updated = createEffect(
@@ -1272,8 +1408,8 @@ const replaceEffectContext = async (
 
 const mapEffect = async (
   value: EvalValue,
-  context: Context,
-  map: (v: EvalValue, context: Context) => Promise<EvalValue>
+  context: EvalContext,
+  map: (v: EvalValue, context: EvalContext) => Promise<EvalValue>
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     value.continuations.push(async (cs, v) => map(v, context));
@@ -1284,8 +1420,8 @@ const mapEffect = async (
 
 const flatMapEffect = async (
   value: EvalValue,
-  context: Context,
-  map: (v: EvalValue, context: Context) => Promise<EvalValue>
+  context: EvalContext,
+  map: (v: EvalValue, context: EvalContext) => Promise<EvalValue>
 ): Promise<EvalValue> => {
   if (isEffect(value)) {
     return await mapEffect(value, context, async (value, context) => {
@@ -1307,80 +1443,95 @@ const runEffectContinuations = async (
   return v;
 };
 
-export const evaluateStatement = async (
+const evaluateStatement = async (ast: Tree, context: EvalContext) => {
+  return await compileStatement(ast, context)(context);
+};
+
+export const compileStatement = (
   ast: Tree,
-  context: Context
-): Promise<EvalValue> => {
+  context: CompileContext
+): ((evalContext: EvalContext) => Promise<EvalValue>) => {
   if (ast.type in lazyOperators) {
-    const op = lazyOperators[ast.type as keyof typeof lazyOperators];
-    const v = await op(ast, context);
-    if (v instanceof Error) throw v;
-    return v;
+    const opCompiler = lazyOperators[ast.type as keyof typeof lazyOperators];
+    const compiled = opCompiler(ast, context);
+    return async (context: EvalContext) => {
+      const v = await compiled(context);
+      if (v instanceof Error) throw v;
+      return v;
+    };
   }
 
   if (ast.type in operators) {
     const children = ast.children.slice();
     const fst = children.pop()!;
 
-    const fstValue = await evaluateExpr(fst, context);
+    const fstCompiled = compileExpr(fst, context);
 
     if (children.length === 0) {
-      return await flatMapEffect(
-        fstValue,
-        context,
-        async (fstValue, _context) => {
-          return operators[ast.type](fstValue);
-        }
-      );
+      return async (context) =>
+        await flatMapEffect(
+          await fstCompiled(context),
+          context,
+          async (fstValue) => operators[ast.type](fstValue)
+        );
     }
 
-    return await flatMapEffect(fstValue, context, async (fstValue, context) => {
-      if (children.length === 1) {
-        const snd = children.pop()!;
-        const sndValue = await evaluateExpr(snd, context);
-        return await flatMapEffect(
-          sndValue,
+    if (children.length === 1) {
+      const snd = children.pop()!;
+      const sndCompiled = compileExpr(snd, context);
+      return async (context) =>
+        await flatMapEffect(
+          await fstCompiled(context),
           context,
-          async (sndValue, _context) => {
-            return operators[ast.type](sndValue, fstValue);
+          async (fstValue, context) => {
+            return await flatMapEffect(
+              await sndCompiled(context),
+              context,
+              async (sndValue) => operators[ast.type](sndValue, fstValue)
+            );
           }
         );
-      }
+    }
 
-      const restAst = node(ast.type, { children });
-      const restValue = await evaluateExpr(restAst, context);
-      return await flatMapEffect(
-        restValue,
+    const restAst = node(ast.type, { children });
+    const restCompiled = compileExpr(restAst, context);
+    return async (context) =>
+      await flatMapEffect(
+        await fstCompiled(context),
         context,
-        async (restValue, _context) => {
-          return operators[ast.type](restValue, fstValue);
+        async (fstValue, context) => {
+          const restValue = await restCompiled(context);
+          return await flatMapEffect(restValue, context, async (restValue) =>
+            operators[ast.type](restValue, fstValue)
+          );
         }
       );
-    });
   }
 
   switch (ast.type) {
     case NodeType.ATOM: {
-      return atom(ast.data.name);
+      return async () => atom(ast.data.name);
     }
 
     case NodeType.NAME: {
       const name = ast.data.value;
-      if (name === 'true') return true;
-      if (name === 'false') return false;
-      assert(
-        context.env.has(name),
-        SystemError.undeclaredName(name, getPosition(ast)).withFileId(
-          context.fileId
-        )
-      );
-      return context.env.get(name);
+      if (name === 'true') return async () => true;
+      if (name === 'false') return async () => false;
+      return async (evalContext) => {
+        assert(
+          evalContext.env.has(name),
+          SystemError.undeclaredName(name, getPosition(ast)).withFileId(
+            context.fileId
+          )
+        );
+        return evalContext.env.get(name);
+      };
     }
     case NodeType.NUMBER:
     case NodeType.STRING:
-      return ast.data.value;
+      return async () => ast.data.value;
     case NodeType.PLACEHOLDER:
-      return null;
+      return async () => null;
     case NodeType.IMPLICIT_PLACEHOLDER:
       unreachable(
         SystemError.invalidPlaceholderExpression(getPosition(ast)).withFileId(
@@ -1398,52 +1549,70 @@ export const evaluateStatement = async (
       );
     }
     default:
-      return null;
+      return async () => null;
   }
 };
 
-const evaluateBlock = async (
+const compileBlock = (
   ast: Tree,
-  context: Context
-): Promise<EvalValue> => {
-  const _context = forkContext(context);
-  return await evaluateStatement(ast, _context);
+  context: CompileContext
+): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+  const compiled = compileStatement(ast, context);
+  return async (context: EvalContext) => {
+    const _context = forkContext(context);
+    return await compiled(_context);
+  };
 };
 
 export const evaluateExpr = async (
   ast: Tree,
-  context: Context
+  context: EvalContext
 ): Promise<Exclude<EvalValue, null>> => {
-  const result = await evaluateStatement(ast, context);
-  return (await flatMapEffect(result, context, async (result, context) => {
-    assert(
-      result !== null,
-      SystemError.evaluationError(
-        'expected a value',
-        [],
-        getPosition(ast)
-      ).withFileId(context.fileId)
-    );
-    return result;
-  })) as Exclude<EvalValue, null>;
+  return (await compileExpr(ast, context)(context)) as Exclude<EvalValue, null>;
 };
 
-export const evaluateScript = async (
+export const compileExpr = (
   ast: Tree,
-  context: Context
-): Promise<EvalValue> => {
+  context: CompileContext
+): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+  const compiled = compileStatement(ast, context);
+  const astPosition = getPosition(ast);
+
+  return async (context) => {
+    const result = await compiled(context);
+    return (await flatMapEffect(result, context, async (result, context) => {
+      assert(
+        result !== null,
+        SystemError.evaluationError(
+          'expected a value',
+          [],
+          astPosition
+        ).withFileId(context.fileId)
+      );
+      return result;
+    })) as Exclude<EvalValue, null>;
+  };
+};
+
+export const compileScript = (
+  ast: Tree,
+  context: CompileContext
+): ((evalContext: EvalContext) => Promise<EvalValue>) => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
-  return evaluateHandlers(
-    preludeHandlers,
-    await evaluateStatement(sequence(ast.children), context),
-    getPosition(ast),
-    context
-  );
+  const compiled = compileStatement(sequence(ast.children), context);
+  return async (evalContext) => {
+    return evaluateHandlers(
+      preludeHandlers,
+      await compiled(evalContext),
+      getPosition(ast),
+      evalContext
+    );
+  };
 };
 
 export const evaluateModule = async (
   ast: Tree,
-  context: Context
+  context: EvalContext
 ): Promise<EvalRecord> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
   const record: EvalRecord = createRecord();
@@ -1451,12 +1620,15 @@ export const evaluateModule = async (
   for (const child of ast.children) {
     if (child.type === NodeType.DECLARE) {
       const [pattern, expr] = child.children;
-      const value = await evaluateExpr(expr, context);
-      const { matched, envs } = await testPattern(pattern, value, context);
+      const value = await compileExpr(expr, context)(context);
+      const { matched, envs } = await compilePattern(pattern, context)(
+        value,
+        context
+      );
       assert(matched, 'expected pattern to match');
       bindExport(envs, record, context);
     } else if (child.type === NodeType.EXPORT) {
-      const value = await evaluateExpr(child.children[0], context);
+      const value = await compileExpr(child.children[0], context)(context);
 
       assert(
         !recordHas(record, ModuleDefault),
@@ -1474,32 +1646,34 @@ export const evaluateModule = async (
   return record;
 };
 
-export const evaluateScriptString = async (
+export const compileScriptString = (
   input: string,
-  context: Context
-): Promise<EvalValue> => {
+  context: CompileContext
+): ((evalContext: EvalContext) => Promise<EvalValue>) => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
   const [errors, validated] = validate(ast, context.fileId);
-
   if (errors.length > 0) {
     errors.forEach((e) => e.print());
-    return null;
+    return async () => null;
   }
+  const compiled = compileScript(validated, context);
 
-  try {
-    return await evaluateScript(validated, context);
-  } catch (e) {
-    console.error(e);
-    if (e instanceof SystemError) e.print();
+  return async (evalContext) => {
+    try {
+      return await compiled(evalContext);
+    } catch (e) {
+      console.error(e);
+      if (e instanceof SystemError) e.print();
 
-    return null;
-  }
+      return null;
+    }
+  };
 };
 
 export const evaluateModuleString = async (
   input: string,
-  context: Context
+  context: EvalContext
 ): Promise<EvalRecord> => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);

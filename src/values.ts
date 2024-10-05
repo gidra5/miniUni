@@ -1,10 +1,10 @@
-import type { Context } from './evaluate/index.js';
+import type { EvalContext } from './evaluate/index.js';
 import { Position } from './position.js';
 import { assert, eventLoopYield, inspect } from './utils.js';
 import { SystemError } from './error.js';
 import { Environment } from './environment.js';
 
-export type CallSite = [Position, Context];
+export type CallSite = [Position, EvalContext];
 export type EvalFunction = (
   callSite: CallSite,
   arg: EvalValue

@@ -1,10 +1,10 @@
 import {
   evaluateModuleString,
-  evaluateScriptString,
+  compileScriptString,
   newContext,
 } from './evaluate/index.js';
 import { SystemError } from './error.js';
-import { assert,  unreachable } from './utils.js';
+import { assert, unreachable } from './utils.js';
 import { isRecord } from './values.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -82,7 +82,8 @@ export const getModule = async ({
       return module(_module);
     }
     if (isScript) {
-      const result = await evaluateScriptString(source, context);
+      const compiled = compileScriptString(source, context);
+      const result = await compiled(context);
       return script(result);
     }
 

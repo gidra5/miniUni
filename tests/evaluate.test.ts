@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  Context,
+  compileStatement,
+  EvalContext,
   evaluateHandlers,
-  evaluateScript,
-  evaluateStatement,
+  compileScript,
   newContext,
 } from '../src/evaluate/index.ts';
 import { assert } from '../src/utils.ts';
@@ -40,7 +40,8 @@ const evaluate = async (
   if (env) context.env = new Environment({ parent: context.env, ...env });
 
   if (env?.handlers) {
-    const result = await evaluateStatement(sequence(ast.children), context);
+    const compiled = compileStatement(sequence(ast.children), context);
+    const result = await compiled(context);
     return await evaluateHandlers(
       env.handlers,
       result,
@@ -49,7 +50,8 @@ const evaluate = async (
     );
   }
 
-  const result = await evaluateScript(ast, context);
+  const compiled = compileScript(ast, context);
+  const result = await compiled(context);
   return result;
 };
 

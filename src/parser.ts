@@ -29,7 +29,7 @@ import {
   ErrorNode,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
-import { Context as EvalContext } from './evaluate/index.js';
+import { EvalContext as EvalContext } from './evaluate/index.js';
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 
 export const getExprPrecedence = (node: Tree): Precedence =>
@@ -329,7 +329,6 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
   let index = i;
   const start = index;
   const nodePosition = () => mapListPosToPos(position(start, index), src);
-
 
   if (!context.lhs && Object.hasOwn(idToPrefixPatternOp, src[index].src)) {
     const op = idToPrefixPatternOp[src[index].src];
@@ -1112,7 +1111,7 @@ const parsePratt =
       const associative = left === right;
       const hasSameOperator = opGroup.type === lhs.type;
       const isPlaceholder = rhs.type === NodeType.IMPLICIT_PLACEHOLDER;
-      
+
       if (associative && hasSameOperator && !isPlaceholder) {
         lhs.children.push(rhs);
       } else if (!isPlaceholder) {
