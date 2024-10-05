@@ -947,6 +947,15 @@ describe('expressions', () => {
       expect(await evaluate(`[2] := 1; [2]`)).toBe(1);
     });
 
+    it('block as argument', async () => {
+      const input = `
+        f := fn x { x() }
+        f { 123 }
+      `;
+      const result = await evaluate(input);
+      expect(result).toBe(123);
+    });
+
     describe('resource handling', () => {
       it('rest', async () => {
         const input = `
@@ -1116,7 +1125,7 @@ describe('expressions', () => {
       it('try throw', async () => {
         const input = `
           f := fn { throw 123 }
-          try fn { f() }
+          try { f() }
         `;
         const result = await evaluate(input);
         expect(result).toEqual([atom('error'), 123]);
@@ -1125,7 +1134,7 @@ describe('expressions', () => {
       it('try', async () => {
         const input = `
           f := fn { 123 }
-          try fn { f() }
+          try { f() }
         `;
         const result = await evaluate(input);
         expect(result).toEqual([atom('ok'), 123]);
@@ -1133,10 +1142,7 @@ describe('expressions', () => {
 
       it('no try', async () => {
         const input = `
-          f := fn {
-            throw 123
-          };
-
+          f := fn { throw 123 }
           f()
         `;
         const result = await evaluate(input);
@@ -1147,7 +1153,7 @@ describe('expressions', () => {
 
       it('try unwrap ok result', async () => {
         const input = `
-          f := fn { try fn do 123 }
+          f := fn { try { 123 } }
           g := fn { x := f()?; x + 1 }
 
           g()?
@@ -1158,7 +1164,7 @@ describe('expressions', () => {
 
       it('try unwrap error result', async () => {
         const input = `
-          f := fn { try fn do throw 123 }
+          f := fn { try { throw 123 } }
           g := fn { x := f()?; x + 1 }
 
           g()
@@ -1169,7 +1175,7 @@ describe('expressions', () => {
 
       it('unwrap ok result', async () => {
         const input = `
-          f := fn { try fn do 123 }
+          f := fn { try { 123 } }
           g := fn { x := (f()).unwrap; x + 1 }
 
           g()
@@ -1180,7 +1186,7 @@ describe('expressions', () => {
 
       it('unwrap error result', async () => {
         const input = `
-          f := fn { try fn do throw 123 }
+          f := fn { try { throw 123 } }
           g := fn { x := (f()).unwrap; x + 1 }
 
           g()
@@ -1195,7 +1201,7 @@ describe('expressions', () => {
         const input = `
           f := fn { throw 123 }
 
-          (try fn { f() }).map_err(err -> "wha", err)
+          (try { f() }).map_err(err -> "wha", err)
         `;
         const result = await evaluate(input);
         expect(result).toEqual([atom('error'), ['wha', 123]]);
@@ -1360,31 +1366,38 @@ describe('expressions', () => {
         const input = `
           import "std/concurrency" as { wait };
 
+          counter := 0;
           task := async {
-            async { wait 2000 }
+            async { wait 2000; counter += 1 }
             wait 1000
+            counter += 1
             123
           };
           
-          task.cancel();
-          await task
+          task.cancel()
+          await task, counter
         `;
         const result = await evaluate(input);
-        expect(result).toStrictEqual([1, 2]);
+        expect(result).toStrictEqual([123, 0]);
       });
 
       it.todo('cancel_on_error policy', async () => {
         const input = `
-          import "std/concurrency" as { cancel_on_error_policy };
+          import "std/concurrency" as { cancel_on_error }
           
-          handle := fn {
-            cancel_on_error_policy fn {
-              user := async find_user();
-              order := async order();
+          counter := 0
+          handled :=
+            cancel_on_error fn {
+              x1 := async { counter += 1 }
+              x2 := async { throw "error" }
+              x3 := async { counter += 1 }
 
-              await user, await order
+              counter += 1
+
+              await x1, await x2, await x3
             }
-          }
+
+          handled, counter
         `;
         const result = await evaluate(input);
         expect(result).toStrictEqual([1, 2]);
@@ -1392,10 +1405,10 @@ describe('expressions', () => {
 
       it.todo('cancel_on_return policy', async () => {
         const input = `
-          import "std/concurrency" as { cancel_on_return_policy };
+          import "std/concurrency" as { cancel_on_return };
           
           race := fn list {
-            cancel_on_return_policy fn {
+            cancel_on_return fn {
               list.reduce fn task, acc -> async task() + acc
             }
           }

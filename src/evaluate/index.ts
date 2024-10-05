@@ -22,6 +22,7 @@ import {
   loop,
   block,
   tuple,
+  implicitPlaceholder,
 } from '../ast.js';
 import { parseTokens } from '../tokens.js';
 import {
@@ -195,7 +196,6 @@ const assign = (
 ) => {
   assert(envs.exports.size === 0, 'cant do exports in at assignment');
   assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
-
 
   for (const [patternKey, value] of envs.readonly.entries()) {
     if (typeof patternKey === 'string') {
@@ -1063,6 +1063,12 @@ const lazyOperators = {
   [NodeType.APPLICATION]: async (ast: Tree, context: Context) => {
     const [fnExpr, argStmt] = ast.children;
     const fnValue = await evaluateExpr(fnExpr, context);
+    const _argExpr =
+      argStmt.type === NodeType.BLOCK
+        ? fnAST(implicitPlaceholder(getPosition(argStmt)), argStmt, {
+            isTopFunction: false,
+          })
+        : argStmt;
 
     return await flatMapEffect(fnValue, context, async (fnValue, context) => {
       assert(
@@ -1072,7 +1078,7 @@ const lazyOperators = {
         ).withFileId(context.fileId)
       );
 
-      const argValue = await evaluateStatement(argStmt, context);
+      const argValue = await evaluateStatement(_argExpr, context);
       return await flatMapEffect(
         argValue,
         context,
@@ -1405,7 +1411,6 @@ export const evaluateModule = async (
 ): Promise<EvalRecord> => {
   assert(ast.type === NodeType.MODULE, 'expected module');
   const record: EvalRecord = createRecord();
-
 
   for (const child of ast.children) {
     if (child.type === NodeType.DECLARE) {
