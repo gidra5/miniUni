@@ -159,19 +159,19 @@ const tokenIncludes = (token: Token | undefined, tokens: string[]): boolean =>
   (tokens.includes(token.src) ||
     (tokens.includes('\n') && token.type === 'newline'));
 
-type Context = {
+type Context = Readonly<{
   lhs: boolean;
   allowPatternDefault: boolean;
   followSet: string[];
   banned: string[];
   skip: string[];
-};
+}>;
 
-const newContext = (): Context => ({
+const newContext = ({ banned = [] }: Partial<Context> = {}): Context => ({
   lhs: false,
   allowPatternDefault: false,
   followSet: [],
-  banned: [],
+  banned,
   skip: [],
 });
 
@@ -379,12 +379,7 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
         children: [expr],
       });
 
-    return parsePairGroup(
-      { ...context },
-      ['[', ']'],
-      parseExpr,
-      node
-    )(src, index);
+    return parsePairGroup(context, ['[', ']'], parseExpr, node)(src, index);
   }
 
   if (context.allowPatternDefault && context.lhs && src[index].src === '=') {
@@ -879,23 +874,13 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         children: [expr],
       });
 
-    return parsePairGroup(
-      { ...context },
-      ['[', ']'],
-      parseExpr,
-      node
-    )(src, index);
+    return parsePairGroup(context, ['[', ']'], parseExpr, node)(src, index);
   }
 
   if (!context.lhs && src[index].src === '(') {
     const node = (expr: Tree) =>
       _node(NodeType.PARENS, { position: nodePosition(), children: [expr] });
-    return parsePairGroup(
-      { ...context },
-      ['(', ')'],
-      parseExpr,
-      node
-    )(src, index);
+    return parsePairGroup(context, ['(', ')'], parseExpr, node)(src, index);
   }
 
   if (context.lhs && src[index].src === '.') {
@@ -961,36 +946,36 @@ const parsePrattGroup =
       ];
     }
 
-    // if (!context.followSet.includes(')') && src[index].src === ')') {
-    //   while (src[index] && src[index].src === ')') index++;
-    //   return [
-    //     index,
-    //     error(
-    //       SystemError.unbalancedCloseToken(['(', ')'], nodePosition()),
-    //       nodePosition()
-    //     ),
-    //   ];
-    // }
-    // if (!context.followSet.includes('}') && src[index].src === '}') {
-    //   while (src[index] && src[index].src === '}') index++;
-    //   return [
-    //     index,
-    //     error(
-    //       SystemError.unbalancedCloseToken(['{', '}'], nodePosition()),
-    //       nodePosition()
-    //     ),
-    //   ];
-    // }
-    // if (!context.followSet.includes(']') && src[index].src === ']') {
-    //   while (src[index] && src[index].src === ']') index++;
-    //   return [
-    //     index,
-    //     error(
-    //       SystemError.unbalancedCloseToken(['[', ']'], nodePosition()),
-    //       nodePosition()
-    //     ),
-    //   ];
-    // }
+    if (!context.followSet.includes(')') && src[index].src === ')') {
+      while (src[index] && src[index].src === ')') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['(', ')'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
+    if (!context.followSet.includes('}') && src[index].src === '}') {
+      while (src[index] && src[index].src === '}') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['{', '}'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
+    if (!context.followSet.includes(']') && src[index].src === ']') {
+      while (src[index] && src[index].src === ']') index++;
+      return [
+        index,
+        error(
+          SystemError.unbalancedCloseToken(['[', ']'], nodePosition()),
+          nodePosition()
+        ),
+      ];
+    }
 
     if (tokenIncludes(src[index], context.skip))
       return parsePrattGroup(
@@ -1158,8 +1143,7 @@ export const parseScript = (src: TokenPos[]) => {
 
 type DeclarationNode = ImportNode | DeclarationPatternNode | ExportNode;
 const parseDeclaration: Parser<DeclarationNode> = (src, i) => {
-  const context = newContext();
-  context.banned = [';'];
+  const context = newContext({ banned: [';'] });
   return parseExpr(context)(src, i) as unknown as [
     index: number,
     ast: ImportNode | DeclarationPatternNode | ExportNode

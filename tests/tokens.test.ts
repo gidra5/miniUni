@@ -266,49 +266,49 @@ it.prop([anyStringArb])('parseTokens never throws', (src) => {
   expect(() => parseTokens(src)).not.toThrow();
 });
 
-it.todo.prop([anyStringArb, commentArb])(
-  'adding line comments instead of newlines never changes the result',
-  (src, comment) => {
-    const tokens = parseTokens(src);
-    const withComments = parseTokens(withLineComments());
-    expect(tokens).toStrictEqual(withComments);
+// it.todo.prop([anyStringArb, commentArb])(
+//   'adding line comments instead of newlines never changes the result',
+//   (src, comment) => {
+//     const tokens = parseTokens(src);
+//     const withComments = parseTokens(withLineComments());
+//     expect(tokens).toStrictEqual(withComments);
 
-    function withLineComments(): string {
-      let result = src;
-      for (const token of [...tokens].reverse()) {
-        if (token.type === 'newline') {
-          const startString = result.slice(0, token.start);
-          const endString = result.slice(token.end);
-          result = `${startString}//${comment}\n${endString}`;
-        }
-      }
-      return result;
-    }
-  }
-);
+//     function withLineComments(): string {
+//       let result = src;
+//       for (const token of [...tokens].reverse()) {
+//         if (token.type === 'newline') {
+//           const startString = result.slice(0, token.start);
+//           const endString = result.slice(token.end);
+//           result = `${startString}//${comment}\n${endString}`;
+//         }
+//       }
+//       return result;
+//     }
+//   }
+// );
 
-it.todo.prop([anyStringArb, blockCommentArb])(
-  'adding block comments between tokens never changes the result',
-  (src, comment) => {
-    const tokens = parseTokens(src);
-    const withComments = parseTokens(withBlockComments());
-    expect(tokens).toStrictEqual(withComments);
+// it.todo.prop([anyStringArb, blockCommentArb])(
+//   'adding block comments between tokens never changes the result',
+//   (src, comment) => {
+//     const tokens = parseTokens(src);
+//     const withComments = parseTokens(withBlockComments());
+//     expect(tokens).toStrictEqual(withComments);
 
-    function withBlockComments(): string {
-      let result = src;
-      for (const [i, token] of [...tokens].reverse().entries()) {
-        if (i === tokens.length - 1) {
-          result = `${result}/*${comment}*/`;
-          continue;
-        }
+//     function withBlockComments(): string {
+//       let result = src;
+//       for (const [i, token] of [...tokens].reverse().entries()) {
+//         if (i === tokens.length - 1) {
+//           result = `${result}/*${comment}*/`;
+//           continue;
+//         }
 
-        // insert block comment between tokens
-        const prevToken = tokens[i + 1];
-        const startString = result.slice(0, token.end);
-        const endString = result.slice(prevToken.start);
-        result = `${startString}/*${comment}*/${endString}`;
-      }
-      return result;
-    }
-  }
-);
+//         // insert block comment between tokens
+//         const prevToken = tokens[i + 1];
+//         const startString = result.slice(0, token.end);
+//         const endString = result.slice(prevToken.start);
+//         result = `${startString}/*${comment}*/${endString}`;
+//       }
+//       return result;
+//     }
+//   }
+// );

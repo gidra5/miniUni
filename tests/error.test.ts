@@ -37,11 +37,11 @@ const testCase = (input, _?, _it: any = it) =>
     }
   });
 
-testCase(')', [], it.skip);
+testCase(')');
 testCase('(');
-testCase('}', [], it.skip);
+testCase('}');
 testCase('{');
-testCase(']', [], it.skip);
+testCase(']');
 testCase('[');
 testCase('({ 1 )');
 testCase('(x[1 )', [], it.todo);

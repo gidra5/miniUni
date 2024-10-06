@@ -167,12 +167,10 @@ exports[`finds all errors in example ')' 2`] = `
     {
       "children": [],
       "data": {},
-      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "1",
   "type": "script",
 }
 `;
@@ -249,12 +247,10 @@ exports[`finds all errors in example ']' 2`] = `
     {
       "children": [],
       "data": {},
-      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "1",
   "type": "script",
 }
 `;
@@ -379,12 +375,10 @@ exports[`finds all errors in example '}' 2`] = `
     {
       "children": [],
       "data": {},
-      "id": "2",
       "type": "implicit_placeholder",
     },
   ],
   "data": {},
-  "id": "1",
   "type": "script",
 }
 `;
