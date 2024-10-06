@@ -1,5 +1,47 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`finds all errors in example '!' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "here",
+        "start": 0,
+      },
+    ],
+    "message": "missing operand",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "MISSING_OPERAND",
+  },
+]
+`;
+
+exports[`finds all errors in example '!' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {},
+      "type": "not",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '"1" 2' 1`] = `
 [
   {
@@ -168,6 +210,55 @@ exports[`finds all errors in example ')' 2`] = `
       "children": [],
       "data": {},
       "type": "implicit_placeholder",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '* 1' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 1,
+        "kind": "primary",
+        "message": "Operator "*" cant be used in prefix position",
+        "start": 0,
+      },
+    ],
+    "message": "infix/postfix operator in prefix position",
+    "notes": [
+      "The "*" operator is an infix operator. Provide another operand to the left from it",
+    ],
+    "type": "MISPLACED_OPERATOR",
+  },
+]
+`;
+
+exports[`finds all errors in example '* 1' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "*",
     },
   ],
   "data": {},
@@ -383,6 +474,189 @@ exports[`finds all errors in example '}' 2`] = `
 }
 `;
 
+exports[`finds all errors in example '1 * (* 2)' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 6,
+        "kind": "primary",
+        "message": "Operator "*" cant be used in prefix position",
+        "start": 5,
+      },
+    ],
+    "message": "infix/postfix operator in prefix position",
+    "notes": [
+      "The "*" operator is an infix operator. Provide another operand to the left from it",
+    ],
+    "type": "MISPLACED_OPERATOR",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 * (* 2)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {},
+                  "type": "implicit_placeholder",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": "*",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "*",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 13,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 10,
+      },
+    ],
+    "message": "Missing token, expected one of: ")"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 12,
+        "kind": "primary",
+        "message": "Operator "*" cant be used in prefix position",
+        "start": 11,
+      },
+    ],
+    "message": "infix/postfix operator in prefix position",
+    "notes": [
+      "The "*" operator is an infix operator. Provide another operand to the left from it",
+    ],
+    "type": "MISPLACED_OPERATOR",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 * (5/3) (*4' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 5,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "/",
+                },
+              ],
+              "data": {},
+              "type": "parens",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {},
+                      "type": "implicit_placeholder",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 4,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "*",
+                },
+              ],
+              "data": {},
+              "type": "parens",
+            },
+          ],
+          "data": {},
+          "type": "application",
+        },
+      ],
+      "data": {},
+      "type": "*",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '1 *' 1`] = `
 [
   {
@@ -390,17 +664,17 @@ exports[`finds all errors in example '1 *' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 3,
+        "end": 2,
         "kind": "primary",
-        "message": "can't evaluate this expression",
-        "start": 0,
+        "message": "here",
+        "start": 2,
       },
     ],
-    "message": "Expected right hand side for operator",
+    "message": "missing operand",
     "notes": [
       "Caused by: [END_OF_SOURCE] Unexpected end of source",
     ],
-    "type": "EVALUATION_ERROR",
+    "type": "MISSING_OPERAND",
   },
 ]
 `;
@@ -432,6 +706,279 @@ exports[`finds all errors in example '1 *' 2`] = `
 }
 `;
 
+exports[`finds all errors in example '1 + (2 + 3' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 10,
+        "kind": "primary",
+        "message": "somewhere here",
+        "start": 4,
+      },
+    ],
+    "message": "Missing token, expected one of: ")"",
+    "notes": [],
+    "type": "MISSING_TOKEN",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + (2 + 3' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 3,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": "add",
+            },
+          ],
+          "data": {},
+          "type": "parens",
+        },
+      ],
+      "data": {},
+      "type": "add",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + (2 + 3) +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 8,
+        "kind": "primary",
+        "message": "here",
+        "start": 8,
+      },
+    ],
+    "message": "missing operand",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "MISSING_OPERAND",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + (2 + 3) +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 2,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                  ],
+                  "data": {},
+                  "type": "add",
+                },
+              ],
+              "data": {},
+              "type": "parens",
+            },
+          ],
+          "data": {},
+          "type": "add",
+        },
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {},
+      "type": "add",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + * 2' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 5,
+        "kind": "primary",
+        "message": "Operator "*" cant be used in prefix position",
+        "start": 4,
+      },
+    ],
+    "message": "infix/postfix operator in prefix position",
+    "notes": [
+      "The "*" operator is an infix operator. Provide another operand to the left from it",
+    ],
+    "type": "MISPLACED_OPERATOR",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + * 2' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {},
+              "type": "implicit_placeholder",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "*",
+        },
+      ],
+      "data": {},
+      "type": "add",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example '1 + 2 +' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 4,
+        "kind": "primary",
+        "message": "here",
+        "start": 4,
+      },
+    ],
+    "message": "missing operand",
+    "notes": [
+      "Caused by: [END_OF_SOURCE] Unexpected end of source",
+    ],
+    "type": "MISSING_OPERAND",
+  },
+]
+`;
+
+exports[`finds all errors in example '1 + 2 +' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": 1,
+              },
+              "type": "number",
+            },
+            {
+              "children": [],
+              "data": {
+                "value": 2,
+              },
+              "type": "number",
+            },
+          ],
+          "data": {},
+          "type": "add",
+        },
+        {
+          "children": [],
+          "data": {},
+          "type": "implicit_placeholder",
+        },
+      ],
+      "data": {},
+      "type": "add",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`finds all errors in example '1 +' 1`] = `
 [
   {
@@ -439,17 +986,17 @@ exports[`finds all errors in example '1 +' 1`] = `
     "fileId": 0,
     "labels": [
       {
-        "end": 3,
+        "end": 2,
         "kind": "primary",
-        "message": "can't evaluate this expression",
-        "start": 0,
+        "message": "here",
+        "start": 2,
       },
     ],
-    "message": "Expected right hand side for operator",
+    "message": "missing operand",
     "notes": [
       "Caused by: [END_OF_SOURCE] Unexpected end of source",
     ],
-    "type": "EVALUATION_ERROR",
+    "type": "MISSING_OPERAND",
   },
 ]
 `;
@@ -517,6 +1064,119 @@ exports[`finds all errors in example '1 2' 2`] = `
             "value": 2,
           },
           "type": "number",
+        },
+      ],
+      "data": {},
+      "type": "application",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
+exports[`finds all errors in example 'send((1+2), 3+,4)' 1`] = `
+[
+  {
+    "data": {},
+    "fileId": 0,
+    "labels": [
+      {
+        "end": 15,
+        "kind": "primary",
+        "message": "Operator "," cant be used in prefix position",
+        "start": 14,
+      },
+    ],
+    "message": "infix/postfix operator in prefix position",
+    "notes": [
+      "The "," operator is an infix operator. Provide another operand to the left from it",
+    ],
+    "type": "MISPLACED_OPERATOR",
+  },
+]
+`;
+
+exports[`finds all errors in example 'send((1+2), 3+,4)' 2`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": "send",
+          },
+          "type": "name",
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 1,
+                          },
+                          "type": "number",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 2,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {},
+                      "type": "add",
+                    },
+                  ],
+                  "data": {},
+                  "type": "parens",
+                },
+                {
+                  "children": [
+                    {
+                      "children": [],
+                      "data": {
+                        "value": 3,
+                      },
+                      "type": "number",
+                    },
+                    {
+                      "children": [
+                        {
+                          "children": [],
+                          "data": {},
+                          "type": "implicit_placeholder",
+                        },
+                        {
+                          "children": [],
+                          "data": {
+                            "value": 4,
+                          },
+                          "type": "number",
+                        },
+                      ],
+                      "data": {},
+                      "type": ",",
+                    },
+                  ],
+                  "data": {},
+                  "type": "add",
+                },
+              ],
+              "data": {},
+              "type": ",",
+            },
+          ],
+          "data": {},
+          "type": "parens",
         },
       ],
       "data": {},

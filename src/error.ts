@@ -7,6 +7,7 @@ import {
 import { assert } from './utils.js';
 import { Position } from './position.js';
 import { inject, Injectable } from './injector.js';
+import { getExprPrecedence, NodeType } from './ast.js';
 
 export enum ErrorType {
   UNKNOWN,
@@ -33,6 +34,8 @@ export enum ErrorType {
   INVALID_DEFAULT_PATTERN,
   INVALID_PIN_PATTERN,
   IMMUTABLE_VARIABLE_ASSIGNMENT,
+  MISPLACED_OPERATOR,
+  MISSING_OPERAND,
 }
 
 type Options = {
@@ -90,7 +93,9 @@ export class SystemError extends Error {
     position: Position,
     fileId?: number
   ) {
-    this.labels.push({ ...position, message, kind, fileId });
+    if (fileId === undefined) this.labels.push({ ...position, message, kind });
+    else this.labels.push({ ...position, message, kind, fileId });
+
     return this;
   }
 
@@ -616,6 +621,50 @@ export class SystemError extends Error {
       `variable "${patternKey}" is not declared as mutable`,
       pos
     );
+  }
+
+  static infixOperatorInPrefixPosition(
+    src: string,
+    op: NodeType,
+    pos: Position
+  ): SystemError {
+    const precedence = getExprPrecedence(op);
+    const isInfix = precedence[1] !== null;
+
+    return new SystemError(
+      ErrorType.MISPLACED_OPERATOR,
+      'infix/postfix operator in prefix position'
+    )
+      .withPrimaryLabel(
+        `Operator "${src}" cant be used in prefix position`,
+        pos
+      )
+      .withNote(
+        isInfix
+          ? `The "${src}" operator is an infix operator. Provide another operand to the left from it`
+          : `The "${src}" operator is an postfix operator. Provide an operand to the left from it`
+      );
+  }
+
+  static prefixOperatorInRhsPosition(
+    src: string,
+    op: NodeType,
+    pos: Position
+  ): SystemError {
+    return new SystemError(
+      ErrorType.MISPLACED_OPERATOR,
+      'prefix operator in infix/postfix position'
+    ).withPrimaryLabel(
+      `Operator "${src}" cant be used in infix/postfix position`,
+      pos
+    );
+  }
+
+  static missingOperand(position: Position) {
+    return new SystemError(
+      ErrorType.MISSING_OPERAND,
+      'missing operand'
+    ).withPrimaryLabel(`here`, position);
   }
 
   static testError(type: ErrorType) {

@@ -923,6 +923,24 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     return [index, node];
   }
 
+  if (!context.lhs && src[i].src === ':') {
+    return parseValue(src, i);
+  }
+
+  if (!context.lhs && Object.hasOwn(idToExprOp, src[index].src)) {
+    const name = src[index].src;
+    const op = idToExprOp[name];
+    index++;
+    const position = nodePosition();
+    const node = error(
+      SystemError.infixOperatorInPrefixPosition(name, op, position),
+      _node(op, { position, children: [implicitPlaceholder(position)] })
+    );
+    const precedence = _getExprPrecedence(op);
+    inject(Injectable.ASTNodePrecedenceMap).set(node.id, [null, precedence[1]]);
+    return [index, node];
+  }
+
   return parseValue(src, i);
 };
 
@@ -1033,6 +1051,23 @@ const parsePrefix =
         getPrecedence,
         right
       )(src, index);
+
+      if (group.type === NodeType.ERROR) {
+        const node = group.children[0];
+        group.children[0] = prefix(node, rhs);
+        return [index, group];
+      }
+
+      if (rhs.type === NodeType.ERROR && rhs.children.length === 0) {
+        const position = nodePosition();
+        const node = prefix(group, implicitPlaceholder(position));
+        const errorNode = error(
+          SystemError.missingOperand(position).withCause(rhs.data.cause),
+          node
+        );
+        return [index, errorNode];
+      }
+
       return [index, prefix(group, rhs)];
     }
 
@@ -1089,6 +1124,16 @@ const parsePratt =
         getPrecedence,
         right
       )(src, index);
+
+      if (rhs.type === NodeType.ERROR && rhs.children.length === 0) {
+        const position = indexPosition(index);
+        const node = infix(opGroup, lhs, implicitPlaceholder(position));
+        const errorNode = error(
+          SystemError.missingOperand(position).withCause(rhs.data.cause),
+          node
+        );
+        return [index, errorNode];
+      }
 
       // if two same operators are next to each other, and their precedence is the same on both sides
       // so it is both left and right associative
