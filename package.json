@@ -9,7 +9,10 @@
     "test": "vitest run",
     "build": "tsc || exit 0",
     "start": "npm run build && node ./dist/index.js",
-    "watch": "vitest --ui"
+    "watch": "vitest --ui",
+    "compile": "bun run compile-win && bun run compile-linux",
+    "compile-win": "bun build ./src/index.ts --compile --minify --target=bun-windows-x64 --sourcemap --outfile ./dist/miniUni.exe",
+    "compile-linux": "bun build ./src/index.ts --compile --minify --sourcemap --outfile ./dist/miniUni"
   },
   "author": "",
   "license": "ISC",

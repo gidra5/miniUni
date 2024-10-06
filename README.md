@@ -1,4 +1,6 @@
 # miniUni - simple yet flexible concurrent scripting language
+[![release](https://github.com/gidra5/miniUni/actions/workflows/release.yml/badge.svg)](https://github.com/gidra5/miniUni/actions/workflows/release.yml)
+
 A general-purpose multi-paradigm language, that aims to provide a scripting language with powerful concurrency and simple syntax.
 
 ## Motivation
