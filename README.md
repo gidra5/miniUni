@@ -138,7 +138,7 @@ To learn the language a bit closer, here is a quick overview of the syntax:
   * `inject [return_handler]: fn x { ... }` - injects handler that will be called when no effect is performed
 
 Syntax is a mix of functional and C-like syntax, so if you are coming from one of such languages (rust, haskell, js, elixir) it may look familiar to you
-For a more complete set of examples and whats possible, check out the [examples](https://github.com/gidra5/miniUni/tree/main/examples) and [tests suites](https://github.com/gidra5/miniUni/tree/main/tests)
+For a more complete set of examples and whats possible, check out the [examples](https://github.com/gidra5/miniUni/tree/master/examples) and [tests suites](https://github.com/gidra5/miniUni/tree/master/tests)
 
 ## Contribution
 
