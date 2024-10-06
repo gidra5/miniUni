@@ -758,6 +758,11 @@ describe('expressions', () => {
       ]);
     });
 
+    it('with multiple bind of same name', async () => {
+      expect(await evaluate(`(1, 1) is (x, x)`)).toBe(true);
+      expect(await evaluate(`(1, 2) is (x, x)`)).toBe(false);
+    });
+
     it('with dynamic variable name', async () => {
       const input = `1 is ["dynamic" + "name"] and 1 == ["dynamic" + "name"]`;
       const result = await evaluate(input);

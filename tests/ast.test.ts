@@ -327,6 +327,6 @@ describe('newline handling', () => {
   it('newline at the end', () => testCase(`1\n`));
   it('semicolon-newline at the end', () => testCase(`1;\n`));
   it('empty switch with newline', () => testCase(`switch a { \n }`));
-  it.todo('application-newline-increment', () => testCase(`f a\n ++b`));
-  it.todo('pipe', () => testCase(`1 \n|> fn x { x + 1 } \n|> fn y { y * 2 }`));
+  // it.todo('application-newline-increment', () => testCase(`f a\n ++b`));
+  it('pipe', () => testCase(`1 \n|> fn x { x + 1 } \n|> fn y { y * 2 }`));
 });

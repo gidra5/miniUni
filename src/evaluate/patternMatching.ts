@@ -240,12 +240,24 @@ const _compilePattern = (
     if (flags.strict) {
       return async (value, _context, envs, notEnvs) => {
         if (value === null) return { matched: false, envs, notEnvs };
-        if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+        if (value !== null) {
+          if (envs.readonly.has(name)) {
+            const _value = envs.readonly.get(name);
+            return { matched: _value === value, envs, notEnvs };
+          } else if (envs.env.has(name)) {
+            const _value = envs.env.get(name);
+            return { matched: _value === value, envs, notEnvs };
+          } else {
+            updatePatternTestEnv(envs, flags, name, value);
+          }
+        }
         return { matched: true, envs, notEnvs };
       };
     }
     return async (value, _context, envs, notEnvs) => {
-      if (value !== null) updatePatternTestEnv(envs, flags, name, value);
+      if (value !== null) {
+        updatePatternTestEnv(envs, flags, name, value);
+      }
       return { matched: true, envs, notEnvs };
     };
   }

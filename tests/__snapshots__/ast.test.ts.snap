@@ -8144,6 +8144,98 @@ exports[`newline handling > parens 1`] = `
 }
 `;
 
+exports[`newline handling > pipe 1`] = `
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [],
+          "data": {
+            "value": 1,
+          },
+          "type": "number",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "x",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "x",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 1,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": "add",
+            },
+          ],
+          "data": {
+            "isTopFunction": true,
+          },
+          "type": "func",
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "data": {
+                "value": "y",
+              },
+              "type": "name",
+            },
+            {
+              "children": [
+                {
+                  "children": [],
+                  "data": {
+                    "value": "y",
+                  },
+                  "type": "name",
+                },
+                {
+                  "children": [],
+                  "data": {
+                    "value": 2,
+                  },
+                  "type": "number",
+                },
+              ],
+              "data": {},
+              "type": "*",
+            },
+          ],
+          "data": {
+            "isTopFunction": true,
+          },
+          "type": "func",
+        },
+      ],
+      "data": {},
+      "type": "|>",
+    },
+  ],
+  "data": {},
+  "type": "script",
+}
+`;
+
 exports[`newline handling > prefix 1`] = `
 {
   "children": [

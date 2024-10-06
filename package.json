@@ -8,8 +8,8 @@
     "bench": "vitest bench",
     "test": "vitest run",
     "build": "tsc || exit 0",
-    "start": "npm run build && node --max-old-space-size=16000 ./dist/index.js",
-    "watch": "cmd /C \"set NODE_OPTIONS=--max-old-space-size=16000 && vitest --ui\""
+    "start": "npm run build && node ./dist/index.js",
+    "watch": "vitest --ui"
   },
   "author": "",
   "license": "ISC",
