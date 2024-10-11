@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   compileStatement,
   EvalContext,
-  evaluateHandlers,
+  handleEffects,
   compileScript,
   newContext,
 } from '../src/evaluate/index.ts';
@@ -42,7 +42,7 @@ const evaluate = async (
   if (env?.handlers) {
     const compiled = compileStatement(sequence(ast.children), context);
     const result = await compiled(context);
-    return await evaluateHandlers(
+    return await handleEffects(
       env.handlers,
       result,
       { start: 0, end: 0 },
@@ -1442,6 +1442,23 @@ describe('expressions', () => {
         `;
         const result = await evaluate(input);
         expect(result).toStrictEqual([1, 2]);
+      });
+
+      it('timeout', async () => {
+        const input = `
+          import "std/concurrency" as { timeout, wait }
+          mut counter := 0
+          
+          timeout 100 {
+            counter += 1
+            wait 200
+            counter += 1
+          }
+
+          counter
+        `;
+        const result = await evaluate(input);
+        expect(result).toStrictEqual(1);
       });
     });
   });

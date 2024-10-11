@@ -6,17 +6,37 @@ import {
   createRecord,
   createTask,
   EvalTask,
-  EvalValue,
-  fn,
   isEventClosed,
   isTask,
 } from '../values.js';
 import { assert, inspect, memoize } from '../utils.js';
 import { module } from '../module.js';
-import { evaluateHandlers } from '../evaluate/index.js';
-import { ThrowEffect } from './prelude.js';
+import { compileScriptString, handleEffects } from '../evaluate/index.js';
+import { prelude, ThrowEffect } from './prelude.js';
+import { addFile } from '../files.js';
+import { Environment } from '../environment.js';
 
 export const CreateTaskEffect = Symbol('CreateTaskEffect');
+
+const f = memoize(() => {
+  const timeoutSourceFile = 'concurrency.timeout';
+  const timeoutSource = `
+    import "std/concurrency" as { some, wait }
+    fn ms, f {
+      fst := async { v := f(); (:ok, v) }
+      snd := async { wait ms; (:error, :timeout) }
+      some(fst, snd)
+    }
+  `;
+  const fileId = addFile(timeoutSourceFile, timeoutSource);
+  const context = {
+    file: timeoutSourceFile,
+    fileId,
+    env: new Environment({ parent: prelude }),
+  };
+  const timeout = compileScriptString(timeoutSource, context)(context);
+  return timeout;
+});
 
 export default module({
   all: async ([position, context], list) => {
@@ -36,7 +56,7 @@ export default module({
     });
     return (await Promise.all(x)).filter((x) => x !== null);
   },
-  some: fn(1, async ([position, context], list) => {
+  some: async ([position, context], list) => {
     const fileId = context.fileId;
     const someErrorFactory = SystemError.invalidArgumentType(
       'some',
@@ -52,8 +72,8 @@ export default module({
       return await awaitTask(task);
     });
     return await Promise.race(x);
-  }),
-  wait: fn(1, async ([position, context], time) => {
+  },
+  wait: async ([position, context], time) => {
     const fileId = context.fileId;
     const waitErrorFactory = SystemError.invalidArgumentType(
       'wait',
@@ -66,7 +86,7 @@ export default module({
     assert(typeof time === 'number', waitErrorFactory(0).withFileId(fileId));
     await new Promise((resolve) => setTimeout(resolve, time));
     return null;
-  }),
+  },
   creating_task: CreateTaskEffect,
   cancel_on_error: async (cs, fn) => {
     const [position, context] = cs;
@@ -109,7 +129,7 @@ export default module({
     });
     const value = await fn(cs, null);
 
-    return await evaluateHandlers(handlers, value, cs[0], context);
+    return await handleEffects(handlers, value, cs[0], context);
   },
   cancel_on_return: async (cs, fn) => {
     const [position, context] = cs;
@@ -147,6 +167,12 @@ export default module({
     });
     const value = await fn(cs, null);
 
-    return await evaluateHandlers(handlers, value, cs[0], context);
+    return await handleEffects(handlers, value, cs[0], context);
+  },
+  timeout: async (cs, ms) => {
+    assert(typeof ms === 'number', 'expected number');
+    const _f = await f();
+    assert(typeof _f === 'function');
+    return _f(cs, ms);
   },
 });

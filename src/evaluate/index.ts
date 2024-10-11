@@ -1,13 +1,7 @@
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from '../error.js';
 import { getModule } from '../files.js';
-import {
-  getPosition,
-  parseModule,
-  parseScript,
-  showNode,
-  showPos,
-} from '../parser.js';
+import { getPosition, parseModule, parseScript, showNode } from '../parser.js';
 import {
   NodeType,
   node,
@@ -92,10 +86,7 @@ export type CompileContext = {
 };
 
 export const forkContext = (context: EvalContext): EvalContext => {
-  return {
-    ...context,
-    env: new Environment({ parent: context.env }),
-  };
+  return { ...context, env: new Environment({ parent: context.env }) };
 };
 
 export const newContext = (fileId: number, file: string): EvalContext => {
@@ -439,7 +430,7 @@ const lazyOperators = {
           return null;
         });
 
-        return await evaluateHandlers(handlers, value, exprPosition, context);
+        return await handleEffects(handlers, value, exprPosition, context);
       };
       const effect = createEffect(CreateTaskEffect, task, context.env);
       return mapEffect(effect, context, async (task, context) => {
@@ -526,7 +517,7 @@ const lazyOperators = {
       return await flatMapEffect(value, context, async (value, context) => {
         assert(isRecord(value), 'expected record');
         const result = await compiledBlock(context);
-        return await evaluateHandlers(value, result, bodyPosition, context);
+        return await handleEffects(value, result, bodyPosition, context);
       });
     };
   },
@@ -695,7 +686,7 @@ const lazyOperators = {
           const result = await compiledPattern(item, context);
           assert(result.matched, 'expected pattern to match');
           const bound = bindContext(result.envs, context);
-          const value = await evaluateHandlers(
+          const value = await handleEffects(
             handlers,
             await compiledBody(bound),
             bodyPosition,
@@ -753,7 +744,7 @@ const lazyOperators = {
     });
     const compiled = async (context: EvalContext) => {
       const value = await compiledExpr(context);
-      return await evaluateHandlers(handlers, value, exprPosition, context);
+      return await handleEffects(handlers, value, exprPosition, context);
     };
     return compiled;
   },
@@ -1072,7 +1063,7 @@ const lazyOperators = {
       const forked = forkContext(context);
       forked.env.addReadonly(ast.data.name, labelRecord);
 
-      return await evaluateHandlers(
+      return await handleEffects(
         handlers,
         await compiledExpr(forked),
         exprPosition,
@@ -1207,7 +1198,7 @@ const lazyOperators = {
         const bound = bindContext(result.envs, _context);
         if (isTopFunction) bound.env.addReadonly('self', self);
 
-        return await evaluateHandlers(
+        return await handleEffects(
           handlers,
           await compiledBody(bound),
           bodyPosition,
@@ -1342,7 +1333,7 @@ const tupleOperators = {
   ) => Promise<EvalValue>
 >;
 
-export const evaluateHandlers = async (
+export const handleEffects = async (
   handlers: EvalRecord,
   value: EvalValue,
   position: Position,
@@ -1362,13 +1353,13 @@ export const evaluateHandlers = async (
   if (value.effect === MaskEffect && recordHas(handlers, value.value)) {
     const r = await runEffectContinuations(value.continuations, cs, null);
     return await mapEffect(r, context, async (value, context) => {
-      return await evaluateHandlers(handlers, value, position, context);
+      return await handleEffects(handlers, value, position, context);
     });
   }
 
   if (!recordHas(handlers, value.effect)) {
     return await mapEffect(value, context, async (value, context) => {
-      return await evaluateHandlers(handlers, value, position, context);
+      return await handleEffects(handlers, value, position, context);
     });
   }
 
@@ -1380,7 +1371,7 @@ export const evaluateHandlers = async (
       cs,
       _value
     );
-    const result = await evaluateHandlers(handlers, __value, position, context);
+    const result = await handleEffects(handlers, __value, position, context);
     return result;
   };
 
@@ -1600,7 +1591,7 @@ export const compileScript = (
   assert(ast.type === NodeType.SCRIPT, 'expected script');
   const compiled = compileStatement(sequence(ast.children), context);
   return async (evalContext) => {
-    return evaluateHandlers(
+    return handleEffects(
       preludeHandlers,
       await compiled(evalContext),
       getPosition(ast),

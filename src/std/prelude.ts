@@ -1,6 +1,6 @@
 import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
-import { EvalContext, evaluateHandlers } from '../evaluate/index.js';
+import { EvalContext, handleEffects } from '../evaluate/index.js';
 import { assert, inspect } from '../utils.js';
 import {
   atom,
@@ -168,7 +168,7 @@ export const prelude: EvalContext['env'] = new Environment({
       });
       assert(typeof fn === 'function');
       const value = await fn(cs, null);
-      return await evaluateHandlers(handlers, value, cs[0], cs[1]);
+      return await handleEffects(handlers, value, cs[0], cs[1]);
     },
   },
 });
