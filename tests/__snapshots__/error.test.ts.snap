@@ -226,7 +226,7 @@ exports[`finds all errors in example '* 1' 1`] = `
       {
         "end": 1,
         "kind": "primary",
-        "message": "Operator "*" cant be used in prefix position",
+        "message": "Operator "*" can't be used in prefix position",
         "start": 0,
       },
     ],
@@ -483,7 +483,7 @@ exports[`finds all errors in example '1 * (* 2)' 1`] = `
       {
         "end": 6,
         "kind": "primary",
-        "message": "Operator "*" cant be used in prefix position",
+        "message": "Operator "*" can't be used in prefix position",
         "start": 5,
       },
     ],
@@ -566,7 +566,7 @@ exports[`finds all errors in example '1 * (5/3) (*4' 1`] = `
       {
         "end": 12,
         "kind": "primary",
-        "message": "Operator "*" cant be used in prefix position",
+        "message": "Operator "*" can't be used in prefix position",
         "start": 11,
       },
     ],
@@ -864,7 +864,7 @@ exports[`finds all errors in example '1 + * 2' 1`] = `
       {
         "end": 5,
         "kind": "primary",
-        "message": "Operator "*" cant be used in prefix position",
+        "message": "Operator "*" can't be used in prefix position",
         "start": 4,
       },
     ],
@@ -1084,7 +1084,7 @@ exports[`finds all errors in example 'send((1+2), 3+,4)' 1`] = `
       {
         "end": 15,
         "kind": "primary",
-        "message": "Operator "," cant be used in prefix position",
+        "message": "Operator "," can't be used in prefix position",
         "start": 14,
       },
     ],

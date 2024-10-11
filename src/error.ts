@@ -112,6 +112,11 @@ export class SystemError extends Error {
     return this;
   }
 
+  withNotes(notes: string[]) {
+    this.notes = notes;
+    return this;
+  }
+
   print(): SystemError {
     const fileMap = inject(Injectable.FileMap);
     const diag = this.diagnostic();
@@ -138,139 +143,85 @@ export class SystemError extends Error {
   }
 
   static unknown(): SystemError {
-    const msg = 'Unknown error';
-    return new SystemError(ErrorType.UNKNOWN, msg);
+    return new SystemError(ErrorType.UNKNOWN, 'Unknown error');
   }
 
   static endOfSource(pos: Position): SystemError {
-    const msg = 'Unexpected end of source';
-
-    const error = new SystemError(ErrorType.END_OF_SOURCE, msg);
-    return error.withPrimaryLabel('here', pos);
+    return new SystemError(
+      ErrorType.END_OF_SOURCE,
+      'Unexpected end of source'
+    ).withPrimaryLabel('here', pos);
   }
 
   static unterminatedString(pos: Position): SystemError {
-    const msg = 'Unterminated string literal';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'expected closing double quote',
-      kind: 'primary',
-    });
-    notes.push('Strings must be enclosed in double quotes (")');
-    notes.push('Use \\ to escape special characters');
-    notes.push('Use \\ at the end of a line to write a multi-line string');
-
-    return new SystemError(ErrorType.UNTERMINATED_STRING, msg, options);
+    return new SystemError(
+      ErrorType.UNTERMINATED_STRING,
+      'Unterminated string literal'
+    )
+      .withPrimaryLabel('expected closing double quote', pos)
+      .withNote('Strings must be enclosed in double quotes (")')
+      .withNote('Use \\ to escape special characters');
   }
 
   static invalidBinaryLiteral(pos: Position): SystemError {
-    const msg = 'Invalid binary literal';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start + 2,
-      end: pos.start + 3,
-      message: 'expected digits 0 or 1',
-      kind: 'primary',
-    });
-    notes.push(
-      'Valid binary literals start with 0b and digits 0 or 1 (binary digits), which may be followed by more binary digits, optionally separated by underscores'
-    );
-    return new SystemError(ErrorType.INVALID_BINARY_LITERAL, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_BINARY_LITERAL,
+      'Invalid binary literal'
+    )
+      .withPrimaryLabel('expected digits 0 or 1', {
+        start: pos.start + 2,
+        end: pos.start + 3,
+      })
+      .withNote(
+        'Valid binary literals start with 0b and digits 0 or 1 (binary digits), which may be followed by more binary digits, optionally separated by underscores'
+      );
   }
 
   static invalidOctalLiteral(pos: Position): SystemError {
-    const msg = 'Invalid octal literal';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start + 2,
-      end: pos.start + 3,
-      message: 'expected a digit between 0 and 7',
-      kind: 'primary',
-    });
-    notes.push(
-      'Valid octal literals start with 0o and a digit between 0 and 7 (octal digits), which may be followed by more octal digits, optionally separated by underscores'
-    );
-    return new SystemError(ErrorType.INVALID_OCTAL_LITERAL, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_OCTAL_LITERAL,
+      'Invalid octal literal'
+    )
+      .withPrimaryLabel('expected a digit between 0 and 7', {
+        start: pos.start + 2,
+        end: pos.start + 3,
+      })
+      .withNote(
+        'Valid octal literals start with 0o and a digit between 0 and 7 (octal digits), which may be followed by more octal digits, optionally separated by underscores'
+      );
   }
 
   static invalidHexLiteral(pos: Position): SystemError {
-    const msg = 'Invalid hex literal';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start + 2,
-      end: pos.start + 3,
-      message:
+    return new SystemError(ErrorType.INVALID_HEX_LITERAL, 'Invalid hex literal')
+      .withPrimaryLabel(
         'expected a digit or a letter between a and f (case insensitive)',
-      kind: 'primary',
-    });
-    notes.push(
-      'Valid hex literals start with 0x and a digit or a case insensitive letter between a and f (hex digits), which may be followed by more hex digits, optionally separated by underscores'
-    );
-    return new SystemError(ErrorType.INVALID_HEX_LITERAL, msg, options);
+        { start: pos.start + 2, end: pos.start + 3 }
+      )
+      .withNote(
+        'Valid hex literals start with 0x and a digit or a case insensitive letter between a and f (hex digits), which may be followed by more hex digits, optionally separated by underscores'
+      );
   }
 
   static missingToken(pos: Position, ...tokens: string[]): SystemError {
     const list = tokens.map((token) => `"${token}"`).join(' or ');
-    const msg = `Missing token, expected one of: ${list}`;
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'somewhere here',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
+    return new SystemError(
+      ErrorType.MISSING_TOKEN,
+      `Missing token, expected one of: ${list}`
+    ).withPrimaryLabel('somewhere here', pos);
   }
 
   static invalidPattern(pos: Position): SystemError {
-    const msg = 'invalid pattern';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'here',
-      kind: 'primary',
-    });
-    return new SystemError(ErrorType.INVALID_PATTERN, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_PATTERN,
+      'invalid pattern'
+    ).withPrimaryLabel('here', pos);
   }
 
   static invalidPlaceholderExpression(pos: Position): SystemError {
-    const msg = "placeholder can't be evaluated";
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'here',
-      kind: 'primary',
-    });
-
     return new SystemError(
       ErrorType.INVALID_PLACEHOLDER_EXPRESSION,
-      msg,
-      options
-    );
+      "placeholder can't be evaluated"
+    ).withPrimaryLabel('here', pos);
   }
 
   static invalidAssignment(
@@ -278,45 +229,28 @@ export class SystemError extends Error {
     pos: Position,
     closestName?: string
   ): SystemError {
-    const msg = `can't assign to undeclared variable`;
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: `variable "${name}" is not declared in scope`,
-      kind: 'primary',
-    });
-    notes.push(`Variable must be declared before it can be assigned to.`);
-    notes.push(
-      `Use := operator to declare a new variable, = assigns to already declared variables only.`
-    );
-    if (closestName) notes.push(`Did you mean "${closestName}"?`);
-    else {
-      notes.push(
-        `Check if you have a typo in the variable name, if "${name}" is intended to be declared.`
+    const error = new SystemError(
+      ErrorType.INVALID_ASSIGNMENT,
+      `can't assign to undeclared variable`
+    )
+      .withPrimaryLabel(`variable "${name}" is not declared in scope`, pos)
+      .withNote('Variable must be declared before it can be assigned to.')
+      .withNote(
+        'Use := operator to declare a new variable, = assigns to already declared variables only.'
       );
-    }
 
-    return new SystemError(ErrorType.INVALID_ASSIGNMENT, msg, options);
+    return closestName
+      ? error.withNote(`Did you mean "${closestName}"?`)
+      : error.withNote(
+          `Check if you have a typo in the variable name, if "${name}" is intended to be declared.`
+        );
   }
 
   static invalidTuplePattern(pos: Position): SystemError {
-    const msg = 'tuple pattern on non-tuple';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'here',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.INVALID_TUPLE_PATTERN, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_TUPLE_PATTERN,
+      'tuple pattern on non-tuple'
+    ).withPrimaryLabel('here', pos);
   }
 
   static evaluationError(
@@ -324,16 +258,9 @@ export class SystemError extends Error {
     notes: string[],
     pos: Position
   ): SystemError {
-    const labels: Array<ErrorLabel> = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: "can't evaluate this expression",
-      kind: 'primary',
-    });
-    return new SystemError(ErrorType.EVALUATION_ERROR, msg, options);
+    return new SystemError(ErrorType.EVALUATION_ERROR, msg)
+      .withPrimaryLabel("can't evaluate this expression", pos)
+      .withNotes(notes);
   }
 
   static invalidArgumentType(
@@ -408,22 +335,10 @@ export class SystemError extends Error {
   }
 
   static invalidApplicationExpression(pos: Position): SystemError {
-    const msg = 'application on a non-function';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'this expression is not a function',
-      kind: 'primary',
-    });
     return new SystemError(
       ErrorType.INVALID_APPLICATION_EXPRESSION,
-      msg,
-      options
-    );
+      'application on a non-function'
+    ).withPrimaryLabel('this expression is not a function', pos);
   }
 
   static importFailed(
@@ -431,101 +346,59 @@ export class SystemError extends Error {
     resolved: string,
     error: unknown
   ): SystemError {
-    const msg = 'import failed';
-    const notes: string[] = [];
-    const options = { notes };
-
-    notes.push(`name: "${name}"`);
-    notes.push(`resolved name: "${resolved}"`);
-    if (error instanceof Error) notes.push(`error: "${error.message}"`);
-    else notes.push(`error: "${error}"`);
-
-    return new SystemError(ErrorType.IMPORT_FAILED, msg, options);
+    const err = new SystemError(ErrorType.IMPORT_FAILED, 'import failed')
+      .withNote(`name: "${name}"`)
+      .withNote(`resolved name: "${resolved}"`);
+    return error instanceof Error
+      ? err.withNote(`error: "${error.message}"`)
+      : err.withNote(`error: "${error}"`);
   }
 
   static undeclaredName(name: string, pos: Position): SystemError {
-    const msg = `undeclared name ${name}`;
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'this name is not declared in scope',
-      kind: 'primary',
-    });
-
-    notes.push(
-      `Variable can be declared with ":=" operator like this: ${name} := value`
-    );
-    return new SystemError(ErrorType.UNDECLARED_NAME, msg, options);
+    return new SystemError(ErrorType.UNDECLARED_NAME, `undeclared name ${name}`)
+      .withPrimaryLabel('this name is not declared in scope', pos)
+      .withNote(
+        `Variable can be declared with ":=" operator like this: ${name} := value`
+      );
   }
 
   static invalidObjectPattern(pos: Position): SystemError {
-    const msg = 'object pattern on non-object';
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'here',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.INVALID_OBJECT_PATTERN, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_OBJECT_PATTERN,
+      'object pattern on non-object'
+    ).withPrimaryLabel('here', pos);
   }
 
-  static invalidIncrement(name: string, pos: Position) {
-    const msg = `can't increment a non number variable`;
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: `value of "${name}" is not a number`,
-      kind: 'primary',
-    });
-    notes.push(
-      `To use += operator, all names in its pattern should have number values`
-    );
-
-    return new SystemError(ErrorType.INVALID_INCREMENT_ASSIGN, msg, options);
+  static invalidIncrement(name: string, pos: Position): SystemError {
+    return new SystemError(
+      ErrorType.INVALID_INCREMENT_ASSIGN,
+      "can't increment a non-number variable"
+    )
+      .withPrimaryLabel(`value of "${name}" is not a number`, pos)
+      .withNote(
+        `To use += operator, all names in its pattern should have number values`
+      );
   }
 
-  static invalidIncrementValue(pos: Position) {
-    const msg = `can't increment by a non number`;
-    const labels: Array<ErrorLabel> = [];
-    const notes: string[] = [];
-    const options = { notes, labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: `value is not a number`,
-      kind: 'primary',
-    });
-    notes.push(
-      `To use += operator, value to be incremented by should be a number`
-    );
-
-    return new SystemError(ErrorType.INVALID_INCREMENT_ASSIGN, msg, options);
+  static invalidIncrementValue(pos: Position): SystemError {
+    return new SystemError(
+      ErrorType.INVALID_INCREMENT_ASSIGN,
+      "can't increment by a non-number"
+    )
+      .withPrimaryLabel('value is not a number', pos)
+      .withNote(
+        `To use += operator, value to be incremented by should be a number`
+      );
   }
 
-  static unresolvedImport(name: string, error: unknown) {
-    const msg = "can't resolve import";
-    const notes: string[] = [];
-    const options = { notes };
-
-    notes.push(`name: "${name}"`);
-    if (error instanceof Error) notes.push(`error: "${error.message}"`);
-    else notes.push(`error: "${error}"`);
-
-    return new SystemError(ErrorType.IMPORT_RESOLVE_FAILED, msg, options);
+  static unresolvedImport(name: string, error: unknown): SystemError {
+    const err = new SystemError(
+      ErrorType.IMPORT_RESOLVE_FAILED,
+      "can't resolve import"
+    ).withNote(`name: "${name}"`);
+    return error instanceof Error
+      ? err.withNote(`error: "${error.message}"`)
+      : err.withNote(`error: "${error}"`);
   }
 
   static unbalancedOpenToken(
@@ -533,87 +406,49 @@ export class SystemError extends Error {
     openPos: Position,
     closePos: Position
   ): SystemError {
-    const msg = `Missing closing token`;
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: closePos.start,
-      end: closePos.end,
-      message: `must be closed with "${tokens[1]}" by that point`,
-      kind: 'primary',
-    });
-    labels.push({
-      start: openPos.start,
-      end: openPos.end,
-      message: `opening token "${tokens[0]}" here`,
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
+    return new SystemError(ErrorType.MISSING_TOKEN, 'Missing closing token')
+      .withPrimaryLabel(
+        `must be closed with "${tokens[1]}" by that point`,
+        closePos
+      )
+      .withPrimaryLabel(`opening token "${tokens[0]}" here`, openPos);
   }
 
   static unbalancedCloseToken(
     tokens: [string, string],
     pos: Position
   ): SystemError {
-    const msg = `Unexpected closing token "${tokens[1]}"`;
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'unexpected closing token',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.MISSING_TOKEN, msg, options);
+    return new SystemError(
+      ErrorType.MISSING_TOKEN,
+      `Unexpected closing token "${tokens[1]}"`
+    ).withPrimaryLabel('unexpected closing token', pos);
   }
+
   static duplicateDefaultExport(pos: Position): SystemError {
-    const msg = `Cannot have multiple default exports in a module`;
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'unexpected default export',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.DUPLICATE_DEFAULT_EXPORT, msg, options);
+    return new SystemError(
+      ErrorType.DUPLICATE_DEFAULT_EXPORT,
+      'Cannot have multiple default exports in a module'
+    ).withPrimaryLabel('unexpected default export', pos);
   }
+
   static invalidDefaultPattern(pos: Position): SystemError {
-    const msg = `default value for pattern can't be an operator`;
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'unexpected default export',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.INVALID_DEFAULT_PATTERN, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_DEFAULT_PATTERN,
+      "default value for pattern can't be an operator"
+    ).withPrimaryLabel('unexpected default pattern', pos);
   }
+
   static invalidPinPattern(pos: Position): SystemError {
-    const msg = `pin value for pattern can't be an operator`;
-    const labels: Array<ErrorLabel> = [];
-    const options = { labels };
-
-    labels.push({
-      start: pos.start,
-      end: pos.end,
-      message: 'unexpected default export',
-      kind: 'primary',
-    });
-
-    return new SystemError(ErrorType.INVALID_PIN_PATTERN, msg, options);
+    return new SystemError(
+      ErrorType.INVALID_PIN_PATTERN,
+      "pin value for pattern can't be an operator"
+    ).withPrimaryLabel('unexpected pin pattern', pos);
   }
 
-  static immutableVariableAssignment(patternKey: string, pos: Position) {
+  static immutableVariableAssignment(
+    patternKey: string,
+    pos: Position
+  ): SystemError {
     return new SystemError(
       ErrorType.IMMUTABLE_VARIABLE_ASSIGNMENT,
       'expected mutable name'
@@ -630,19 +465,18 @@ export class SystemError extends Error {
   ): SystemError {
     const precedence = getExprPrecedence(op);
     const isInfix = precedence[1] !== null;
-
     return new SystemError(
       ErrorType.MISPLACED_OPERATOR,
       'infix/postfix operator in prefix position'
     )
       .withPrimaryLabel(
-        `Operator "${src}" cant be used in prefix position`,
+        `Operator "${src}" can't be used in prefix position`,
         pos
       )
       .withNote(
         isInfix
           ? `The "${src}" operator is an infix operator. Provide another operand to the left from it`
-          : `The "${src}" operator is an postfix operator. Provide an operand to the left from it`
+          : `The "${src}" operator is a postfix operator. Provide an operand to the left from it`
       );
   }
 
@@ -655,20 +489,19 @@ export class SystemError extends Error {
       ErrorType.MISPLACED_OPERATOR,
       'prefix operator in infix/postfix position'
     ).withPrimaryLabel(
-      `Operator "${src}" cant be used in infix/postfix position`,
+      `Operator "${src}" can't be used in infix/postfix position`,
       pos
     );
   }
 
-  static missingOperand(position: Position) {
+  static missingOperand(pos: Position): SystemError {
     return new SystemError(
       ErrorType.MISSING_OPERAND,
       'missing operand'
-    ).withPrimaryLabel(`here`, position);
+    ).withPrimaryLabel('here', pos);
   }
 
-  static testError(type: ErrorType) {
-    const msg = 'test error';
-    return new SystemError(type, msg);
+  static testError(type: ErrorType): SystemError {
+    return new SystemError(type, 'test error');
   }
 }
