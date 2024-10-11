@@ -49,6 +49,11 @@ const examples = [
     file: '/advent_of_code_1_channels.uni',
     expected: 142,
   },
+  // {
+  //   name: 'actors',
+  //   file: '/actor',
+  //   expected: 142,
+  // },
 ];
 
 beforeEach(() => {

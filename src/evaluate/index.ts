@@ -434,7 +434,6 @@ const lazyOperators = {
           }),
         });
         const value = await compiled(context).catch((e) => {
-          console.error(e);
           if (e instanceof SystemError) e.print();
           else showNode(expr, context, e.message);
           return null;
@@ -1660,14 +1659,11 @@ export const compileScriptString = (
   const compiled = compileScript(validated, context);
 
   return async (evalContext) => {
-    try {
-      return await compiled(evalContext);
-    } catch (e) {
-      console.error(e);
+    return await compiled(evalContext).catch((e) => {
       if (e instanceof SystemError) e.print();
 
       return null;
-    }
+    });
   };
 };
 
@@ -1684,14 +1680,11 @@ export const evaluateModuleString = async (
     return createRecord();
   }
 
-  try {
-    return await evaluateModule(validated, context);
-  } catch (e) {
-    console.error(e);
+  return await evaluateModule(validated, context).catch((e) => {
     if (e instanceof SystemError) e.print();
 
     return createRecord();
-  }
+  });
 };
 
 export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
