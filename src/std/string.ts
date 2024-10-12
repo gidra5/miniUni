@@ -10,7 +10,7 @@ export const stringMethods: Record<string, EvalFunction> = {
     assert(typeof target === 'string');
     return target.length;
   },
-  split: fn(2, ([position, context], target, separator) => {
+  split: fn(2, ([position, _, context], target, separator) => {
     const fileId = context.fileId;
     const splitErrorFactory = SystemError.invalidArgumentType(
       'split',
@@ -31,7 +31,7 @@ export const stringMethods: Record<string, EvalFunction> = {
     );
     return target.split(separator);
   }),
-  char_at: fn(2, ([position, context], target, index) => {
+  char_at: fn(2, ([position, _, context], target, index) => {
     const fileId = context.fileId;
     const charAtErrorFactory = SystemError.invalidArgumentType(
       'char_at',
@@ -51,7 +51,7 @@ export const stringMethods: Record<string, EvalFunction> = {
     assert(typeof index === 'number', charAtErrorFactory(1).withFileId(fileId));
     return target.charAt(index);
   }),
-  slice: fn(2, ([position, context], item, args) => {
+  slice: fn(2, ([position, _, context], item, args) => {
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',
@@ -91,35 +91,38 @@ export const stringMethods: Record<string, EvalFunction> = {
 
     return item.slice(start, end);
   }),
-  replace: fn(3, async ([position, context], target, pattern, replacement) => {
-    const fileId = context.fileId;
-    const replaceErrorFactory = SystemError.invalidArgumentType(
-      'replace',
-      {
-        args: [
-          ['target', 'string'],
-          ['pattern', 'regex'],
-          ['replacement', 'string'],
-        ],
-        returns: 'string',
-      },
-      position
-    );
-    assert(
-      typeof target === 'string',
-      replaceErrorFactory(0).withFileId(fileId)
-    );
-    assert(
-      typeof pattern === 'string',
-      replaceErrorFactory(1).withFileId(fileId)
-    );
-    assert(
-      typeof replacement === 'string',
-      replaceErrorFactory(2).withFileId(fileId)
-    );
-    return target.replace(new RegExp(pattern, 'g'), replacement);
-  }),
-  match: fn(2, async ([position, context], target, pattern) => {
+  replace: fn(
+    3,
+    async ([position, _, context], target, pattern, replacement) => {
+      const fileId = context.fileId;
+      const replaceErrorFactory = SystemError.invalidArgumentType(
+        'replace',
+        {
+          args: [
+            ['target', 'string'],
+            ['pattern', 'regex'],
+            ['replacement', 'string'],
+          ],
+          returns: 'string',
+        },
+        position
+      );
+      assert(
+        typeof target === 'string',
+        replaceErrorFactory(0).withFileId(fileId)
+      );
+      assert(
+        typeof pattern === 'string',
+        replaceErrorFactory(1).withFileId(fileId)
+      );
+      assert(
+        typeof replacement === 'string',
+        replaceErrorFactory(2).withFileId(fileId)
+      );
+      return target.replace(new RegExp(pattern, 'g'), replacement);
+    }
+  ),
+  match: fn(2, async ([position, _, context], target, pattern) => {
     const fileId = context.fileId;
     const matchErrorFactory = SystemError.invalidArgumentType(
       'match',

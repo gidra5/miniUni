@@ -12,7 +12,7 @@ export const isResult = (value: EvalValue): value is [symbol, EvalValue] =>
 
 export const resultMethods: Record<string, EvalFunction> = {
   map_ok: fn(2, async (cs, result, fn) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
       'map_ok',
@@ -33,7 +33,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     else return result;
   }),
   map_err: fn(2, async (cs, result, fn) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
       'map_err',
@@ -54,7 +54,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     else return result;
   }),
   or: fn(2, async (cs, result, defaultValue) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
       'or',
@@ -74,7 +74,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     else return value;
   }),
   unwrap: fn(1, async (cs, result) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
       'or',

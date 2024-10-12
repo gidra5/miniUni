@@ -4,7 +4,7 @@ import { assert } from '../utils.js';
 import { module } from '../module.js';
 
 export default module({
-  range: fn(2, ([position, context], start, end) => {
+  range: fn(2, ([position, _, context], start, end) => {
     const fileId = context.fileId;
     const rangeErrorFactory = SystemError.invalidArgumentType(
       'range',

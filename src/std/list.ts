@@ -10,7 +10,7 @@ export const listMethods: Record<string, EvalFunction> = {
     assert(Array.isArray(target));
     return target.length;
   },
-  slice: fn(2, ([position, context], item, args) => {
+  slice: fn(2, ([position, _, context], item, args) => {
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',
@@ -51,7 +51,7 @@ export const listMethods: Record<string, EvalFunction> = {
     return item.slice(start, end);
   }),
   map: fn(2, async (cs, list, fn) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapErrorFactory = SystemError.invalidArgumentType(
       'map',
@@ -75,7 +75,7 @@ export const listMethods: Record<string, EvalFunction> = {
     return mapped;
   }),
   filter: fn(2, async (cs, list, fn) => {
-    const [pos, context] = cs;
+    const [pos, _, context] = cs;
     const fileId = context.fileId;
     const filterErrorFactory = SystemError.invalidArgumentType(
       'filter',

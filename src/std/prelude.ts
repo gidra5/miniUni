@@ -1,4 +1,4 @@
-import { Environment } from '../environment.js';
+import { Environment, Scope } from '../environment.js';
 import { SystemError } from '../error.js';
 import { EvalContext, handleEffects } from '../evaluate/index.js';
 import { assert, inspect } from '../utils.js';
@@ -38,7 +38,7 @@ export const prelude: EvalContext['env'] = new Environment({
       return createHandler(handler);
     },
     cancel: async (cs, value) => {
-      const [position, context] = cs;
+      const [position, _, context] = cs;
       const fileId = context.fileId;
       const cancelErrorFactory = SystemError.invalidArgumentType(
         'cancel',
@@ -56,7 +56,7 @@ export const prelude: EvalContext['env'] = new Environment({
       return createEvent();
     },
     subscribe: fn(2, async (cs, event, fn) => {
-      const [position, context] = cs;
+      const [position, _, context] = cs;
       const fileId = context.fileId;
       const subscribeErrorFactory = SystemError.invalidArgumentType(
         'subscribe',
@@ -77,7 +77,7 @@ export const prelude: EvalContext['env'] = new Environment({
       return subscribeEvent(event, fn);
     }),
     once: fn(2, async (cs, event, fn) => {
-      const [position, context] = cs;
+      const [position, _, context] = cs;
       const fileId = context.fileId;
       const onceErrorFactory = SystemError.invalidArgumentType(
         'once',
@@ -95,7 +95,7 @@ export const prelude: EvalContext['env'] = new Environment({
       return onceEvent(event, fn);
     }),
     emit: fn(2, async (cs, event, value) => {
-      const [position, context] = cs;
+      const [position, _, context] = cs;
       const fileId = context.fileId;
       const emitErrorFactory = SystemError.invalidArgumentType(
         'emit',
@@ -112,7 +112,7 @@ export const prelude: EvalContext['env'] = new Environment({
       await emitEvent(cs, event, value);
       return null;
     }),
-    close: async ([position, context], value) => {
+    close: async ([position, _, context], value) => {
       const fileId = context.fileId;
       const closeErrorFactory = SystemError.invalidArgumentType(
         'cancel',
@@ -168,9 +168,13 @@ export const prelude: EvalContext['env'] = new Environment({
       });
       assert(typeof fn === 'function');
       const value = await fn(cs, null);
-      return await handleEffects(handlers, value, cs[0], cs[1]);
+      return await handleEffects(handlers, value, cs[0], cs[1], cs[2]);
     },
   },
+});
+export const preludeScope = new Scope({
+  mutable: prelude.mutable,
+  readonly: prelude.readonly,
 });
 
 export const preludeHandlers = createRecord({

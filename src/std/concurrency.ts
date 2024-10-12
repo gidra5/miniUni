@@ -39,7 +39,7 @@ const f = memoize(() => {
 });
 
 export default module({
-  all: async ([position, context], list) => {
+  all: async ([position, _, context], list) => {
     const fileId = context.fileId;
     const allErrorFactory = SystemError.invalidArgumentType(
       'all',
@@ -56,7 +56,7 @@ export default module({
     });
     return (await Promise.all(x)).filter((x) => x !== null);
   },
-  some: async ([position, context], list) => {
+  some: async ([position, _, context], list) => {
     const fileId = context.fileId;
     const someErrorFactory = SystemError.invalidArgumentType(
       'some',
@@ -73,7 +73,7 @@ export default module({
     });
     return await Promise.race(x);
   },
-  wait: async ([position, context], time) => {
+  wait: async ([position, _, context], time) => {
     const fileId = context.fileId;
     const waitErrorFactory = SystemError.invalidArgumentType(
       'wait',
@@ -89,7 +89,7 @@ export default module({
   },
   creating_task: CreateTaskEffect,
   cancel_on_error: async (cs, fn) => {
-    const [position, context] = cs;
+    const [position, _, context] = cs;
     const fileId = context.fileId;
     const cancelOnErrorErrorFactory = SystemError.invalidArgumentType(
       'cancel_on_error',
@@ -129,10 +129,10 @@ export default module({
     });
     const value = await fn(cs, null);
 
-    return await handleEffects(handlers, value, cs[0], context);
+    return await handleEffects(handlers, value, cs[0], cs[1], cs[2]);
   },
   cancel_on_return: async (cs, fn) => {
-    const [position, context] = cs;
+    const [position, _, context] = cs;
     const fileId = context.fileId;
     const cancelOnReturnErrorFactory = SystemError.invalidArgumentType(
       'cancel_on_return',
@@ -167,7 +167,7 @@ export default module({
     });
     const value = await fn(cs, null);
 
-    return await handleEffects(handlers, value, cs[0], context);
+    return await handleEffects(handlers, value, cs[0], cs[1], cs[2]);
   },
   timeout: async (cs, ms) => {
     assert(typeof ms === 'number', 'expected number');
