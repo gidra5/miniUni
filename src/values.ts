@@ -1,10 +1,10 @@
-import type { EvalContext } from './evaluate/index.js';
+import type { CompileContext, EvalContext } from './evaluate/index.js';
 import { Position } from './position.js';
-import { assert, eventLoopYield, inspect } from './utils.js';
+import { assert, inspect } from './utils.js';
 import { SystemError } from './error.js';
 import { Environment } from './environment.js';
 
-export type CallSite = [Position, EvalContext];
+export type CallSite = [Position, EvalContext, CompileContext];
 export type EvalFunction = (
   callSite: CallSite,
   arg: EvalValue
@@ -326,8 +326,8 @@ export const awaitTask = async (task: EvalTask): Promise<EvalValue> => {
 export const fileHandle = (file: EvalRecord): EvalRecord => {
   return createRecord({
     write: async (cs, data) => {
-      const [position, context] = cs;
-      const fileId = context.fileId;
+      const [position, _, compileContext] = cs;
+      const fileId = compileContext.fileId;
       const writeErrorFactory = SystemError.invalidArgumentType(
         'all',
         { args: [['data', 'string']], returns: 'void' },
@@ -346,8 +346,8 @@ export const createSet = (values: EvalValue[]): EvalRecord => {
   const set = new Set(values);
   return createRecord({
     add: async (cs, value) => {
-      const [position, context] = cs;
-      const fileId = context.fileId;
+      const [position, _, compileContext] = cs;
+      const fileId = compileContext.fileId;
       const addErrorFactory = SystemError.invalidArgumentType(
         'add',
         { args: [['value', 'a']], returns: 'void' },

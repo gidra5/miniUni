@@ -29,7 +29,7 @@ import {
   ErrorNode,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
-import { EvalContext as EvalContext } from './evaluate/index.js';
+import { CompileContext, EvalContext } from './evaluate/index.js';
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 
 export const getExprPrecedence = (node: Tree): Precedence =>
@@ -64,7 +64,7 @@ const prefix = (group: Tree, rhs: Tree): Tree => {
 
 export const showPos = (
   position: Position,
-  context: EvalContext,
+  context: CompileContext,
   msg: string = ''
 ) => {
   const diag = Diagnostic.note();
@@ -80,8 +80,11 @@ export const showPos = (
   diag.emitStd(fileMap);
 };
 
-export const showNode = (node: Tree, context: EvalContext, msg: string = '') =>
-  showPos(getPosition(node), context, msg);
+export const showNode = (
+  node: Tree,
+  context: CompileContext,
+  msg: string = ''
+) => showPos(getPosition(node), context, msg);
 
 const idToExprOp = {
   '+': NodeType.ADD,

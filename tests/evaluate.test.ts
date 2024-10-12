@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   compileStatement,
-  EvalContext,
   handleEffects,
   compileScript,
   newContext,
+  newCompileContext,
 } from '../src/evaluate/index.ts';
 import { assert } from '../src/utils.ts';
 import {
@@ -34,23 +34,25 @@ const evaluate = async (
 ): Promise<EvalValue> => {
   const name = ROOT_DIR + '/index.uni';
   const fileId = addFile(name, input);
-  const context = newContext(fileId, name);
+  const compileContext = newCompileContext(fileId, name);
+  const context = newContext();
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
   if (env) context.env = new Environment({ parent: context.env, ...env });
 
   if (env?.handlers) {
-    const compiled = compileStatement(sequence(ast.children), context);
+    const compiled = compileStatement(sequence(ast.children), compileContext);
     const result = await compiled(context);
     return await handleEffects(
       env.handlers,
       result,
       { start: 0, end: 0 },
-      context
+      context,
+      compileContext
     );
   }
 
-  const compiled = compileScript(ast, context);
+  const compiled = compileScript(ast, compileContext);
   const result = await compiled(context);
   return result;
 };

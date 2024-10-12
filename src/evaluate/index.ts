@@ -1,4 +1,3 @@
-import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 import { SystemError } from '../error.js';
 import { getModule } from '../files.js';
 import { getPosition, parseModule, parseScript, showNode } from '../parser.js';
@@ -76,202 +75,177 @@ import { CreateTaskEffect } from '../std/concurrency.js';
 import { isResult, resultMethods } from '../std/result.js';
 
 export type EvalContext = {
-  file: string;
-  fileId: number;
   env: Environment;
 };
 export type CompileContext = {
   file: string;
   fileId: number;
 };
+export type Executable = (env: EvalContext) => Promise<EvalValue>;
 
 export const forkContext = (context: EvalContext): EvalContext => {
   return { ...context, env: new Environment({ parent: context.env }) };
 };
 
-export const newContext = (fileId: number, file: string): EvalContext => {
-  return {
-    file,
-    fileId,
-    env: new Environment({ parent: prelude }),
+export const newCompileContext = (
+  fileId: number,
+  file: string
+): CompileContext => {
+  // const env = new Environment({ parent: prelude });
+  return { file, fileId };
+};
+
+export const newContext = (): EvalContext => {
+  const env = new Environment({ parent: prelude });
+  return { env };
+};
+
+const incAssign = (position: Position, context: CompileContext) => {
+  const invalidIndex = SystemError.invalidIndex(position).withFileId(
+    context.fileId
+  );
+  const invalidName = (name: string) =>
+    SystemError.invalidIncrement(name, position).withFileId(context.fileId);
+  const immutableName = (name: string) =>
+    SystemError.immutableVariableAssignment(name, position).withFileId(
+      context.fileId
+    );
+  const undeclaredName = (name: string, names: string[]) =>
+    SystemError.undeclaredNameAssignment(
+      name,
+      position,
+      getClosestName(name, names)
+    ).withFileId(context.fileId);
+  return (envs: PatternTestEnvs, context: EvalContext) => {
+    assert(envs.exports.size === 0, 'cant do exports at increment');
+    assert(envs.env.size === 0, 'cant do mutable declarations at increment');
+
+    for (const [patternKey, value] of envs.readonly.entries()) {
+      if (typeof patternKey === 'string') {
+        assert(!context.env.hasReadonly(patternKey), immutableName(patternKey));
+        assert(
+          context.env.has(patternKey),
+          undeclaredName(
+            patternKey,
+            context.env.keys().filter((k) => typeof k === 'string')
+          )
+        );
+
+        const v = context.env.get(patternKey);
+        assert(
+          typeof v === 'number' || typeof v === 'string',
+          invalidName(String(patternKey))
+        );
+        assert(typeof value === typeof v, invalidName(String(patternKey)));
+        context.env.set(patternKey, (v as string) + (value as string));
+      } else {
+        const [patternTarget, patternKeyValue] = patternKey;
+        if (Array.isArray(patternTarget)) {
+          assert(typeof patternKeyValue === 'number', invalidIndex);
+          const v = patternTarget[patternKeyValue];
+          assert(typeof v === 'number', invalidName(String(patternKeyValue)));
+          assert(
+            typeof value === 'number',
+            invalidName(String(patternKeyValue))
+          );
+          patternTarget[patternKeyValue] = v + value;
+        } else {
+          assert(isRecord(patternTarget), 'expected record');
+
+          const v = recordGet(patternTarget, patternKeyValue);
+          assert(typeof v === 'number', invalidName(String(patternKeyValue)));
+          assert(
+            typeof value === 'number',
+            invalidName(String(patternKeyValue))
+          );
+          recordSet(patternTarget, patternKeyValue, v + value);
+        }
+      }
+    }
   };
 };
 
-const incAssign = (
-  envs: PatternTestEnvs,
-  context: EvalContext,
-  position: Position
-) => {
-  assert(envs.exports.size === 0, 'cant do exports at increment');
-  assert(envs.env.size === 0, 'cant do mutable declarations at increment');
+const assign = (position: Position, context: CompileContext) => {
+  const invalidIndex = SystemError.invalidIndex(position).withFileId(
+    context.fileId
+  );
+  const immutableName = (name: string) =>
+    SystemError.immutableVariableAssignment(name, position).withFileId(
+      context.fileId
+    );
+  const undeclaredName = (name: string, names: string[]) =>
+    SystemError.undeclaredNameAssignment(
+      name,
+      position,
+      getClosestName(name, names)
+    ).withFileId(context.fileId);
 
-  for (const [patternKey, value] of envs.readonly.entries()) {
-    if (typeof patternKey === 'string') {
-      assert(
-        !context.env.hasReadonly(patternKey),
+  return (envs: PatternTestEnvs, context: EvalContext) => {
+    assert(envs.exports.size === 0, 'cant do exports in at assignment');
+    assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
 
-        SystemError.immutableVariableAssignment(
-          patternKey,
-          position
-        ).withFileId(context.fileId)
-      );
-      assert(
-        context.env.has(patternKey),
-        SystemError.invalidAssignment(
-          patternKey,
-          position,
-          getClosestName(
+    for (const [patternKey, value] of envs.readonly.entries()) {
+      if (typeof patternKey === 'string') {
+        assert(!context.env.hasReadonly(patternKey), immutableName(patternKey));
+        assert(
+          context.env.set(patternKey, value),
+          undeclaredName(
             patternKey,
             context.env.keys().filter((k) => typeof k === 'string')
           )
-        ).withFileId(context.fileId)
-      );
-
-      const v = context.env.get(patternKey);
-      assert(
-        typeof v === 'number' || typeof v === 'string',
-        SystemError.invalidIncrement(String(patternKey), position).withFileId(
-          context.fileId
-        )
-      );
-      assert(
-        typeof value === typeof v,
-        SystemError.invalidIncrement(String(patternKey), position).withFileId(
-          context.fileId
-        )
-      );
-      context.env.set(patternKey, (v as string) + (value as string));
-    } else {
-      const [patternTarget, patternKeyValue] = patternKey;
-      if (Array.isArray(patternTarget)) {
-        assert(
-          typeof patternKeyValue === 'number',
-          SystemError.invalidIndex(position).withFileId(context.fileId)
         );
-        const v = patternTarget[patternKeyValue];
-        assert(
-          typeof v === 'number',
-          SystemError.invalidIncrement(
-            String(patternKeyValue),
-            position
-          ).withFileId(context.fileId)
-        );
-        assert(
-          typeof value === 'number',
-          SystemError.invalidIncrement(
-            String(patternKeyValue),
-            position
-          ).withFileId(context.fileId)
-        );
-        patternTarget[patternKeyValue] = v + value;
       } else {
-        assert(isRecord(patternTarget), 'expected record');
-
-        const v = recordGet(patternTarget, patternKeyValue);
-        assert(
-          typeof v === 'number',
-          SystemError.invalidIncrement(
-            String(patternKeyValue),
-            position
-          ).withFileId(context.fileId)
-        );
-        assert(
-          typeof value === 'number',
-          SystemError.invalidIncrement(
-            String(patternKeyValue),
-            position
-          ).withFileId(context.fileId)
-        );
-        recordSet(patternTarget, patternKeyValue, v + value);
+        const [patternTarget, key] = patternKey;
+        if (Array.isArray(patternTarget)) {
+          assert(typeof key === 'number', invalidIndex);
+          patternTarget[key] = value;
+        } else {
+          assert(isRecord(patternTarget), 'expected record');
+          if (value === null) recordDelete(patternTarget, key);
+          else recordSet(patternTarget, key, value);
+        }
       }
     }
-  }
+  };
 };
 
-const assign = (
-  envs: PatternTestEnvs,
-  context: EvalContext,
-  position: Position
-) => {
-  assert(envs.exports.size === 0, 'cant do exports in at assignment');
-  assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
+const bindExport = (context: CompileContext) => {
+  return (envs: PatternTestEnvs, exports: EvalRecord, context: EvalContext) => {
+    for (const [key, value] of envs.readonly.entries()) {
+      assert(typeof key === 'string', 'can only declare names');
 
-  for (const [patternKey, value] of envs.readonly.entries()) {
-    if (typeof patternKey === 'string') {
+      if (value === null) continue;
       assert(
-        !context.env.hasReadonly(patternKey),
-        SystemError.immutableVariableAssignment(
-          patternKey,
-          position
-        ).withFileId(context.fileId)
+        !context.env.has(key),
+        'cannot declare name inside module more than once'
       );
-      assert(
-        context.env.set(patternKey, value),
-        SystemError.invalidAssignment(
-          patternKey,
-          position,
-          getClosestName(
-            patternKey,
-            context.env.keys().filter((k) => typeof k === 'string')
-          )
-        ).withFileId(context.fileId)
-      );
-    } else {
-      const [patternTarget, key] = patternKey;
-      if (Array.isArray(patternTarget)) {
-        assert(
-          typeof key === 'number',
-          SystemError.invalidIndex(position).withFileId(context.fileId)
-        );
-        patternTarget[key] = value;
-      } else {
-        assert(isRecord(patternTarget), 'expected record');
-        if (value === null) recordDelete(patternTarget, key);
-        else recordSet(patternTarget, key, value);
-      }
+      context.env.addReadonly(key, value);
     }
-  }
+
+    for (const [key, value] of envs.env.entries()) {
+      assert(typeof key === 'string', 'can only declare names');
+
+      if (value === null) continue;
+      assert(
+        !context.env.has(key),
+        'cannot declare name inside module more than once'
+      );
+      context.env.add(key, value);
+    }
+
+    for (const [key, value] of envs.exports.entries()) {
+      assert(typeof key === 'string', 'can only declare names');
+      assert(
+        !context.env.has(key),
+        'cannot declare name inside module more than once'
+      );
+
+      if (value === null) continue;
+      context.env.addReadonly(key, value);
+      recordSet(exports, key, value);
+    }
+  };
 };
-
-function bindExport(
-  envs: PatternTestEnvs,
-  exports: EvalRecord,
-  context: EvalContext
-) {
-  for (const [key, value] of envs.readonly.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
-
-    if (value === null) continue;
-    assert(
-      !context.env.has(key),
-      'cannot declare name inside module more than once'
-    );
-    context.env.addReadonly(key, value);
-  }
-
-  for (const [key, value] of envs.env.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
-
-    if (value === null) continue;
-    assert(
-      !context.env.has(key),
-      'cannot declare name inside module more than once'
-    );
-    context.env.add(key, value);
-  }
-
-  for (const [key, value] of envs.exports.entries()) {
-    assert(typeof key === 'string', 'can only declare names');
-    assert(
-      !context.env.has(key),
-      'cannot declare name inside module more than once'
-    );
-
-    if (value === null) continue;
-    context.env.addReadonly(key, value);
-    recordSet(exports, key, value);
-  }
-}
 
 const operators = {
   [NodeType.ADD]: (lhs: EvalValue, rhs: EvalValue) => {
@@ -410,7 +384,7 @@ const lazyOperators = {
     const [expr] = ast.children;
     const compiled = compileBlock(expr, context);
     const exprPosition = getPosition(expr);
-    return async (context) => {
+    return async (evalContext) => {
       const childrenTasks: EvalTask[] = [];
       const task = async () => {
         const handlers = createRecord({
@@ -424,16 +398,22 @@ const lazyOperators = {
             return await callback(cs, _task);
           }),
         });
-        const value = await compiled(context).catch((e) => {
+        const value = await compiled(evalContext).catch((e) => {
           if (e instanceof SystemError) e.print();
           else showNode(expr, context, e.message);
           return null;
         });
 
-        return await handleEffects(handlers, value, exprPosition, context);
+        return await handleEffects(
+          handlers,
+          value,
+          exprPosition,
+          evalContext,
+          context
+        );
       };
-      const effect = createEffect(CreateTaskEffect, task, context.env);
-      return mapEffect(effect, context, async (task, context) => {
+      const effect = createEffect(CreateTaskEffect, task, evalContext.env);
+      return mapEffect(effect, evalContext, async (task) => {
         assert(isTask(task), 'expected task');
         const cancelEvent = task[1];
         onceEvent(cancelEvent, async (cs) => {
@@ -512,13 +492,23 @@ const lazyOperators = {
     const compiledBlock = compileBlock(body, context);
     const bodyPosition = getPosition(body);
 
-    return async (context) => {
-      const value = await compiledExpr(context);
-      return await flatMapEffect(value, context, async (value, context) => {
-        assert(isRecord(value), 'expected record');
-        const result = await compiledBlock(context);
-        return await handleEffects(value, result, bodyPosition, context);
-      });
+    return async (evalContext) => {
+      const value = await compiledExpr(evalContext);
+      return await flatMapEffect(
+        value,
+        evalContext,
+        async (value, evalContext) => {
+          assert(isRecord(value), 'expected record');
+          const result = await compiledBlock(evalContext);
+          return await handleEffects(
+            value,
+            result,
+            bodyPosition,
+            evalContext,
+            context
+          );
+        }
+      );
     };
   },
   [NodeType.WITHOUT]: (ast, context) => {
@@ -671,42 +661,49 @@ const lazyOperators = {
       const [_callback, value] = v;
       return ['continue', value];
     };
+    const continueAtom = atom('continue');
+    const breakAtom = atom('break');
     const handlers = createRecord({
-      [atom('continue')]: createHandler(continueHandler),
-      [atom('break')]: createHandler(breakHandler),
+      [continueAtom]: createHandler(continueHandler),
+      [breakAtom]: createHandler(breakHandler),
       [ReturnHandler]: async (cs, v) => ['continue', v],
     });
-    return async (context) => {
-      const list = await compiledExpr(context);
-      return await flatMapEffect(list, context, async (list, context) => {
-        assert(Array.isArray(list), listError);
+    return async (evalContext) => {
+      const list = await compiledExpr(evalContext);
+      return await flatMapEffect(
+        list,
+        evalContext,
+        async (list, evalContext) => {
+          assert(Array.isArray(list), listError);
 
-        const mapped: EvalValue[] = [];
-        for (const item of list) {
-          const result = await compiledPattern(item, context);
-          assert(result.matched, 'expected pattern to match');
-          const bound = bindContext(result.envs, context);
-          const value = await handleEffects(
-            handlers,
-            await compiledBody(bound),
-            bodyPosition,
-            bound
-          );
-          assert(Array.isArray(value), 'expected value to be an array');
-          const [status, _value] = value;
+          const mapped: EvalValue[] = [];
+          for (const item of list) {
+            const result = await compiledPattern(item, evalContext);
+            assert(result.matched, 'expected pattern to match');
+            const bound = bindContext(result.envs, evalContext);
+            const value = await handleEffects(
+              handlers,
+              await compiledBody(bound),
+              bodyPosition,
+              bound,
+              context
+            );
+            assert(Array.isArray(value), 'expected value to be an array');
+            const [status, _value] = value;
 
-          if (status === 'break') {
-            if (_value !== null) mapped.push(_value);
-            break;
+            if (status === 'break') {
+              if (_value !== null) mapped.push(_value);
+              break;
+            }
+            if (status === 'continue') {
+              if (_value !== null) mapped.push(_value);
+              continue;
+            }
           }
-          if (status === 'continue') {
-            if (_value !== null) mapped.push(_value);
-            continue;
-          }
+
+          return mapped;
         }
-
-        return mapped;
-      });
+      );
     };
   },
   [NodeType.LOOP]: (ast, context) => {
@@ -738,13 +735,21 @@ const lazyOperators = {
       await eventLoopYield();
       return await compiled(cs[1]);
     };
+    const continueAtom = atom('continue');
+    const breakAtom = atom('break');
     const handlers = createRecord({
-      [atom('continue')]: createHandler(continueHandler),
-      [atom('break')]: createHandler(breakHandler),
+      [continueAtom]: createHandler(continueHandler),
+      [breakAtom]: createHandler(breakHandler),
     });
-    const compiled = async (context: EvalContext) => {
-      const value = await compiledExpr(context);
-      return await handleEffects(handlers, value, exprPosition, context);
+    const compiled: Executable = async (evalContext) => {
+      const value = await compiledExpr(evalContext);
+      return await handleEffects(
+        handlers,
+        value,
+        exprPosition,
+        evalContext,
+        context
+      );
     };
     return compiled;
   },
@@ -771,6 +776,7 @@ const lazyOperators = {
     const compiledAsExpr = compileExpr(arg, context);
     const compiledAsPattern = compilePattern(arg, context);
     const argPosition = getPosition(arg);
+    const compiledAssign = assign(argPosition, context);
 
     return async (context) => {
       const value = await compiledAsExpr(context);
@@ -778,7 +784,7 @@ const lazyOperators = {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await compiledAsPattern(value + 1, context);
         assert(matched, 'expected pattern to match');
-        assign(envs, context, argPosition);
+        compiledAssign(envs, context);
         return value + 1;
       });
     };
@@ -789,6 +795,7 @@ const lazyOperators = {
     const compiledAsExpr = compileExpr(arg, context);
     const compiledAsPattern = compilePattern(arg, context);
     const argPosition = getPosition(arg);
+    const compiledAssign = assign(argPosition, context);
 
     return async (context) => {
       const value = await compiledAsExpr(context);
@@ -796,7 +803,7 @@ const lazyOperators = {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await compiledAsPattern(value - 1, context);
         assert(matched, 'expected pattern to match');
-        assign(envs, context, argPosition);
+        compiledAssign(envs, context);
         return value - 1;
       });
     };
@@ -807,6 +814,7 @@ const lazyOperators = {
     const compiledAsExpr = compileExpr(arg, context);
     const compiledAsPattern = compilePattern(arg, context);
     const argPosition = getPosition(arg);
+    const compiledAssign = assign(argPosition, context);
 
     return async (context) => {
       const value = await compiledAsExpr(context);
@@ -814,7 +822,7 @@ const lazyOperators = {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await compiledAsPattern(value - 1, context);
         assert(matched, 'expected pattern to match');
-        assign(envs, context, argPosition);
+        compiledAssign(envs, context);
         return value;
       });
     };
@@ -825,6 +833,7 @@ const lazyOperators = {
     const compiledAsExpr = compileExpr(arg, context);
     const compiledAsPattern = compilePattern(arg, context);
     const argPosition = getPosition(arg);
+    const compiledAssign = assign(argPosition, context);
 
     return async (context) => {
       const value = await compiledAsExpr(context);
@@ -832,7 +841,7 @@ const lazyOperators = {
         assert(typeof value === 'number', 'expected number');
         const { matched, envs } = await compiledAsPattern(value + 1, context);
         assert(matched, 'expected pattern to match');
-        assign(envs, context, argPosition);
+        compiledAssign(envs, context);
         return value;
       });
     };
@@ -857,13 +866,14 @@ const lazyOperators = {
     const [pattern, expr] = ast.children;
     const compiledExpr = compileStatement(expr, context);
     const compiledPattern = compilePattern(pattern, context);
+    const compiledAssign = assign(getPosition(pattern), context);
 
     return async (_context) => {
       const value = await compiledExpr(_context);
       return await flatMapEffect(value, _context, async (value, context) => {
         const { matched, envs } = await compiledPattern(value, context);
         assert(matched, 'expected pattern to match');
-        assign(envs, context, getPosition(pattern));
+        compiledAssign(envs, context);
         return value;
       });
     };
@@ -873,6 +883,7 @@ const lazyOperators = {
     const compiledExpr = compileExpr(expr, context);
     const compiledPattern = compilePattern(pattern, context);
     const patternPosition = getPosition(pattern);
+    const compiledIncAssign = incAssign(patternPosition, context);
 
     return async (_context) => {
       const value = await compiledExpr(_context);
@@ -884,7 +895,7 @@ const lazyOperators = {
         );
         const { matched, envs } = await compiledPattern(value, context);
         assert(matched, 'expected pattern to match');
-        incAssign(envs, context, patternPosition);
+        compiledIncAssign(envs, context);
         return value;
       });
     };
@@ -937,43 +948,60 @@ const lazyOperators = {
       indexPosition
     ).withFileId(context.fileId);
 
-    return async (context) => {
-      const target = await compiledTarget(context);
-      return await flatMapEffect(target, context, async (target, context) => {
-        const index = await compiledIndex(context);
+    return async (evalContext) => {
+      const target = await compiledTarget(evalContext);
+      return await flatMapEffect(
+        target,
+        evalContext,
+        async (target, evalContext) => {
+          const index = await compiledIndex(evalContext);
 
-        return await flatMapEffect(index, context, async (index, context) => {
-          if (
-            isResult(target) &&
-            typeof index === 'string' &&
-            index in resultMethods
-          ) {
-            return await resultMethods[index]([indexPosition, context], target);
-          }
+          return await flatMapEffect(
+            index,
+            evalContext,
+            async (index, evalContext) => {
+              if (
+                isResult(target) &&
+                typeof index === 'string' &&
+                index in resultMethods
+              ) {
+                return await resultMethods[index](
+                  [indexPosition, evalContext, context],
+                  target
+                );
+              }
 
-          if (Array.isArray(target)) {
-            if (!Number.isInteger(index)) {
-              assert(typeof index === 'string', invalidIndexError);
-              return await listMethods[index]([indexPosition, context], target);
+              if (Array.isArray(target)) {
+                if (!Number.isInteger(index)) {
+                  assert(typeof index === 'string', invalidIndexError);
+                  return await listMethods[index](
+                    [indexPosition, evalContext, context],
+                    target
+                  );
+                }
+                return target[index as number] ?? null;
+              } else if (isRecord(target)) {
+                const v = recordGet(target, index);
+                assert(v !== null, invalidIndexError);
+                return v;
+              }
+
+              if (typeof target === 'string') {
+                assert(
+                  typeof index === 'string' && index in stringMethods,
+                  invalidIndexError
+                );
+                return await stringMethods[index](
+                  [indexPosition, evalContext, context],
+                  target
+                );
+              }
+
+              unreachable(invalidIndexTargetError);
             }
-            return target[index as number] ?? null;
-          } else if (isRecord(target)) {
-            const v = recordGet(target, index);
-            assert(v !== null, invalidIndexError);
-            return v;
-          }
-
-          if (typeof target === 'string') {
-            assert(
-              typeof index === 'string' && index in stringMethods,
-              invalidIndexError
-            );
-            return await stringMethods[index]([indexPosition, context], target);
-          }
-
-          unreachable(invalidIndexTargetError);
-        });
-      });
+          );
+        }
+      );
     };
   },
 
@@ -1041,7 +1069,7 @@ const lazyOperators = {
       const [status, _value] = value;
       if (status === 'break') return _value;
       if (status === 'continue') {
-        return await compiled(context);
+        return await compiled(cs[1]);
       }
       return null;
     };
@@ -1059,15 +1087,16 @@ const lazyOperators = {
       break: labelBreak,
       continue: labelContinue,
     });
-    const compiled = async (context) => {
-      const forked = forkContext(context);
+    const compiled: Executable = async (evalContext) => {
+      const forked = forkContext(evalContext);
       forked.env.addReadonly(ast.data.name, labelRecord);
 
       return await handleEffects(
         handlers,
         await compiledExpr(forked),
         exprPosition,
-        forked
+        forked,
+        context
       );
     };
     return compiled;
@@ -1130,7 +1159,7 @@ const lazyOperators = {
       return await flatMapEffect(
         channelValue,
         context,
-        async (channelValue, context) => {
+        async (channelValue) => {
           assert(isChannel(channelValue), invalidReceiveChannelError);
 
           const [value, status] = tryReceive(channelValue);
@@ -1168,8 +1197,8 @@ const lazyOperators = {
       return async (context) => {
         const _context = forkContext(context);
         return async (cs, arg) => {
-          const [position, callerContext] = cs;
-          const fileId = callerContext.fileId;
+          const [position, _, callerCompileContext] = cs;
+          const fileId = callerCompileContext.fileId;
           const result = await compiledPattern(arg, _context);
           assert(result.matched, matchError(position, fileId));
           return null;
@@ -1182,14 +1211,15 @@ const lazyOperators = {
       const [_callback, value] = v;
       return value;
     };
+    const returnAtom = atom('return');
     const handlers = createRecord({
-      [atom('return')]: createHandler(returnHandler),
+      [returnAtom]: createHandler(returnHandler),
     });
-    return async (context) => {
-      const _context = forkContext(context);
+    return async (evalContext) => {
+      const _context = forkContext(evalContext);
       const self: EvalFunction = async (cs, arg) => {
-        const [position, callerContext] = cs;
-        const fileId = callerContext.fileId;
+        const [position, _, callerCompileContext] = cs;
+        const fileId = callerCompileContext.fileId;
         await eventLoopYield();
 
         const result = await compiledPattern(arg, _context);
@@ -1202,7 +1232,8 @@ const lazyOperators = {
           handlers,
           await compiledBody(bound),
           bodyPosition,
-          bound
+          bound,
+          context
         );
       };
       return self;
@@ -1237,7 +1268,10 @@ const lazyOperators = {
             argValue,
             evalContext,
             async (argValue, evalContext) => {
-              const x = await fnValue([astPosition, evalContext], argValue);
+              const x = await fnValue(
+                [astPosition, evalContext, context],
+                argValue
+              );
 
               return await replaceEffectContext(x, evalContext);
             }
@@ -1249,14 +1283,17 @@ const lazyOperators = {
 
   [NodeType.TRY]: (ast, context) => {
     const compiled = compileExpr(ast.children[0], context);
+    const returnAtom = atom('return');
+    const errorAtom = atom('error');
+    const okAtom = atom('ok');
     return async (context) => {
       const result = await compiled(context);
       return await flatMapEffect(result, context, async (value, context) => {
         if (isResult(value)) {
           const [status, result] = value;
-          if (status === atom('ok')) return result;
-          if (status === atom('error')) {
-            return createEffect(atom('return'), value, context.env);
+          if (status === okAtom) return result;
+          if (status === errorAtom) {
+            return createEffect(returnAtom, value, context.env);
           }
         }
         return value;
@@ -1265,10 +1302,7 @@ const lazyOperators = {
   },
 } satisfies Record<
   PropertyKey,
-  (
-    ast: Tree,
-    context: CompileContext
-  ) => (evalContext: EvalContext) => Promise<EvalValue>
+  (ast: Tree, context: CompileContext) => Executable
 >;
 
 const tupleOperators = {
@@ -1337,9 +1371,10 @@ export const handleEffects = async (
   handlers: EvalRecord,
   value: EvalValue,
   position: Position,
-  context: EvalContext
+  context: EvalContext,
+  compileContext: CompileContext
 ): Promise<EvalValue> => {
-  const cs: CallSite = [position, context];
+  const cs: CallSite = [position, context, compileContext];
 
   if (!isEffect(value)) {
     const returnHandler = recordGet(handlers, ReturnHandler);
@@ -1350,16 +1385,29 @@ export const handleEffects = async (
     );
     return returnHandler(cs, value);
   }
+
   if (value.effect === MaskEffect && recordHas(handlers, value.value)) {
     const r = await runEffectContinuations(value.continuations, cs, null);
     return await mapEffect(r, context, async (value, context) => {
-      return await handleEffects(handlers, value, position, context);
+      return await handleEffects(
+        handlers,
+        value,
+        position,
+        context,
+        compileContext
+      );
     });
   }
 
   if (!recordHas(handlers, value.effect)) {
     return await mapEffect(value, context, async (value, context) => {
-      return await handleEffects(handlers, value, position, context);
+      return await handleEffects(
+        handlers,
+        value,
+        position,
+        context,
+        compileContext
+      );
     });
   }
 
@@ -1371,7 +1419,13 @@ export const handleEffects = async (
       cs,
       _value
     );
-    const result = await handleEffects(handlers, __value, position, context);
+    const result = await handleEffects(
+      handlers,
+      __value,
+      position,
+      context,
+      compileContext
+    );
     return result;
   };
 
@@ -1379,7 +1433,10 @@ export const handleEffects = async (
   if (!isHandler(handlerValue)) return await callback(cs, handlerValue);
 
   const { handler } = handlerValue;
-  return await handler([position, context], [callback, value.value]);
+  return await handler(
+    [position, context, compileContext],
+    [callback, value.value]
+  );
 };
 
 const replaceEffectContext = async (
@@ -1433,18 +1490,14 @@ const runEffectContinuations = async (
   return v;
 };
 
-const evaluateStatement = async (ast: Tree, context: EvalContext) => {
-  return await compileStatement(ast, context)(context);
-};
-
 export const compileStatement = (
   ast: Tree,
   context: CompileContext
-): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+): Executable => {
   if (ast.type in lazyOperators) {
     const opCompiler = lazyOperators[ast.type as keyof typeof lazyOperators];
     const compiled = opCompiler(ast, context);
-    return async (context: EvalContext) => {
+    return async (context) => {
       const v = await compiled(context);
       if (v instanceof Error) throw v;
       return v;
@@ -1500,20 +1553,19 @@ export const compileStatement = (
 
   switch (ast.type) {
     case NodeType.ATOM: {
-      return async () => atom(ast.data.name);
+      const _atom = atom(ast.data.name);
+      return async () => _atom;
     }
 
     case NodeType.NAME: {
       const name = ast.data.value;
       if (name === 'true') return async () => true;
       if (name === 'false') return async () => false;
+      const e = SystemError.undeclaredName(name, getPosition(ast)).withFileId(
+        context.fileId
+      );
       return async (evalContext) => {
-        assert(
-          evalContext.env.has(name),
-          SystemError.undeclaredName(name, getPosition(ast)).withFileId(
-            context.fileId
-          )
-        );
+        assert(evalContext.env.has(name), e);
         return evalContext.env.get(name);
       };
     }
@@ -1543,10 +1595,7 @@ export const compileStatement = (
   }
 };
 
-const compileBlock = (
-  ast: Tree,
-  context: CompileContext
-): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+const compileBlock = (ast: Tree, context: CompileContext): Executable => {
   const compiled = compileStatement(ast, context);
   return async (context: EvalContext) => {
     const _context = forkContext(context);
@@ -1554,31 +1603,18 @@ const compileBlock = (
   };
 };
 
-export const evaluateExpr = async (
-  ast: Tree,
-  context: EvalContext
-): Promise<Exclude<EvalValue, null>> => {
-  return (await compileExpr(ast, context)(context)) as Exclude<EvalValue, null>;
-};
-
-export const compileExpr = (
-  ast: Tree,
-  context: CompileContext
-): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+export const compileExpr = (ast: Tree, context: CompileContext): Executable => {
   const compiled = compileStatement(ast, context);
-  const astPosition = getPosition(ast);
+  const e = SystemError.evaluationError(
+    'expected a value',
+    [],
+    getPosition(ast)
+  ).withFileId(context.fileId);
 
   return async (context) => {
     const result = await compiled(context);
-    return (await flatMapEffect(result, context, async (result, context) => {
-      assert(
-        result !== null,
-        SystemError.evaluationError(
-          'expected a value',
-          [],
-          astPosition
-        ).withFileId(context.fileId)
-      );
+    return (await flatMapEffect(result, context, async (result) => {
+      assert(result !== null, e);
       return result;
     })) as Exclude<EvalValue, null>;
   };
@@ -1587,7 +1623,7 @@ export const compileExpr = (
 export const compileScript = (
   ast: Tree,
   context: CompileContext
-): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+): Executable => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
   const compiled = compileStatement(sequence(ast.children), context);
   return async (evalContext) => {
@@ -1595,51 +1631,56 @@ export const compileScript = (
       preludeHandlers,
       await compiled(evalContext),
       getPosition(ast),
-      evalContext
+      evalContext,
+      context
     );
   };
 };
 
-export const evaluateModule = async (
+const compileModule = (
   ast: Tree,
-  context: EvalContext
-): Promise<EvalRecord> => {
+  context: CompileContext
+): ((context: EvalContext) => Promise<EvalRecord>) => {
   assert(ast.type === NodeType.MODULE, 'expected module');
-  const record: EvalRecord = createRecord();
+  const compiledBindExport = bindExport(context);
+  const x = (ast: Tree) => compileStatement(ast, context);
+  const y = (position: Position) =>
+    SystemError.duplicateDefaultExport(position).withFileId(context.fileId);
+  const z = (ast: Tree) => compileExpr(ast, context);
+  const w = (ast: Tree) => compilePattern(ast, context);
 
-  for (const child of ast.children) {
-    if (child.type === NodeType.DECLARE) {
-      const [pattern, expr] = child.children;
-      const value = await compileExpr(expr, context)(context);
-      const { matched, envs } = await compilePattern(pattern, context)(
-        value,
-        context
-      );
-      assert(matched, 'expected pattern to match');
-      bindExport(envs, record, context);
-    } else if (child.type === NodeType.EXPORT) {
-      const value = await compileExpr(child.children[0], context)(context);
+  return async (context) => {
+    const record: EvalRecord = createRecord();
 
-      assert(
-        !recordHas(record, ModuleDefault),
-        SystemError.duplicateDefaultExport(
-          getPosition(child.children[0])
-        ).withFileId(context.fileId)
-      );
+    for (const child of ast.children) {
+      if (child.type === NodeType.DECLARE) {
+        const [pattern, expr] = child.children;
+        const value = await z(expr)(context);
+        const { matched, envs } = await w(pattern)(value, context);
+        assert(matched, 'expected pattern to match');
+        compiledBindExport(envs, record, context);
+      } else if (child.type === NodeType.EXPORT) {
+        const value = await z(child.children[0])(context);
 
-      recordSet(record, ModuleDefault, value);
-    } else {
-      await evaluateStatement(child, context);
+        assert(
+          !recordHas(record, ModuleDefault),
+          y(getPosition(child.children[0]))
+        );
+
+        recordSet(record, ModuleDefault, value);
+      } else {
+        await x(child)(context);
+      }
     }
-  }
 
-  return record;
+    return record;
+  };
 };
 
 export const compileScriptString = (
   input: string,
   context: CompileContext
-): ((evalContext: EvalContext) => Promise<EvalValue>) => {
+): Executable => {
   const tokens = parseTokens(input);
   const ast = parseScript(tokens);
   const [errors, validated] = validate(ast, context.fileId);
@@ -1660,46 +1701,63 @@ export const compileScriptString = (
 
 export const evaluateModuleString = async (
   input: string,
-  context: EvalContext
+  context: CompileContext,
+  evalContext: EvalContext
 ): Promise<EvalRecord> => {
+  return await compileModuleString(input, context)(evalContext);
+};
+
+const compileModuleString = (
+  input: string,
+  context: CompileContext
+): ((context: EvalContext) => Promise<EvalRecord>) => {
   const tokens = parseTokens(input);
   const ast = parseModule(tokens);
   const [errors, validated] = validate(ast, context.fileId);
 
   if (errors.length > 0) {
     errors.forEach((e) => e.print());
-    return createRecord();
+    return async () => createRecord();
   }
 
-  return await evaluateModule(validated, context).catch((e) => {
-    if (e instanceof SystemError) e.print();
+  const compiled = compileModule(validated, context);
+  return async (context) => {
+    return await compiled(context).catch((e) => {
+      if (e instanceof SystemError) e.print();
 
-    return createRecord();
-  });
+      return createRecord();
+    });
+  };
 };
 
 export const evaluateEntryFile = async (file: string, argv: string[] = []) => {
+  return await compileEntryFile(file)(argv);
+};
+
+const compileEntryFile = (file: string) => {
   const resolved = path.resolve(file);
   const root = path.dirname(resolved);
   const name = '/' + path.basename(resolved);
   register(Injectable.RootDir, root);
-  const module = await getModule({ name });
+  return async (argv: string[] = []) => {
+    const module = await getModule({ name });
 
-  if ('script' in module) {
-    return module.script;
-  } else if ('module' in module) {
-    const main = module.default;
-    assert(
-      typeof main === 'function',
-      'default export from runnable module must be a function'
-    );
-    const fileId = inject(Injectable.FileMap).getFileId(file);
-    const value = await main(
-      [{ start: 0, end: 0 }, newContext(fileId, file)],
-      argv
-    );
-    return value;
-  }
+    if ('script' in module) {
+      return module.script;
+    } else if ('module' in module) {
+      const main = module.default;
+      assert(
+        typeof main === 'function',
+        'default export from runnable module must be a function'
+      );
+      const fileId = inject(Injectable.FileMap).getFileId(file);
+      const value = await main(
+        [{ start: 0, end: 0 }, newContext(), newCompileContext(fileId, file)],
+        argv
+      );
+      return value;
+    }
 
-  unreachable('file must be a script or a module');
+    unreachable('file must be a script or a module');
+  };
 };

@@ -16,7 +16,6 @@ import {
   CompileContext,
   compileExpr,
   EvalContext,
-  evaluateExpr,
   forkContext,
 } from './index.js';
 

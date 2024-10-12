@@ -22,7 +22,7 @@ export enum ErrorType {
   INVALID_TUPLE_PATTERN,
   INVALID_APPLICATION_EXPRESSION,
   INVALID_TOKEN_EXPRESSION,
-  INVALID_ASSIGNMENT,
+  UNDECLARED_NAME_ASSIGNMENT,
   INVALID_PLACEHOLDER_EXPRESSION,
   EVALUATION_ERROR,
   UNDECLARED_NAME,
@@ -224,13 +224,13 @@ export class SystemError extends Error {
     ).withPrimaryLabel('here', pos);
   }
 
-  static invalidAssignment(
+  static undeclaredNameAssignment(
     name: string,
     pos: Position,
     closestName?: string
   ): SystemError {
     const error = new SystemError(
-      ErrorType.INVALID_ASSIGNMENT,
+      ErrorType.UNDECLARED_NAME_ASSIGNMENT,
       `can't assign to undeclared variable`
     )
       .withPrimaryLabel(`variable "${name}" is not declared in scope`, pos)

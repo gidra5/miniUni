@@ -2,6 +2,7 @@ import {
   evaluateModuleString,
   compileScriptString,
   newContext,
+  newCompileContext,
 } from './evaluate/index.js';
 import { SystemError } from './error.js';
 import { assert, unreachable } from './utils.js';
@@ -71,15 +72,20 @@ export const getModule = async ({
 
     const source = file.toString('utf-8');
     const fileId = addFile(resolvedPath!, source);
-    const context = newContext(fileId, resolvedPath!);
+    const compileContext = newCompileContext(fileId, resolvedPath!);
+    const context = newContext();
 
     if (isModule) {
-      const _module = await evaluateModuleString(source, context);
+      const _module = await evaluateModuleString(
+        source,
+        compileContext,
+        context
+      );
       assert(isRecord(_module), 'expected module to be a record');
       return module(_module);
     }
     if (isScript) {
-      const compiled = compileScriptString(source, context);
+      const compiled = compileScriptString(source, compileContext);
       const result = await compiled(context);
       return script(result);
     }

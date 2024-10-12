@@ -14,7 +14,7 @@ import { IOEffect } from './prelude.js';
 
 export default module({
   open: fn(2, async (cs, _path, callback) => {
-    const [position, context] = cs;
+    const [position, _, context] = cs;
     const fileId = context.fileId;
     const openErrorFactory = SystemError.invalidArgumentType(
       'all',
