@@ -172,10 +172,6 @@ export const prelude: EvalContext['env'] = new Environment({
     },
   },
 });
-export const preludeScope = new Scope({
-  mutable: prelude.mutable,
-  readonly: prelude.readonly,
-});
 
 export const preludeHandlers = createRecord({
   [IOEffect]: createRecord({

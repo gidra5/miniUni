@@ -29,12 +29,14 @@ const f = memoize(() => {
     }
   `;
   const fileId = addFile(timeoutSourceFile, timeoutSource);
-  const context = {
+  const compileContext = {
     file: timeoutSourceFile,
     fileId,
+  };
+  const context = {
     env: new Environment({ parent: prelude }),
   };
-  const timeout = compileScriptString(timeoutSource, context)(context);
+  const timeout = compileScriptString(timeoutSource, compileContext)(context);
   return timeout;
 });
 

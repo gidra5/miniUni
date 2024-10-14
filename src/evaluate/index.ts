@@ -91,7 +91,6 @@ export const newCompileContext = (
   fileId: number,
   file: string
 ): CompileContext => {
-  // const env = new Environment({ parent: prelude });
   return { file, fileId };
 };
 
