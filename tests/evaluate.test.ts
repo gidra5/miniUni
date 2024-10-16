@@ -877,6 +877,12 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
+    it('empty block is null', async () => {
+      const input = `{}`;
+      const result = await evaluate(input);
+      expect(result).toBe(null);
+    });
+
     it('sequencing', async () => {
       const input = `123; 234; 345; 456`;
       const result = await evaluate(input);
@@ -931,8 +937,18 @@ describe('expressions', () => {
       expect(result).toBe(123);
     });
 
+    it('variable declaration with null', async () => {
+      const input = `{ x := {} }`;
+      expect(async () => await evaluate(input)).rejects.toThrow();
+    });
+
+    it('non-strict variable declaration with null', async () => {
+      const input = `{ like x := {} }`;
+      expect(await evaluate(input)).toEqual(null);
+    });
+
     it('block variable declaration', async () => {
-      const input = `{ x := 123 }`;
+      const input = `{ x := 123; x }`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
