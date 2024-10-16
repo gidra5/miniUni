@@ -23,7 +23,11 @@ import { parseScript } from '../src/parser.ts';
 import { addFile } from '../src/files.ts';
 import { Injectable, register } from '../src/injector.ts';
 import { FileMap } from 'codespan-napi';
-import { Environment, EnvironmentOptions } from '../src/environment.ts';
+import {
+  Environment,
+  EnvironmentOptions,
+  createSymbolMap,
+} from '../src/environment.ts';
 import { IOEffect, ThrowEffect } from '../src/std/prelude.ts';
 import { sequence } from '../src/ast.ts';
 
@@ -86,7 +90,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('split lines', async () => {
-    const mutable: EvalRecord = createRecord({
+    const mutable = createSymbolMap({
       document: `
         1abc2
         pqr3stu8vwx
@@ -130,7 +134,7 @@ describe('advent of code 2023 day 1 single', () => {
   });
 
   it('parse numbers', async () => {
-    const mutable: EvalRecord = createRecord({
+    const mutable = createSymbolMap({
       lines: ['1abc2', 'pqr3stu8vwx', 'a1b2c3d4e5f', 'treb7uchet'],
       flat_map: fn(2, async (cs, list, fn) => {
         assert(Array.isArray(list));
@@ -766,7 +770,7 @@ describe('expressions', () => {
     });
 
     it('with dynamic variable name', async () => {
-      const input = `1 is ["dynamic" + "name"] and 1 == ["dynamic" + "name"]`;
+      const input = `1 is [:dyn] and 1 == [:dyn]`;
       const result = await evaluate(input);
       expect(result).toEqual(true);
     });
@@ -966,10 +970,14 @@ describe('expressions', () => {
     });
 
     it('dynamic variable name', async () => {
-      expect(await evaluate(`x := 1; ["x"]`)).toBe(1);
-      expect(await evaluate(`["x"] := 1; ["x"]`)).toBe(1);
-      expect(await evaluate(`["x"] := 1; x`)).toBe(1);
-      expect(await evaluate(`[2] := 1; [2]`)).toBe(1);
+      expect(await evaluate(`x := 1; [:x]`)).toBe(1);
+      expect(await evaluate(`[:x] := 1; [:x]`)).toBe(1);
+      expect(await evaluate(`[:x] := 1; x`)).toBe(1);
+      expect(await evaluate(`name := :x; [name] := 1; [name]`)).toBe(1);
+      expect(
+        async () => await evaluate(`name := 2; [name] := 1; [name]`)
+      ).rejects.toThrow();
+      expect(async () => await evaluate(`[2] := 1; [2]`)).rejects.toThrow();
     });
 
     it('block as argument', async () => {

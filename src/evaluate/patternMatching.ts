@@ -600,7 +600,8 @@ export const bind = (envs: PatternTestEnvs, context: EvalContext) => {
   const mutable = new Map();
 
   for (const [key, value] of envs.readonly.entries()) {
-    const _key = typeof key === 'string' ? key : key[0];
+    const _key = typeof key === 'string' ? atom(key) : key[0];
+    assert(typeof _key === 'symbol', 'dynamic name must be a symbol');
 
     if (value === null) continue;
     if (context.env.hasReadonly(_key)) readonly.set(_key, value);
@@ -608,7 +609,8 @@ export const bind = (envs: PatternTestEnvs, context: EvalContext) => {
     else context.env.addReadonly(_key, value);
   }
   for (const [key, value] of envs.env.entries()) {
-    const _key = typeof key === 'string' ? key : key[0];
+    const _key = typeof key === 'string' ? atom(key) : key[0];
+    assert(typeof _key === 'symbol', 'dynamic name must be a symbol');
 
     if (value === null) continue;
     if (context.env.hasReadonly(_key)) mutable.set(_key, value);

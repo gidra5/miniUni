@@ -1,16 +1,32 @@
 import { assert } from './utils.js';
-import { createRecord, EvalRecord, EvalValue, isRecord } from './values.js';
+import { atom, EvalValue } from './values.js';
 
+export type SymbolMap = Map<symbol, EvalValue>;
+type SymbolMapOptions = Record<PropertyKey, EvalValue> | SymbolMap;
 export type EnvironmentOptions = {
   parent?: Environment | null;
-  readonly?: Record<PropertyKey, EvalValue> | EvalRecord;
-  mutable?: Record<PropertyKey, EvalValue> | EvalRecord;
+  readonly?: SymbolMapOptions;
+  mutable?: SymbolMapOptions;
+};
+
+export const createSymbolMap = (values: SymbolMapOptions) => {
+  if (values instanceof Map) return values;
+
+  const keys = [
+    ...Object.getOwnPropertyNames(values),
+    ...Object.getOwnPropertySymbols(values),
+  ];
+  const entries: [symbol, EvalValue][] = keys.map((k) => [
+    typeof k === 'string' ? atom(k) : k,
+    values[k],
+  ]);
+  return new Map(entries);
 };
 
 export class Environment {
   parent: Environment | null;
-  readonly: Map<EvalValue, EvalValue>;
-  mutable: Map<EvalValue, EvalValue>;
+  readonly: SymbolMap;
+  mutable: SymbolMap;
 
   constructor({
     parent = null,
@@ -18,18 +34,18 @@ export class Environment {
     mutable = new Map(),
   }: EnvironmentOptions = {}) {
     this.parent = parent;
-    this.readonly = isRecord(readonly) ? readonly : createRecord(readonly);
-    this.mutable = isRecord(mutable) ? mutable : createRecord(mutable);
+    this.readonly = createSymbolMap(readonly);
+    this.mutable = createSymbolMap(mutable);
   }
 
-  get(key: EvalValue): EvalValue {
+  get(key: symbol): EvalValue {
     if (this.readonly.has(key)) return this.readonly.get(key)!;
     if (this.mutable.has(key)) return this.mutable.get(key)!;
     if (this.parent) return this.parent.get(key);
     return null;
   }
 
-  set(key: EvalValue, value: EvalValue): boolean {
+  set(key: symbol, value: EvalValue): boolean {
     if (this.mutable.has(key)) {
       if (value === null) this.mutable.delete(key);
       else this.mutable.set(key, value);
@@ -40,34 +56,34 @@ export class Environment {
     else return this.parent.set(key, value);
   }
 
-  has(key: EvalValue): boolean {
+  has(key: symbol): boolean {
     if (this.mutable.has(key)) return true;
     if (this.readonly.has(key)) return true;
     if (!this.parent) return false;
     return this.parent.has(key);
   }
 
-  hasReadonly(key: EvalValue): boolean {
+  hasReadonly(key: symbol): boolean {
     if (this.readonly.has(key)) return true;
     if (this.mutable.has(key)) return false;
     if (!this.parent) return false;
     return this.parent.hasReadonly(key);
   }
 
-  add(key: EvalValue, value: EvalValue = null): void {
+  add(key: symbol, value: EvalValue = null): void {
     assert(!this.mutable.has(key), 'expected key not to be in environment');
     assert(!this.readonly.has(key), 'expected key not to be in environment');
     this.mutable.set(key, value);
   }
 
-  addReadonly(key: EvalValue, value: EvalValue = null): void {
+  addReadonly(key: symbol, value: EvalValue = null): void {
     assert(!this.readonly.has(key), 'expected key not to be in environment');
     assert(!this.mutable.has(key), 'expected key not to be in environment');
     this.readonly.set(key, value);
   }
 
-  keys(): EvalValue[] {
-    const keys: EvalValue[] = [...this.readonly.keys(), ...this.mutable.keys()];
+  keys(): symbol[] {
+    const keys: symbol[] = [...this.readonly.keys(), ...this.mutable.keys()];
     if (this.parent) keys.push(...this.parent.keys());
     return [...new Set(keys)];
   }

@@ -121,22 +121,25 @@ const incAssign = (position: Position, context: CompileContext) => {
 
     for (const [patternKey, value] of envs.readonly.entries()) {
       if (typeof patternKey === 'string') {
-        assert(!context.env.hasReadonly(patternKey), immutableName(patternKey));
         assert(
-          context.env.has(patternKey),
+          !context.env.hasReadonly(atom(patternKey)),
+          immutableName(patternKey)
+        );
+        assert(
+          context.env.has(atom(patternKey)),
           undeclaredName(
             patternKey,
-            context.env.keys().filter((k) => typeof k === 'string')
+            context.env.keys().map((k) => k.description ?? String(k))
           )
         );
 
-        const v = context.env.get(patternKey);
+        const v = context.env.get(atom(patternKey));
         assert(
           typeof v === 'number' || typeof v === 'string',
           invalidName(String(patternKey))
         );
         assert(typeof value === typeof v, invalidName(String(patternKey)));
-        context.env.set(patternKey, (v as string) + (value as string));
+        context.env.set(atom(patternKey), (v as string) + (value as string));
       } else {
         const [patternTarget, patternKeyValue] = patternKey;
         if (Array.isArray(patternTarget)) {
@@ -185,12 +188,15 @@ const assign = (position: Position, context: CompileContext) => {
 
     for (const [patternKey, value] of envs.readonly.entries()) {
       if (typeof patternKey === 'string') {
-        assert(!context.env.hasReadonly(patternKey), immutableName(patternKey));
         assert(
-          context.env.set(patternKey, value),
+          !context.env.hasReadonly(atom(patternKey)),
+          immutableName(patternKey)
+        );
+        assert(
+          context.env.set(atom(patternKey), value),
           undeclaredName(
             patternKey,
-            context.env.keys().filter((k) => typeof k === 'string')
+            context.env.keys().map((k) => k.description ?? String(k))
           )
         );
       } else {
@@ -215,10 +221,10 @@ const bindExport = (context: CompileContext) => {
 
       if (value === null) continue;
       assert(
-        !context.env.has(key),
+        !context.env.has(atom(key)),
         'cannot declare name inside module more than once'
       );
-      context.env.addReadonly(key, value);
+      context.env.addReadonly(atom(key), value);
     }
 
     for (const [key, value] of envs.env.entries()) {
@@ -226,21 +232,21 @@ const bindExport = (context: CompileContext) => {
 
       if (value === null) continue;
       assert(
-        !context.env.has(key),
+        !context.env.has(atom(key)),
         'cannot declare name inside module more than once'
       );
-      context.env.add(key, value);
+      context.env.add(atom(key), value);
     }
 
     for (const [key, value] of envs.exports.entries()) {
       assert(typeof key === 'string', 'can only declare names');
       assert(
-        !context.env.has(key),
+        !context.env.has(atom(key)),
         'cannot declare name inside module more than once'
       );
 
       if (value === null) continue;
-      context.env.addReadonly(key, value);
+      context.env.addReadonly(atom(key), value);
       recordSet(exports, key, value);
     }
   };
@@ -481,6 +487,7 @@ const lazyOperators = {
     const compiled = compileStatement(arg, context);
     return async (context) => {
       const key = await compiled(context);
+      assert(typeof key === 'symbol', 'dynamic name must be a symbol');
       return context.env.get(key);
     };
   },
@@ -1086,9 +1093,10 @@ const lazyOperators = {
       break: labelBreak,
       continue: labelContinue,
     });
+    const labelAtom = atom(ast.data.name);
     const compiled: Executable = async (evalContext) => {
       const forked = forkContext(evalContext);
-      forked.env.addReadonly(ast.data.name, labelRecord);
+      forked.env.addReadonly(labelAtom, labelRecord);
 
       return await handleEffects(
         handlers,
@@ -1214,6 +1222,7 @@ const lazyOperators = {
     const handlers = createRecord({
       [returnAtom]: createHandler(returnHandler),
     });
+    const selfAtom = atom('self');
     return async (evalContext) => {
       const _context = forkContext(evalContext);
       const self: EvalFunction = async (cs, arg) => {
@@ -1225,7 +1234,7 @@ const lazyOperators = {
         assert(result.matched, matchError(position, fileId));
 
         const bound = bindContext(result.envs, _context);
-        if (isTopFunction) bound.env.addReadonly('self', self);
+        if (isTopFunction) bound.env.addReadonly(selfAtom, self);
 
         return await handleEffects(
           handlers,
@@ -1563,9 +1572,10 @@ export const compileStatement = (
       const e = SystemError.undeclaredName(name, getPosition(ast)).withFileId(
         context.fileId
       );
+      const nameAtom = atom(name);
       return async (evalContext) => {
-        assert(evalContext.env.has(name), e);
-        return evalContext.env.get(name);
+        assert(evalContext.env.has(nameAtom), e);
+        return evalContext.env.get(nameAtom);
       };
     }
     case NodeType.NUMBER:

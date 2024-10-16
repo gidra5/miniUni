@@ -1,4 +1,4 @@
-import { Environment, Scope } from '../environment.js';
+import { Environment } from '../environment.js';
 import { SystemError } from '../error.js';
 import { EvalContext, handleEffects } from '../evaluate/index.js';
 import { assert, inspect } from '../utils.js';
