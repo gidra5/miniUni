@@ -11,13 +11,11 @@ import {
   Tree,
   block,
   error,
-  fn,
   implicitPlaceholder,
   NodeType,
   node as _node,
   script,
   module,
-  string,
   token,
   Precedence,
   getExprPrecedence as _getExprPrecedence,
@@ -30,7 +28,7 @@ import {
   atom,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
-import { CompileContext, EvalContext } from './evaluate/index.js';
+import { CompileContext } from './evaluate/index.js';
 import { Diagnostic, primaryDiagnosticLabel } from 'codespan-napi';
 
 export const getExprPrecedence = (node: Tree): Precedence =>
