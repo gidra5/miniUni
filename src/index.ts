@@ -5,6 +5,7 @@ import {
   evaluateEntryFile,
   compileScriptString,
   newContext,
+  newCompileContext,
 } from './evaluate/index.js';
 import { addFile } from './files.js';
 
@@ -39,8 +40,9 @@ program
           break;
         default: {
           const fileId = addFile(file, line);
-          const context = newContext(fileId, file);
-          const compiled = compileScriptString(line, context);
+          const compileContext = newCompileContext(fileId, file);
+          const context = newContext();
+          const compiled = compileScriptString(line, compileContext);
           const result = await compiled(context);
           console.dir(result, { depth: null });
           break;

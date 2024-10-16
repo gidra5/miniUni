@@ -10,8 +10,8 @@ export const isResult = (value: EvalValue): value is [symbol, EvalValue] =>
   value.length === 2 &&
   (value[0] === atom('ok') || value[0] === atom('error'));
 
-export const resultMethods: Record<string, EvalFunction> = {
-  map_ok: fn(2, async (cs, result, fn) => {
+export const resultMethods: Record<symbol, EvalFunction> = {
+  [atom('map_ok')]: fn(2, async (cs, result, fn) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
@@ -32,7 +32,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     if (tag === atom('ok')) return [tag, await fn(cs, value)];
     else return result;
   }),
-  map_err: fn(2, async (cs, result, fn) => {
+  [atom('map_err')]: fn(2, async (cs, result, fn) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
@@ -53,7 +53,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     if (tag === atom('error')) return [tag, await fn(cs, value)];
     else return result;
   }),
-  or: fn(2, async (cs, result, defaultValue) => {
+  [atom('or')]: fn(2, async (cs, result, defaultValue) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(
@@ -73,7 +73,7 @@ export const resultMethods: Record<string, EvalFunction> = {
     if (tag === atom('error')) return defaultValue;
     else return value;
   }),
-  unwrap: fn(1, async (cs, result) => {
+  [atom('unwrap')]: fn(1, async (cs, result) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapOkErrorFactory = SystemError.invalidArgumentType(

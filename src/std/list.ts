@@ -1,16 +1,16 @@
 import { SystemError } from '../error.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { EvalFunction, EvalValue, fn } from '../values.js';
+import { atom, EvalFunction, EvalValue, fn } from '../values.js';
 
 const listModule = module({});
 
-export const listMethods: Record<string, EvalFunction> = {
-  length: async (_, target) => {
+export const listMethods: Record<symbol, EvalFunction> = {
+  [atom('length')]: async (_, target) => {
     assert(Array.isArray(target));
     return target.length;
   },
-  slice: fn(2, ([position, _, context], item, args) => {
+  [atom('slice')]: fn(2, ([position, _, context], item, args) => {
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',
@@ -50,7 +50,7 @@ export const listMethods: Record<string, EvalFunction> = {
 
     return item.slice(start, end);
   }),
-  map: fn(2, async (cs, list, fn) => {
+  [atom('map')]: fn(2, async (cs, list, fn) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const mapErrorFactory = SystemError.invalidArgumentType(
@@ -74,7 +74,7 @@ export const listMethods: Record<string, EvalFunction> = {
     }
     return mapped;
   }),
-  filter: fn(2, async (cs, list, fn) => {
+  [atom('filter')]: fn(2, async (cs, list, fn) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
     const filterErrorFactory = SystemError.invalidArgumentType(

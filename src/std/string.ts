@@ -1,16 +1,16 @@
 import { SystemError } from '../error.js';
-import { EvalFunction, fn } from '../values.js';
+import { atom, EvalFunction, fn } from '../values.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
 
 const stringModule = module({});
 
-export const stringMethods: Record<string, EvalFunction> = {
-  length: async (_, target) => {
+export const stringMethods: Record<symbol, EvalFunction> = {
+  [atom('length')]: async (_, target) => {
     assert(typeof target === 'string');
     return target.length;
   },
-  split: fn(2, ([position, _, context], target, separator) => {
+  [atom('split')]: fn(2, ([position, _, context], target, separator) => {
     const fileId = context.fileId;
     const splitErrorFactory = SystemError.invalidArgumentType(
       'split',
@@ -31,7 +31,7 @@ export const stringMethods: Record<string, EvalFunction> = {
     );
     return target.split(separator);
   }),
-  char_at: fn(2, ([position, _, context], target, index) => {
+  [atom('char_at')]: fn(2, ([position, _, context], target, index) => {
     const fileId = context.fileId;
     const charAtErrorFactory = SystemError.invalidArgumentType(
       'char_at',
@@ -51,7 +51,7 @@ export const stringMethods: Record<string, EvalFunction> = {
     assert(typeof index === 'number', charAtErrorFactory(1).withFileId(fileId));
     return target.charAt(index);
   }),
-  slice: fn(2, ([position, _, context], item, args) => {
+  [atom('slice')]: fn(2, ([position, _, context], item, args) => {
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',
@@ -91,7 +91,7 @@ export const stringMethods: Record<string, EvalFunction> = {
 
     return item.slice(start, end);
   }),
-  replace: fn(
+  [atom('replace')]: fn(
     3,
     async ([position, _, context], target, pattern, replacement) => {
       const fileId = context.fileId;
@@ -122,7 +122,7 @@ export const stringMethods: Record<string, EvalFunction> = {
       return target.replace(new RegExp(pattern, 'g'), replacement);
     }
   ),
-  match: fn(2, async ([position, _, context], target, pattern) => {
+  [atom('match')]: fn(2, async ([position, _, context], target, pattern) => {
     const fileId = context.fileId;
     const matchErrorFactory = SystemError.invalidArgumentType(
       'match',

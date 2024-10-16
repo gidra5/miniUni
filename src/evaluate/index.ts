@@ -120,26 +120,26 @@ const incAssign = (position: Position, context: CompileContext) => {
     assert(envs.env.size === 0, 'cant do mutable declarations at increment');
 
     for (const [patternKey, value] of envs.readonly.entries()) {
-      if (typeof patternKey === 'string') {
+      if (typeof patternKey === 'symbol') {
         assert(
-          !context.env.hasReadonly(atom(patternKey)),
-          immutableName(patternKey)
+          !context.env.hasReadonly(patternKey),
+          immutableName(patternKey.description!)
         );
         assert(
-          context.env.has(atom(patternKey)),
+          context.env.has(patternKey),
           undeclaredName(
-            patternKey,
+            patternKey.description!,
             context.env.keys().map((k) => k.description ?? String(k))
           )
         );
 
-        const v = context.env.get(atom(patternKey));
+        const v = context.env.get(patternKey);
         assert(
           typeof v === 'number' || typeof v === 'string',
           invalidName(String(patternKey))
         );
         assert(typeof value === typeof v, invalidName(String(patternKey)));
-        context.env.set(atom(patternKey), (v as string) + (value as string));
+        context.env.set(patternKey, (v as string) + (value as string));
       } else {
         const [patternTarget, patternKeyValue] = patternKey;
         if (Array.isArray(patternTarget)) {
@@ -187,15 +187,15 @@ const assign = (position: Position, context: CompileContext) => {
     assert(envs.env.size === 0, 'cant do mutable declarations at assignment');
 
     for (const [patternKey, value] of envs.readonly.entries()) {
-      if (typeof patternKey === 'string') {
+      if (typeof patternKey === 'symbol') {
         assert(
-          !context.env.hasReadonly(atom(patternKey)),
-          immutableName(patternKey)
+          !context.env.hasReadonly(patternKey),
+          immutableName(patternKey.description!)
         );
         assert(
-          context.env.set(atom(patternKey), value),
+          context.env.set(patternKey, value),
           undeclaredName(
-            patternKey,
+            patternKey.description!,
             context.env.keys().map((k) => k.description ?? String(k))
           )
         );
@@ -217,36 +217,36 @@ const assign = (position: Position, context: CompileContext) => {
 const bindExport = (context: CompileContext) => {
   return (envs: PatternTestEnvs, exports: EvalRecord, context: EvalContext) => {
     for (const [key, value] of envs.readonly.entries()) {
-      assert(typeof key === 'string', 'can only declare names');
+      assert(typeof key === 'symbol', 'can only declare names');
 
       if (value === null) continue;
       assert(
-        !context.env.has(atom(key)),
+        !context.env.has(key),
         'cannot declare name inside module more than once'
       );
-      context.env.addReadonly(atom(key), value);
+      context.env.addReadonly(key, value);
     }
 
     for (const [key, value] of envs.env.entries()) {
-      assert(typeof key === 'string', 'can only declare names');
+      assert(typeof key === 'symbol', 'can only declare names');
 
       if (value === null) continue;
       assert(
-        !context.env.has(atom(key)),
+        !context.env.has(key),
         'cannot declare name inside module more than once'
       );
-      context.env.add(atom(key), value);
+      context.env.add(key, value);
     }
 
     for (const [key, value] of envs.exports.entries()) {
-      assert(typeof key === 'string', 'can only declare names');
+      assert(typeof key === 'symbol', 'can only declare names');
       assert(
-        !context.env.has(atom(key)),
+        !context.env.has(key),
         'cannot declare name inside module more than once'
       );
 
       if (value === null) continue;
-      context.env.addReadonly(atom(key), value);
+      context.env.addReadonly(key, value);
       recordSet(exports, key, value);
     }
   };
@@ -494,6 +494,7 @@ const lazyOperators = {
 
   [NodeType.INJECT]: (ast, context) => {
     const [expr, body] = ast.children;
+    // showNode(expr, context);
     const compiledExpr = compileExpr(expr, context);
     const compiledBlock = compileBlock(body, context);
     const bodyPosition = getPosition(body);
@@ -968,7 +969,7 @@ const lazyOperators = {
             async (index, evalContext) => {
               if (
                 isResult(target) &&
-                typeof index === 'string' &&
+                typeof index === 'symbol' &&
                 index in resultMethods
               ) {
                 return await resultMethods[index](
@@ -979,7 +980,10 @@ const lazyOperators = {
 
               if (Array.isArray(target)) {
                 if (!Number.isInteger(index)) {
-                  assert(typeof index === 'string', invalidIndexError);
+                  assert(
+                    typeof index === 'symbol' && index in listMethods,
+                    invalidIndexError
+                  );
                   return await listMethods[index](
                     [indexPosition, evalContext, context],
                     target
@@ -994,7 +998,7 @@ const lazyOperators = {
 
               if (typeof target === 'string') {
                 assert(
-                  typeof index === 'string' && index in stringMethods,
+                  typeof index === 'symbol' && index in stringMethods,
                   invalidIndexError
                 );
                 return await stringMethods[index](
@@ -1333,7 +1337,7 @@ const tupleOperators = {
     const _key = head.children[0];
     const compiledKey =
       _key.type === NodeType.NAME
-        ? async () => _key.data.value
+        ? async () => atom(_key.data.value)
         : _key.type === NodeType.SQUARE_BRACKETS
         ? compileExpr(_key.children[0], context)
         : compileExpr(_key, context);
@@ -1652,11 +1656,11 @@ const compileModule = (
 ): ((context: EvalContext) => Promise<EvalRecord>) => {
   assert(ast.type === NodeType.MODULE, 'expected module');
   const compiledBindExport = bindExport(context);
-  const x = (ast: Tree) => compileStatement(ast, context);
-  const y = (position: Position) =>
+  const _compileStatement = (ast: Tree) => compileStatement(ast, context);
+  const defaultExportError = (position: Position) =>
     SystemError.duplicateDefaultExport(position).withFileId(context.fileId);
-  const z = (ast: Tree) => compileExpr(ast, context);
-  const w = (ast: Tree) => compilePattern(ast, context);
+  const _compileExpr = (ast: Tree) => compileExpr(ast, context);
+  const _compilePattern = (ast: Tree) => compilePattern(ast, context);
 
   return async (context) => {
     const record: EvalRecord = createRecord();
@@ -1664,21 +1668,24 @@ const compileModule = (
     for (const child of ast.children) {
       if (child.type === NodeType.DECLARE) {
         const [pattern, expr] = child.children;
-        const value = await z(expr)(context);
-        const { matched, envs } = await w(pattern)(value, context);
+        const value = await _compileExpr(expr)(context);
+        const { matched, envs } = await _compilePattern(pattern)(
+          value,
+          context
+        );
         assert(matched, 'expected pattern to match');
         compiledBindExport(envs, record, context);
       } else if (child.type === NodeType.EXPORT) {
-        const value = await z(child.children[0])(context);
+        const value = await _compileExpr(child.children[0])(context);
 
         assert(
           !recordHas(record, ModuleDefault),
-          y(getPosition(child.children[0]))
+          defaultExportError(getPosition(child.children[0]))
         );
 
         recordSet(record, ModuleDefault, value);
       } else {
-        await x(child)(context);
+        await _compileStatement(child)(context);
       }
     }
 

@@ -495,8 +495,8 @@ export const token = (token: Token, position: Position) =>
     ? error(token.cause, position)
     : name(token.src, position);
 
-export const atom = (name: string): AtomNode =>
-  node(NodeType.ATOM, { data: { name } }) as AtomNode;
+export const atom = (name: string, position?: Position): AtomNode =>
+  node(NodeType.ATOM, { data: { name }, position }) as AtomNode;
 
 export const module = (children: ModuleNode['children']): ModuleNode =>
   node(NodeType.MODULE, { children }) as ModuleNode;

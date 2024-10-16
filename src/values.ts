@@ -334,7 +334,7 @@ export const fileHandle = (file: EvalRecord): EvalRecord => {
         position
       );
       assert(typeof data === 'string', writeErrorFactory(0).withFileId(fileId));
-      const write = recordGet(file, 'write');
+      const write = recordGet(file, atom('write'));
       assert(typeof write === 'function', 'expected write to be a function');
       await write(cs, data);
       return null;
@@ -369,7 +369,10 @@ export const createRecord = (
     ...Object.getOwnPropertyNames(values),
     ...Object.getOwnPropertySymbols(values),
   ];
-  const entries: [EvalValue, EvalValue][] = keys.map((k) => [k, values[k]]);
+  const entries: [EvalValue, EvalValue][] = keys.map((k) => [
+    typeof k === 'string' ? atom(k) : k,
+    values[k],
+  ]);
   return new Map(entries);
 };
 

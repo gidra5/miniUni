@@ -532,7 +532,7 @@ describe('expressions', () => {
     });
 
     it('in finds existing key', async () => {
-      const input = `"key" in (key: 1, key2: 2)`;
+      const input = `:key in (key: 1, key2: 2)`;
       const result = await evaluate(input);
       expect(result).toBe(true);
     });
@@ -813,7 +813,7 @@ describe('expressions', () => {
       expect(await evaluate(`mut x := (a: 1, b: 2); x.a = 3; x`)).toEqual(
         createRecord({ a: 3, b: 2 })
       );
-      expect(await evaluate(`mut x := (a: 1, b: 2); x["b"] = 4; x`)).toEqual(
+      expect(await evaluate(`mut x := (a: 1, b: 2); x[:b] = 4; x`)).toEqual(
         createRecord({ a: 1, b: 4 })
       );
       expect(await evaluate(`mut x := (1, 2); x[0] = 3; x`)).toEqual([3, 2]);
@@ -1493,12 +1493,12 @@ describe('expressions', () => {
     it('all in one', async () => {
       const input = `
         inject a: 1, b: 2 {
-          a := handle "a" ()
-          b := handle "b" ()
+          a := handle (:a) ()
+          b := handle (:b) ()
           inject a: a+1, b: b+2 {
-            mask "a" {
-              without "b" {
-                a := handle "a" ()
+            mask :a {
+              without :b {
+                a := handle (:a) ()
                 a + 1
               }
             }
@@ -1510,7 +1510,7 @@ describe('expressions', () => {
     });
 
     it('inject', async () => {
-      const input = `inject a: 1, b: 2 -> handle "a" (), handle "b" ()`;
+      const input = `inject a: 1, b: 2 -> handle (:a) (), handle (:b) ()`;
       const result = await evaluate(input);
       expect(result).toEqual([1, 2]);
     });
@@ -1518,13 +1518,13 @@ describe('expressions', () => {
     it('inject shadowing', async () => {
       const input = `
         inject a: 1, b: 2 ->
-        a := handle "a" ()
-        b := handle "b" ()
+        a := handle (:a) ()
+        b := handle (:b) ()
           
         inject a: a+1, b: b+2 ->
 
-        handle "a" (),
-        handle "b" ()
+        handle (:a) (),
+        handle (:b) ()
       `;
       const result = await evaluate(input);
       expect(result).toEqual([2, 4]);
@@ -1533,13 +1533,13 @@ describe('expressions', () => {
     it('mask', async () => {
       const input = `
         inject a: 1, b: 2 ->
-        a := handle "a" ()
-        b := handle "b" ()
+        a := handle (:a) ()
+        b := handle (:b) ()
         
         inject a: a+1, b: b+2 ->
-        mask "a" ->
-        a := handle "a" ()
-        b := handle "b" ()
+        mask :a ->
+        a := handle (:a) ()
+        b := handle (:b) ()
         a, b
       `;
       const result = await evaluate(input);
@@ -1549,8 +1549,8 @@ describe('expressions', () => {
     it('without', async () => {
       const input = `
         inject a: 1 ->
-        without "a" ->
-        ("a" |> handle) ()  
+        without :a ->
+        (:a |> handle) ()  
       `;
       expect(async () => await evaluate(input)).rejects.toThrow();
     });
@@ -1558,8 +1558,8 @@ describe('expressions', () => {
     it('parallel', async () => {
       const input = `
         f := fn {
-          a := handle "a" ()
-          b := handle "b" ()
+          a := handle (:a) ()
+          b := handle (:b) ()
           a + b
         }
         
@@ -1576,8 +1576,8 @@ describe('expressions', () => {
     it('block-inject-fn-handle twice backtracking', async () => {
       const input = `
         f := fn {
-          handle "a" ()
-          handle "a" ()
+          handle (:a) ()
+          handle (:a) ()
         }
         
         { inject a: 3 do f() }
@@ -1588,7 +1588,7 @@ describe('expressions', () => {
 
     it('block-inject-fn-handle backtracking', async () => {
       const input = `
-        f := fn do handle "a" ()
+        f := fn do handle (:a) ()
         { inject a: 3 do f() }
       `;
       const result = await evaluate(input);
@@ -1598,7 +1598,7 @@ describe('expressions', () => {
     it('multiple continuation calls', async () => {
       const input = `
         decide := :decide |> handle
-        _handler := [:decide]: handler fn (callback, value) {
+        _handler := decide: handler fn (callback, value) {
             x1 := callback(true)
             x2 := callback(false)
             x1, x2
@@ -1613,7 +1613,7 @@ describe('expressions', () => {
     it('multiple continuation calls with mutations and refs', async () => {
       const input = `        
         _handler :=
-          [:do]: handler fn (callback, _) {
+          do: handler fn (callback, _) {
             callback()
             callback()
           }
@@ -1634,7 +1634,7 @@ describe('expressions', () => {
     it('multiple continuation calls with mutations and closure', async () => {
       const input = `        
           _handler :=
-            [:do]: handler fn (callback, _) {
+            do: handler fn (callback, _) {
               callback()
               callback()
             }
@@ -1659,7 +1659,7 @@ describe('expressions', () => {
     it('multiple continuation calls with mutations', async () => {
       const input = `        
         _handler :=
-          [:do]: handler fn (callback, _) {
+          do: handler fn (callback, _) {
             callback()
             callback()
           }
@@ -1680,7 +1680,7 @@ describe('expressions', () => {
     it('multiple continuation calls with inner mutation', async () => {
       const input = `        
         _handler :=
-          [:do]: handler fn (callback, _) {
+          do: handler fn (callback, _) {
             callback()
             callback()
           }
@@ -1699,7 +1699,7 @@ describe('expressions', () => {
     it('no continuation calls sequential', async () => {
       const input = `
         decide := :decide |> handle
-        _handler := [:decide]: handler fn (callback, value) do 126
+        _handler := decide: handler fn (callback, value) do 126
         inject _handler ->
         decide(); 123
       `;
@@ -1710,7 +1710,7 @@ describe('expressions', () => {
     it('no continuation calls', async () => {
       const input = `
         decide := :decide |> handle
-        _handler := [:decide]: handler fn (callback, value) do 126
+        _handler := decide: handler fn (callback, value) do 126
         inject _handler ->
         if decide() do 123 else 456
       `;
@@ -1721,7 +1721,7 @@ describe('expressions', () => {
     it('single continuation call', async () => {
       const input = `
         decide := :decide |> handle
-        _handler := [:decide]: handler fn (callback, value) do callback true
+        _handler := decide: handler fn (callback, value) do callback true
         inject _handler ->
         if decide() do 123 else 456
       `;
@@ -1769,8 +1769,8 @@ describe('expressions', () => {
         fail := :fail |> handle
         
         false_branch_first :=
-          [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn { callback true }
+          decide: handler fn (callback, _) {
+            fail_handler := fail: handler fn { callback true }
             inject fail_handler { callback false }
           };
           
@@ -1811,8 +1811,8 @@ describe('expressions', () => {
         }
         
         false_branch_first :=
-          [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn {
+          decide: handler fn (callback, _) {
+            fail_handler := fail: handler fn {
               callback false
             }
             inject fail_handler { callback true }
@@ -1849,13 +1849,13 @@ describe('expressions', () => {
         };
         
         false_branch_first :=
-          [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn do callback false
+          decide: handler fn (callback, _) {
+            fail_handler := fail: handler fn do callback false
             inject fail_handler { callback true }
           };
         true_branch_first :=
-          [:decide]: handler fn (callback, _) {
-            fail_handler := [:fail]: handler fn do callback true
+          decide: handler fn (callback, _) {
+            fail_handler := fail: handler fn do callback true
             inject fail_handler { callback false }
           };
 
@@ -1872,7 +1872,7 @@ describe('expressions', () => {
     it('logger example', async () => {
       const input = `
         logger :=
-          [:log]: handler fn (callback, msg) {
+          log: handler fn (callback, msg) {
             result, logs := callback msg
             result, (msg, ...logs)
           },
@@ -1899,20 +1899,20 @@ describe('expressions', () => {
       const input = `
         // can abstract db queries for example, instead of simple value state
         state :=
-          [:get]: handler fn (callback, _) {
+          get: handler fn (callback, _) {
             fn state do (callback state) state
           },
-          [:set]: handler fn (callback, state) {
+          set: handler fn (callback, state) {
             fn do (callback state) state
           },
           [return_handler]: fn x {
             fn state do state, x
           }
         transaction :=
-          [:get]: handler fn (callback, _) {
+          get: handler fn (callback, _) {
             fn state do (callback state) state
           },
-          [:set]: handler fn (callback, state) {
+          set: handler fn (callback, state) {
             fn do (callback state) state
           },
           [return_handler]: fn x {

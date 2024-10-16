@@ -19,7 +19,7 @@ import {
   forkContext,
 } from './index.js';
 
-type PatternTestEnv = Map<string | EvalValue[], EvalValue>;
+type PatternTestEnv = Map<symbol | EvalValue[], EvalValue>;
 export type PatternTestEnvs = {
   env: PatternTestEnv;
   readonly: PatternTestEnv;
@@ -61,7 +61,7 @@ const mergePatternTestResult = (
 const updatePatternTestEnv = (
   envs: PatternTestEnvs,
   flags: PatternTestFlags,
-  key: string | EvalValue[],
+  key: symbol | EvalValue[],
   value: EvalValue
 ): PatternTestEnvs => {
   if (flags.mutable) envs.env.set(key, value);
@@ -234,7 +234,7 @@ const _compilePattern = (
   }
 
   if (patternAst.type === NodeType.NAME) {
-    const name = patternAst.data.value;
+    const name = atom(patternAst.data.value);
 
     if (flags.strict) {
       return async (value, _context, envs, notEnvs) => {
@@ -391,7 +391,7 @@ const _compilePattern = (
     type CompiledNamePattern = (
       value: EvalRecord,
       envs: PatternTestEnvs
-    ) => [boolean, string, PatternTestEnvs];
+    ) => [boolean, symbol, PatternTestEnvs];
     type CompiledLabelPattern = (
       value: EvalValue,
       context: Readonly<EvalContext>,
@@ -402,12 +402,12 @@ const _compilePattern = (
       value: EvalRecord,
       context: Readonly<EvalContext>,
       envs: PatternTestEnvs
-    ) => Promise<[boolean, string, PatternTestEnvs]>;
+    ) => Promise<[boolean, symbol, PatternTestEnvs]>;
 
     const namePatterns = patterns
       .filter((x) => x.type === NodeType.NAME)
       .map((pattern): CompiledNamePattern => {
-        const name = pattern.data.value;
+        const name = atom(pattern.data.value);
         if (flags.strict) {
           return (value, envs) => {
             const _value = recordGet(value, name);
@@ -435,7 +435,7 @@ const _compilePattern = (
           keyNode.type === NodeType.SQUARE_BRACKETS
             ? compileExpr(keyNode.children[0], context)
             : keyNode.type === NodeType.NAME
-            ? async () => keyNode.data.value
+            ? async () => atom(keyNode.data.value)
             : async () => null;
 
         if (flags.strict) {
@@ -471,7 +471,7 @@ const _compilePattern = (
       .map((pattern): CompiledAssignPattern => {
         const _pattern = pattern.children[0];
         assert(_pattern.type === NodeType.NAME, 'expected name');
-        const name = _pattern.data.value;
+        const name = atom(_pattern.data.value);
         const compiledExpr = compileExpr(pattern.children[1], context);
 
         if (flags.strict) {
@@ -600,7 +600,7 @@ export const bind = (envs: PatternTestEnvs, context: EvalContext) => {
   const mutable = new Map();
 
   for (const [key, value] of envs.readonly.entries()) {
-    const _key = typeof key === 'string' ? atom(key) : key[0];
+    const _key = typeof key === 'symbol' ? key : key[0];
     assert(typeof _key === 'symbol', 'dynamic name must be a symbol');
 
     if (value === null) continue;
@@ -609,7 +609,7 @@ export const bind = (envs: PatternTestEnvs, context: EvalContext) => {
     else context.env.addReadonly(_key, value);
   }
   for (const [key, value] of envs.env.entries()) {
-    const _key = typeof key === 'string' ? atom(key) : key[0];
+    const _key = typeof key === 'symbol' ? key : key[0];
     assert(typeof _key === 'symbol', 'dynamic name must be a symbol');
 
     if (value === null) continue;

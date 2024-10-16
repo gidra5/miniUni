@@ -27,6 +27,7 @@ import {
   ImportNode,
   DeclarationPatternNode,
   ErrorNode,
+  atom,
 } from './ast.js';
 import { inject, Injectable } from './injector.js';
 import { CompileContext, EvalContext } from './evaluate/index.js';
@@ -439,7 +440,7 @@ const parsePatternGroup: ContextParser = (context) => (src, i) => {
       next?.type === 'identifier'
     ) {
       index++;
-      const key = string(next.src, { start: next.start, end: next.end });
+      const key = atom(next.src, { start: next.start, end: next.end });
       return [
         index,
         _node(NodeType.INDEX, {
@@ -837,7 +838,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         next?.type === 'identifier'
       ) {
         index++;
-        const key = string(next.src, { start: next.start, end: next.end });
+        const key = atom(next.src, { start: next.start, end: next.end });
         return [
           index,
           _node(NodeType.INDEX, {
@@ -894,7 +895,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       next?.type === 'identifier'
     ) {
       index++;
-      const key = string(next.src, { start: next.start, end: next.end });
+      const key = atom(next.src, { start: next.start, end: next.end });
       return [
         index,
         _node(NodeType.INDEX, {

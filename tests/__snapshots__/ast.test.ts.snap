@@ -2394,9 +2394,9 @@ exports[`expressions > concurrent programming > async index 1`] = `
             {
               "children": [],
               "data": {
-                "value": "a",
+                "name": "a",
               },
-              "type": "string",
+              "type": "atom",
             },
           ],
           "data": {},
@@ -2946,9 +2946,9 @@ exports[`expressions > data structures > field assignment 1`] = `
             {
               "children": [],
               "data": {
-                "value": "y",
+                "name": "y",
               },
-              "type": "string",
+              "type": "atom",
             },
           ],
           "data": {},
@@ -3138,9 +3138,9 @@ exports[`expressions > data structures > period operator 1`] = `
         {
           "children": [],
           "data": {
-            "value": "floor",
+            "name": "floor",
           },
-          "type": "string",
+          "type": "atom",
         },
       ],
       "data": {},
@@ -4222,9 +4222,9 @@ exports[`expressions > function expressions > application > function call param 
             {
               "children": [],
               "data": {
-                "value": "y",
+                "name": "y",
               },
-              "type": "string",
+              "type": "atom",
             },
           ],
           "data": {},
@@ -4261,9 +4261,9 @@ exports[`expressions > function expressions > application > methods chaining 1`]
                     {
                       "children": [],
                       "data": {
-                        "value": "floor",
+                        "name": "floor",
                       },
-                      "type": "string",
+                      "type": "atom",
                     },
                   ],
                   "data": {},
@@ -4289,9 +4289,9 @@ exports[`expressions > function expressions > application > methods chaining 1`]
             {
               "children": [],
               "data": {
-                "value": "multiply",
+                "name": "multiply",
               },
-              "type": "string",
+              "type": "atom",
             },
           ],
           "data": {},
@@ -7614,9 +7614,9 @@ exports[`newline handling > chaining 1`] = `
         {
           "children": [],
           "data": {
-            "value": "b",
+            "name": "b",
           },
-          "type": "string",
+          "type": "atom",
         },
       ],
       "data": {},

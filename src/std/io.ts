@@ -1,5 +1,6 @@
 import { SystemError } from '../error.js';
 import {
+  atom,
   createEffect,
   EvalValue,
   fileHandle,
@@ -43,7 +44,7 @@ export default module({
         assert(isRecord(ioHandler), 'expected io handler to be record');
 
         const file = await new Promise<EvalValue>(async (resolve) => {
-          const open = recordGet(ioHandler, 'open');
+          const open = recordGet(ioHandler, atom('open'));
           assert(typeof open === 'function', 'expected open to be a function');
           const curried = await open(cs, resolved);
 
@@ -60,7 +61,7 @@ export default module({
           );
         });
         assert(isRecord(file), 'expected file handle to be record');
-        const close = recordGet(file, 'close');
+        const close = recordGet(file, atom('close'));
         assert(typeof close === 'function', 'expected close to be a function');
         const result = await callback(cs, fileHandle(file));
         await close(cs, []);
