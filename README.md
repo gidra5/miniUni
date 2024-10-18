@@ -5,17 +5,18 @@ A general-purpose multi-paradigm language, that aims to provide a scripting lang
 
 ## 🎯 Motivation
 
-Why it must exist? Most scripting languages usually have very limited concurrency support, if any, and either too noisy syntax or too minimalistic. This experiment aims to fill those gaps and provide new ideas for scripting language design.
+Why it must exist? Most scripting languages usually have very limited concurrency support, if any, are too noisy syntax or too minimalistic and fail domain completeness. This experiment aims to fill those gaps and provide new ideas for scripting language design.
 
 ## ✨ Main principles
 
 These are the principles that guided the design of miniUni:
 * 🌐 Everything is an expression. 
-* 🚫 No explicit or implicit null value. 
+* 🚫 No explicit or implicit null value by default. 
 * ⚡ Powerful concurrency: structured concurrency and async programming primitives 
 * 🛠️ Effect handlers for powerful dependency injection and control of side effects
 * ✍️ Flexible but minimalistic syntax, formatting friendly and minimizing indentation.
-* 🔗 Extend common syntax with broader semantics.
+* 👐 Keep design unopinionated.
+* 🔗 Keep design complete over the whole domain: make reasonable semantics for every possible feature input.
 
 ## ⚡ Quick Start
 Download single executable interpreter for your platform from [releases](https://github.com/gidra5/miniUni/releases). All commands expected to be executed from the location of the interpreter.
