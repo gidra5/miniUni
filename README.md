@@ -48,6 +48,18 @@ And behold, the output:
 Hello world!
 ```
 
+You can also use REPL:
+```
+./miniUni repl
+```
+
+And paste commands you wish to execute:
+```
+>> print "Hello world!";
+Hello world!
+>> 
+```
+
 ### 🖋️ Syntax
 
 Syntax is a mix of functional and C-like syntax, so if you are coming from one of such languages (rust, haskell, js, elixir) it may look familiar to you
