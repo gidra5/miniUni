@@ -1,4 +1,4 @@
-import "std/concurrency" as { all }
+import "std/concurrency" as { all, cell }
 
 // https://adventofcode.com/2023/day/1
 
@@ -24,12 +24,12 @@ async {
 
 numbers := channel "numbers"
 mut line_count := 0
-mut line_handled_count := 0
+line_handled_count := cell 0
 mut lines_done := false
-inc := fn do line_handled_count++
 
 async loop {
   mut line, status := <-?lines
+      // print (line, status)
   if status == :closed {
     lines_done = true
     break()
@@ -55,7 +55,8 @@ async loop {
     }
 
     numbers <- last_digit
-    inc()
+    line_handled_count.update fn c do c + 1
+    line_handled_count.get fn line_handled_count ->
 
     if line_count == line_handled_count and lines_done {
       close numbers
@@ -67,6 +68,7 @@ mut sum := 0
 
 while true {
   number, status := <-?numbers
+      //print (number, status)
   if status == :closed do break()
   if status == :empty do continue()
   sum += number

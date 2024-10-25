@@ -1,7 +1,15 @@
 import { SystemError } from '../error.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { atom, createEffect, EvalFunction, EvalValue, fn } from '../values.js';
+import {
+  atom,
+  createEffect,
+  createRecord,
+  EvalFunction,
+  EvalRecord,
+  EvalValue,
+  fn,
+} from '../values.js';
 import { ThrowEffect } from './prelude.js';
 
 const resultModule = module({});
@@ -10,7 +18,7 @@ export const isResult = (value: EvalValue): value is [symbol, EvalValue] =>
   value.length === 2 &&
   (value[0] === atom('ok') || value[0] === atom('error'));
 
-export const resultMethods: Record<symbol, EvalFunction> = {
+export const resultPrototype: EvalRecord = createRecord({
   [atom('map_ok')]: fn(2, async (cs, result, fn) => {
     const [pos, _, context] = cs;
     const fileId = context.fileId;
@@ -94,6 +102,6 @@ export const resultMethods: Record<symbol, EvalFunction> = {
       return createEffect(ThrowEffect, value, cs[1].env);
     else return value;
   }),
-};
+} satisfies Record<symbol, EvalFunction>);
 
 export default resultModule;

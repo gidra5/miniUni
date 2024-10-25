@@ -18,7 +18,7 @@ import { Environment } from '../environment.js';
 
 export const CreateTaskEffect = Symbol('CreateTaskEffect');
 
-const f = memoize(() => {
+const timeoutM = memoize(() => {
   const timeoutSourceFile = 'concurrency.timeout';
   const timeoutSource = `
     import "std/concurrency" as { some, wait }
@@ -37,6 +37,36 @@ const f = memoize(() => {
     env: new Environment({ parent: prelude }),
   };
   const timeout = compileScriptString(timeoutSource, compileContext)(context);
+  return timeout;
+});
+const cellM = memoize(() => {
+  const cellSourceFile = 'concurrency.cell';
+  const cellSource = `
+    fn value {
+      cell := channel "cell"
+      cell <- value
+      (
+        get: fn body {
+          value := <- cell
+          body value
+          cell <- value
+        },
+        update: fn action {
+          value := <- cell
+          cell <- action value
+        }
+      )
+    }
+  `;
+  const fileId = addFile(cellSourceFile, cellSource);
+  const compileContext = {
+    file: cellSourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const timeout = compileScriptString(cellSource, compileContext)(context);
   return timeout;
 });
 
@@ -173,8 +203,13 @@ export default module({
   },
   timeout: async (cs, ms) => {
     assert(typeof ms === 'number', 'expected number');
-    const _f = await f();
+    const _f = await timeoutM();
     assert(typeof _f === 'function');
     return _f(cs, ms);
+  },
+  cell: async (cs, v) => {
+    const _f = await cellM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
   },
 });

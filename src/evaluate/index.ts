@@ -44,6 +44,7 @@ import {
   isChannel,
   isEffect,
   isHandler,
+  isPrototyped,
   isRecord,
   isTask,
   onceEvent,
@@ -69,10 +70,10 @@ import {
 } from './patternMatching.js';
 import { prelude, preludeHandlers, ReturnHandler } from '../std/prelude.js';
 import { ModuleDefault } from '../module.js';
-import { listMethods } from '../std/list.js';
-import { stringMethods } from '../std/string.js';
+import { listPrototype } from '../std/list.js';
+import { stringPrototype } from '../std/string.js';
 import { CreateTaskEffect } from '../std/concurrency.js';
-import { isResult, resultMethods } from '../std/result.js';
+import { isResult, resultPrototype } from '../std/result.js';
 
 export type EvalContext = {
   env: Environment;
@@ -955,6 +956,91 @@ const lazyOperators = {
       indexPosition
     ).withFileId(context.fileId);
 
+    const indexTarget = async (
+      target: EvalValue,
+      index: EvalValue,
+      evalContext: EvalContext
+    ) => {
+      if (isPrototyped(target)) {
+        const targetValue = target.value;
+        // const targetIndexValue = await indexTarget(
+        //   targetValue,
+        //   index,
+        //   evalContext
+        // );
+        // if (targetIndexValue !== null) return targetIndexValue;
+
+        if (isRecord(targetValue) && recordHas(targetValue, index)) {
+          return recordGet(targetValue, index);
+        }
+
+        if (Array.isArray(target) && Number.isInteger(index)) {
+          return target[index as number] ?? null;
+        }
+
+        const prototypes = target.prototypes;
+
+        for (const prototype of prototypes) {
+          const method = await indexTarget(prototype, index, evalContext);
+          if (method === null) continue;
+
+          assert(typeof method === 'function', 'expected function');
+          return await method(
+            [indexPosition, evalContext, context],
+            targetValue
+          );
+        }
+
+        return null;
+      }
+
+      if (isResult(target)) {
+        return await indexTarget(
+          { prototypes: [resultPrototype], value: target },
+          index,
+          evalContext
+        );
+      }
+
+      // if (typeof target === 'string') {
+      //   return await indexTarget(
+      //     { prototypes: [stringPrototype], value: target },
+      //     index,
+      //     evalContext
+      //   );
+      // }
+
+      if (typeof target === 'string') {
+        // assert(recordHas(stringPrototype, index), invalidIndexError);
+        // const method = recordGet(stringPrototype, index);
+        // assert(typeof method === 'function', 'expected function');
+        // return await method([indexPosition, evalContext, context], target);
+        const method = await indexTarget(stringPrototype, index, evalContext);
+        if (method !== null) {
+          assert(typeof method === 'function', 'expected function');
+          return await method([indexPosition, evalContext, context], target);
+        }
+      }
+
+      if (Array.isArray(target) && !Number.isInteger(index)) {
+        return await indexTarget(
+          { prototypes: [listPrototype], value: target },
+          index,
+          evalContext
+        );
+      }
+
+      if (Array.isArray(target)) {
+        return target[index as number] ?? null;
+      }
+
+      if (isRecord(target)) {
+        return recordGet(target, index);
+      }
+
+      unreachable(invalidIndexTargetError);
+    };
+
     return async (evalContext) => {
       const target = await compiledTarget(evalContext);
       return await flatMapEffect(
@@ -966,49 +1052,8 @@ const lazyOperators = {
           return await flatMapEffect(
             index,
             evalContext,
-            async (index, evalContext) => {
-              if (
-                isResult(target) &&
-                typeof index === 'symbol' &&
-                index in resultMethods
-              ) {
-                return await resultMethods[index](
-                  [indexPosition, evalContext, context],
-                  target
-                );
-              }
-
-              if (Array.isArray(target)) {
-                if (!Number.isInteger(index)) {
-                  assert(
-                    typeof index === 'symbol' && index in listMethods,
-                    invalidIndexError
-                  );
-                  return await listMethods[index](
-                    [indexPosition, evalContext, context],
-                    target
-                  );
-                }
-                return target[index as number] ?? null;
-              } else if (isRecord(target)) {
-                const v = recordGet(target, index);
-                assert(v !== null, invalidIndexError);
-                return v;
-              }
-
-              if (typeof target === 'string') {
-                assert(
-                  typeof index === 'symbol' && index in stringMethods,
-                  invalidIndexError
-                );
-                return await stringMethods[index](
-                  [indexPosition, evalContext, context],
-                  target
-                );
-              }
-
-              unreachable(invalidIndexTargetError);
-            }
+            async (index, evalContext) =>
+              await indexTarget(target, index, evalContext)
           );
         }
       );

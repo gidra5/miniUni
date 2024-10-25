@@ -24,6 +24,7 @@ export type EvalEffect = {
 type EvalHandler = {
   handler: EvalFunction;
 };
+type EvalPrototype = { prototypes: EvalRecord[]; value: EvalValue };
 
 export type EvalValue =
   | number
@@ -37,6 +38,7 @@ export type EvalValue =
   | EvalChannel
   | EvalEvent
   | EvalEffect
+  | EvalPrototype
   | EvalHandler;
 
 type ChannelReceiver = {
@@ -100,6 +102,10 @@ export function isEffect(value: EvalValue): value is EvalEffect {
 
 export function isHandler(value: EvalValue): value is EvalHandler {
   return !!value && typeof value === 'object' && 'handler' in value;
+}
+
+export function isPrototyped(value: EvalValue): value is EvalPrototype {
+  return !!value && typeof value === 'object' && 'prototypes' in value;
 }
 
 const channels: Record<symbol, Channel> = {};

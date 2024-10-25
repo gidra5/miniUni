@@ -1,11 +1,11 @@
 import { SystemError } from '../error.js';
-import { atom, EvalFunction, fn } from '../values.js';
-import { assert } from '../utils.js';
+import { atom, createRecord, EvalFunction, EvalRecord, fn } from '../values.js';
+import { assert, inspect } from '../utils.js';
 import { module } from '../module.js';
 
 const stringModule = module({});
 
-export const stringMethods: Record<symbol, EvalFunction> = {
+export const stringPrototype: EvalRecord = createRecord({
   [atom('length')]: async (_, target) => {
     assert(typeof target === 'string');
     return target.length;
@@ -52,6 +52,7 @@ export const stringMethods: Record<symbol, EvalFunction> = {
     return target.charAt(index);
   }),
   [atom('slice')]: fn(2, ([position, _, context], item, args) => {
+    // inspect({ item, args });
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',
@@ -142,6 +143,6 @@ export const stringMethods: Record<symbol, EvalFunction> = {
     );
     return new RegExp(pattern).test(target);
   }),
-};
+} satisfies Record<symbol, EvalFunction>);
 
 export default stringModule;

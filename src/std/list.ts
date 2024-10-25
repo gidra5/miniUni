@@ -1,11 +1,11 @@
 import { SystemError } from '../error.js';
 import { assert } from '../utils.js';
 import { module } from '../module.js';
-import { atom, EvalFunction, EvalValue, fn } from '../values.js';
+import { atom, createRecord, EvalFunction, EvalValue, fn } from '../values.js';
 
 const listModule = module({});
 
-export const listMethods: Record<symbol, EvalFunction> = {
+export const listPrototype = createRecord({
   [atom('length')]: async (_, target) => {
     assert(Array.isArray(target));
     return target.length;
@@ -97,6 +97,6 @@ export const listMethods: Record<symbol, EvalFunction> = {
     }
     return filtered;
   }),
-};
+} satisfies Record<symbol, EvalFunction>);
 
 export default listModule;
