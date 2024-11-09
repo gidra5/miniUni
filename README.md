@@ -33,7 +33,13 @@ Or start REPL for interactive command-line usage:
 
 ## 🚀 Usage
 
-To write your first script create a `hello_world.uni` file and paste in:
+Install syntax highlighting for vscode:
+```
+code --install-extension ./miniuni-highlight/miniuni-highlight-0.0.1.vsix
+```
+
+And start writing your first script. 
+Create a `hello_world.uni` file and paste in:
 ```
 print "Hello world!"
 ```
@@ -59,6 +65,7 @@ And paste commands you wish to execute:
 Hello world!
 >> 
 ```
+
 
 ### 🖋️ Syntax
 

@@ -52,7 +52,6 @@ export const stringPrototype: EvalRecord = createRecord({
     return target.charAt(index);
   }),
   [atom('slice')]: fn(2, ([position, _, context], item, args) => {
-    // inspect({ item, args });
     const fileId = context.fileId;
     const sliceErrorFactory = SystemError.invalidArgumentType(
       'slice',

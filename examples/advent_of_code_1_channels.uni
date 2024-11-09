@@ -29,12 +29,11 @@ mut lines_done := false
 
 async loop {
   mut line, status := <-?lines
-      // print (line, status)
   if status == :closed {
     lines_done = true
-    break()
+    break ()
   }
-  if status == :empty do continue()
+  if status == :empty do continue ()
   line_count++
   
   async {
@@ -68,9 +67,8 @@ mut sum := 0
 
 while true {
   number, status := <-?numbers
-      //print (number, status)
-  if status == :closed do break()
-  if status == :empty do continue()
+  if status == :closed do break ()
+  if status == :empty do continue ()
   sum += number
 }
 

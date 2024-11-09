@@ -73,7 +73,7 @@ import { ModuleDefault } from '../module.js';
 import { listPrototype } from '../std/list.js';
 import { stringPrototype } from '../std/string.js';
 import { CreateTaskEffect } from '../std/concurrency.js';
-import { isResult, resultPrototype } from '../std/result.js';
+import { createOk, isResult, resultPrototype } from '../std/result.js';
 
 export type EvalContext = {
   env: Environment;
@@ -357,6 +357,7 @@ const operators = {
 };
 
 const MaskEffect = Symbol('effect mask');
+const FnTryEffect = Symbol('fn try');
 const lazyOperators = {
   [NodeType.IMPORT]: (ast, context) => {
     const name = ast.data.name;
@@ -994,32 +995,12 @@ const lazyOperators = {
         return null;
       }
 
-      if (isResult(target)) {
+      if (typeof target === 'string') {
         return await indexTarget(
-          { prototypes: [resultPrototype], value: target },
+          { prototypes: [stringPrototype], value: target },
           index,
           evalContext
         );
-      }
-
-      // if (typeof target === 'string') {
-      //   return await indexTarget(
-      //     { prototypes: [stringPrototype], value: target },
-      //     index,
-      //     evalContext
-      //   );
-      // }
-
-      if (typeof target === 'string') {
-        // assert(recordHas(stringPrototype, index), invalidIndexError);
-        // const method = recordGet(stringPrototype, index);
-        // assert(typeof method === 'function', 'expected function');
-        // return await method([indexPosition, evalContext, context], target);
-        const method = await indexTarget(stringPrototype, index, evalContext);
-        if (method !== null) {
-          assert(typeof method === 'function', 'expected function');
-          return await method([indexPosition, evalContext, context], target);
-        }
       }
 
       if (Array.isArray(target) && !Number.isInteger(index)) {
@@ -1267,9 +1248,17 @@ const lazyOperators = {
       const [_callback, value] = v;
       return value;
     };
+    const fnTryHandler: EvalFunction = async (cs, v) => {
+      assert(Array.isArray(v), 'expected value to be an array');
+      const [callback, value] = v;
+      assert(typeof callback === 'function', 'expected callback');
+      const result = await callback(cs, value);
+      return createOk(result);
+    };
     const returnAtom = atom('return');
     const handlers = createRecord({
       [returnAtom]: createHandler(returnHandler),
+      [FnTryEffect]: createHandler(fnTryHandler),
     });
     const selfAtom = atom('self');
     return async (evalContext) => {
@@ -1345,15 +1334,20 @@ const lazyOperators = {
     const okAtom = atom('ok');
     return async (context) => {
       const result = await compiled(context);
-      return await flatMapEffect(result, context, async (value, context) => {
-        if (isResult(value)) {
-          const [status, result] = value;
-          if (status === okAtom) return result;
+      return await flatMapEffect(result, context, async (result, context) => {
+        if (isResult(result)) {
+          const [status, value] = result.value;
+
+          if (status === okAtom) {
+            return createEffect(FnTryEffect, value, context.env);
+          }
+
           if (status === errorAtom) {
-            return createEffect(returnAtom, value, context.env);
+            return createEffect(returnAtom, result, context.env);
           }
         }
-        return value;
+
+        return createEffect(FnTryEffect, result, context.env);
       });
     };
   },

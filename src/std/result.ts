@@ -6,14 +6,34 @@ import {
   createEffect,
   createRecord,
   EvalFunction,
+  EvalPrototype,
   EvalRecord,
   EvalValue,
   fn,
+  isPrototyped,
+  prototyped,
 } from '../values.js';
 import { ThrowEffect } from './prelude.js';
 
-const resultModule = module({});
-export const isResult = (value: EvalValue): value is [symbol, EvalValue] =>
+export const createOk = (v: EvalValue) => {
+  const res = [atom('ok'), v];
+  return prototyped(res, [resultPrototype]);
+};
+export const createError = (e: EvalValue) => {
+  const res = [atom('error'), e];
+  return prototyped(res, [resultPrototype]);
+};
+
+const resultModule = module({
+  ok: async (cs, v) => createOk(v),
+  err: async (cs, e) => createError(e),
+});
+
+export const isResult = (
+  value: EvalValue
+): value is EvalPrototype & { value: [symbol, EvalValue] } =>
+  isPrototyped(value) && value.prototypes.includes(resultPrototype);
+const isResult2 = (value: EvalValue): value is [symbol, EvalValue] =>
   Array.isArray(value) &&
   value.length === 2 &&
   (value[0] === atom('ok') || value[0] === atom('error'));
@@ -33,12 +53,12 @@ export const resultPrototype: EvalRecord = createRecord({
       },
       pos
     );
-    assert(isResult(result), mapOkErrorFactory(0).withFileId(fileId));
+    assert(isResult2(result), mapOkErrorFactory(0).withFileId(fileId));
     assert(typeof fn === 'function', mapOkErrorFactory(1).withFileId(fileId));
 
     const [tag, value] = result;
-    if (tag === atom('ok')) return [tag, await fn(cs, value)];
-    else return result;
+    if (tag === atom('ok')) return createOk(await fn(cs, value));
+    else return createError(value);
   }),
   [atom('map_err')]: fn(2, async (cs, result, fn) => {
     const [pos, _, context] = cs;
@@ -54,12 +74,12 @@ export const resultPrototype: EvalRecord = createRecord({
       },
       pos
     );
-    assert(isResult(result), mapOkErrorFactory(0).withFileId(fileId));
+    assert(isResult2(result), mapOkErrorFactory(0).withFileId(fileId));
     assert(typeof fn === 'function', mapOkErrorFactory(1).withFileId(fileId));
 
     const [tag, value] = result;
-    if (tag === atom('error')) return [tag, await fn(cs, value)];
-    else return result;
+    if (tag === atom('error')) return createError(await fn(cs, value));
+    else return createOk(value);
   }),
   [atom('or')]: fn(2, async (cs, result, defaultValue) => {
     const [pos, _, context] = cs;
@@ -75,7 +95,7 @@ export const resultPrototype: EvalRecord = createRecord({
       },
       pos
     );
-    assert(isResult(result), mapOkErrorFactory(0).withFileId(fileId));
+    assert(isResult2(result), mapOkErrorFactory(0).withFileId(fileId));
 
     const [tag, value] = result;
     if (tag === atom('error')) return defaultValue;
@@ -95,7 +115,7 @@ export const resultPrototype: EvalRecord = createRecord({
       },
       pos
     );
-    assert(isResult(result), mapOkErrorFactory(0).withFileId(fileId));
+    assert(isResult2(result), mapOkErrorFactory(0).withFileId(fileId));
 
     const [tag, value] = result;
     if (tag === atom('error'))

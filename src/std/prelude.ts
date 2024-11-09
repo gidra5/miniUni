@@ -21,8 +21,10 @@ import {
   onceEvent,
   emitEvent,
   subscribeEvent,
+  prototyped,
 } from '../values.js';
 import { CreateTaskEffect } from './concurrency.js';
+import { createError, createOk, resultPrototype } from './result.js';
 
 export const ReturnHandler = Symbol('return_handler');
 export const IOEffect = Symbol('prelude io');
@@ -159,11 +161,11 @@ export const prelude: EvalContext['env'] = new Environment({
         [ThrowEffect]: createHandler(async (cs, value) => {
           assert(Array.isArray(value));
           const [_, thrown] = value;
-          return [atom('error'), thrown];
+          return createError(thrown);
         }),
         [ReturnHandler]: async (cs, value) => {
-          if (value instanceof Error) return [atom('error'), value];
-          return [atom('ok'), value];
+          if (value instanceof Error) return createError(value);
+          return createOk(value);
         },
       });
       assert(typeof fn === 'function');

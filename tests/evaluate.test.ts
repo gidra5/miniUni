@@ -30,6 +30,7 @@ import {
 } from '../src/environment.ts';
 import { IOEffect, ThrowEffect } from '../src/std/prelude.ts';
 import { sequence } from '../src/ast.ts';
+import { isResult } from '../src/std/result.ts';
 
 const ROOT_DIR = '/evaluate_tests';
 const evaluate = async (
@@ -1161,7 +1162,8 @@ describe('expressions', () => {
           try { f() }
         `;
         const result = await evaluate(input);
-        expect(result).toEqual([atom('error'), 123]);
+        assert(isResult(result));
+        expect(result.value).toEqual([atom('error'), 123]);
       });
 
       it('try', async () => {
@@ -1170,7 +1172,8 @@ describe('expressions', () => {
           try { f() }
         `;
         const result = await evaluate(input);
-        expect(result).toEqual([atom('ok'), 123]);
+        assert(isResult(result));
+        expect(result.value).toEqual([atom('ok'), 123]);
       });
 
       it('no try', async () => {
@@ -1189,7 +1192,7 @@ describe('expressions', () => {
           f := fn { try { 123 } }
           g := fn { x := f()?; x + 1 }
 
-          g()?
+          g().unwrap
         `;
         const result = await evaluate(input);
         expect(result).toBe(124);
@@ -1203,7 +1206,8 @@ describe('expressions', () => {
           g()
         `;
         const result = await evaluate(input);
-        expect(result).toStrictEqual([atom('error'), 123]);
+        assert(isResult(result));
+        expect(result.value).toStrictEqual([atom('error'), 123]);
       });
 
       it('unwrap ok result', async () => {
@@ -1234,10 +1238,11 @@ describe('expressions', () => {
         const input = `
           f := fn { throw 123 }
 
-          (try { f() }).map_err(err -> "wha", err)
+          try(f).map_err(err -> "wha", err)
         `;
         const result = await evaluate(input);
-        expect(result).toEqual([atom('error'), ['wha', 123]]);
+        assert(isResult(result));
+        expect(result.value).toEqual([atom('error'), ['wha', 123]]);
       });
     });
   });

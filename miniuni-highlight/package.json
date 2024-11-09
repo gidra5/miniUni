@@ -1,0 +1,40 @@
+{
+  "name": "miniuni-highlight",
+  "displayName": "miniUni highlight",
+  "description": "Syntax highlighting for miniUni language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "url": "git+https://github.com/gidra5/miniUni",
+    "type": "git",
+    "directory": "miniuni-highlight"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "miniuni",
+        "aliases": [
+          "miniUni",
+          "miniuni"
+        ],
+        "extensions": [
+          ".uni",
+          ".unim"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "miniuni",
+        "scopeName": "source.miniuni",
+        "path": "./syntaxes/miniuni.tmLanguage.json"
+      }
+    ]
+  }
+}

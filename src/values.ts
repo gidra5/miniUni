@@ -24,7 +24,7 @@ export type EvalEffect = {
 type EvalHandler = {
   handler: EvalFunction;
 };
-type EvalPrototype = { prototypes: EvalRecord[]; value: EvalValue };
+export type EvalPrototype = { prototypes: EvalRecord[]; value: EvalValue };
 
 export type EvalValue =
   | number
@@ -76,6 +76,13 @@ export const symbol = (): EvalSymbol => Symbol();
 export const atom = (name: string): EvalSymbol => {
   if (!atoms.has(name)) atoms.set(name, Symbol(name));
   return atoms.get(name)!;
+};
+
+export const prototyped = (
+  value: EvalValue,
+  prototypes: EvalRecord[]
+): EvalPrototype => {
+  return { value, prototypes };
 };
 
 export function isChannel(
