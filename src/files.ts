@@ -11,6 +11,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { inject, Injectable } from './injector.js';
 import { buffer, module, Module, script } from './module.js';
+import * as std from './std/index.js';
 
 const MODULE_FILE_EXTENSION = '.unim';
 const SCRIPT_FILE_EXTENSION = '.uni';
@@ -25,7 +26,13 @@ export const addFile = (fileName: string, source: string) => {
   return fileMap.getFileId(fileName);
 };
 
-export const modules = {} satisfies Dictionary;
+export const modules = {
+  'std/math': std.math,
+  'std/string': std.string,
+  'std/iter': std.iter,
+  'std/concurrency': std.concurrency,
+  'std/io': std.io,
+} satisfies Dictionary;
 
 export const getModule = async ({
   name,
@@ -36,12 +43,8 @@ export const getModule = async ({
   from?: string;
   resolvedPath?: string;
 }): Promise<Module> => {
-  if (name.startsWith('std')) {
-    const module = await import('./std/index.js');
-    const submodule = name.split('/')[1];
-    if (submodule in module) {
-      return module[submodule];
-    }
+  if (name.startsWith('std') && name in modules) {
+    return modules[name];
   }
   if (!resolvedPath) {
     resolvedPath = await resolvePath(name, from).catch((e) => {
