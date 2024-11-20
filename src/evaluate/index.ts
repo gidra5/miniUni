@@ -73,7 +73,7 @@ import { ModuleDefault } from '../module.js';
 import { listPrototype } from '../std/list.js';
 import { stringPrototype } from '../std/string.js';
 import { CreateTaskEffect } from '../std/concurrency.js';
-import { createOk, isResult, resultPrototype } from '../std/result.js';
+import { createOk, isResult } from '../std/result.js';
 
 export type EvalContext = {
   env: Environment;
@@ -83,6 +83,7 @@ export type CompileContext = {
   fileId: number;
 };
 export type Executable = (env: EvalContext) => Promise<EvalValue>;
+type Compiler = (ast: Tree, context: CompileContext) => Executable;
 
 export const forkContext = (context: EvalContext): EvalContext => {
   return { ...context, env: new Environment({ parent: context.env }) };
@@ -1351,10 +1352,7 @@ const lazyOperators = {
       });
     };
   },
-} satisfies Record<
-  PropertyKey,
-  (ast: Tree, context: CompileContext) => Executable
->;
+} satisfies Record<PropertyKey, Compiler>;
 
 const tupleOperators = {
   [NodeType.SPREAD]: (head, context) => {
@@ -1541,10 +1539,7 @@ const runEffectContinuations = async (
   return v;
 };
 
-export const compileStatement = (
-  ast: Tree,
-  context: CompileContext
-): Executable => {
+export const compileStatement: Compiler = (ast, context) => {
   if (ast.type in lazyOperators) {
     const opCompiler = lazyOperators[ast.type as keyof typeof lazyOperators];
     const compiled = opCompiler(ast, context);
@@ -1647,7 +1642,7 @@ export const compileStatement = (
   }
 };
 
-const compileBlock = (ast: Tree, context: CompileContext): Executable => {
+const compileBlock: Compiler = (ast, context) => {
   const compiled = compileStatement(ast, context);
   return async (context: EvalContext) => {
     const _context = forkContext(context);
@@ -1655,7 +1650,7 @@ const compileBlock = (ast: Tree, context: CompileContext): Executable => {
   };
 };
 
-export const compileExpr = (ast: Tree, context: CompileContext): Executable => {
+export const compileExpr: Compiler = (ast, context) => {
   const compiled = compileStatement(ast, context);
   const e = SystemError.evaluationError(
     'expected a value',
@@ -1672,10 +1667,7 @@ export const compileExpr = (ast: Tree, context: CompileContext): Executable => {
   };
 };
 
-export const compileScript = (
-  ast: Tree,
-  context: CompileContext
-): Executable => {
+export const compileScript: Compiler = (ast, context) => {
   assert(ast.type === NodeType.SCRIPT, 'expected script');
   const compiled = compileStatement(sequence(ast.children), context);
   return async (evalContext) => {

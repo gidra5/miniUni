@@ -165,16 +165,17 @@ type Context = Readonly<{
   lhs: boolean;
   allowPatternDefault: boolean;
   followSet: string[];
-  banned: string[];
+  groupFollowSet: string[];
   skip: string[];
 }>;
 
-const newContext = ({ banned = [] }: Partial<Context> = {}): Context => ({
+const newContext = (context: Partial<Context> = {}): Context => ({
   lhs: false,
   allowPatternDefault: false,
   followSet: [],
-  banned,
+  groupFollowSet: [],
   skip: [],
+  ...context,
 });
 
 type Parser<T = Tree> = (src: TokenPos[], i: number) => [index: number, ast: T];
@@ -285,7 +286,7 @@ const parseStatementForm =
     let inner: Tree;
     [index, inner] = parseInner({
       ...context,
-      banned: ['do', '->', '{'],
+      groupFollowSet: ['do', '->', '{'],
     })(src, index);
     const token = src[index]?.src;
 
@@ -548,7 +549,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       let _index = index;
       [index, body] = parseExpr({
         ...context,
-        banned: ['else'],
+        groupFollowSet: ['else'],
       })(src, index);
 
       if (src[index]?.src !== 'else') {
@@ -628,7 +629,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
-      banned: ['in'],
+      groupFollowSet: ['in'],
     })(src, index);
 
     if (src[index]?.src !== 'in') {
@@ -672,7 +673,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     [index, value] = parseExpr({
       ...context,
 
-      banned: ['{'],
+      groupFollowSet: ['{'],
     })(src, index);
     const cases: Tree[] = [];
     const node = () =>
@@ -696,14 +697,17 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         continue;
       }
       let pattern: Tree;
-      [index, pattern] = parsePattern({ ...context, banned: ['->'] })(
+      [index, pattern] = parsePattern({ ...context, groupFollowSet: ['->'] })(
         src,
         index
       );
       if (src[index]?.src === '->') index++;
       // else error missing ->
       let body: Tree;
-      [index, body] = parseExpr({ ...context, banned: ['}', ','] })(src, index);
+      [index, body] = parseExpr({ ...context, groupFollowSet: ['}', ','] })(
+        src,
+        index
+      );
       if (src[index]?.src === ',') index++;
 
       const node = _node(NodeType.MATCH_CASE, { children: [pattern, body] });
@@ -793,7 +797,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     if (
       src[nextIndex] &&
       !tokenIncludes(src[nextIndex], context.followSet) &&
-      !tokenIncludes(src[nextIndex], context.banned) &&
+      !tokenIncludes(src[nextIndex], context.groupFollowSet) &&
       pattern.type !== NodeType.ERROR &&
       Object.hasOwn(idToLhsPatternExprOp, src[nextIndex].src)
     ) {
@@ -1003,7 +1007,7 @@ const parsePrattGroup =
         groupParser,
         getPrecedence
       )(src, index + 1);
-    if (tokenIncludes(src[index], context.banned))
+    if (tokenIncludes(src[index], context.groupFollowSet))
       return [index, implicitPlaceholder(nodePosition())];
     if (tokenIncludes(src[index], context.followSet))
       return [index, implicitPlaceholder(nodePosition())];
@@ -1093,8 +1097,8 @@ const parsePratt =
       return (
         context.followSet.length === 0 ||
         !tokenIncludes(src[index], context.followSet) ||
-        context.banned.length === 0 ||
-        !tokenIncludes(src[index], context.banned)
+        context.groupFollowSet.length === 0 ||
+        !tokenIncludes(src[index], context.groupFollowSet)
       );
     };
 
@@ -1190,7 +1194,7 @@ export const parseScript = (src: TokenPos[]) => {
 
 type DeclarationNode = ImportNode | DeclarationPatternNode | ExportNode;
 const parseDeclaration: Parser<DeclarationNode> = (src, i) => {
-  const context = newContext({ banned: [';'] });
+  const context = newContext({ groupFollowSet: [';'] });
   return parseExpr(context)(src, i) as unknown as [
     index: number,
     ast: ImportNode | DeclarationPatternNode | ExportNode
