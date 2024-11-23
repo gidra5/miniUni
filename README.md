@@ -122,9 +122,9 @@ For a more complete set of examples and whats possible, check out the [examples]
 * Effect handlers 
   * `inject a: 1 { ... }` - injects value `1` as `a`
   * `inject [return_handler]: fn x { ... }` - handler to be called when no other effect is performed
-  * `mask "a" { ... }` - masks effect `a` (will forward handling to the next one)
-  * `without "a" { ... }` - forbids effect `a`
-  * `handle "a" x` - handles effect `a` with value `x`
+  * `mask :a { ... }` - masks effect `a` (will forward handling to the next one)
+  * `without :a { ... }` - forbids effect `a`
+  * `handle (:a) x` - handles effect `a` with value `x`
   * `handler fn (callback, value) { ... }` - creates a handler with explicit callback
 
 ## 🤝 Contribution
