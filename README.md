@@ -19,7 +19,7 @@ These are the principles that guided the design of miniUni:
 * 🔗 Keep design complete over the whole domain: make reasonable semantics for every possible feature input.
 
 ## ⚡ Quick Start
-Download single executable interpreter for your platform from [releases](https://github.com/gidra5/miniUni/releases). All commands expected to be executed from the location of the interpreter.
+Download single executable interpreter for your platform from [releases](https://github.com/gidra5/miniUni/releases). All commands expected to be executed from the location of the download.
 
 To run programs do the following:
 ```
@@ -35,7 +35,7 @@ Or start REPL for interactive command-line usage:
 
 Install syntax highlighting for vscode:
 ```
-code --install-extension ./miniuni-highlight/miniuni-highlight-0.0.1.vsix
+code --install-extension ./miniuni-highlight.vsix
 ```
 
 And start writing your first script. 
@@ -68,6 +68,8 @@ Hello world!
 
 
 ### 🖋️ Syntax
+
+![highlighting](miniuni-highlight/image.png)
 
 Syntax is a mix of functional and C-like syntax, so if you are coming from one of such languages (rust, haskell, js, elixir) it may look familiar to you
 For a more complete set of examples and whats possible, check out the [examples](https://github.com/gidra5/miniUni/tree/master/examples) and [tests suites](https://github.com/gidra5/miniUni/tree/master/tests), but here is an overview of the syntax:
