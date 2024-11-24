@@ -165,7 +165,6 @@ type Context = Readonly<{
   lhs: boolean;
   allowPatternDefault: boolean;
   followSet: string[];
-  groupFollowSet: string[];
   skip: string[];
 }>;
 
@@ -173,7 +172,6 @@ const newContext = (context: Partial<Context> = {}): Context => ({
   lhs: false,
   allowPatternDefault: false,
   followSet: [],
-  groupFollowSet: [],
   skip: [],
   ...context,
 });
@@ -286,7 +284,7 @@ const parseStatementForm =
     let inner: Tree;
     [index, inner] = parseInner({
       ...context,
-      groupFollowSet: ['do', '->', '{'],
+      followSet: ['do', '->', '{'],
     })(src, index);
     const token = src[index]?.src;
 
@@ -549,7 +547,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       let _index = index;
       [index, body] = parseExpr({
         ...context,
-        groupFollowSet: ['else'],
+        followSet: ['else'],
       })(src, index);
 
       if (src[index]?.src !== 'else') {
@@ -629,7 +627,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
-      groupFollowSet: ['in'],
+      followSet: ['in'],
     })(src, index);
 
     if (src[index]?.src !== 'in') {
@@ -673,7 +671,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     [index, value] = parseExpr({
       ...context,
 
-      groupFollowSet: ['{'],
+      followSet: ['{'],
     })(src, index);
     const cases: Tree[] = [];
     const node = () =>
@@ -697,14 +695,14 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         continue;
       }
       let pattern: Tree;
-      [index, pattern] = parsePattern({ ...context, groupFollowSet: ['->'] })(
+      [index, pattern] = parsePattern({ ...context, followSet: ['->'] })(
         src,
         index
       );
       if (src[index]?.src === '->') index++;
       // else error missing ->
       let body: Tree;
-      [index, body] = parseExpr({ ...context, groupFollowSet: ['}', ','] })(
+      [index, body] = parseExpr({ ...context, followSet: ['}', ','] })(
         src,
         index
       );
@@ -797,7 +795,6 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     if (
       src[nextIndex] &&
       !tokenIncludes(src[nextIndex], context.followSet) &&
-      !tokenIncludes(src[nextIndex], context.groupFollowSet) &&
       pattern.type !== NodeType.ERROR &&
       Object.hasOwn(idToLhsPatternExprOp, src[nextIndex].src)
     ) {
@@ -1007,8 +1004,6 @@ const parsePrattGroup =
         groupParser,
         getPrecedence
       )(src, index + 1);
-    if (tokenIncludes(src[index], context.groupFollowSet))
-      return [index, implicitPlaceholder(nodePosition())];
     if (tokenIncludes(src[index], context.followSet))
       return [index, implicitPlaceholder(nodePosition())];
 
@@ -1096,9 +1091,7 @@ const parsePratt =
     const until = () => {
       return (
         context.followSet.length === 0 ||
-        !tokenIncludes(src[index], context.followSet) ||
-        context.groupFollowSet.length === 0 ||
-        !tokenIncludes(src[index], context.groupFollowSet)
+        !tokenIncludes(src[index], context.followSet)
       );
     };
 
@@ -1194,7 +1187,7 @@ export const parseScript = (src: TokenPos[]) => {
 
 type DeclarationNode = ImportNode | DeclarationPatternNode | ExportNode;
 const parseDeclaration: Parser<DeclarationNode> = (src, i) => {
-  const context = newContext({ groupFollowSet: [';'] });
+  const context = newContext({ followSet: [';'] });
   return parseExpr(context)(src, i) as unknown as [
     index: number,
     ast: ImportNode | DeclarationPatternNode | ExportNode
