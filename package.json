@@ -10,9 +10,10 @@
     "build": "tsc || exit 0",
     "start": "npm run build && node ./dist/index.js",
     "watch": "vitest --ui",
-    "compile": "bun run compile-win && bun run compile-linux",
+    "compile": "bun run compile-win && bun run compile-linux && bun run compile-highlight",
     "compile-win": "bun build ./src/index.ts --compile --minify --target=bun-windows-x64 --sourcemap --outfile ./dist/miniUni.exe",
-    "compile-linux": "bun build ./src/index.ts --compile --minify --sourcemap --outfile ./dist/miniUni"
+    "compile-linux": "bun build ./src/index.ts --compile --minify --sourcemap --outfile ./dist/miniUni",
+    "compile-highlight": "cd miniuni-highlight && npx @vscode/vsce package && mv miniuni-highlight-0.0.1.vsix ../dist/miniuni-highlight.vsix"
   },
   "author": "",
   "license": "ISC",
