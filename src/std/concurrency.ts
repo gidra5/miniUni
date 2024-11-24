@@ -46,7 +46,12 @@ const cellM = memoize(() => {
       cell := channel "cell"
       cell <- value
       (
-        get: fn body {
+        get: fn {
+          value := <- cell
+          cell <- value
+          value
+        },
+        read: fn body {
           value := <- cell
           body value
           cell <- value
@@ -68,6 +73,277 @@ const cellM = memoize(() => {
   };
   const timeout = compileScriptString(cellSource, compileContext)(context);
   return timeout;
+});
+const eventM = memoize(() => {
+  const sourceFile = 'concurrency.event';
+  const source = `
+    fn name {
+      events := channel name
+      mut subscribed := ()
+
+      async event::loop {
+        value := {
+          value, status := <-? events
+          if status == :closed do event.break ()
+          if status == :empty do <- events
+          else value
+        }
+        for listener in subscribed do listener value
+      }
+
+      subscribe := fn listener {
+        subscribed = (...subscribed, listener)
+
+        fn { subscribed = subscribed.filter(sub -> sub != listener) }
+      }
+
+      (
+        subscribe: subscribe,
+        once: fn listener {
+          unsub := subscribe fn value {
+            listener value
+            unsub()
+          }
+        },
+        emit: fn value do async { events <- value },
+        close: fn do close events,
+        status: fn { _, status := <-? events; status },
+      )
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
+const taskM = memoize(() => {
+  const sourceFile = 'concurrency.task';
+  const source = `
+    event := fn name {
+      events := channel name
+      mut subscribed := ()
+
+      async event::loop {
+        value := {
+          value, status := <-? events
+          if status == :closed do event.break ()
+          if status == :empty do <- events
+          else value
+        }
+        for listener in subscribed do listener value
+      }
+
+      subscribe := fn listener {
+        subscribed = (...subscribed, listener)
+
+        fn { subscribed = subscribed.filter(sub -> sub != listener) }
+      }
+
+      (
+        subscribe: subscribe,
+        once: fn listener {
+          unsub := subscribe fn value {
+            listener value
+            unsub()
+          }
+        },
+        emit: fn value { events <- value },
+        close: fn do close events
+      )
+    }
+
+    fn f {
+      cancelEvent := event "cancel"
+      cancel := cancelEvent.emit
+      cell := channel "cell"
+
+      cancelEvent.once fn {
+        close cell
+        cancelEvent.close()
+      }
+
+      async {
+        switch try { f() } {
+          :ok, v -> cell <- v,
+          :error, _ -> cancel()
+        }
+      }
+
+      (
+        status: fn {
+          _, status := <-? cell
+          status
+        },
+        await: fn {
+          v, status := <-? cell
+          if status == :closed do throw "task cancelled" 
+          cell <- v
+          v
+        },
+        cancel: cancel,
+        onCancel: cancelEvent.subscribe
+      )
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
+const signalM = memoize(() => {
+  const sourceFile = 'concurrency.signal';
+  const source = `
+    fn name {
+      events := channel name
+      mut subscribed := ()
+
+      async event::loop {
+        value := {
+          value, status := <-? events
+          if status == :closed do event.break ()
+          if status == :empty do <- events
+          else value
+        }
+        for listener in subscribed do listener value
+      }
+
+      subscribe := fn listener {
+        subscribed = (...subscribed, listener)
+
+        fn { subscribed = subscribed.filter(sub -> sub != listener) }
+      }
+
+      (
+        subscribe: subscribe,
+        once: fn listener {
+          unsub := subscribe fn value {
+            listener value
+            unsub()
+          }
+        },
+        emit: fn value do async { events <- value },
+        close: fn do close events,
+        status: fn { _, status := <-? events; status },
+      )
+    }
+
+    fn v {
+      signal_cell := cell v
+      signal_event := event "signal"
+
+      (
+        get: fn {
+          handle (:signal_get) () signal_event.subscribe
+          signal_cell.get
+        },
+        set: fn value {
+          signal_cell.update fn do value
+          signal_event.emit value
+        },
+      )
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
+const signalDerivedM = memoize(() => {
+  const sourceFile = 'concurrency.signal.derived';
+  const source = `
+    fn f {
+      handler := fn subscribe {
+        subscribe ->
+        handle signal_get: fn {} ->
+        next := f()
+        if s.get() != next do s.set next
+      }
+      
+      s := signal handle signal_get: handler { f() }
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
+const coroutineM = memoize(() => {
+  const sourceFile = 'concurrency.coroutine';
+  const source = `
+    fn f {
+      coroutine_channel := channel "coroutine"
+      next := fn value { 
+        coroutine_channel <- value
+        <- coroutine_channel
+      }
+
+      async handle coroutine_yield: next {
+        f()
+      }
+
+      (
+        next: next,
+        close: fn do close stream
+      )
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
+const genM = memoize(() => {
+  const sourceFile = 'concurrency.gen';
+  const source = `
+    fn gen {
+      coroutine := coroutine gen
+
+      (
+        next: fn do coroutine.next(),
+        close: coroutine.close
+      )
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
 });
 
 export default module({
@@ -207,8 +483,39 @@ export default module({
     assert(typeof _f === 'function');
     return _f(cs, ms);
   },
+
   cell: async (cs, v) => {
     const _f = await cellM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  event: async (cs, v) => {
+    const _f = await eventM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  task: async (cs, v) => {
+    const _f = await taskM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  signal: async (cs, v) => {
+    const _f = await signalM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  signal_derived: async (cs, v) => {
+    const _f = await signalDerivedM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  coroutine: async (cs, v) => {
+    const _f = await coroutineM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  gen: async (cs, v) => {
+    const _f = await genM();
     assert(typeof _f === 'function');
     return _f(cs, v);
   },
