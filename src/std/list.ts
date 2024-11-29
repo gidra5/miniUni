@@ -109,7 +109,7 @@ export const listPrototype = createRecord({
       pos
     );
     assert(Array.isArray(list), filterErrorFactory(0).withFileId(fileId));
-    return list[Math.random() * list.length];
+    return list[Math.floor(Math.random() * list.length)];
   }),
   [atom('find')]: fn(2, async (cs, list, fn) => {
     const [pos, _, context] = cs;
@@ -129,7 +129,7 @@ export const listPrototype = createRecord({
     assert(typeof fn === 'function', filterErrorFactory(1).withFileId(fileId));
     for (const item of list) {
       const x = await fn(cs, item);
-      if (x) return x;
+      if (x) return item;
     }
     return null;
   }),

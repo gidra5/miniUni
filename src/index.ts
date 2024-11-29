@@ -19,6 +19,7 @@ program
     console.dir(result, { depth: null });
 
     console.log('Exiting interpreter');
+    process.exit();
   });
 
 program

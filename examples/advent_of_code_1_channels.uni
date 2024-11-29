@@ -16,7 +16,7 @@ lines := channel "lines"
 async {
   for mut line in document.split("\n") {
     line = line.replace "\\s+" ""
-    if line != "" do lines <- line
+    if line != "" do lines ?<- line
   }
 
   close lines
@@ -44,7 +44,7 @@ async loop {
       if line.char_at(0).match("\\d") {
         digit := number(line.char_at(0))
         if !first_digit {
-          numbers <- digit * 10
+          numbers ?<- digit * 10
           first_digit = true
         }
         last_digit = digit
@@ -53,7 +53,7 @@ async loop {
       line = line.slice(1,)
     }
 
-    numbers <- last_digit
+    numbers ?<- last_digit
     line_handled_count.update fn c do c + 1
     line_handled_count.read fn line_handled_count ->
 
@@ -61,7 +61,7 @@ async loop {
       close numbers
     }
   }
-};
+}
 
 mut sum := 0
 

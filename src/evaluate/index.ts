@@ -1065,46 +1065,6 @@ const lazyOperators = {
       context
     );
   },
-  [NodeType.SEND]: (ast, context) => {
-    const [chanAst, valueAst] = ast.children;
-    const compiledExpr = compileExpr(chanAst, context);
-    const compiledValue = compileExpr(valueAst, context);
-    const invalidSendChannelError = SystemError.invalidSendChannel(
-      getPosition(chanAst)
-    ).withFileId(context.fileId);
-    const channelClosedError = SystemError.channelClosed(
-      getPosition(chanAst)
-    ).withFileId(context.fileId);
-
-    return async (context) => {
-      const channelValue = await compiledExpr(context);
-      return await flatMapEffect(
-        channelValue,
-        context,
-        async (channelValue, context) => {
-          assert(isChannel(channelValue), invalidSendChannelError);
-
-          const channel = getChannel(channelValue);
-          assert(channel, channelClosedError);
-
-          const value = await compiledValue(context);
-
-          return await flatMapEffect(value, context, async (value, context) => {
-            const promise = channel.onReceive.shift();
-            if (!promise) {
-              channel.queue.push(value);
-              return null;
-            }
-            const { resolve, reject } = promise;
-            if (value instanceof Error) reject(value);
-            else resolve(value);
-
-            return null;
-          });
-        }
-      );
-    };
-  },
   [NodeType.CODE_LABEL]: (ast, context) => {
     const compiledExpr = compileStatement(ast.children[0], context);
     const exprPosition = getPosition(ast.children[0]);
@@ -1149,6 +1109,39 @@ const lazyOperators = {
     };
     return compiled;
   },
+  [NodeType.SEND]: (ast, context) => {
+    const [chanAst, valueAst] = ast.children;
+    const compiledExpr = compileExpr(chanAst, context);
+    const compiledValue = compileExpr(valueAst, context);
+    const invalidSendChannelError = SystemError.invalidSendChannel(
+      getPosition(chanAst)
+    ).withFileId(context.fileId);
+    const channelClosedError = SystemError.channelClosed(
+      getPosition(chanAst)
+    ).withFileId(context.fileId);
+
+    return async (context) => {
+      const channelValue = await compiledExpr(context);
+      return await flatMapEffect(
+        channelValue,
+        context,
+        async (channelValue, context) => {
+          assert(isChannel(channelValue), invalidSendChannelError);
+
+          const channel = getChannel(channelValue);
+          assert(channel, channelClosedError);
+
+          const value = await compiledValue(context);
+
+          return await flatMapEffect(value, context, async (value, context) => {
+            const [_status, received] = send(channelValue, value);
+            await received;
+            return null;
+          });
+        }
+      );
+    };
+  },
   [NodeType.RECEIVE]: (ast, context) => {
     const compiledExpr = compileExpr(ast.children[0], context);
     const invalidReceiveChannelError = SystemError.invalidReceiveChannel(
@@ -1189,7 +1182,7 @@ const lazyOperators = {
 
           const value = await compiledValue(context);
           return await flatMapEffect(value, context, async (value, context) => {
-            const status = send(channelValue, value);
+            const [status] = send(channelValue, value);
             return atom(status);
           });
         }
@@ -1808,9 +1801,15 @@ const compileEntryFile = (file: string) => {
         'default export from runnable module must be a function'
       );
       const fileId = inject(Injectable.FileMap).getFileId(file);
-      const value = await main(
-        [{ start: 0, end: 0 }, newContext(), newCompileContext(fileId, file)],
-        argv
+      const evalContext = { env: prelude };
+      const context = newCompileContext(fileId, file);
+      const position = { start: 0, end: 0 };
+      const value = await handleEffects(
+        preludeHandlers,
+        await main([position, evalContext, context], argv),
+        position,
+        evalContext,
+        context
       );
       return value;
     }

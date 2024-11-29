@@ -44,21 +44,21 @@ const cellM = memoize(() => {
   const cellSource = `
     fn value {
       cell := channel "cell"
-      cell <- value
+      cell ?<- value
       (
         get: fn {
           value := <- cell
-          cell <- value
+          cell ?<- value
           value
         },
         read: fn body {
           value := <- cell
           body value
-          cell <- value
+          cell ?<- value
         },
         update: fn action {
           value := <- cell
-          cell <- action value
+          cell ?<- action value
         }
       )
     }
@@ -396,6 +396,43 @@ export default module({
     return null;
   },
   creating_task: CreateTaskEffect,
+  sync: async (cs, fn) => {
+    const [position, _, context] = cs;
+    const fileId = context.fileId;
+    const cancelOnErrorErrorFactory = SystemError.invalidArgumentType(
+      'cancel_on_error',
+      {
+        args: [['scope', '() -> a']],
+        returns: 'a',
+      },
+      position
+    );
+    assert(
+      typeof fn === 'function',
+      cancelOnErrorErrorFactory(0).withFileId(fileId)
+    );
+    const childrenTasks: EvalTask[] = [];
+
+    const handlers = createRecord({
+      [CreateTaskEffect]: createHandler(async (cs, value) => {
+        assert(Array.isArray(value), 'expected value to be an array');
+        const [callback, taskFn] = value;
+        assert(typeof taskFn === 'function', 'expected function');
+        const _task = createTask(cs, async () => await taskFn(cs, null));
+        childrenTasks.push(_task);
+
+        assert(typeof callback === 'function', 'expected callback');
+        const result = await callback(cs, _task);
+        return result;
+      }),
+    });
+    const value = await fn(cs, null);
+
+    const handled = await handleEffects(handlers, value, cs[0], cs[1], cs[2]);
+
+    await Promise.all(childrenTasks.map((task) => awaitTask(task)));
+    return handled;
+  },
   cancel_on_error: async (cs, fn) => {
     const [position, _, context] = cs;
     const fileId = context.fileId;

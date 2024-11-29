@@ -284,7 +284,7 @@ const parseStatementForm =
     let inner: Tree;
     [index, inner] = parseInner({
       ...context,
-      followSet: ['do', '->', '{'],
+      followSet: [...context.followSet, 'do', '->', '{'],
     })(src, index);
     const token = src[index]?.src;
 
@@ -547,7 +547,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
       let _index = index;
       [index, body] = parseExpr({
         ...context,
-        followSet: ['else'],
+        followSet: [...context.followSet, 'else'],
       })(src, index);
 
       if (src[index]?.src !== 'else') {
@@ -627,7 +627,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let pattern: Tree;
     [index, pattern] = parsePattern({
       ...context,
-      followSet: ['in'],
+      followSet: [...context.followSet, 'in'],
     })(src, index);
 
     if (src[index]?.src !== 'in') {
@@ -670,8 +670,7 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
     let value: Tree;
     [index, value] = parseExpr({
       ...context,
-
-      followSet: ['{'],
+      followSet: [...context.followSet, '{'],
     })(src, index);
     const cases: Tree[] = [];
     const node = () =>
@@ -695,17 +694,17 @@ const parseExprGroup: ContextParser = (context) => (src, i) => {
         continue;
       }
       let pattern: Tree;
-      [index, pattern] = parsePattern({ ...context, followSet: ['->'] })(
-        src,
-        index
-      );
+      [index, pattern] = parsePattern({
+        ...context,
+        followSet: [...context.followSet, '->'],
+      })(src, index);
       if (src[index]?.src === '->') index++;
       // else error missing ->
       let body: Tree;
-      [index, body] = parseExpr({ ...context, followSet: ['}', ','] })(
-        src,
-        index
-      );
+      [index, body] = parseExpr({
+        ...context,
+        followSet: [...context.followSet, ','],
+      })(src, index);
       if (src[index]?.src === ',') index++;
 
       const node = _node(NodeType.MATCH_CASE, { children: [pattern, body] });

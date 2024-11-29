@@ -47,7 +47,7 @@ type ChannelReceiver = {
 };
 type Channel = {
   closed?: boolean;
-  queue: (EvalValue | Error)[];
+  queue: { resolve: () => void; value: EvalValue | Error }[];
   onReceive: Array<ChannelReceiver>;
 };
 export enum ChannelStatus {
@@ -123,12 +123,15 @@ const channelStatus = (c: symbol): ChannelStatus => {
 
   while (channel.onReceive.length > 0 && channel.queue.length > 0) {
     const receiver = channel.onReceive.shift()!;
-    const value = channel.queue.shift()!;
+    const { value, resolve: cb } = channel.queue.shift()!;
+
     if (value instanceof Error) {
       receiver.reject(value);
     } else {
       receiver.resolve(value);
     }
+
+    cb();
   }
 
   if (channel.queue.length > 0) return ChannelStatus.Pending;
@@ -158,7 +161,10 @@ export const getChannel = (c: symbol) => {
   return channels[c];
 };
 
-export const send = (c: symbol, value: EvalValue | Error): ChannelStatus => {
+export const send = (
+  c: symbol,
+  value: EvalValue | Error
+): [ChannelStatus, Promise<void>] => {
   const status = channelStatus(c);
 
   if (status === ChannelStatus.Queued) {
@@ -168,12 +174,14 @@ export const send = (c: symbol, value: EvalValue | Error): ChannelStatus => {
   }
 
   if (status !== ChannelStatus.Closed) {
-    channels[c].queue.push(value);
-  } else {
-    throw new Error('channel closed');
+    const p = new Promise<void>((resolve) => {
+      channels[c].queue.push({ resolve: resolve, value });
+    });
+
+    return [status, p];
   }
 
-  return status;
+  throw new Error('channel closed');
 };
 
 export const receive = async (c: symbol): Promise<EvalValue> => {
@@ -193,7 +201,8 @@ export const tryReceive = (c: symbol): [EvalValue | Error, ChannelStatus] => {
   const status = channelStatus(c);
 
   if (status === ChannelStatus.Pending) {
-    const value = channels[c].queue.shift()!;
+    const { value, resolve } = channels[c].queue.shift()!;
+    resolve();
     return [value, status];
   }
 

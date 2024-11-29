@@ -50,6 +50,11 @@ const examples = [
     expected: 142,
   },
   // {
+  //   name: 'network example',
+  //   file: '/network.unim',
+  //   expected: 142,
+  // },
+  // {
   //   name: 'actors',
   //   file: '/actor',
   //   expected: 142,
