@@ -16,6 +16,7 @@ import {
   block,
   tuple,
   implicitPlaceholder,
+  number,
 } from '../ast.js';
 import { parseTokens } from '../tokens.js';
 import {
@@ -641,7 +642,75 @@ const lazyOperators = {
       });
     };
   },
+  [NodeType.FOR]: (ast, context) => {
+    /* 
+      mut iter := expr
+      mut mapped := ()
+      while iter.length != 0 {
+        (pattern, ...rest) := iter
+        if body is value do mapped = (...mapped, value)
+        iter = rest
+      }
+    */
+
+    const declare = (pattern: Tree, expr: Tree, position: Position) =>
+      node(NodeType.DECLARE, {
+        children: [pattern, expr],
+        position,
+      });
+    const declareMut = (name: Tree, expr: Tree, position: Position) =>
+      declare(
+        node(NodeType.MUTABLE, { children: [name], position }),
+        expr,
+        position
+      );
+    const assign = (name: Tree, expr: Tree) =>
+      node(NodeType.ASSIGN, { children: [name, expr] });
+    const whileAST = (cond: Tree, body: Tree) =>
+      node(NodeType.WHILE, { children: [cond, body] });
+    const notEq = (lhs: Tree, rhs: Tree) =>
+      node(NodeType.NOT_EQUAL, { children: [lhs, rhs] });
+    const index = (lhs: Tree, rhs: Tree) =>
+      node(NodeType.INDEX, { children: [lhs, rhs] });
+    const atomAST = (name: string, position: Position) =>
+      node(NodeType.ATOM, { data: { name }, position });
+    const spread = (pattern: Tree) =>
+      node(NodeType.SPREAD, { children: [pattern] });
+    const ifAST = (cond: Tree, body: Tree) =>
+      node(NodeType.IF, { children: [cond, body] });
+
+    const [pattern, expr, body] = ast.children;
+    const pos = getPosition(body);
+    const iterName = nameAST('iter', pos);
+    const mappedName = nameAST('mapped', pos);
+    const restName = nameAST('rest', pos);
+    const valueName = nameAST('value', pos);
+    const declareIter = declareMut(iterName, expr, pos);
+    const declareMapped = declareMut(mappedName, tupleAST([]), pos);
+    const loopBody = sequence([
+      declare(tupleAST([pattern, spread(restName)]), iterName, pos),
+      ifAST(
+        node(NodeType.IS, { children: [body, valueName] }),
+        assign(mappedName, tupleAST([spread(mappedName), valueName]))
+      ),
+      assign(iterName, restName),
+    ]);
+    const loopIter = whileAST(
+      notEq(index(iterName, atomAST('length', pos)), number(0, pos)),
+      loopBody
+    );
+    return compileExpr(
+      block(sequence([declareIter, declareMapped, loopIter, mappedName])),
+      context
+    );
+  },
   [NodeType.WHILE]: (ast, context) => {
+    /* 
+      loop {
+        if condition do body 
+        else break()
+      }
+    */
     const [condition, body] = ast.children;
     const _break = application(
       nameAST('break', getPosition(condition)),
@@ -650,73 +719,14 @@ const lazyOperators = {
     const _node = loop(ifElse(condition, body, _break));
     return compileStatement(_node, context);
   },
-  [NodeType.FOR]: (ast, context) => {
-    const [pattern, expr, body] = ast.children;
-    const compiledExpr = compileExpr(expr, context);
-    const compiledBody = compileStatement(body, context);
-    const compiledPattern = compilePattern(pattern, context);
-    const bodyPosition = getPosition(body);
-    const listError = SystemError.evaluationError(
-      'for loop iterates over lists only.',
-      [],
-      getPosition(expr)
-    );
-    const breakHandler: EvalFunction = async (cs, v) => {
-      assert(Array.isArray(v), 'expected value to be an array');
-      const [_callback, value] = v;
-      return ['break', value];
-    };
-    const continueHandler: EvalFunction = async (cs, v) => {
-      assert(Array.isArray(v), 'expected value to be an array');
-      const [_callback, value] = v;
-      return ['continue', value];
-    };
-    const continueAtom = atom('continue');
-    const breakAtom = atom('break');
-    const handlers = createRecord({
-      [continueAtom]: createHandler(continueHandler),
-      [breakAtom]: createHandler(breakHandler),
-      [ReturnHandler]: async (cs, v) => ['continue', v],
-    });
-    return async (evalContext) => {
-      const list = await compiledExpr(evalContext);
-      return await flatMapEffect(
-        list,
-        evalContext,
-        async (list, evalContext) => {
-          assert(Array.isArray(list), listError);
-
-          const mapped: EvalValue[] = [];
-          for (const item of list) {
-            const result = await compiledPattern(item, evalContext);
-            assert(result.matched, 'expected pattern to match');
-            const bound = bindContext(result.envs, evalContext);
-            const value = await handleEffects(
-              handlers,
-              await compiledBody(bound),
-              bodyPosition,
-              bound,
-              context
-            );
-            assert(Array.isArray(value), 'expected value to be an array');
-            const [status, _value] = value;
-
-            if (status === 'break') {
-              if (_value !== null) mapped.push(_value);
-              break;
-            }
-            if (status === 'continue') {
-              if (_value !== null) mapped.push(_value);
-              continue;
-            }
-          }
-
-          return mapped;
-        }
-      );
-    };
-  },
   [NodeType.LOOP]: (ast, context) => {
+    /* 
+      {
+        body
+        continue()
+      }
+    */
+
     let [body] = ast.children;
     if (body.type === NodeType.BLOCK) {
       body = body.children[0];

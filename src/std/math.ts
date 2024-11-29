@@ -24,4 +24,7 @@ export default module({
     assert(typeof n === 'number', sqrtErrorFactory(0).withFileId(fileId));
     return Math.sqrt(n);
   }),
+  random: fn(1, () => {
+    return Math.random();
+  }),
 });

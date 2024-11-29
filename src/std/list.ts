@@ -97,6 +97,42 @@ export const listPrototype = createRecord({
     }
     return filtered;
   }),
+  [atom('pick_random')]: fn(2, async (cs, list) => {
+    const [pos, _, context] = cs;
+    const fileId = context.fileId;
+    const filterErrorFactory = SystemError.invalidArgumentType(
+      'filter',
+      {
+        args: [['list', 'list a']],
+        returns: 'a',
+      },
+      pos
+    );
+    assert(Array.isArray(list), filterErrorFactory(0).withFileId(fileId));
+    return list[Math.random() * list.length];
+  }),
+  [atom('find')]: fn(2, async (cs, list, fn) => {
+    const [pos, _, context] = cs;
+    const fileId = context.fileId;
+    const filterErrorFactory = SystemError.invalidArgumentType(
+      'filter',
+      {
+        args: [
+          ['list', 'list a'],
+          ['fn', 'a -> boolean'],
+        ],
+        returns: 'a',
+      },
+      pos
+    );
+    assert(Array.isArray(list), filterErrorFactory(0).withFileId(fileId));
+    assert(typeof fn === 'function', filterErrorFactory(1).withFileId(fileId));
+    for (const item of list) {
+      const x = await fn(cs, item);
+      if (x) return x;
+    }
+    return null;
+  }),
 } satisfies Record<symbol, EvalFunction>);
 
 export default listModule;

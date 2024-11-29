@@ -11,7 +11,7 @@
     { "name": "punctuation.accessor.miniuni", "match": "\\." },
     {
       "name": "keyword.control.miniuni",
-      "match": "\\b(if|while|for|loop|else|do|import|export|as|in|is|fn|inject|without|mask|await|async)\\b"
+      "match": "\\b(if|while|for|loop|else|do|switch|import|export|as|in|is|fn|inject|without|mask|await|async)\\b"
     },
     { "match": "\\b(true|false)\\b", "name": "constant.language.miniuni" },
     {
