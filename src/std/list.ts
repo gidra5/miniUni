@@ -133,6 +133,28 @@ export const listPrototype = createRecord({
     }
     return null;
   }),
+  [atom('push')]: fn(2, async (cs, list, item) => {
+    const [pos, _, context] = cs;
+    const fileId = context.fileId;
+    const filterErrorFactory = SystemError.invalidArgumentType(
+      'filter',
+      {
+        args: [
+          ['list', 'list a'],
+          ['item', 'a'],
+        ],
+        returns: 'list a',
+      },
+      pos
+    );
+    assert(Array.isArray(list), filterErrorFactory(0).withFileId(fileId));
+    assert(
+      typeof item !== 'undefined',
+      filterErrorFactory(1).withFileId(fileId)
+    );
+    list.push(item);
+    return list;
+  }),
 } satisfies Record<symbol, EvalFunction>);
 
 export default listModule;

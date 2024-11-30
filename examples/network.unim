@@ -2,9 +2,12 @@ import "std/iter" as { range }
 import "std/concurrency" as { wait, sync, all, pipe }
 import "std/math" as { random }
 
-
+get_processing_latency := fn  { handle (:processing_latency) () }
+get_routing_latency := fn  { handle (:routing_latency) () }
 create_packet := fn (id, target_id, msg) { id: id, target_id: target_id, msg: msg }
 create_router := fn id, connections {
+  routing_latency := get_routing_latency()
+  processing_latency := get_processing_latency()
   chan := channel("router " + string id)
 
     // handle incoming packets
@@ -12,14 +15,14 @@ create_router := fn id, connections {
     // if packet target was this router, handle message
     { target_id: ^id, msg } -> {
       // introduce latency
-      wait(500)
+      wait(processing_latency)
       print("router " + string id + " received message: " + msg)
     },
 
     // otherwise send to other routers
     { target_id, id: packet_id } @ packet -> {
       // introduce latency
-      wait(200)
+      wait(routing_latency)
       // try sending directly to target
       chan2 := connections.find({ id } -> target_id == id).chan
 
@@ -67,21 +70,23 @@ create_network := fn size {
     _network := network.filter({ id } -> id != from.id)
     for to in _network {
       chan_name := "connection " + string from.id + ":" + string to.id
-      from.connections[from.connections.length] = id: to.id, chan: pipe (channel chan_name) to.chan
+      connection := id: to.id, chan: pipe (channel chan_name) to.chan
+      from.connections.push(connection)
     }
   }
 
   network
 }
 
-export fn do sync {
+export fn (size = "4", count = "8", processing_latency = "500", routing_latency = "200") do sync { 
+  inject processing_latency: number processing_latency, routing_latency: number routing_latency -> 
   print "creating network"
-  network := create_network 4
+  network := create_network(number size)
 
   print "simulating package routing"
 
   // generate 20 packets to send through the network
-  for i in range 0 10 {
+  for i in range 0 (number count) {
     packageName := "package " + string i
 
     node_from := network[0]
