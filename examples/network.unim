@@ -1,42 +1,25 @@
 import "std/iter" as { range }
-import "std/concurrency" as { wait, sync }
+import "std/concurrency" as { wait, sync, all, pipe }
 import "std/math" as { random }
 
-pipe := fn ch1, ch2 {
-  async loop {
-    ch2 <- (<- ch1)
-  }
-}
 
 create_packet := fn (id, target_id, msg) { id: id, target_id: target_id, msg: msg }
-create_connection := fn (to, chan_name) {
-  chan := channel chan_name
-  pipe chan to.chan
-  id: to.id, chan: chan
-}
-
 create_router := fn id, connections {
   chan := channel("router " + string id)
 
   async loop {
     // introduce latency
-    wait(random() * 50)
-
-    x := <- chan
-    // print (x, id)
+    wait(1000 + random() * 500)
+    
     // handle incoming packets
-    switch x {
-      // if packet target was us, handle message
+    switch <- chan {
+      // if packet target was this router, handle message
       { target_id: ^id, msg } -> print("router " + string id + " received message: " + msg),
 
       // otherwise send to other routers
       { target_id, id: packet_id } @ packet -> {
         // try sending directly to target
         status := connections.find({ id } -> target_id == id).chan ?<- packet
-        moved_to := moved_to_id -> 
-          "packet " + string packet_id + 
-          " moved from " + string id + 
-          " to " + string moved_to_id
 
         if status == :pending {
           // if target is busy, try routers one by one in random order
@@ -45,12 +28,18 @@ create_router := fn id, connections {
             router := connections.pick_random()
             status := router.chan ?<- packet
             if status != :pending {
-              print(moved_to router.id)
+              print(
+                "packet " + string packet_id + 
+                " sent from " + string id + 
+                " to " + string router.id
+              )
               break()
             }
           }
         } else {
-          print(moved_to target_id)
+          print("packet " + string packet_id + 
+          " sent from " + string id + 
+          " to target")
         }
       }
     }
@@ -60,6 +49,7 @@ create_router := fn id, connections {
 }
 
 create_network_node := fn id {
+  print("creating node " + string id)
   connections := ()
   chan := create_router id connections
   
@@ -71,39 +61,37 @@ create_network := fn size {
   network := for id in range 0 size do create_network_node id
   
   print "connect all the nodes together"
-  for from in network {
+  all for from in network do async {
     print("connecting node " + string from.id)
     _network := network.filter({ id } -> id != from.id)
     for to in _network {
-      connection := create_connection(to, "connection " + string from.id + ":" + string to.id)
-      from.connections[from.connections.length] = connection
+      chan_name := "connection " + string from.id + ":" + string to.id
+      from.connections[from.connections.length] = id: to.id, chan: pipe (channel chan_name) to.chan
     }
   }
 
   network
 }
 
-export fn {
+export fn do sync {
   print "creating network"
-  network := create_network 4
+  network := create_network 9
 
   print "simulating package routing"
 
-  // generate 10 packets to send through random nodes
+  // generate 10 packets to send through the network
   for i in range 0 10 {
     packageName := "package " + string i
 
+    node_from := network[0]
     node_to := network.pick_random()
-    node_from := loop {
-      if network.pick_random() is (not ^node_to) @ picked do break picked
-    }
 
-    from_to := packageName + " from " + string node_from.id + " to " + string node_to.id
-    print("sending " + from_to) 
+    print(
+      "sending " + packageName + 
+      " to " + string node_to.id
+    ) 
 
-    msg := "a " + from_to
-    packet := create_packet(i, node_to.id, msg)
-
-    node_from.chan <- packet
+    packet := create_packet(i, node_to.id, packageName)
+    async node_from.chan <- packet
   }
 }
