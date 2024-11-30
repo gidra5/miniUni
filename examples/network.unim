@@ -33,7 +33,11 @@ create_router := fn id, connections {
       { target_id, id: packet_id } @ packet -> {
         // try sending directly to target
         status := connections.find({ id } -> target_id == id).chan ?<- packet
-        moved_to := moved_to_id -> "packet " + string packet_id + " moved from " + string id + " to " + string moved_to_id
+        moved_to := moved_to_id -> 
+          "packet " + string packet_id + 
+          " moved from " + string id + 
+          " to " + string moved_to_id
+
         if status == :pending {
           // if target is busy, try routers one by one in random order
           // until someone is free
@@ -80,31 +84,26 @@ create_network := fn size {
 }
 
 export fn {
-  sync {
-    print "creating network"
-    network := create_network 4
+  print "creating network"
+  network := create_network 4
 
-    print "simulating package routing"
+  print "simulating package routing"
 
+  // generate 10 packets to send through random nodes
+  for i in range 0 10 {
+    packageName := "package " + string i
 
-    // generate 10 packets to send through random nodes
-    for i in range 0 1 {
-      packageName := "package " + string i
-
-      node_to := network.pick_random()
-      node_from := {
-        picked := network.pick_random()
-        if picked == node_to do continue()
-        picked
-      }
-
-      from_to := packageName + " from " + string node_from.id + " to " + string node_to.id
-      print("sending " + from_to) 
-
-      msg := "a " + from_to
-      packet := create_packet(i, node_to.id, msg)
-
-      node_from.chan <- packet
+    node_to := network.pick_random()
+    node_from := loop {
+      if network.pick_random() is (not ^node_to) @ picked do break picked
     }
+
+    from_to := packageName + " from " + string node_from.id + " to " + string node_to.id
+    print("sending " + from_to) 
+
+    msg := "a " + from_to
+    packet := create_packet(i, node_to.id, msg)
+
+    node_from.chan <- packet
   }
 }

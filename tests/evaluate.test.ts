@@ -1398,6 +1398,28 @@ describe('expressions', () => {
       expect(result).toEqual('hello1hello2');
     });
 
+    it('chan collect to list', async () => {
+      const input = `
+        import "std/concurrency" as { wait }
+  
+        mut list := ()
+        chan := channel()
+  
+        async {
+          x2 := <- chan
+          list = (x2,)
+          x1 := <- chan
+          list = (x2, x1)
+        }
+
+        chan <- 1
+        wait 0
+        list
+      `;
+      const result = await evaluate(input);
+      expect(result).toEqual([1]);
+    });
+
     describe('structured concurrency', () => {
       it('cancelling', async () => {
         const input = `
@@ -1492,6 +1514,7 @@ describe('expressions', () => {
         expect(result).toStrictEqual(1);
       });
     });
+
   });
 
   describe('effect handlers', () => {
