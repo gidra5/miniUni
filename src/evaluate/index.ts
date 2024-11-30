@@ -32,6 +32,7 @@ import {
   awaitTask,
   CallSite,
   cancelTask,
+  channelStatus,
   createChannel,
   createEffect,
   createHandler,
@@ -1028,6 +1029,10 @@ const lazyOperators = {
 
       if (isRecord(target)) {
         return recordGet(target, index);
+      }
+
+      if (isChannel(target)) {
+        if (index === atom('status')) return atom(channelStatus(target));
       }
 
       unreachable(invalidIndexTargetError);

@@ -120,7 +120,7 @@ export function isPrototyped(value: EvalValue): value is EvalPrototype {
 
 const channels: Record<symbol, Channel> = {};
 
-const channelStatus = (c: symbol): ChannelStatus => {
+export const channelStatus = (c: symbol): ChannelStatus => {
   const channel = channels[c];
   if (!channel) return ChannelStatus.Closed;
 

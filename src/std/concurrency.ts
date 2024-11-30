@@ -44,21 +44,21 @@ const cellM = memoize(() => {
   const cellSource = `
     fn value {
       cell := channel "cell"
-      cell ?<- value
+      async cell <- value
       (
         get: fn {
           value := <- cell
-          cell ?<- value
+          async cell <- value
           value
         },
         read: fn body {
           value := <- cell
           body value
-          cell ?<- value
+          async cell <- value
         },
         update: fn action {
           value := <- cell
-          cell ?<- action value
+          async cell <- action value
         }
       )
     }
@@ -345,6 +345,27 @@ const genM = memoize(() => {
   const fn = compileScriptString(source, compileContext)(context);
   return fn;
 });
+const pipeM = memoize(() => {
+  const sourceFile = 'concurrency.pipe';
+  const source = `
+    fn ch1, ch2 {
+      async loop {
+        ch2 <- (<- ch1)
+      }
+      ch1
+    }
+  `;
+  const fileId = addFile(sourceFile, source);
+  const compileContext = {
+    file: sourceFile,
+    fileId,
+  };
+  const context = {
+    env: new Environment({ parent: prelude }),
+  };
+  const fn = compileScriptString(source, compileContext)(context);
+  return fn;
+});
 
 export default module({
   all: async ([position, _, context], list) => {
@@ -430,7 +451,7 @@ export default module({
 
     const handled = await handleEffects(handlers, value, cs[0], cs[1], cs[2]);
 
-    await Promise.all(childrenTasks.map((task) => awaitTask(task)));
+    await Promise.allSettled(childrenTasks.map((task) => awaitTask(task)));
     return handled;
   },
   cancel_on_error: async (cs, fn) => {
@@ -553,6 +574,11 @@ export default module({
   },
   gen: async (cs, v) => {
     const _f = await genM();
+    assert(typeof _f === 'function');
+    return _f(cs, v);
+  },
+  pipe: async (cs, v) => {
+    const _f = await pipeM();
     assert(typeof _f === 'function');
     return _f(cs, v);
   },

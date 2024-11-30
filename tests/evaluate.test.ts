@@ -1320,7 +1320,7 @@ describe('expressions', () => {
     });
 
     it('channel send receive', async () => {
-      const input = `c := channel "test"; c ?<- 123; <- c`;
+      const input = `c := channel "test"; async c <- 123; <- c`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
@@ -1350,7 +1350,7 @@ describe('expressions', () => {
     });
 
     it('select', async () => {
-      const input = `c1 := channel "test"; c2 := channel "test"; c1 ?<- 123; c2 ?<- 456; <- c2 + c1`;
+      const input = `c1 := channel "test"; c2 := channel "test"; async c1 <- 123; async c2 <- 456; <- c2 + c1`;
       const result = await evaluate(input);
       expect(result).toBe(123);
     });
