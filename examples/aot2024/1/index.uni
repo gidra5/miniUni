@@ -1,0 +1,69 @@
+import "std/math" as math
+import "std/iter" as { range }
+
+unzip := fn xs do
+  ((for x in xs do x[0]), (for y in xs do y[1]))
+
+zip := fn (xs, ys) do
+  (for i in range 0 (xs.length) do (xs[i], ys[i]))
+
+sort := fn xs {
+  if xs.length == 0 do return ()
+  
+  (pivot, ...rest) := xs;
+  smaller := for x in rest do if x <  pivot do x
+  bigger  := for x in rest do if x >= pivot do x
+
+  (...self smaller, pivot, ...self bigger)
+};
+
+sum := fn xs {
+  mut sum := 0
+  for x in xs do sum += x
+  sum
+}
+
+f := fn xs, target, mut low {
+  mut high := low
+  while xs[low] == target { low-- }
+  while xs[high] == target { high++ }
+  (low + 1, high)
+}
+
+binary_search := fn xs, target {
+  fn low, high {
+    if low > high do -1
+    else {
+      mid := math.floor((low + high) / 2)
+      if xs[mid] == target do f xs target mid
+      else if xs[mid] < target {
+        if xs[high] == target do f xs target high
+        else self (mid + 1) (high - 1)
+      } else {
+        if xs[low] == target do f xs target low
+        else self (low + 1) (mid - 1)
+      }
+    }
+  } 0 (xs.length - 1)
+}
+
+content := string import "./input.txt"
+lines := content.split("\n")
+  .filter(line -> line.length != 0)
+  .map(line -> line.split("   "))
+  .map((fst, snd) -> (number fst, number (snd.slice(0, 5))))
+
+print "parsed"
+
+(xs, ys) := (unzip lines).map(sort)
+
+print "sorted"
+
+print(sum ((zip (xs, ys)).map((x, y) -> math.abs(x - y))))
+
+print(sum (xs.map(x -> {
+  result := binary_search ys x
+  if result == -1 do return 0
+  (low, high) := result
+  (x * (high - low))
+})))

@@ -27,4 +27,14 @@ export default module({
   random: fn(1, () => {
     return Math.random();
   }),
+  abs: fn(1, ([position, _, context], n) => {
+    const fileId = context.fileId;
+    const absErrorFactory = SystemError.invalidArgumentType(
+      'abs',
+      { args: [['target', 'number']], returns: 'number' },
+      position
+    );
+    assert(typeof n === 'number', absErrorFactory(0).withFileId(fileId));
+    return Math.abs(n);
+  }),
 });
