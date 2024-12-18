@@ -133,7 +133,7 @@ const incAssign = (position: Position, context: CompileContext) => {
           context.env.has(patternKey),
           undeclaredName(
             patternKey.description!,
-            context.env.keys().map((k) => k.description ?? String(k))
+            context.env.mutableKeys().map((k) => k.description ?? String(k))
           )
         );
 
@@ -200,7 +200,7 @@ const assign = (position: Position, context: CompileContext) => {
           context.env.set(patternKey, value),
           undeclaredName(
             patternKey.description!,
-            context.env.keys().map((k) => k.description ?? String(k))
+            context.env.mutableKeys().map((k) => k.description ?? String(k))
           )
         );
       } else {

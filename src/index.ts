@@ -29,6 +29,7 @@ program
     console.log('Starting REPL...');
     const file = '<repl>';
 
+    const context = newContext();
     console.log('Waiting for next input...');
     const rl = readline.createInterface({ input, output, prompt: '>> ' });
     rl.prompt();
@@ -42,7 +43,6 @@ program
         default: {
           const fileId = addFile(file, line);
           const compileContext = newCompileContext(fileId, file);
-          const context = newContext();
           const compiled = compileScriptString(line, compileContext);
           const result = await compiled(context);
           console.dir(result, { depth: null });

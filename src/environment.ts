@@ -88,6 +88,18 @@ export class Environment {
     return [...new Set(keys)];
   }
 
+  readonlyKeys(): symbol[] {
+    const keys: symbol[] = [...this.readonly.keys()];
+    if (this.parent) keys.push(...this.parent.readonlyKeys());
+    return [...new Set(keys)];
+  }
+
+  mutableKeys(): symbol[] {
+    const keys: symbol[] = [...this.mutable.keys()];
+    if (this.parent) keys.push(...this.parent.mutableKeys());
+    return [...new Set(keys)];
+  }
+
   shallowCopy(): Environment {
     const copy = new Environment({ parent: this.parent });
     copy.readonly = new Map(this.readonly);
