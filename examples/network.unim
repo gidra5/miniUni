@@ -79,13 +79,16 @@ create_network := fn size {
 }
 
 export fn (size = "4", count = "8", processing_latency = "500", routing_latency = "200") do sync { 
-  inject processing_latency: number processing_latency, routing_latency: number routing_latency -> 
+  inject 
+    processing_latency: number processing_latency, 
+    routing_latency: number routing_latency 
+  -> 
   print "creating network"
   network := create_network(number size)
 
   print "simulating package routing"
 
-  // generate 20 packets to send through the network
+  // generate `count` packets to send through the network
   for i in range 0 (number count) {
     packageName := "package " + string i
 
@@ -96,3 +99,4 @@ export fn (size = "4", count = "8", processing_latency = "500", routing_latency 
     async node_from.chan <- packet
   }
 }
+
